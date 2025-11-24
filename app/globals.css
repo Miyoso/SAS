@@ -171,4 +171,60 @@ h1 span { color: var(--danger); }
 .card-body { display: flex; padding: 20px; gap: 20px; }
 .photo-box { width: 85px; height: 105px; border: 2px solid var(--secondary); background: #111; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: var(--secondary); box-shadow: 0 0 10px rgba(0, 243, 255, 0.2); }
 .agent-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-.card-label {
+.card-label { font-size: 0.7rem; color: var(--secondary); letter-spacing: 1px; text-transform: uppercase; }
+.card-value { font-size: 1.1rem; color: #fff; margin-bottom: 8px; text-transform: uppercase; font-weight: bold; }
+.card-code { font-family: var(--font-code); color: var(--primary); font-size: 0.9rem; }
+.card-footer { position: absolute; bottom: 12px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+.barcode { font-family: var(--font-barcode); font-size: 2.5rem; color: #fff; opacity: 0.8; line-height: 0.8; }
+
+.terminal-console { 
+    position: fixed; 
+    bottom: 0; left: 0; width: 100%;
+    height: 40vh;
+    background: #080a0c; 
+    border-top: 2px solid var(--primary); 
+    display: flex; flex-direction: column;
+    z-index: 2000; 
+    transform: translateY(100%); 
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    box-shadow: 0 -5px 20px rgba(0, 255, 157, 0.2);
+    padding: 0;
+}
+
+.terminal-console.open { transform: translateY(0); }
+
+.terminal-history {
+    flex: 1; 
+    overflow-y: auto; 
+    padding: 15px 30px;
+    font-family: var(--font-code);
+    font-size: 0.9rem;
+    color: #ccc;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.term-line { margin-bottom: 5px; word-break: break-all; }
+.term-user { color: var(--primary); font-weight: bold; }
+.term-system { color: #ccc; }
+.term-error { color: var(--danger); }
+.term-info { color: var(--secondary); }
+.term-success { color: var(--primary); }
+
+.terminal-input-area {
+    display: flex; align-items: center; gap: 10px;
+    padding: 15px 30px;
+    background: rgba(0,0,0,0.5);
+}
+
+.prompt { color: var(--primary); font-weight: bold; font-family: var(--font-code); }
+.cmd-input { background: transparent; border: none; outline: none; color: #fff; font-family: var(--font-code); font-size: 1rem; width: 100%; }
+
+.term-hint {
+    position: fixed; bottom: 10px; right: 20px; font-size: 0.7rem; color: var(--dim); z-index: 100;
+    opacity: 0.5;
+}
+
+.terminal-history::-webkit-scrollbar { width: 8px; }
+.terminal-history::-webkit-scrollbar-track { background: #000; }
+.terminal-history::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 4px; }
+.terminal-history::-webkit-scrollbar-thumb:hover { background: var(--primary); }
