@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHADOW_NET // PERSONNEL_DATABASE</title>
+    <title>SAS - Command Hierarchy</title>
     
     <script>
         const session = localStorage.getItem('sas_session');
         if (!session) {
-            window.location.href = 'index.html';
+            // Décommenter pour forcer la connexion
+            // window.location.href = 'index.html';
         }
     </script>
 
@@ -17,135 +18,163 @@
 
     <style>
         body {
-            overflow-x: hidden;
-            padding-top: 20px;
+            overflow-y: auto;
+            display: block;
+            padding-top: 40px;
             background-image: 
-                radial-gradient(circle at 50% 10%, rgba(0, 255, 157, 0.05) 0%, transparent 60%),
-                linear-gradient(0deg, rgba(0,0,0,0.9), rgba(5, 10, 15, 1));
+                radial-gradient(circle at 50% 20%, rgba(20, 30, 40, 1) 0%, rgba(5, 5, 5, 1) 80%);
         }
 
-        /* --- STRUCTURE DE L'ARBRE (TREE VIEW) --- */
-        .org-tree {
+        .hierarchy-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 100px;
+            position: relative;
+            z-index: 5;
+            min-width: 1200px; /* Assure que l'arbre ne s'écrase pas */
+        }
+
+        /* --- CARTES ET NOEUDS --- */
+        .node-card {
+            background: rgba(10, 15, 20, 0.9);
+            border: 1px solid var(--dim);
+            padding: 15px;
+            width: 240px;
+            text-align: center;
+            position: relative;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            cursor: pointer;
+            /* Forme tech avec coins coupés */
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .node-card:hover {
+            transform: scale(1.05) translateY(-5px);
+            background: rgba(20, 30, 40, 0.95);
+            z-index: 10;
+        }
+
+        .node-name {
+            font-family: var(--font-code);
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 5px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .node-role {
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            opacity: 0.8;
+        }
+        .node-status {
+            font-size: 0.65rem;
+            color: var(--dim);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 8px;
+            padding-top: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* --- COULEURS SPÉCIFIQUES --- */
+        /* COMMAND (Gold) */
+        .rank-director { border-color: var(--gold); width: 280px; }
+        .rank-director .role { color: var(--gold); }
+        .rank-director:hover { box-shadow: 0 0 30px rgba(212, 175, 55, 0.2); border-color: #ffe680; }
+
+        /* OPS (Red - Javier) */
+        .rank-ops { border-color: var(--danger); }
+        .rank-ops .node-role { color: var(--danger); }
+        .rank-ops:hover { box-shadow: 0 0 20px rgba(255, 51, 51, 0.3); border-color: #ff5555; }
+
+        /* STRAT (Yellow - Selena) */
+        .rank-strat { border-color: var(--warning); }
+        .rank-strat .node-role { color: var(--warning); }
+        .rank-strat:hover { box-shadow: 0 0 20px rgba(238, 187, 0, 0.3); border-color: #ffeeb0; }
+
+        /* INTEL (Cyan - Jackal) */
+        .rank-intel { border-color: var(--secondary); }
+        .rank-intel .node-role { color: var(--secondary); }
+        .rank-intel:hover { box-shadow: 0 0 20px rgba(0, 243, 255, 0.3); border-color: #aaffff; }
+
+        /* SOLDATS (Dim -> Hover Color) */
+        .rank-soldier { border-color: var(--dim); width: 200px; }
+        .rank-soldier .node-role { color: #888; }
+        
+        .group-ops:hover .rank-soldier { border-color: var(--danger); }
+        .group-strat:hover .rank-soldier { border-color: var(--warning); }
+        .group-intel:hover .rank-soldier { border-color: var(--secondary); }
+
+        /* --- STRUCTURE DE LIGNES (CONNECTIONS) --- */
+        .level-1 { margin-bottom: 50px; position: relative; }
+        .director-stem {
+            width: 2px; height: 50px; background: var(--gold);
+            margin: 0 auto; position: absolute; bottom: -50px; left: 50%;
+            box-shadow: 0 0 10px var(--gold);
+        }
+
+        .level-2-wrapper {
             display: flex;
             justify-content: center;
-            flex-wrap: wrap;
-            padding: 20px;
+            gap: 100px; /* Espace entre les Lieutenants */
+            position: relative;
             margin-bottom: 50px;
         }
 
-        .org-tree ul {
-            padding-top: 20px; 
-            position: relative;
-            transition: all 0.5s;
+        /* La grande ligne horizontale qui relie les LTs */
+        .bridge-horizontal {
+            position: absolute;
+            top: -20px;
+            left: 120px; /* Ajusté pour centrer sur les cartes latérales */
+            right: 120px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--danger), var(--gold), var(--secondary));
+            opacity: 0.7;
+        }
+        /* Connecteurs verticaux vers les LTs */
+        .bridge-connector {
+            position: absolute; top: -20px; width: 2px; height: 20px;
+        }
+        .bc-left { left: 120px; background: var(--danger); }
+        .bc-center { left: 50%; background: var(--gold); }
+        .bc-right { right: 120px; background: var(--secondary); }
+
+        /* --- SOUS-GROUPES (LEVEL 3) --- */
+        .level-3-wrapper {
             display: flex;
             justify-content: center;
+            gap: 100px; /* Doit correspondre au gap du level 2 pour l'alignement */
+            align-items: flex-start;
         }
 
-        .org-tree li {
-            float: left; text-align: center;
-            list-style-type: none;
+        .unit-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px; /* Espace vertical entre les soldats */
             position: relative;
-            padding: 20px 10px 0 10px;
-            transition: all 0.5s;
+            width: 240px; /* Largeur pour matcher la carte du dessus */
         }
 
-        /* Lignes de connexion (Connectors) */
-        .org-tree li::before, .org-tree li::after {
-            content: ''; position: absolute; top: 0; right: 50%;
-            border-top: 2px solid var(--dim);
-            width: 50%; height: 20px;
+        /* Ligne verticale reliant le LT à ses soldats */
+        .unit-stem {
+            position: absolute;
+            top: -50px; /* Remonte vers le LT */
+            left: 50%;
+            width: 2px;
+            height: 100%; /* Descend tout le long de la colonne */
+            z-index: -1;
+            opacity: 0.3;
         }
-        .org-tree li::after {
-            right: auto; left: 50%;
-            border-left: 2px solid var(--dim);
-        }
-
-        .org-tree li:only-child::after, .org-tree li:only-child::before {
-            display: none;
-        }
-        .org-tree li:only-child { padding-top: 0; }
-        .org-tree li:first-child::before, .org-tree li:last-child::after {
-            border: 0 none;
-        }
-        .org-tree li:last-child::before {
-            border-right: 2px solid var(--dim);
-            border-radius: 0 5px 0 0;
-        }
-        .org-tree li:first-child::after {
-            border-radius: 5px 0 0 0;
-        }
-        .org-tree ul ul::before {
-            content: ''; position: absolute; top: 0; left: 50%;
-            border-left: 2px solid var(--dim);
-            width: 0; height: 20px;
-        }
-
-        /* --- CARTES DES NOEUDS (NODES) --- */
-        .node-card {
-            background: rgba(10, 16, 22, 0.9);
-            border: 1px solid var(--dim);
-            padding: 15px;
-            width: 180px;
-            text-decoration: none;
-            color: #fff;
-            display: inline-block;
-            transition: all 0.3s ease;
-            position: relative;
-            z-index: 10;
-            cursor: pointer;
-            /* Forme Tech */
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        }
-
-        /* Effets au survol */
-        .node-card:hover, 
-        .org-tree li:hover > .node-card, /* Active aussi le parent si on survole l'enfant (optionnel) */
-        .node-card:focus {
-            transform: scale(1.05);
-            background: rgba(10, 30, 40, 0.95);
-            box-shadow: 0 0 25px rgba(0, 255, 157, 0.15);
-            z-index: 20;
-        }
-
-        /* --- COULEURS PAR RÔLE --- */
-        /* COMMAND (Gold) */
-        .role-cmd { border-color: var(--gold); box-shadow: 0 0 10px rgba(212, 175, 55, 0.1); }
-        .role-cmd .n-rank { color: var(--gold); }
-        .role-cmd:hover { border-color: #ffe680; box-shadow: 0 0 20px rgba(212, 175, 55, 0.4); }
-
-        /* OPS / ASSAULT (Red) */
-        .role-ops { border-color: var(--danger); }
-        .role-ops .n-rank { color: var(--danger); }
-        .role-ops:hover { border-color: #ff5555; box-shadow: 0 0 20px rgba(255, 51, 51, 0.4); }
-
-        /* INTEL / TECH (Cyan/Secondary) */
-        .role-intel { border-color: var(--secondary); }
-        .role-intel .n-rank { color: var(--secondary); }
-        .role-intel:hover { border-color: #aaffff; box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); }
-
-        /* SUPPORT / STRAT (Warning/Yellow) */
-        .role-supp { border-color: var(--warning); }
-        .role-supp .n-rank { color: var(--warning); }
-        .role-supp:hover { border-color: #ffeeb0; box-shadow: 0 0 20px rgba(238, 187, 0, 0.4); }
-
-        /* SPECIAL (Primary/Green) */
-        .role-spec { border-color: var(--primary); }
-        .role-spec .n-rank { color: var(--primary); }
-        .role-spec:hover { border-color: #80ffce; box-shadow: 0 0 20px rgba(0, 255, 157, 0.4); }
-
-
-        /* --- TYPOGRAPHIE INTERNE --- */
-        .n-rank { font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; font-weight: bold; }
-        .n-name { font-family: var(--font-code); font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fff; text-shadow: 0 2px 5px rgba(0,0,0,0.8); }
-        .n-status { font-size: 0.6rem; color: #666; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px; display: flex; justify-content: space-between; }
-        
-        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #333; display: inline-block; }
-        .st-active { background: var(--primary); box-shadow: 0 0 5px var(--primary); animation: pulse 2s infinite; }
-        .st-busy { background: var(--warning); }
-        .st-offline { background: var(--danger); }
-
-        @keyframes pulse { 0% {opacity: 1;} 50% {opacity: 0.5;} 100% {opacity: 1;} }
+        .stem-ops { background: var(--danger); }
+        .stem-strat { background: var(--warning); }
+        .stem-intel { background: var(--secondary); }
 
         /* HUD */
         .user-hud {
@@ -154,6 +183,10 @@
             border: 1px solid var(--dim); border-left: 3px solid var(--primary);
             padding: 8px 15px; font-family: var(--font-ui); font-size: 0.85rem; color: #fff;
             z-index: 10000; backdrop-filter: blur(5px); display: flex; gap: 10px; align-items: center;
+        }
+
+        @media (max-width: 1200px) {
+            .hierarchy-wrapper { transform: scale(0.8); transform-origin: top center; }
         }
     </style>
 </head>
@@ -167,105 +200,119 @@
         <div><span style="color:var(--dim)">LVL:</span> <span id="hud-rank" style="color:var(--secondary)">...</span></div>
     </div>
 
-    <div class="terminal-wrapper" style="margin-top: 40px; max-width: 100%;">
-        <div class="terminal" style="min-height: 90vh; overflow-x: auto;">
+    <div class="terminal-wrapper" style="margin-top: 60px; max-width: 100%;">
+        <div class="terminal" style="min-height: 85vh; border:none; background: transparent; box-shadow: none;">
             
-            <header class="header-strip">
+            <header class="header-strip" style="background: rgba(10,15,20,0.8); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 40px;">
                 <div>
-                    <h1>SHADOW_NET // <span>DATABASE</span></h1>
-                    <div style="color: var(--secondary); font-size: 0.8rem; letter-spacing: 2px;">COMMAND HIERARCHY V4.1</div>
+                    <h1>SHADOW_NET // <span>HIERARCHY</span></h1>
+                    <div style="color: var(--secondary); font-size: 0.8rem; letter-spacing: 2px;">COMMAND STRUCTURE V4.0</div>
                 </div>
                 <div class="meta-data">
-                    <span class="blink">LIVE SYNC: ACTIVE</span><br>
-                    NODES: 10 DETECTED
+                    LIVE SYNC: ACTIVE<br>
+                    NODES: 10 ONLINE
                 </div>
             </header>
 
-            <div class="org-tree">
-                <ul>
-                    <li>
-                        <a href="db/agent-Graves.html" class="node-card role-cmd">
-                            <div class="n-rank">COMMANDER</div>
-                            <div class="n-name">GRAVES</div>
-                            <div class="n-status"><span>CEO / 0-1</span> <span class="status-dot st-active"></span></div>
-                        </a>
+            <div class="hierarchy-wrapper">
+
+                <div class="level-1">
+                    <div class="node-card rank-director" onclick="window.location.href='db/agent-Graves.html'">
+                        <div class="node-role">COMMANDER // CEO</div>
+                        <div class="node-name">PHILLIP GRAVES</div>
+                        <div class="node-status" style="color: var(--success);">
+                            <span>STATUS: ACTIVE</span>
+                            <span style="color:var(--gold)">[ DOSSIER MAÎTRE ]</span>
+                        </div>
+                    </div>
+                    <div class="director-stem"></div>
+                </div>
+
+                <div class="level-2-wrapper">
+                    <div class="bridge-horizontal"></div>
+                    <div class="bridge-connector bc-left"></div>
+                    <div class="bridge-connector bc-center"></div>
+                    <div class="bridge-connector bc-right"></div>
+
+                    <div class="node-card rank-ops" onclick="window.location.href='db/agent-Javier.html'">
+                        <div class="node-role">OPS // RIGHT HAND</div>
+                        <div class="node-name">JAVIER</div>
+                        <div class="node-status">
+                            <span>UNIT: ALPHA</span>
+                            <span style="color:var(--danger)">ONLINE</span>
+                        </div>
+                    </div>
+
+                    <div class="node-card rank-strat" onclick="window.location.href='db/agent-selena.html'">
+                        <div class="node-role">LEGAL // STRATEGY</div>
+                        <div class="node-name">SELENA</div>
+                        <div class="node-status">
+                            <span>UNIT: ADMIN</span>
+                            <span style="color:var(--warning)">ACTIVE</span>
+                        </div>
+                    </div>
+
+                    <div class="node-card rank-intel" onclick="window.location.href='db/agent-ji.html'">
+                        <div class="node-role">INTEL // LEFT HAND</div>
+                        <div class="node-name">JACKAL</div>
+                        <div class="node-status">
+                            <span>UNIT: GHOST</span>
+                            <span style="color:var(--secondary)">ONLINE</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="level-3-wrapper">
+                    
+                    <div class="unit-column group-ops">
+                        <div class="unit-stem stem-ops"></div>
                         
-                        <ul>
-                            <li>
-                                <a href="db/agent-Javier.html" class="node-card role-ops">
-                                    <div class="n-rank">LTN / OPS</div>
-                                    <div class="n-name">JAVIER</div>
-                                    <div class="n-status"><span>ALPHA 0-1</span> <span class="status-dot st-active"></span></div>
-                                </a>
-                                <ul>
-                                    <li>
-                                        <a href="db/agent-blitz.html" class="node-card role-ops">
-                                            <div class="n-rank">ASSAULT</div>
-                                            <div class="n-name">BLITZ</div>
-                                            <div class="n-status"><span>HEAVY</span> <span class="status-dot st-busy"></span></div>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="db/agent-blake.html" class="node-card role-ops">
-                                            <div class="n-rank">INFANTRY</div>
-                                            <div class="n-name">BLAKE</div>
-                                            <div class="n-status"><span>GRUNT</span> <span class="status-dot st-active"></span></div>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
+                        <div class="node-card rank-soldier" onclick="window.location.href='db/agent-blitz.html'">
+                            <div class="node-role">ASSAULT</div>
+                            <div class="node-name">BLITZ</div>
+                            <div class="node-status"><span>READY</span> <span style="color:var(--danger)">●</span></div>
+                        </div>
 
-                            <li>
-                                <a href="db/agent-selena.html" class="node-card role-supp">
-                                    <div class="n-rank">STRATEGY</div>
-                                    <div class="n-name">SELENA</div>
-                                    <div class="n-status"><span>LEGAL</span> <span class="status-dot st-active"></span></div>
-                                </a>
-                                <ul>
-                                    <li>
-                                        <a href="db/agent-roxanne.html" class="node-card role-supp">
-                                            <div class="n-rank">PROTECTION</div>
-                                            <div class="n-name">ROXANNE</div>
-                                            <div class="n-status"><span>GUARD</span> <span class="status-dot st-busy"></span></div>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="db/agent-adam.html" class="node-card role-supp">
-                                            <div class="n-rank">ASSET</div>
-                                            <div class="n-name">ADAM</div>
-                                            <div class="n-status"><span>CONTRACT</span> <span class="status-dot st-offline"></span></div>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
+                        <div class="node-card rank-soldier" onclick="window.location.href='db/agent-blake.html'">
+                            <div class="node-role">INFANTRY</div>
+                            <div class="node-name">BLAKE</div>
+                            <div class="node-status"><span>DEPLOYED</span> <span style="color:var(--danger)">●</span></div>
+                        </div>
+                    </div>
 
-                            <li>
-                                <a href="db/agent-ji.html" class="node-card role-intel">
-                                    <div class="n-rank">LTN / INTEL</div>
-                                    <div class="n-name">JACKAL</div>
-                                    <div class="n-status"><span>SHADOW</span> <span class="status-dot st-active"></span></div>
-                                </a>
-                                <ul>
-                                    <li>
-                                        <a href="db/agent-wei.html" class="node-card role-intel">
-                                            <div class="n-rank">RECON</div>
-                                            <div class="n-name">DUST</div>
-                                            <div class="n-status"><span>OBSERVER</span> <span class="status-dot st-active"></span></div>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="db/agent-nyx.html" class="node-card role-spec">
-                                            <div class="n-rank">CYBER</div>
-                                            <div class="n-name">NYX</div>
-                                            <div class="n-status"><span>NETRUNNER</span> <span class="status-dot st-active"></span></div>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
+                    <div class="unit-column group-strat">
+                        <div class="unit-stem stem-strat"></div>
 
-                        </ul>
-                    </li>
-                </ul>
+                        <div class="node-card rank-soldier" onclick="window.location.href='db/agent-roxanne.html'">
+                            <div class="node-role">PROTECTION</div>
+                            <div class="node-name">ROXANNE</div>
+                            <div class="node-status"><span>GUARD</span> <span style="color:var(--warning)">●</span></div>
+                        </div>
+
+                        <div class="node-card rank-soldier" onclick="window.location.href='db/agent-adam.html'">
+                            <div class="node-role">ASSET</div>
+                            <div class="node-name">ADAM</div>
+                            <div class="node-status"><span>PENDING</span> <span style="color:#666">●</span></div>
+                        </div>
+                    </div>
+
+                    <div class="unit-column group-intel">
+                        <div class="unit-stem stem-intel"></div>
+
+                        <div class="node-card rank-soldier" onclick="window.location.href='db/agent-wei.html'">
+                            <div class="node-role">RECON</div>
+                            <div class="node-name">DUST</div>
+                            <div class="node-status"><span>OBSERVER</span> <span style="color:var(--secondary)">●</span></div>
+                        </div>
+
+                        <div class="node-card rank-soldier" onclick="window.location.href='db/agent-nyx.html'">
+                            <div class="node-role">CYBER</div>
+                            <div class="node-name">NYX</div>
+                            <div class="node-status"><span>NETRUNNER</span> <span style="color:var(--primary)">●</span></div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
             <footer class="footer">
@@ -280,7 +327,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Récupération des infos de session pour le HUD
             const sessionRaw = localStorage.getItem('sas_session');
             if (sessionRaw) {
                 try {
@@ -288,20 +334,8 @@
                     document.getElementById('hud-username').textContent = currentUser.username;
                     document.getElementById('hud-rank').textContent = currentUser.rank;
                     document.getElementById('user-hud').style.display = 'flex';
-                } catch(e) {
-                    console.error("Erreur session", e);
-                }
+                } catch(e) {}
             }
-
-            // Animation simple d'entrée pour l'arbre
-            const tree = document.querySelector('.org-tree');
-            tree.style.opacity = '0';
-            tree.style.transform = 'translateY(20px)';
-            setTimeout(() => {
-                tree.style.transition = 'all 0.8s ease-out';
-                tree.style.opacity = '1';
-                tree.style.transform = 'translateY(0)';
-            }, 300);
         });
     </script>
 </body>
