@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS - Command Hierarchy</title>
+    <title>SAS - Command Hierarchy [TACTICAL VIEW]</title>
     
     <script>
         const session = localStorage.getItem('sas_session');
@@ -14,196 +14,214 @@
     <link rel="stylesheet" href="css/style-mo.css">
 
     <style>
-        /* --- STYLES GLOBAUX MODIFIÉS --- */
+        /* --- 1. FOND TACTIQUE IMMERSIF --- */
         body {
-            background-color: #050505;
-            background-image: 
-                linear-gradient(rgba(0, 255, 157, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 157, 0.02) 1px, transparent 1px),
-                radial-gradient(circle at 50% 0%, #151a20 0%, #050505 80%);
-            background-size: 50px 50px, 50px 50px, 100% 100%;
+            background-color: #020406;
+            color: #eee;
+            font-family: 'Share Tech Mono', monospace;
             overflow-x: hidden;
-            overflow-y: auto;
             min-height: 100vh;
+            margin: 0;
         }
 
+        /* Grille de fond */
+        .tactical-grid {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -10;
+            mask-image: radial-gradient(circleAt center, black 40%, transparent 90%);
+        }
+
+        /* Effet de Vignetage (assombrir les bords) */
+        .vignette {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 50%, #000 100%);
+            z-index: -5; pointer-events: none;
+        }
+
+        /* Ligne de scan radar qui descend */
+        .radar-scan {
+            position: fixed; top: 0; left: 0; width: 100%; height: 5px;
+            background: rgba(0, 255, 157, 0.3);
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+            animation: scanScreen 8s linear infinite;
+            z-index: -4; opacity: 0.3;
+        }
+        @keyframes scanScreen { 0% {top: -10%;} 100% {top: 110%;} }
+
+        /* --- 2. DÉCORATIONS LATÉRALES (HUD) --- */
+        .hud-side {
+            position: fixed; top: 100px; bottom: 50px; width: 60px;
+            display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+            z-index: 0; pointer-events: none;
+            color: #334455; font-size: 0.6rem; letter-spacing: 1px;
+            border-left: 1px dashed rgba(255,255,255,0.05);
+            border-right: 1px dashed rgba(255,255,255,0.05);
+        }
+        .hud-left { left: 20px; border-left: none; }
+        .hud-right { right: 20px; border-right: none; }
+
+        .hud-marker {
+            writing-mode: vertical-rl; text-orientation: mixed;
+            transform: rotate(180deg);
+            opacity: 0.6;
+        }
+        .hud-ruler {
+            height: 100px; width: 4px; 
+            background: repeating-linear-gradient(to bottom, #334455 0, #334455 1px, transparent 2px, transparent 10px);
+        }
+
+        /* --- 3. CONTENEUR PRINCIPAL --- */
         .hierarchy-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 80px 20px 150px 20px;
-            position: relative;
-            z-index: 5;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 100px 20px 150px 20px;
+            position: relative; z-index: 5;
             min-width: 1000px;
-            animation: interfaceFadeIn 1s ease-out;
+            animation: fadeIn 1s ease-out;
         }
+        @keyframes fadeIn { from {opacity:0; transform: scale(0.95);} to {opacity:1; transform: scale(1);} }
 
-        @keyframes interfaceFadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* --- DESIGN DES CARTES (HOLO-GLASS) --- */
+        /* --- 4. CARTES STYLISÉES --- */
         .node-card {
-            background: rgba(13, 17, 23, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            padding: 15px;
-            width: 240px;
+            background: rgba(10, 14, 18, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            padding: 15px 20px;
+            width: 250px;
             position: relative;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            /* Forme tech : coin coupé en bas à droite */
-            clip-path: polygon(
-                0 0, 100% 0, 
-                100% calc(100% - 15px), calc(100% - 15px) 100%, 
-                0 100%
-            );
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            cursor: pointer; text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            overflow: hidden; /* Pour l'effet scan interne */
         }
+
+        /* Effet de scan interne au survol */
+        .node-card::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.05), transparent);
+            transform: rotate(45deg) translateY(-100%);
+            transition: 0.5s;
+        }
+        .node-card:hover::after { transform: rotate(45deg) translateY(100%); }
 
         .node-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            background: rgba(25, 30, 40, 0.9);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.7);
+            transform: translateY(-5px);
+            background: rgba(20, 25, 30, 0.95);
+            border-color: rgba(255,255,255,0.4);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
             z-index: 10;
         }
 
-        /* Typographie */
-        .node-role {
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 0.65rem;
-            letter-spacing: 2px;
-            color: #667788;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-        }
-        .node-name {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: #eee;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
-        .node-status {
-            font-size: 0.6rem;
-            font-family: 'JetBrains Mono', monospace;
-            background: rgba(0,0,0,0.4);
-            padding: 5px 8px;
-            border-radius: 2px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-left: 2px solid #445566;
-            color: #8899aa;
+        /* Détails carte */
+        .node-role { font-size: 0.65rem; color: #667788; margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
+        .node-role::before { content:''; width: 4px; height: 4px; background: currentColor; }
+        
+        .node-name { font-family: 'JetBrains Mono'; font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 12px; letter-spacing: 1px; }
+        
+        .node-footer { 
+            display: flex; justify-content: space-between; align-items: center; 
+            border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; font-size: 0.65rem; color: #8899aa; 
         }
 
-        /* --- COULEURS PAR RANG --- */
-        
-        /* NIVEAU 1 : COMMANDANT (Or) */
-        .rank-director { border-color: #d4af37; width: 300px; padding: 20px; }
-        .rank-director .node-name { color: #fff; font-size: 1.4rem; }
+        /* Couleurs spécifiques */
+        /* DIRECTOR */
+        .rank-director { border-left: 3px solid #d4af37; width: 320px; }
         .rank-director .node-role { color: #d4af37; }
-        .rank-director:hover { border-color: #ffe680; box-shadow: 0 0 30px rgba(212, 175, 55, 0.2); }
+        .rank-director:hover { box-shadow: 0 0 30px rgba(212, 175, 55, 0.15); border-color: #d4af37; }
 
-        /* NIVEAU 2 : LIEUTENANTS (Argent/Platine) */
-        .rank-lt { border-color: #a0a0a0; width: 260px; }
-        .rank-lt .node-role { color: #ccc; }
-        .rank-lt:hover { border-color: #fff; box-shadow: 0 0 20px rgba(255, 255, 255, 0.15); }
-        
-        /* Accents spécifiques pour Javier et Jackal si souhaité, sinon garder neutre */
-        .lt-javier { border-bottom: 2px solid #ff3333; }
-        .lt-jackal { border-bottom: 2px solid #00f3ff; }
+        /* LIEUTENANTS */
+        .rank-lt { border-left: 3px solid #ccc; width: 280px; }
+        .rank-lt:hover { border-color: #fff; }
+        .lt-javier { border-left-color: #ff3333; } .lt-javier .node-role { color: #ff3333; }
+        .lt-jackal { border-left-color: #00f3ff; } .lt-jackal .node-role { color: #00f3ff; }
 
-        /* NIVEAU 3 : SOLDATS (Standard / Vert Tactique au survol) */
-        .rank-soldier { border-color: #334455; opacity: 0.9; width: 200px; }
-        .rank-soldier .node-name { font-size: 0.95rem; }
-        .rank-soldier:hover { 
-            opacity: 1; 
-            border-color: var(--primary); 
-            box-shadow: 0 5px 15px rgba(0, 255, 157, 0.1); 
-        }
+        /* SOLDIERS */
+        .rank-soldier { border-left: 3px solid #445566; width: 220px; opacity: 0.85; }
+        .rank-soldier:hover { opacity: 1; border-left-color: var(--primary); border-color: var(--primary); }
         .rank-soldier:hover .node-name { color: var(--primary); }
 
-        /* --- LIGNES DE CONNEXION --- */
-        .conn-line {
-            position: absolute;
-            background: #2a3b4c;
-            z-index: -1;
-            opacity: 0.6;
+        /* --- 5. CONNECTEURS --- */
+        .line { position: absolute; background: #334455; z-index: -1; opacity: 0.5; }
+        /* Animation flux de données */
+        .line::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, #fff, transparent);
+            opacity: 0.3; animation: dataFlow 3s infinite linear;
         }
-        
-        /* Grille des niveaux */
-        .level-1 { margin-bottom: 60px; position: relative; display: flex; justify-content: center; }
-        .level-2-wrapper { margin-bottom: 60px; display: flex; gap: 100px; justify-content: center; position: relative; }
-        .level-3-grid { 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 30px; 
-            justify-content: center; 
-            max-width: 1200px; 
-            position: relative;
-        }
+        .line-v::before { background: linear-gradient(180deg, transparent, #fff, transparent); }
+        @keyframes dataFlow { 0% {opacity:0;} 50% {opacity:0.5;} 100% {opacity:0;} }
 
-        /* Lignes spécifiques */
-        /* Tige Commandant -> Pont */
-        .stem-main { width: 2px; height: 30px; bottom: -30px; left: 50%; background: #d4af37; }
-        
-        /* Pont horizontal Lieutenants */
-        .bridge-lts { 
-            height: 2px; top: -30px; left: 130px; right: 130px; /* Ajusté selon la largeur des cartes LT */
-            background: linear-gradient(90deg, #ff3333, #a0a0a0, #00f3ff); 
-        }
-        /* Tiges vers les Lieutenants */
-        .stem-lt-left { width: 2px; height: 30px; top: -30px; left: 50%; background: #ff3333; } /* Relative à la carte */
-        .stem-lt-right { width: 2px; height: 30px; top: -30px; left: 50%; background: #00f3ff; } /* Relative à la carte */
-        
-        /* Tige centrale vers les soldats */
-        .stem-to-soldiers {
-            width: 2px; height: 40px; 
-            position: absolute; top: -40px; left: 50%; 
-            background: linear-gradient(180deg, #a0a0a0, #334455);
-        }
-        /* Barre horizontale au-dessus des soldats */
-        .bar-soldiers {
-            height: 1px; width: 80%; 
-            position: absolute; top: -20px; left: 10%; 
-            background: #334455;
-        }
-        /* Petites tiges individuelles soldats */
-        .stem-soldier {
-            width: 1px; height: 20px; 
-            position: absolute; top: -20px; left: 50%; 
-            background: #334455;
-        }
+        /* Positions Lignes */
+        .level-1 { margin-bottom: 70px; position: relative; display: flex; justify-content: center; }
+        .stem-1 { width: 1px; height: 35px; bottom: -35px; left: 50%; background: #d4af37; }
 
-        /* HUD */
+        .level-2-wrapper { margin-bottom: 70px; display: flex; gap: 120px; justify-content: center; position: relative; }
+        .bridge { height: 1px; top: -35px; left: 140px; right: 140px; background: linear-gradient(90deg, #ff3333, #ccc, #00f3ff); }
+        .stem-lt { width: 1px; height: 35px; top: -35px; left: 50%; background: #ccc; }
+        
+        .level-3-grid { display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; max-width: 1200px; position: relative; padding-top: 40px; }
+        .stem-main-soldier { width: 1px; height: 40px; top: 0; left: 50%; background: linear-gradient(180deg, #ccc, #334455); }
+        .bar-soldier { height: 1px; width: 85%; top: 20px; left: 7.5%; background: #334455; }
+        .stem-small { width: 1px; height: 20px; top: -20px; left: 50%; background: #334455; }
+
+        /* --- 6. HUD UTILISATEUR & TITRE --- */
+        .screen-header {
+            position: absolute; top: 30px; left: 40px;
+            font-family: 'JetBrains Mono';
+        }
+        .screen-title { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .screen-subtitle { color: var(--danger); font-size: 0.7rem; letter-spacing: 3px; margin-top: 5px; }
+
         .user-hud {
-            position: fixed; top: 20px; right: 30px;
-            background: rgba(5, 10, 15, 0.9);
-            border: 1px solid #334455; border-left: 3px solid var(--primary);
-            padding: 10px 20px; font-family: 'Share Tech Mono'; color: #fff;
-            z-index: 100; backdrop-filter: blur(5px);
-            display: flex; gap: 20px;
+            position: fixed; top: 30px; right: 40px;
+            display: flex; gap: 20px; align-items: center;
+            background: rgba(0,0,0,0.6); padding: 10px 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 2px solid var(--primary);
+            backdrop-filter: blur(5px); z-index: 100;
         }
+        .hud-block { text-align: right; }
+        .hud-label { font-size: 0.65rem; color: #667788; letter-spacing: 1px; }
+        .hud-value { font-size: 0.9rem; color: #fff; font-family: 'JetBrains Mono'; }
 
     </style>
 </head>
 <body>
 
-    <div class="crt-overlay"></div>
+    <div class="tactical-grid"></div>
+    <div class="vignette"></div>
+    <div class="radar-scan"></div>
+
+    <div class="hud-side hud-left">
+        <div class="hud-ruler"></div>
+        <div class="hud-marker">SYS.MONITORING</div>
+        <div class="hud-marker" style="color:var(--danger)">SECURE</div>
+        <div class="hud-ruler"></div>
+    </div>
+    <div class="hud-side hud-right">
+        <div class="hud-ruler"></div>
+        <div class="hud-marker">NET.TRAFFIC</div>
+        <div class="hud-marker">128.0.0.1</div>
+        <div class="hud-ruler"></div>
+    </div>
+
+    <div class="screen-header">
+        <div class="screen-title">SHADOW // NET</div>
+        <div class="screen-subtitle">PERSONNEL DATABASE V.4.0</div>
+    </div>
 
     <div id="user-hud" class="user-hud" style="display: none;">
-        <div>
-            <div style="font-size: 0.7rem; color: #667788;">OPERATOR</div>
-            <div id="hud-username" style="color: var(--primary); font-weight: bold;">UNKNOWN</div>
+        <div class="hud-block">
+            <div class="hud-label">OPERATOR</div>
+            <div id="hud-username" class="hud-value">UNKNOWN</div>
         </div>
-        <div>
-            <div style="font-size: 0.7rem; color: #667788;">RANK</div>
-            <div id="hud-rank" style="color: var(--secondary);">LVL-0</div>
+        <div style="width:1px; height:20px; background:#333;"></div>
+        <div class="hud-block">
+            <div class="hud-label">CLEARANCE</div>
+            <div id="hud-rank" class="hud-value" style="color:var(--secondary)">LVL-0</div>
         </div>
     </div>
 
@@ -213,93 +231,90 @@
             <a href="db/agent-Graves.html" class="node-card rank-director">
                 <div class="node-role">COMMANDER</div>
                 <div class="node-name">PHILLIP GRAVES</div>
-                <div class="node-status" style="border-left-color: #d4af37;">
+                <div class="node-footer">
                     <span>STATUS: ACTIVE</span>
-                    <span style="color: #d4af37;">● CEO</span>
+                    <span style="color:#d4af37">● CEO</span>
                 </div>
-                <div class="conn-line stem-main"></div>
+                <div class="line line-v stem-1"></div>
             </a>
         </div>
 
         <div class="level-2-wrapper">
-            <div class="conn-line bridge-lts"></div>
+            <div class="line bridge"></div>
 
             <a href="db/agent-Javier.html" class="node-card rank-lt lt-javier">
-                <div class="conn-line stem-lt-left"></div>
+                <div class="line line-v stem-lt"></div>
                 <div class="node-role">LIEUTENANT</div>
                 <div class="node-name">JAVIER</div>
-                <div class="node-status">
+                <div class="node-footer">
                     <span>OPS LEAD</span>
-                    <span style="color: #ff3333;">●</span>
+                    <span style="color:#ff3333">●</span>
                 </div>
             </a>
 
             <a href="db/agent-ji.html" class="node-card rank-lt lt-jackal">
-                <div class="conn-line stem-lt-right"></div>
+                <div class="line line-v stem-lt"></div>
                 <div class="node-role">LIEUTENANT</div>
                 <div class="node-name">JACKAL</div>
-                <div class="node-status">
+                <div class="node-footer">
                     <span>INTEL LEAD</span>
-                    <span style="color: #00f3ff;">●</span>
+                    <span style="color:#00f3ff">●</span>
                 </div>
             </a>
         </div>
 
         <div class="level-3-grid">
-            
-            <div class="conn-line stem-to-soldiers"></div> <div class="conn-line bar-soldiers"></div>     <a href="db/agent-adam.html" class="node-card rank-soldier">
-                <div class="conn-line stem-soldier"></div>
+            <div class="line line-v stem-main-soldier"></div>
+            <div class="line bar-soldier"></div>
+
+            <a href="db/agent-adam.html" class="node-card rank-soldier">
+                <div class="line line-v stem-small"></div>
                 <div class="node-role">CONTRACTOR</div>
                 <div class="node-name">ADAM</div>
-                <div class="node-status"><span>READY</span> <span>●</span></div>
+                <div class="node-footer"><span>READY</span> <span>●</span></div>
             </a>
 
             <a href="db/agent-blake.html" class="node-card rank-soldier">
-                <div class="conn-line stem-soldier"></div>
+                <div class="line line-v stem-small"></div>
                 <div class="node-role">INFANTRY</div>
                 <div class="node-name">BLAKE</div>
-                <div class="node-status"><span>ACTIVE</span> <span>●</span></div>
+                <div class="node-footer"><span>ACTIVE</span> <span>●</span></div>
             </a>
 
             <a href="db/agent-blitz.html" class="node-card rank-soldier">
-                <div class="conn-line stem-soldier"></div>
+                <div class="line line-v stem-small"></div>
                 <div class="node-role">ASSAULT</div>
                 <div class="node-name">BLITZ</div>
-                <div class="node-status"><span>ACTIVE</span> <span>●</span></div>
+                <div class="node-footer"><span>ACTIVE</span> <span>●</span></div>
             </a>
 
             <a href="db/agent-wei.html" class="node-card rank-soldier">
-                <div class="conn-line stem-soldier"></div>
+                <div class="line line-v stem-small"></div>
                 <div class="node-role">RECON</div>
                 <div class="node-name">DUST</div>
-                <div class="node-status"><span>OBSERVER</span> <span>●</span></div>
+                <div class="node-footer"><span>OBSERVER</span> <span>●</span></div>
             </a>
 
             <a href="db/agent-nyx.html" class="node-card rank-soldier">
-                <div class="conn-line stem-soldier"></div>
+                <div class="line line-v stem-small"></div>
                 <div class="node-role">CYBER</div>
                 <div class="node-name">NYX</div>
-                <div class="node-status"><span>ONLINE</span> <span>●</span></div>
+                <div class="node-footer"><span>ONLINE</span> <span>●</span></div>
             </a>
 
             <a href="db/agent-roxanne.html" class="node-card rank-soldier">
-                <div class="conn-line stem-soldier"></div>
+                <div class="line line-v stem-small"></div>
                 <div class="node-role">PROTECTION</div>
                 <div class="node-name">ROXANNE</div>
-                <div class="node-status"><span>GUARD</span> <span>●</span></div>
+                <div class="node-footer"><span>GUARD</span> <span>●</span></div>
             </a>
 
             <a href="db/agent-selena.html" class="node-card rank-soldier">
-                <div class="conn-line stem-soldier"></div>
+                <div class="line line-v stem-small"></div>
                 <div class="node-role">STRAT</div>
                 <div class="node-name">SELENA</div>
-                <div class="node-status"><span>ADVISOR</span> <span>●</span></div>
+                <div class="node-footer"><span>ADVISOR</span> <span>●</span></div>
             </a>
-
-        </div>
-
-        <div style="margin-top: 80px; color: #445566; font-family: 'Share Tech Mono'; font-size: 0.7rem; letter-spacing: 2px;">
-            PERSONNEL DATABASE // ACCESS RESTRICTED
         </div>
 
     </div>
