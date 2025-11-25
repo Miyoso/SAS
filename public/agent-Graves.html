@@ -11,10 +11,40 @@
     
     <link rel="stylesheet" href="/css/style-mo.css">
 
+    <style>
+        /* Style HUD spécifique pour cette page si style-mo.css n'est pas modifié */
+        .user-hud {
+            position: fixed;
+            top: 20px;
+            right: 30px;
+            background: rgba(10, 15, 20, 0.9);
+            border: 1px solid #445566;
+            border-left: 3px solid #00ff9d;
+            padding: 8px 15px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.85rem;
+            color: #fff;
+            z-index: 10000;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .hud-label { color: #445566; font-size: 0.7rem; letter-spacing: 1px; }
+        .hud-value { color: #00ff9d; font-weight: bold; text-transform: uppercase; }
+        .hud-rank { color: #00f3ff; }
+    </style>
 </head>
 <body>
 
     <div class="crt-overlay"></div>
+
+    <div id="user-hud" class="user-hud" style="display: none;">
+        <div><span class="hud-label">AGENT:</span> <span id="hud-username" class="hud-value">...</span></div>
+        <div style="color:#445566">|</div>
+        <div><span class="hud-label">CLEARANCE:</span> <span id="hud-rank" class="hud-value hud-rank">...</span></div>
+    </div>
 
     <div id="boot-screen">
         <div class="boot-text">ESTABLISHING SECURE CONNECTION...</div>
@@ -102,28 +132,24 @@
                     </div>
                     
                     <div class="log-entry">
-                         
                          <span style="color: var(--primary)">[+] 
                              <span class="redacted" style="color:var(--primary)" data-real="ERR_" data-scramble="UNKNOWN"></span>
                          </span>
                     </div>
                     
                     <div class="log-entry">
-                         
                          <span style="color: var(--primary)">[+] 
                              <span class="redacted" style="color:var(--primary)" data-real="SYS_" data-scramble="UNKNOWN"></span>
                          </span>
                     </div>
 
                     <div class="log-entry">
-                         
                          <span style="color: var(--danger)">[-] 
                              <span class="redacted" style="color:var(--danger)" data-real="0xNULL_PTR" data-scramble="UNKNOWN"></span>
                          </span>
                     </div>
 
                     <div class="log-entry">
-                         
                          <span style="color: var(--danger)">[-] 
                              <span class="redacted" style="color:var(--danger)" data-real="0xBAD_ACCESS" data-scramble="UNKNOWN"></span>
                          </span>
@@ -186,15 +212,6 @@
                                 <td><span class="redacted" data-real="V.MAKAROV" data-scramble="UNKNOWN"></span></td>
                                 <td><span class="status-badge st-success">SUCCÈS</span></td>
                             </tr>
-                            <tr>
-                                <td>0x1F4A</td>
-                                <td>
-                                    <span class="redacted" data-real="GHOST-PRO" data-scramble="SHADOW"></span>
-                                </td>
-                                <td><span class="redacted" data-real="BNK-11" data-scramble="UNKNOWN"></span></td>
-                                <td><span class="redacted" data-real="000-000" data-scramble="UNKNOWN"></span></td>
-                                <td><span class="status-badge st-success">SUCCÈS</span></td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -203,7 +220,7 @@
             <footer class="footer">
                 <div>SECURE TERMINAL V.4.0.2</div>
                 <div>
-                    <a href="/database.html" class="text-danger" style="text-decoration: none;">[ TERMINATE SESSION ]</a>
+                    <a href="index.html" class="text-danger" style="text-decoration: none;">[ TERMINATE SESSION ]</a>
                 </div>
             </footer>
 
@@ -213,7 +230,22 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
-            // 1. BOOT SCREEN
+            // 1. GESTION DU HUD UTILISATEUR
+            const sessionRaw = localStorage.getItem('sas_session');
+            if (sessionRaw) {
+                const currentUser = JSON.parse(sessionRaw);
+                const hud = document.getElementById('user-hud');
+                if(hud) {
+                    document.getElementById('hud-username').textContent = currentUser.username;
+                    document.getElementById('hud-rank').textContent = 'LVL ' + currentUser.rank;
+                    hud.style.display = 'flex';
+                }
+            } else {
+                // Optionnel : Rediriger si pas connecté
+                // window.location.href = 'index.html';
+            }
+
+            // 2. BOOT SCREEN
             const bootScreen = document.getElementById('boot-screen');
             const bootText = document.querySelector('.boot-text');
             
@@ -224,29 +256,31 @@
                 setTimeout(() => bootScreen.remove(), 1000);
             }, 2500);
 
-            // 2. 3D CARD EFFECT
+            // 3. 3D CARD EFFECT
             const card = document.getElementById('card');
             const cardContainer = document.querySelector('.id-card-container');
 
-            cardContainer.addEventListener('mousemove', (e) => {
-                const rect = cardContainer.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                
-                const rotateX = ((y - centerY) / centerY) * -10; 
-                const rotateY = ((x - centerX) / centerX) * 10;
+            if(cardContainer && card) {
+                cardContainer.addEventListener('mousemove', (e) => {
+                    const rect = cardContainer.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const rotateX = ((y - centerY) / centerY) * -10; 
+                    const rotateY = ((x - centerX) / centerX) * 10;
 
-                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-            });
+                    card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+                });
 
-            cardContainer.addEventListener('mouseleave', () => {
-                card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
-            });
+                cardContainer.addEventListener('mouseleave', () => {
+                    card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
+                });
+            }
 
-            // 3. HACKER TEXT DECRYPTION
+            // 4. HACKER TEXT DECRYPTION
             const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
             
             document.querySelectorAll('.redacted').forEach(element => {
@@ -286,4 +320,3 @@
     </script>
 </body>
 </html>
-   

@@ -6,11 +6,17 @@
     <title>SAS - Command Hierarchy</title>
     
     <script>
-        const REQUIRED_LEVEL = 1;
-        const currentLevel = parseInt(localStorage.getItem('userSecurityLevel') || 0);
-        if (currentLevel < REQUIRED_LEVEL) {
-            alert("⚠️ SECURITY BREACH DETECTED // REDIRECTING...");
-            window.location.href = 'index.html'; 
+        // Vérification de sécurité immédiate
+        const session = localStorage.getItem('sas_session');
+        if (!session) {
+            window.location.href = 'index.html';
+        } else {
+            const user = JSON.parse(session);
+            // Vérification basique du niveau (optionnel, selon tes besoins)
+            if (parseInt(user.rank) < 1) {
+                alert("⚠️ SECURITY BREACH DETECTED // REDIRECTING...");
+                window.location.href = 'index.html'; 
+            }
         }
     </script>
 
@@ -42,6 +48,29 @@
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
             background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 999;
         }
+
+        /* NOUVEAU : Style du HUD Utilisateur */
+        .user-hud {
+            position: fixed;
+            top: 20px;
+            right: 30px;
+            background: rgba(10, 15, 20, 0.9);
+            border: 1px solid var(--dim);
+            border-left: 3px solid var(--primary);
+            padding: 8px 15px;
+            font-family: var(--font-ui);
+            font-size: 0.85rem;
+            color: #fff;
+            z-index: 10000;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .hud-label { color: var(--dim); font-size: 0.7rem; letter-spacing: 1px; }
+        .hud-value { color: var(--primary); font-weight: bold; text-transform: uppercase; }
+        .hud-rank { color: var(--secondary); }
 
         .terminal-wrapper { width: 100%; max-width: 1200px; position: relative; z-index: 10; }
 
@@ -126,6 +155,12 @@
 </head>
 <body>
 
+    <div id="user-hud" class="user-hud" style="display: none;">
+        <div><span class="hud-label">AGENT:</span> <span id="hud-username" class="hud-value">...</span></div>
+        <div style="color:var(--dim)">|</div>
+        <div><span class="hud-label">CLEARANCE:</span> <span id="hud-rank" class="hud-value hud-rank">...</span></div>
+    </div>
+
     <div class="terminal-wrapper">
         <div class="terminal">
             
@@ -136,9 +171,34 @@
 
             <div class="org-container">
 
-                
-<div class="chart-node lead" id="node-graves">
-    <div class="role">DIRECTEUR</div>
-    <div class="name">GRAVES</div>
-    <a href="agent-Graves.html" class="action-button">DOSSIER MAÎTRE</a>
-</div>
+                <div class="level-1">
+                    <div class="chart-node lead" id="node-graves">
+                        <div class="role">DIRECTEUR</div>
+                        <div class="name">GRAVES</div>
+                        <a href="agent-Graves.html" class="action-button">DOSSIER MAÎTRE</a>
+                    </div>
+                </div>
+
+                </div>
+
+            <div class="portal-footer">
+                <a href="index.html" class="back-link">< LOGOUT_TERMINAL</a>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Logique pour afficher l'utilisateur dans le HUD
+        document.addEventListener('DOMContentLoaded', () => {
+            const sessionRaw = localStorage.getItem('sas_session');
+            if (sessionRaw) {
+                const currentUser = JSON.parse(sessionRaw);
+                document.getElementById('hud-username').textContent = currentUser.username;
+                document.getElementById('hud-rank').textContent = 'LVL ' + currentUser.rank;
+                document.getElementById('user-hud').style.display = 'flex';
+            }
+        });
+    </script>
+</body>
+</html>
