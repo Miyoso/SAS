@@ -27,6 +27,28 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: 'Marker added', id: result.rows[0].id });
     }
 
+    export default async function handler(req, res) {
+  const method = req.method;
+
+  try {
+    if (method === 'GET') {
+      const result = await pool.query('SELECT * FROM map_markers ORDER BY created_at ASC');
+      return res.status(200).json(result.rows);
+    }
+
+    if (method === 'POST') {
+      // On récupère aussi rotation et scale (avec valeurs par défaut)
+      const { x, y, type, desc, level, author, rotation = 0, scale = 1 } = req.body;
+      
+      // Note: Si vous n'avez pas ajouté les colonnes SQL, retirez rotation/scale de la requête ci-dessous
+      const result = await pool.query(
+        'INSERT INTO map_markers (x, y, type, description, level, author, rotation, scale) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
+        [x, y, type, desc, level, author, rotation, scale]
+      );
+      
+      return res.status(200).json({ message: 'Marker added', id: result.rows[0].id });
+    }
+
     // 3. SUPPRIMER UN MARQUEUR (DELETE)
     if (method === 'DELETE') {
       const { id } = req.body; // On attend l'ID dans le corps de la requête

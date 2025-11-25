@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS - TACTICAL MAP</title>
+    <title>SAS - TACTICAL MAP V2</title>
     
     <script>
         const session = localStorage.getItem('sas_session');
@@ -14,152 +14,142 @@
     <link rel="stylesheet" href="css/style-mo.css">
 
     <style>
-        /* --- STYLES SPÉCIFIQUES CARTE --- */
-        body { overflow: hidden; } /* On veut que ça ressemble à une appli, pas de scroll global */
+        body { overflow: hidden; background: #050505; }
 
+        /* --- LAYOUT --- */
         .map-wrapper {
             display: flex; height: 100vh; width: 100vw;
-            padding: 80px 20px 20px 20px; gap: 20px;
+            position: relative;
         }
 
-        /* COLONNE GAUCHE : LA CARTE */
-        .map-container {
-            flex: 3;
-            background: #000;
-            border: 1px solid rgba(255,255,255,0.2);
-            position: relative;
+        /* --- CONTAINER CARTE (ZOOMABLE) --- */
+        .viewport {
+            flex: 1;
+            background: #0a0a0a;
             overflow: hidden;
-            cursor: crosshair;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            position: relative;
+            cursor: grab;
+            /* Grille de fond fixe par rapport à la fenêtre */
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        .viewport:active { cursor: grabbing; }
+
+        /* C'est cet élément qui va bouger et zoomer */
+        .transform-layer {
+            position: absolute; top: 0; left: 0;
+            transform-origin: 0 0;
+            transition: transform 0.1s ease-out; /* Fluidité */
         }
 
         .tactical-map {
-            max-width: 100%; max-height: 100%;
-            object-fit: contain;
-            /* Filtre pour donner un look "écran tactique" à l'image */
-            filter: contrast(1.2) grayscale(0.2) sepia(0.1) brightness(0.8);
-            transition: transform 0.3s;
+            display: block;
+            pointer-events: none; /* On clique au travers de l'image */
+            filter: contrast(1.1) grayscale(0.3) brightness(0.7);
         }
 
-        /* Grille par dessus la carte */
-        .grid-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 255, 157, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 157, 0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none; z-index: 10;
+        /* --- INTERFACE HUD (SIDEBAR FLOTTANTE) --- */
+        .sidebar-overlay {
+            position: absolute; top: 20px; right: 20px; bottom: 20px; width: 350px;
+            display: flex; flex-direction: column; gap: 15px; pointer-events: none;
         }
-
-        /* COLONNE DROITE : CONTRÔLES */
-        .sidebar-controls {
-            flex: 1; min-width: 300px; max-width: 400px;
-            display: flex; flex-direction: column; gap: 20px;
-        }
-
-        .control-panel {
+        .panel {
             background: rgba(10, 15, 20, 0.9);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 20px; display: flex; flex-direction: column; gap: 15px;
-            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px); padding: 15px;
+            pointer-events: auto; /* Réactive les clics */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .panel-title {
+            font-family: 'Share Tech Mono'; color: var(--primary); font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 10px;
+            display: flex; justify-content: space-between;
         }
 
-        .panel-header {
-            font-family: 'Share Tech Mono'; color: var(--primary); 
-            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 5px;
-            letter-spacing: 2px; font-weight: bold;
-        }
-
+        /* BOUTONS OUTILS */
+        .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .tool-btn {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #ccc;
-            padding: 10px; cursor: pointer; font-family: 'JetBrains Mono'; text-align: left;
-            transition: 0.2s; display: flex; align-items: center; gap: 10px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: #ccc; padding: 12px; cursor: pointer; font-family: 'JetBrains Mono'; font-size: 0.75rem;
+            display: flex; flex-direction: column; align-items: center; gap: 5px; transition: 0.2s;
         }
         .tool-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .tool-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0,255,157,0.1); }
+        .tool-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 157, 0.1); box-shadow: 0 0 15px rgba(0, 255, 157, 0.1); }
+        .tool-icon { font-size: 1.2rem; }
 
-        .intel-feed {
-            flex: 1; overflow-y: auto;
-            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);
-            padding: 10px;
+        /* ZOOM CONTROLS */
+        .zoom-controls {
+            position: absolute; bottom: 20px; left: 20px;
+            display: flex; gap: 5px; pointer-events: auto;
         }
-        .intel-item {
-            font-size: 0.8rem; padding: 10px; margin-bottom: 5px;
-            border-left: 3px solid #555; background: rgba(255,255,255,0.02);
-            cursor: pointer; transition: 0.2s;
+        .zoom-btn {
+            width: 40px; height: 40px; background: #000; border: 1px solid var(--primary);
+            color: var(--primary); font-size: 1.2rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
         }
-        .intel-item:hover { background: rgba(255,255,255,0.05); }
+        .zoom-btn:hover { background: var(--primary); color: #000; }
 
-        /* MODAL D'AJOUT */
+        /* --- FORMES TACTIQUES CSS --- */
+        .map-marker { position: absolute; transform: translate(-50%, -50%); z-index: 100; cursor: pointer; }
+        .map-marker:hover { z-index: 200; filter: brightness(1.5); }
+
+        /* Label texte */
+        .marker-label {
+            position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); padding: 2px 6px; border-radius: 4px;
+            font-size: 0.6rem; color: #fff; white-space: nowrap; margin-top: 5px;
+            border: 1px solid currentColor; display: none;
+        }
+        .map-marker:hover .marker-label { display: block; }
+
+        /* Formes de base */
+        .shape { width: 100%; height: 100%; opacity: 0.5; transition: 0.3s; }
+        
+        /* 1. CERCLE (Zone standard) */
+        .type-circle .shape {
+            border-radius: 50%; border: 2px dashed currentColor; background: radial-gradient(circle, currentColor 0%, transparent 70%);
+        }
+        
+        /* 2. CARRÉ (Zone fortifiée / Batiment) */
+        .type-square .shape {
+            border: 2px solid currentColor; background: linear-gradient(45deg, currentColor 0%, transparent 20%, transparent 80%, currentColor 100%);
+        }
+
+        /* 3. HEXAGONE (QG / Point stratégique) */
+        .type-hex .shape {
+            background: currentColor; opacity: 0.3;
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        }
+        .type-hex::after { /* Contour Hex */
+            content:''; position:absolute; top:0; left:0; width:100%; height:100%;
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+            background: currentColor; z-index:-1; transform: scale(1.05); opacity: 0.8;
+        }
+
+        /* 4. LIGNE (Direction / Frontière) */
+        .type-line {
+            /* Pour la ligne, on triche : c'est un rectangle très fin et long */
+            height: 6px !important; /* Écrase la hauteur dynamique */
+            border-radius: 3px;
+        }
+        .type-line .shape {
+            background: currentColor; opacity: 0.8; box-shadow: 0 0 10px currentColor;
+        }
+
+        /* Couleurs Niveaux */
+        .lvl-low { color: #00ff9d; }
+        .lvl-mid { color: #eebb00; }
+        .lvl-high { color: #ff3333; }
+
+        /* MODAL */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 1000;
-            display: none; align-items: center; justify-content: center;
-            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);
         }
-        .modal-box {
-            background: #0f1215; border: 1px solid var(--primary);
-            padding: 30px; width: 400px;
-            box-shadow: 0 0 50px rgba(0, 255, 157, 0.2);
-            font-family: 'JetBrains Mono';
-        }
-        .input-group { margin-bottom: 15px; }
-        .input-label { display: block; color: #8899aa; font-size: 0.8rem; margin-bottom: 5px; }
-        .input-field { 
-            width: 100%; background: #050505; border: 1px solid #333; color: #fff; 
-            padding: 8px; font-family: 'JetBrains Mono'; outline: none;
-        }
-        .input-field:focus { border-color: var(--primary); }
-        
-        .btn-action {
-            width: 100%; padding: 10px; margin-top: 10px;
-            background: var(--primary); color: #000; font-weight: bold; border: none; cursor: pointer;
-        }
-        .btn-action:hover { opacity: 0.9; }
-        .btn-cancel { background: transparent; color: #888; border: 1px solid #333; margin-top: 5px; }
-        .btn-cancel:hover { color: #fff; border-color: #fff; }
-
-        /* MARKERS SUR LA CARTE */
-        .map-marker {
-            position: absolute; transform: translate(-50%, -50%);
-            z-index: 20; cursor: pointer; transition: 0.2s;
-        }
-        /* Icone Point */
-        .marker-icon {
-            width: 20px; height: 20px; border-radius: 50%;
-            border: 2px solid #fff; 
-            box-shadow: 0 0 10px currentColor;
-            animation: pulse 2s infinite;
-        }
-        /* Zone (Cercle) */
-        .marker-zone {
-            width: 100px; height: 100px; border-radius: 50%;
-            border: 1px dashed currentColor;
-            background: radial-gradient(circle, currentColor 0%, transparent 70%);
-            opacity: 0.4; pointer-events: none; /* Le clic se fait sur l'icône centrale */
-        }
-
-        /* Tooltip au survol d'un point */
-        .marker-tooltip {
-            position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); color: #fff; padding: 5px 10px;
-            font-size: 0.7rem; white-space: nowrap; border: 1px solid currentColor;
-            display: none; z-index: 30; pointer-events: none;
-        }
-        .map-marker:hover .marker-tooltip { display: block; }
-        .map-marker:hover { z-index: 100; transform: translate(-50%, -50%) scale(1.2); }
-
-        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(255,255,255,0.4);} 70% {box-shadow: 0 0 0 10px rgba(255,255,255,0);} 100% {box-shadow: 0 0 0 0 rgba(255,255,255,0);} }
-
-        /* Couleurs Menace */
-        .level-low { color: var(--primary); border-color: var(--primary) !important; }
-        .level-mid { color: var(--warning); border-color: var(--warning) !important; }
-        .level-high { color: var(--danger); border-color: var(--danger) !important; }
-
-        .bg-low { background: rgba(0, 255, 157, 0.1); border-left-color: var(--primary); }
-        .bg-mid { background: rgba(238, 187, 0, 0.1); border-left-color: var(--warning); }
-        .bg-high { background: rgba(255, 51, 51, 0.1); border-left-color: var(--danger); }
+        .modal-box { background: #0f1215; border: 1px solid var(--primary); padding: 25px; width: 350px; }
+        .input-field { width: 100%; background: #050505; border: 1px solid #444; color: #fff; padding: 8px; margin-top: 5px; font-family: 'JetBrains Mono'; }
 
     </style>
 </head>
@@ -167,254 +157,361 @@
 
     <div class="crt-overlay"></div>
 
-    <div style="position:fixed; top:20px; left:20px; z-index:100;">
-        <h1 style="font-size:1.5rem; text-shadow:0 0 10px var(--primary);">TACTICAL <span style="color:#fff">MAP</span></h1>
-        <div class="meta-data" style="text-align:left;">SECTOR: GLOBAL // LIVE FEED</div>
-    </div>
-    <div style="position:fixed; top:30px; right:30px; z-index:100;">
-        <a href="index.html" class="btn-profile-access" style="background:#000; border-color:var(--primary);">< RETOUR DASHBOARD</a>
-    </div>
-
     <div class="map-wrapper">
         
-        <div class="map-container" id="map-container">
-            <div class="grid-overlay"></div>
-            <img src="assets/carte.jpg" class="tactical-map" id="tactical-map" alt="No Signal">
-            
-            <div id="markers-layer"></div>
+        <div class="viewport" id="viewport">
+            <div class="transform-layer" id="map-layer">
+                <img src="assets/carte.jpg" class="tactical-map" id="tactical-map" alt="Map">
+                <div id="markers-container"></div>
+            </div>
         </div>
 
-        <div class="sidebar-controls">
+        <div class="zoom-controls">
+            <div class="zoom-btn" onclick="adjustZoom(0.2)">+</div>
+            <div class="zoom-btn" onclick="adjustZoom(-0.2)">-</div>
+            <div class="zoom-btn" onclick="resetView()" style="font-size:0.7rem">RST</div>
+        </div>
+
+        <div class="sidebar-overlay">
             
-            <div class="control-panel">
-                <div class="panel-header">OUTILS</div>
-                <div class="tool-btn active" onclick="setTool('pointer')">🖱️ NAVIGATION</div>
-                <div class="tool-btn" onclick="setTool('marker')">📍 MARQUEUR (POINT)</div>
-                <div class="tool-btn" onclick="setTool('zone')">⭕ ZONE DE DANGER</div>
-                <div class="tool-btn" onclick="clearMap()" style="color:var(--danger); border-color:var(--danger);">🗑️ NETTOYER CARTE</div>
+            <div class="panel">
+                <div class="panel-title">
+                    <span>OPERATION MAP</span>
+                    <span id="coords-display" style="color:#fff">000, 000</span>
+                </div>
+                <div style="font-size:0.7rem; color:#888;">
+                    <a href="index.html" style="color:var(--primary); text-decoration:none;">< RETOUR DASHBOARD</a>
+                </div>
             </div>
 
-            <div class="control-panel" style="flex:1; padding:0; overflow:hidden;">
-                <div class="panel-header" style="padding:15px;">INTEL FEED</div>
-                <div id="intel-list" class="intel-feed">
+            <div class="panel">
+                <div class="panel-title">PALETTE TACTIQUE</div>
+                <div class="tools-grid">
+                    <div class="tool-btn active" onclick="setTool('pointer')">
+                        <span class="tool-icon">✋</span> NAV
                     </div>
+                    <div class="tool-btn" onclick="setTool('point')">
+                        <span class="tool-icon">📍</span> POINT
+                    </div>
+                    <div class="tool-btn" onclick="setTool('circle')">
+                        <span class="tool-icon">⭕</span> ZONE (ROND)
+                    </div>
+                    <div class="tool-btn" onclick="setTool('square')">
+                        <span class="tool-icon">🔲</span> ZONE (CARRÉ)
+                    </div>
+                    <div class="tool-btn" onclick="setTool('hex')">
+                        <span class="tool-icon">⬢</span> HEXAGONE
+                    </div>
+                    <div class="tool-btn" onclick="setTool('line')">
+                        <span class="tool-icon">➖</span> LIGNE
+                    </div>
+                </div>
+                <div style="margin-top:10px; font-size:0.65rem; color:#666;">
+                    * Sélectionnez un outil puis cliquez sur la carte.
+                </div>
             </div>
+
+            <div class="panel" style="flex:1; overflow:hidden; display:flex; flex-direction:column;">
+                <div class="panel-title">RAPPORT LIVE</div>
+                <div id="intel-feed" style="overflow-y:auto; flex:1; font-size:0.75rem; color:#aaa;">
+                    Chargement...
+                </div>
+            </div>
+
         </div>
     </div>
 
     <div class="modal-overlay" id="add-modal">
         <div class="modal-box">
-            <h2 style="color:var(--primary); margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:10px;">NOUVEAU POINT D'INTÉRÊT</h2>
+            <h3 style="color:var(--primary); margin-bottom:15px;">CONFIGURER ÉLÉMENT</h3>
             
-            <div class="input-group">
-                <label class="input-label">DESCRIPTION</label>
-                <input type="text" id="input-desc" class="input-field" placeholder="Ex: Cible VIP, Cache d'armes..." autocomplete="off">
+            <div style="margin-bottom:15px;">
+                <label style="font-size:0.7rem; color:#888;">DESCRIPTION</label>
+                <input type="text" id="inp-desc" class="input-field" placeholder="Ex: Ennemis, Objectif..." autocomplete="off">
             </div>
 
-            <div class="input-group">
-                <label class="input-label">NIVEAU D'IMPORTANCE</label>
-                <select id="input-level" class="input-field">
-                    <option value="low">FAIBLE (Observation)</option>
-                    <option value="mid">MOYEN (Attention requise)</option>
-                    <option value="high">CRITIQUE (Action immédiate)</option>
-                </select>
+            <div style="margin-bottom:15px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div>
+                    <label style="font-size:0.7rem; color:#888;">MENACE</label>
+                    <select id="inp-level" class="input-field">
+                        <option value="low">FAIBLE (Vert)</option>
+                        <option value="mid">MOYEN (Jaune)</option>
+                        <option value="high">CRITIQUE (Rouge)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.7rem; color:#888;">TAILLE (PX)</label>
+                    <input type="number" id="inp-size" class="input-field" value="100" min="20" max="500">
+                </div>
             </div>
 
-            <input type="hidden" id="input-type" value="marker">
-            <input type="hidden" id="input-x">
-            <input type="hidden" id="input-y">
+            <div style="margin-bottom:15px;" id="group-rotation">
+                <label style="font-size:0.7rem; color:#888;">ROTATION (DEGRÉS)</label>
+                <input type="range" id="inp-rot" class="input-field" min="0" max="360" value="0" oninput="document.getElementById('rot-val').innerText = this.value + '°'">
+                <div style="text-align:right; font-size:0.7rem; color:var(--secondary);" id="rot-val">0°</div>
+            </div>
 
-            <button onclick="confirmAdd()" class="btn-action">CONFIRMER</button>
-            <button onclick="closeModal()" class="btn-action btn-cancel">ANNULER</button>
+            <input type="hidden" id="inp-x">
+            <input type="hidden" id="inp-y">
+            <input type="hidden" id="inp-type">
+
+            <button onclick="confirmAdd()" class="tool-btn active" style="width:100%; justify-content:center;">CONFIRMER</button>
+            <button onclick="closeModal()" class="tool-btn" style="width:100%; margin-top:5px; justify-content:center;">ANNULER</button>
         </div>
     </div>
 
     <script>
-        // VARIABLES GLOBALES (Déclarées mais non assignées)
+        // --- 1. GESTION ZOOM & PAN ---
+        let scale = 1;
+        let panning = false;
+        let pointX = 0;
+        let pointY = 0;
+        let startX = 0;
+        let startY = 0;
+
+        const viewport = document.getElementById('viewport');
+        const mapLayer = document.getElementById('map-layer');
+        
+        // Initialisation Zoom
+        function updateTransform() {
+            mapLayer.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+        }
+
+        viewport.addEventListener('mousedown', (e) => {
+            if (currentTool !== 'pointer') return; // Seulement en mode Nav
+            if (e.target.closest('.map-marker')) return; // Pas si on clique sur un marqueur
+            panning = true;
+            startX = e.clientX - pointX;
+            startY = e.clientY - pointY;
+            viewport.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mouseup', () => {
+            panning = false;
+            if(currentTool === 'pointer') viewport.style.cursor = 'grab';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (panning) {
+                e.preventDefault();
+                pointX = e.clientX - startX;
+                pointY = e.clientY - startY;
+                updateTransform();
+            }
+            // Mise à jour coordonnées HUD (visuel)
+            document.getElementById('coords-display').innerText = `${e.clientX}, ${e.clientY}`;
+        });
+
+        // Zoom Roulette
+        viewport.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const xs = (e.clientX - pointX) / scale;
+            const ys = (e.clientY - pointY) / scale;
+            const delta = -e.deltaY;
+            
+            (delta > 0) ? (scale *= 1.1) : (scale /= 1.1);
+            
+            // Limites Zoom
+            if (scale < 0.2) scale = 0.2;
+            if (scale > 5) scale = 5;
+
+            pointX = e.clientX - xs * scale;
+            pointY = e.clientY - ys * scale;
+
+            updateTransform();
+        });
+
+        function adjustZoom(amount) {
+            scale += amount;
+            if (scale < 0.2) scale = 0.2;
+            updateTransform();
+        }
+        function resetView() {
+            scale = 1; pointX = 0; pointY = 0;
+            updateTransform();
+        }
+
+        // --- 2. LOGIQUE OUTILS & MARQUEURS ---
         let currentTool = 'pointer';
         let markers = [];
         
-        // On déclare les variables ici, mais on ne les remplit qu'au chargement
-        let mapContainer, markersLayer, modal, intelList;
-
-        // INITIALISATION SÉCURISÉE
-        document.addEventListener('DOMContentLoaded', () => {
-            // 1. On lie les variables au HTML une fois la page chargée
-            mapContainer = document.getElementById('map-container');
-            markersLayer = document.getElementById('markers-layer');
-            modal = document.getElementById('add-modal');
-            intelList = document.getElementById('intel-list');
-
-            // 2. Vérification de sécurité (pour éviter le crash si un élément manque)
-            if (!mapContainer || !markersLayer) {
-                console.error("ERREUR CRITIQUE : Impossible de trouver la carte dans le HTML.");
-                return; 
-            }
-
-            // 3. Ajout de l'écouteur de clic sur la carte (Maintenant que mapContainer existe)
-            mapContainer.addEventListener('click', (e) => {
-                if (currentTool === 'pointer') return;
-                if (e.target.closest('.map-marker')) return;
-
-                const rect = mapContainer.getBoundingClientRect();
-                const x = ((e.clientX - rect.left) / rect.width) * 100;
-                const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-                openModal(x, y, currentTool);
-            });
-
-            // 4. Lancement des fonctions
-            fetchMarkers(); 
-            setInterval(fetchMarkers, 3000); // Temps réel
-        });
-
-        // --- REST DU CODE (FONCTIONS) ---
-
-        async function fetchMarkers() {
-            if(!markersLayer) return; // Sécurité supplémentaire
-            try {
-                const response = await fetch('/api/markers');
-                if (response.ok) {
-                    markers = await response.json();
-                    renderMap();
-                    updateIntelList();
-                }
-            } catch (e) {
-                console.error("Erreur connexion tactique:", e);
-            }
-        }
-
-        async function pushMarkerToDB(newMarker) {
-            try {
-                await fetch('/api/markers', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newMarker) // Correction ici: on envoie directement l'objet
-                });
-                fetchMarkers();
-            } catch (e) {
-                alert("ERREUR TRANSMISSION QG");
-            }
-        }
-
-        async function deleteMarkerFromDB(id) {
-            try {
-                await fetch('/api/markers', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id })
-                });
-                fetchMarkers();
-            } catch (e) {
-                alert("ECHEC SUPPRESSION");
-            }
-        }
+        // Elements
+        const markersContainer = document.getElementById('markers-container');
+        const modal = document.getElementById('add-modal');
+        const intelFeed = document.getElementById('intel-feed');
 
         function setTool(tool) {
             currentTool = tool;
-            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
-            if(event) event.currentTarget.classList.add('active');
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
             
-            if (mapContainer) {
-                mapContainer.style.cursor = (tool === 'pointer') ? 'grab' : 'crosshair';
+            if(tool === 'pointer') {
+                viewport.style.cursor = 'grab';
+            } else {
+                viewport.style.cursor = 'crosshair';
             }
         }
 
-        // Note: L'event listener du click est maintenant dans DOMContentLoaded
+        // Clic pour ajouter (géré sur le mapLayer pour suivre les coordonnées de l'image, pas de l'écran)
+        mapLayer.addEventListener('click', (e) => {
+            if (currentTool === 'pointer') return;
+            if (panning) return; // Évite d'ajouter si on glisse juste
+            if (e.target.closest('.map-marker')) return;
+
+            // Coordonnées relatives à l'image (pour que le marqueur reste au bon endroit quand on zoom/pan)
+            const rect = mapLayer.getBoundingClientRect();
+            const clickX = (e.clientX - rect.left) / scale; // On compense le scale
+            const clickY = (e.clientY - rect.top) / scale;
+
+            openModal(clickX, clickY, currentTool);
+        });
 
         function openModal(x, y, type) {
-            document.getElementById('input-x').value = x;
-            document.getElementById('input-y').value = y;
-            document.getElementById('input-type').value = type;
-            document.getElementById('input-desc').value = '';
-            document.getElementById('input-level').value = 'low';
+            document.getElementById('inp-x').value = x;
+            document.getElementById('inp-y').value = y;
+            document.getElementById('inp-type').value = type;
+            document.getElementById('inp-desc').value = '';
+            document.getElementById('inp-desc').focus();
+
+            // Réglages par défaut selon type
+            if (type === 'point') {
+                document.getElementById('inp-size').value = 20;
+                document.getElementById('group-rotation').style.display = 'none';
+            } else if (type === 'line') {
+                document.getElementById('inp-size').value = 200; // Longueur
+                document.getElementById('group-rotation').style.display = 'block';
+            } else {
+                document.getElementById('inp-size').value = 150; // Taille zone
+                document.getElementById('group-rotation').style.display = 'none';
+            }
+
             modal.style.display = 'flex';
-            setTimeout(() => document.getElementById('input-desc').focus(), 100);
         }
 
-        function closeModal() {
-            modal.style.display = 'none';
+        function closeModal() { modal.style.display = 'none'; }
+
+        // --- 3. COMMUNICATION BDD ---
+        async function fetchMarkers() {
+            try {
+                const res = await fetch('/api/markers');
+                if(res.ok) {
+                    markers = await res.json();
+                    renderMarkers();
+                    updateFeed();
+                }
+            } catch(e) { console.error(e); }
         }
 
-        function confirmAdd() {
-            const desc = document.getElementById('input-desc').value || 'Point Inconnu';
-            const level = document.getElementById('input-level').value;
-            const type = document.getElementById('input-type').value;
-            const x = document.getElementById('input-x').value;
-            const y = document.getElementById('input-y').value;
-            
-            const session = localStorage.getItem('sas_session');
-            const author = session ? JSON.parse(session).username : 'Unknown';
+        async function confirmAdd() {
+            const data = {
+                x: document.getElementById('inp-x').value,
+                y: document.getElementById('inp-y').value,
+                type: document.getElementById('inp-type').value,
+                desc: document.getElementById('inp-desc').value || 'Cible',
+                level: document.getElementById('inp-level').value,
+                // Données supplémentaires pour formes
+                rotation: document.getElementById('inp-rot').value || 0,
+                scale: document.getElementById('inp-size').value || 100, // On utilise scale pour stocker la taille en px
+                author: JSON.parse(localStorage.getItem('sas_session'))?.username || 'Unknown'
+            };
 
-            pushMarkerToDB({ x, y, type, desc, level, author });
-            closeModal();
+            try {
+                await fetch('/api/markers', {
+                    method: 'POST', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify(data)
+                });
+                closeModal();
+                fetchMarkers();
+            } catch(e) { alert("Erreur réseau"); }
         }
 
-        function renderMap() {
-            if(!markersLayer) return;
-            markersLayer.innerHTML = '';
+        async function deleteMarker(id) {
+            if(confirm("SUPPRIMER CET ÉLÉMENT ?")) {
+                await fetch('/api/markers', {
+                    method: 'DELETE', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({id})
+                });
+                fetchMarkers();
+            }
+        }
+
+        // --- 4. RENDU ---
+        function renderMarkers() {
+            markersContainer.innerHTML = '';
             markers.forEach(m => {
                 const el = document.createElement('div');
-                el.className = `map-marker level-${m.level}`;
-                el.style.left = m.x + '%';
-                el.style.top = m.y + '%';
+                // Classes: map-marker + type (square, hex...) + level (high, low...)
+                el.className = `map-marker type-${m.type} lvl-${m.level}`;
                 
-                let innerHTML = '';
-                if(m.type === 'zone') {
-                    innerHTML = `
-                        <div class="marker-zone" style="background: radial-gradient(circle, currentColor 0%, transparent 70%);"></div>
-                        <div class="marker-icon" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:10px; height:10px;"></div>
-                    `;
-                } else {
-                    innerHTML = `<div class="marker-icon"></div>`;
-                }
-
-                innerHTML += `<div class="marker-tooltip">
-                    <strong style="color:var(--primary)">${m.description || m.desc}</strong><br>
-                    <span style="font-size:0.6rem">PAR: ${m.author}</span><br>
-                    <span style="color:#888; cursor:pointer;" onclick="deleteMarker(${m.id})">[SUPPRIMER]</span>
-                </div>`;
-
-                el.innerHTML = innerHTML;
-                markersLayer.appendChild(el);
-            });
-        }
-
-        function updateIntelList() {
-            if(!intelList) return;
-            intelList.innerHTML = '';
-            if(markers.length === 0) {
-                intelList.innerHTML = '<div style="padding:10px; color:#666;">AUCUN RAPPORT D\'ACTIVITÉ.</div>';
-                return;
-            }
-            [...markers].reverse().forEach(m => {
-                const item = document.createElement('div');
-                item.className = `intel-item bg-${m.level}`;
-                const icon = m.type === 'zone' ? '⭕' : '📍';
-                const dateStr = m.created_at ? new Date(m.created_at).toLocaleTimeString() : 'UNKNOWN';
+                // Position
+                el.style.left = m.x + 'px';
+                el.style.top = m.y + 'px';
                 
-                item.innerHTML = `
-                    <div style="display:flex; justify-content:space-between;">
-                        <strong>${icon} ${m.description || m.desc}</strong>
-                        <span style="font-size:0.65rem; opacity:0.7;">${dateStr}</span>
-                    </div>
-                    <div style="font-size:0.7rem; color:#aaa; margin-top:2px;">
-                        MENACE: ${m.level.toUpperCase()} // AGENT: ${m.author}
+                // Taille et Rotation (stockés dans 'scale' et 'rotation')
+                const size = m.scale || (m.type === 'point' ? 20 : 100);
+                el.style.width = size + 'px';
+                el.style.height = size + 'px'; // Pour la ligne, le CSS force la hauteur, width devient longueur
+                
+                if(m.rotation) el.style.transform += ` translate(-50%, -50%) rotate(${m.rotation}deg)`;
+                else el.style.transform += ` translate(-50%, -50%)`; // Centrage standard
+
+                // Contenu visuel
+                let inner = '';
+                if(m.type === 'point') inner = `<div style="width:100%; height:100%; border-radius:50%; background:currentColor; box-shadow:0 0 10px currentColor;"></div>`;
+                else inner = `<div class="shape"></div>`; // Les formes sont gérées par CSS (voir style)
+
+                // Tooltip au survol (contient bouton supprimer)
+                inner += `
+                    <div class="marker-label">
+                        ${m.desc} (${m.author}) 
+                        <span style="color:#fff; font-weight:bold; cursor:pointer; margin-left:5px;" onclick="deleteMarker(${m.id})">✖</span>
                     </div>
                 `;
-                intelList.appendChild(item);
+
+                el.innerHTML = inner;
+                markersContainer.appendChild(el);
             });
         }
 
-        window.deleteMarker = function(id) {
-            if(confirm("CONFIRMER LA SUPPRESSION ?")) {
-                deleteMarkerFromDB(id);
-            }
-        };
+        function updateFeed() {
+            intelFeed.innerHTML = '';
+            if(markers.length === 0) intelFeed.innerHTML = '<div style="padding:10px;">Aucune donnée.</div>';
+            
+            [...markers].reverse().forEach(m => {
+                const div = document.createElement('div');
+                div.style.padding = '8px';
+                div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                div.style.cursor = 'pointer';
+                div.onclick = () => {
+                    // Focus sur le point (reset zoom simple)
+                    scale = 1.5;
+                    pointX = -m.x * scale + viewport.clientWidth/2;
+                    pointY = -m.y * scale + viewport.clientHeight/2;
+                    updateTransform();
+                };
 
-        window.clearMap = function() {
-            alert("Action désactivée par sécurité.");
+                let icon = '📍';
+                if(m.type === 'circle') icon = '⭕';
+                if(m.type === 'square') icon = '🔲';
+                if(m.type === 'line') icon = '➖';
+                if(m.type === 'hex') icon = '⬢';
+
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; color:var(--primary);">
+                        <span>${icon} ${m.desc}</span>
+                    </div>
+                    <div style="color:#666;">${m.author} // ${m.level.toUpperCase()}</div>
+                `;
+                intelFeed.appendChild(div);
+            });
         }
+
+        // Démarrage
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchMarkers();
+            setInterval(fetchMarkers, 3000); // Temps réel
+        });
+
     </script>
 </body>
 </html>
