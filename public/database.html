@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS - Command Hierarchy</title>
+    
+    <script>
+        const REQUIRED_LEVEL = 1;
+        const currentLevel = parseInt(localStorage.getItem('userSecurityLevel') || 0);
+        if (currentLevel < REQUIRED_LEVEL) {
+            alert("⚠️ SECURITY BREACH DETECTED // REDIRECTING...");
+            window.location.href = 'index.html'; 
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --secondary: #00f3ff;
+            --primary: #00ff9d;
+            --dim: #445566;
+            --danger: #ff3333;
+            --glass: blur(10px);
+            --font-ui: 'Share Tech Mono', monospace;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #eee;
+            font-family: var(--font-ui);
+            margin: 0; padding: 20px;
+            display: flex; justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::after {
+            content: " "; display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 999;
+        }
+
+        .terminal-wrapper { width: 100%; max-width: 1200px; position: relative; z-index: 10; }
+
+        .terminal {
+            background: rgba(15, 20, 25, 0.95);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 2rem;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        .header-strip {
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 15px; margin-bottom: 40px;
+            display: flex; justify-content: space-between; align-items: flex-end;
+        }
+        h1 { margin: 0; font-size: 2rem; letter-spacing: -1px; }
+        h1 span { color: var(--danger); }
+        .meta-data { text-align: right; color: var(--secondary); font-size: 0.8rem; }
+
+        .org-container { display: flex; flex-direction: column; align-items: center; }
+
+        .chart-node {
+            background: rgba(10, 15, 20, 0.6);
+            border: 1px solid var(--dim);
+            padding: 15px; width: 220px; text-align: center;
+            transition: all 0.3s ease;
+            position: relative; z-index: 2;
+        }
+        .chart-node:hover {
+            border-color: var(--secondary);
+            background: rgba(0, 243, 255, 0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+        }
+
+        .role { font-size: 0.7rem; color: var(--secondary); margin-bottom: 5px; letter-spacing: 2px; }
+        .name { font-size: 1.2rem; font-weight: bold; color: #fff; margin-bottom: 10px; text-transform: uppercase; }
+        .lead { border-top: 3px solid #d4af37; }
+        .subordinate { border-top: 3px solid var(--secondary); }
+        .team-member { border-left: 3px solid var(--dim); width: 100%; text-align: left; padding-left: 20px; }
+        .team-member .name { font-size: 1rem; }
+        
+        .status-green { border-left-color: var(--primary); }
+        .status-red { border-left-color: var(--danger); }
+        .status-gray { border-left-color: var(--dim); }
+
+        .action-button {
+            display: inline-block; padding: 4px 8px; border: 1px solid var(--dim);
+            color: var(--dim); text-decoration: none; font-size: 0.7rem; transition: 0.2s;
+        }
+        .action-button:hover { color: var(--secondary); border-color: var(--secondary); }
+
+        .level-1 { margin-bottom: 50px; position: relative; }
+        .level-1::after {
+            content: ''; position: absolute; bottom: -52px; left: 50%; width: 2px; height: 50px;
+            background: var(--secondary);
+        }
+        
+        .wings-wrapper { display: flex; gap: 40px; width: 100%; justify-content: center; position: relative; }
+        .wings-wrapper::before {
+            content: ''; position: absolute; top: -2px; left: 25%; right: 25%; height: 2px;
+            background: var(--secondary);
+        }
+
+        .wing { display: flex; flex-direction: column; align-items: center; flex: 1; max-width: 400px; }
+        
+        .connector-vertical { width: 2px; height: 30px; background: var(--secondary); margin-bottom: 20px; }
+        
+        .squad-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-top: 20px;
+            border-top: 2px solid var(--secondary); padding-top: 20px; position: relative;
+        }
+        .squad-grid::before {
+            content: ''; position: absolute; top: -20px; left: 50%; width: 2px; height: 20px; background: var(--secondary);
+        }
+
+        .portal-footer { margin-top: 50px; text-align: center; padding-top: 20px; border-top: 1px solid var(--dim); }
+        .back-link { color: var(--danger); text-decoration: none; font-weight: bold; border: 1px solid var(--danger); padding: 10px 20px; }
+        .back-link:hover { background: var(--danger); color: #000; }
+
+    </style>
+</head>
+<body>
+
+    <div class="terminal-wrapper">
+        <div class="terminal">
+            
+            <div class="header-strip">
+                <h1>SHADOW_NET // <span>HIERARCHY_V3</span></h1>
+                <div class="meta-data">SERVER: ONLINE<br>SYNC: DATABASE_LINKED</div>
+            </div>
+
+            <div class="org-container">
+
+                <div class="level-1">
+                    <div class="chart-node lead" id="node-graves">
+                        <div class="role">COMMANDER</div>
+                        <div class="name">GRAVES</div>

@@ -9,11 +9,244 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Libre+Barcode+128+Text&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="css/style.css">
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --panel-bg: rgba(15, 20, 25, 0.95);
+            --primary: #00ff9d;
+            --secondary: #00f3ff;
+            --danger: #ff3333;
+            --warning: #eebb00;
+            --dim: #445566;
+            --font-ui: 'Share Tech Mono', monospace;
+            --font-code: 'JetBrains Mono', monospace;
+            --font-barcode: 'Libre Barcode 128 Text', cursive;
+            --glass: blur(10px);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; cursor: crosshair; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #eee;
+            font-family: var(--font-ui);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; 
+        }
+
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(20, 30, 40, 1) 0%, rgba(0,0,0,1) 90%),
+                        repeating-linear-gradient(0deg, transparent 0px, transparent 1px, rgba(0, 255, 157, 0.02) 2px, transparent 3px);
+            z-index: -2;
+        }
+
+        .crt-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none; z-index: 9999; opacity: 0.5;
+            animation: flicker 0.15s infinite;
+        }
+        @keyframes flicker { 0% {opacity: 0.45;} 50% {opacity: 0.5;} 100% {opacity: 0.45;} }
+
+        .terminal-wrapper {
+            width: 100%; height: 100vh;
+            padding: 2rem;
+            display: flex; flex-direction: column;
+        }
+
+        .terminal {
+            background: rgba(10, 15, 20, 0.85);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: var(--glass);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8), 0 0 0 1px rgba(0, 255, 157, 0.1);
+            flex: 1;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header-strip {
+            padding: 20px 30px;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+            display: flex; justify-content: space-between; align-items: flex-end;
+            position: relative; background: rgba(0,0,0,0.3);
+        }
+        h1 { font-family: var(--font-code); font-weight: 800; font-size: 2rem; letter-spacing: -1px; margin: 0; }
+        h1 span { color: var(--danger); }
+        .meta-data { font-size: 0.8rem; color: var(--secondary); text-align: right; font-family: var(--font-code); }
+
+        .view-section {
+            display: flex; flex: 1; overflow: hidden;
+            transition: opacity 0.5s ease;
+        }
+        .hidden { display: none !important; }
+
+        .modules-section {
+            flex: 3; padding: 30px; overflow-y: auto;
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+        .category-title {
+            color: var(--secondary); font-size: 0.9rem; margin-top: 20px; margin-bottom: 15px;
+            display: flex; align-items: center; letter-spacing: 2px;
+        }
+        .category-title::after { content: ''; flex: 1; height: 1px; background: var(--dim); margin-left: 15px; opacity: 0.5; }
+        
+        .grid-modules {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;
+        }
+
+        .module-card {
+            background: rgba(10, 15, 20, 0.4); border: 1px solid var(--dim); padding: 20px;
+            position: relative; transition: all 0.3s ease; text-decoration: none;
+            display: flex; flex-direction: column; justify-content: space-between; min-height: 120px;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
+        }
+        .module-card:hover {
+            transform: translateY(-5px); background: rgba(0, 255, 157, 0.05);
+            border-color: var(--primary); box-shadow: 0 10px 30px rgba(0, 255, 157, 0.1);
+        }
+        .module-icon { font-size: 1.8rem; margin-bottom: 10px; color: #fff; }
+        .module-name { font-family: var(--font-code); font-weight: bold; color: #fff; font-size: 1.1rem; text-transform: uppercase; }
+        .module-status { font-size: 0.7rem; color: var(--dim); margin-top: 5px; letter-spacing: 1px; }
+
+        .status-online { border-left: 3px solid var(--primary); }
+        .status-online .module-status { color: var(--primary); }
+        .status-restricted { border-left: 3px solid var(--warning); }
+        .status-restricted .module-status { color: var(--warning); }
+        .status-danger { border-left: 3px solid var(--danger); }
+        .status-danger .module-status { color: var(--danger); }
+
+        .sidebar-section {
+            flex: 1; padding: 0; background: rgba(0,0,0,0.2);
+            display: flex; flex-direction: column;
+            border-left: 1px solid rgba(255,255,255,0.1);
+        }
+        .mini-profile {
+            padding: 20px; border-bottom: 1px solid var(--primary);
+            background: linear-gradient(180deg, rgba(0,255,157,0.05) 0%, rgba(0,0,0,0) 100%);
+            display: flex; align-items: center; gap: 15px;
+        }
+        .mini-avatar {
+            width: 50px; height: 50px; border: 1px solid var(--primary);
+            display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+            box-shadow: 0 0 10px rgba(0,255,157,0.2);
+        }
+        .mini-details { flex: 1; }
+        .mini-name { color: #fff; font-weight: bold; font-family: var(--font-code); font-size: 1rem; }
+        .mini-rank { color: var(--secondary); font-size: 0.75rem; letter-spacing: 1px; }
+        .btn-profile-access {
+            background: transparent; border: 1px solid var(--dim); color: var(--dim);
+            padding: 5px 10px; font-size: 0.7rem; cursor: pointer; font-family: var(--font-ui);
+            transition: 0.2s; text-decoration: none; display: inline-block; margin-top: 5px;
+        }
+        .btn-profile-access:hover { border-color: var(--primary); color: var(--primary); }
+        .sidebar-header {
+            padding: 15px 20px; border-bottom: 1px solid var(--dim);
+            background: rgba(255,255,255,0.02);
+            font-weight: bold; color: var(--primary); letter-spacing: 1px; font-size: 0.8rem;
+        }
+        .log-container { padding: 20px; font-family: var(--font-code); font-size: 0.8rem; overflow-y: auto; flex:1; }
+        .log-entry { margin-bottom: 8px; padding-left: 10px; border-left: 2px solid var(--dim); color: #888; transition: 0.2s; }
+        .log-entry:hover { border-left-color: var(--secondary); color: #fff; }
+        .log-time { color: var(--secondary); margin-right: 5px; }
+
+        .profile-view-container {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; width: 100%; position: relative;
+        }
+        .back-button {
+            position: absolute; top: 20px; left: 20px;
+            background: transparent; border: 1px solid var(--danger); color: var(--danger);
+            padding: 10px 20px; cursor: pointer; font-family: var(--font-code);
+            transition: 0.3s;
+        }
+        .back-button:hover { background: var(--danger); color: #000; box-shadow: 0 0 15px var(--danger); }
+        .id-card-container { width: 420px; perspective: 1000px; z-index: 10; margin-bottom: 2rem; }
+        .id-card {
+            width: 100%; height: 250px;
+            background: rgba(13, 17, 23, 0.95);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 20px rgba(0, 255, 157, 0.05);
+            transition: transform 0.1s; transform-style: preserve-3d;
+            background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 20px);
+        }
+        .card-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid rgba(0, 255, 157, 0.3); }
+        .card-logo-text { font-weight: bold; color: var(--primary); font-size: 1.2rem; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 255, 157, 0.5); }
+        .security-level { background: var(--danger); color: #fff; padding: 2px 8px; font-size: 0.8rem; font-weight: bold; border-radius: 4px; }
+        .card-body { display: flex; padding: 20px; gap: 20px; }
+        .photo-box { width: 85px; height: 105px; border: 2px solid var(--secondary); background: #111; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: var(--secondary); box-shadow: 0 0 10px rgba(0, 243, 255, 0.2); }
+        .agent-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .card-label { font-size: 0.7rem; color: var(--secondary); letter-spacing: 1px; text-transform: uppercase; }
+        .card-value { font-size: 1.1rem; color: #fff; margin-bottom: 8px; text-transform: uppercase; font-weight: bold; }
+        .card-code { font-family: var(--font-code); color: var(--primary); font-size: 0.9rem; }
+        .card-footer { position: absolute; bottom: 12px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .barcode { font-family: var(--font-barcode); font-size: 2.5rem; color: #fff; opacity: 0.8; line-height: 0.8; }
+
+        .terminal-console { 
+            position: fixed; 
+            bottom: 0; left: 0; width: 100%;
+            height: 40vh; 
+            background: #080a0c; 
+            border-top: 2px solid var(--primary); 
+            display: flex; flex-direction: column;
+            z-index: 2000; 
+            transform: translateY(100%); 
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            box-shadow: 0 -5px 20px rgba(0, 255, 157, 0.2);
+            padding: 0;
+        }
+
+        .terminal-console.open { transform: translateY(0); }
+
+        .terminal-history {
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 15px 30px;
+            font-family: var(--font-code);
+            font-size: 0.9rem;
+            color: #ccc;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .term-line { margin-bottom: 5px; word-break: break-all; }
+        .term-user { color: var(--primary); font-weight: bold; }
+        .term-user::before { content: "> "; }
+        .term-system { color: #ccc; }
+        .term-error { color: var(--danger); }
+        .term-info { color: var(--secondary); }
+
+        .terminal-input-area {
+            display: flex; align-items: center; gap: 10px;
+            padding: 15px 30px;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .prompt { color: var(--primary); font-weight: bold; font-family: var(--font-code); }
+        .cmd-input { background: transparent; border: none; outline: none; color: #fff; font-family: var(--font-code); font-size: 1rem; width: 100%; }
+
+        .term-hint {
+            position: fixed; bottom: 10px; right: 20px; font-size: 0.7rem; color: var(--dim); z-index: 100;
+            opacity: 0.5;
+        }
+
+        .terminal-history::-webkit-scrollbar { width: 8px; }
+        .terminal-history::-webkit-scrollbar-track { background: #000; }
+        .terminal-history::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 4px; }
+        .terminal-history::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+    </style>
 </head>
 <body>
 
     <div class="crt-overlay"></div>
+
     <div class="term-hint">PRESS [ F9 ] FOR CONSOLE</div>
 
     <div class="terminal-wrapper">
@@ -22,7 +255,7 @@
             <div class="header-strip">
                 <h1>SAS <span style="text-shadow: 0 0 10px var(--danger);">MAINFRAME</span></h1>
                 <div class="meta-data">
-                    <span id="conn-status" style="color:var(--danger)">DISCONNECTED</span> // PING: 12ms<br>
+                    <span style="color:var(--primary)">CONNECTED</span> // PING: 12ms<br>
                     SYS.VER.4.0.2
                 </div>
             </div>
@@ -31,7 +264,13 @@
                 <div class="modules-section">
                     <div class="category-title">// ACCRÉDITATION NIVEAU 1 [GÉNÉRAL]</div>
                     <div class="grid-modules">
-                        <a href="#" class="module-card status-online"><div class="module-icon">👥</div><div><div class="module-name">BASE AGENTS</div><div class="module-status">● SYSTEM ONLINE</div></div></a>
+                        <div class="module-card status-online" onclick="accessModule('database.html', 1)">
+                            <div class="module-icon">👥</div>
+                            <div>
+                                <div class="module-name">BASE AGENTS</div>
+                                <div class="module-status">● SYSTEM ONLINE</div>
+                            </div>
+                        </div>
                         <a href="#" class="module-card status-online"><div class="module-icon">📜</div><div><div class="module-name">RÈGLEMENT</div><div class="module-status">● READ ONLY</div></div></a>
                         <a href="#" class="module-card status-online"><div class="module-icon">🗺️</div><div><div class="module-name">CARTOGRAPHIE</div><div class="module-status">● LIVE FEED</div></div></a>
                     </div>
@@ -43,79 +282,40 @@
                 </div>
 
                 <div class="sidebar-section">
-                    
-                    <div id="sidebar-guest" style="padding: 2rem; text-align: center; color: var(--dim); margin-top: 10%;">
-                        <h2 style="color: var(--danger);">SYSTEM LOCKED</h2>
-                        <p style="font-size: 0.8rem; margin-top: 10px;">AUTHENTICATION REQUIRED.</p>
-                        <br>
-                        <p style="font-family: var(--font-code); color: var(--primary); font-size: 0.8rem;">
-                            > TAPEZ F9<br>
-                            > /login [user] [pass]
-                        </p>
-                    </div>
-
-                    <div id="sidebar-logged" class="hidden">
-                        <div class="mini-profile">
-                            <div class="mini-avatar">👤</div>
-                            <div class="mini-details">
-                                <div id="mini-username" class="mini-name">UNKNOWN</div>
-                                <div id="mini-rank" class="mini-rank">LOADING...</div>
-                                <button onclick="switchView('profile')" class="btn-profile-access" style="margin-top: 5px; cursor: pointer; background: transparent; border: 1px solid var(--secondary); color: var(--secondary); font-family: var(--font-ui); padding: 2px 8px;">
-                                    VOIR PROFIL >
-                                </button>
-                            </div>
-                        </div>
-                        <div class="sidebar-header">>> SERVER_LOGS</div>
-                        <div class="log-container">
-                            <div class="log-entry"><span class="log-time">[SYS]</span> Uplink established</div>
-                            <div class="log-entry"><span class="log-time">[SYS]</span> Waiting for input...</div>
+                    <div class="mini-profile">
+                        <div class="mini-avatar">👤</div>
+                        <div class="mini-details">
+                            <div class="mini-name">COMMANDER_K</div>
+                            <div class="mini-rank">LVL 4 // ADMIN</div>
+                            <button onclick="switchView('profile')" class="btn-profile-access">VOIR PROFIL ></button>
                         </div>
                     </div>
-
+                    <div class="sidebar-header">>> SERVER_LOGS</div>
+                    <div class="log-container">
+                        <div class="log-entry"><span class="log-time">[14:02:01]</span> Connexion établie</div>
+                        <div class="log-entry"><span class="log-time">[14:02:05]</span> Agent_K accède à Base Agents</div>
+                        <div class="log-entry"><span class="log-time">[14:05:12]</span> Synchronisation BDD... OK</div>
+                        <div class="log-entry"><span class="log-time">[14:08:44]</span> WARNING: Packet loss détecté</div>
+                    </div>
                 </div>
             </div>
 
-            <div id="profile-view" class="view-section hidden" style="flex-direction: column; padding: 30px;">
-                <button onclick="switchView('dashboard')" style="margin-bottom: 20px; width: fit-content; background: transparent; border: 1px solid var(--dim); color: var(--dim); padding: 5px 15px; cursor: pointer; font-family: var(--font-code);">
-                    < RETOUR DASHBOARD
-                </button>
-
-                <div class="profile-header" style="border-bottom: 1px solid var(--primary); padding-bottom: 20px; margin-bottom: 20px;">
-                    <h2 style="color: var(--primary);">>> AGENT PROFILE</h2>
-                </div>
-                
-                <div style="display: flex; gap: 30px;">
-                    <div class="id-card" style="width: 350px; background: rgba(0,0,0,0.5); border: 1px solid var(--dim); padding: 20px;">
-                        <div style="display: flex; gap: 15px;">
-                            <div style="width: 80px; height: 100px; background: #111; border: 1px solid var(--secondary); display: flex; align-items: center; justify-content: center; font-size: 2rem;">👤</div>
-                            <div>
-                                <div style="color: var(--dim); font-size: 0.8rem;">AGENT ID</div>
-                                <div id="p-username" style="font-size: 1.5rem; color: #fff; font-weight: bold;">UNKNOWN</div>
-                                <div style="color: var(--dim); font-size: 0.8rem; margin-top: 10px;">CLEARANCE</div>
-                                <div id="p-rank" style="color: var(--danger); font-weight: bold;">UNAUTHORIZED</div>
-                            </div>
+            <div id="profile-view" class="view-section hidden profile-view-container">
+                <button onclick="switchView('dashboard')" class="back-button">< RETOUR DASHBOARD</button>
+                <div class="id-card-container">
+                    <div class="id-card">
+                        <div class="card-header"><span class="card-logo-text">SAS AGENT</span><span class="security-level">LVL. 5</span></div>
+                        <div class="card-body">
+                            <div class="photo-box">👤</div>
+                            <div class="agent-info"><div class="card-label">Nom de code</div><div class="card-value">GHOST</div><div class="card-label">Matricule</div><div class="card-code">TX-9940-AZ</div></div>
                         </div>
-                        <div style="margin-top: 20px; font-family: var(--font-barcode); font-size: 2.5rem; color: #555;">CODE 847</div>
-                    </div>
-
-                    <div style="flex: 1; font-family: var(--font-code);">
-                        <p style="color: var(--secondary); margin-bottom: 10px;">// SYSTEM STATUS</p>
-                        <ul style="list-style: none; padding-left: 0;">
-                            <li style="margin-bottom: 8px;">> UPLINK ESTABLISHED ..... [OK]</li>
-                            <li style="margin-bottom: 8px;">> DATABASE SYNC .......... [OK]</li>
-                            <li style="margin-bottom: 8px;">> ENCRYPTION ............. [AES-256]</li>
-                        </ul>
-                        <br>
-                        <p style="color: var(--secondary); margin-bottom: 10px;">// MISSION LOGS</p>
-                        <div style="background: rgba(0,0,0,0.3); padding: 10px; border-left: 2px solid var(--dim);">
-                            <span style="color: #666;">No active missions assigned to this unit.</span>
-                        </div>
+                        <div class="card-footer"><div class="barcode">CODE 847</div></div>
                     </div>
                 </div>
-                
-                <button onclick="logout()" style="margin-top: auto; width: fit-content; background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 10px 20px; cursor: pointer; font-family: var(--font-code);">
-                    < LOGOUT
-                </button>
+                <div style="margin-top: 20px; color: var(--dim); text-align: center; font-size: 0.9rem;">
+                    DERNIÈRE SYNCHRONISATION: <span style="color:var(--primary)">AUJOURD'HUI 08:00</span><br>
+                    LOCALISATION: <span style="color:var(--secondary)">SECTEUR 4</span>
+                </div>
             </div>
 
         </div>
@@ -124,16 +324,125 @@
     <div id="terminal-console" class="terminal-console">
         <div id="terminal-history" class="terminal-history">
             <div class="term-line term-info">SAS Mainframe [Version 4.0.2]</div>
-            <div class="term-line term-info">Ready to authenticate...</div>
+            <div class="term-line term-info">(c) Corporation 2025. All rights reserved.</div>
+            <div class="term-line">Type '/help' for a list of commands.</div>
             <br>
         </div>
         
         <div class="terminal-input-area">
-            <span class="prompt">guest@sas-node:~#</span>
-            <input type="text" id="cmd-input" class="cmd-input" placeholder="Enter command..." autocomplete="off">
+            <span class="prompt">root@sas-mainframe:~#</span>
+            <input type="text" id="cmd-input" class="cmd-input" placeholder="Entrez une commande..." autocomplete="off">
         </div>
     </div>
 
-    <script src="js/script.js"></script>
+    <script>
+        localStorage.setItem('userSecurityLevel', 1);
+
+        function accessModule(url, requiredLevel) {
+            const currentLevel = parseInt(localStorage.getItem('userSecurityLevel') || 0);
+            if (currentLevel >= requiredLevel) {
+                window.location.href = url;
+            } else {
+                alert("⛔ ACCÈS REFUSÉ : ACCRÉDITATION INSUFFISANTE");
+            }
+        }
+
+        function switchView(viewName) {
+            const dashboard = document.getElementById('dashboard-view');
+            const profile = document.getElementById('profile-view');
+            if (viewName === 'profile') {
+                dashboard.classList.add('hidden'); profile.classList.remove('hidden');
+            } else {
+                profile.classList.add('hidden'); dashboard.classList.remove('hidden');
+            }
+        }
+
+        const terminal = document.getElementById('terminal-console');
+        const input = document.getElementById('cmd-input');
+        const historyDiv = document.getElementById('terminal-history');
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'F9') {
+                event.preventDefault(); 
+                terminal.classList.toggle('open');
+                if (terminal.classList.contains('open')) {
+                    setTimeout(() => input.focus(), 100);
+                    scrollToBottom();
+                } else {
+                    input.blur();
+                }
+            }
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const command = input.value.trim();
+                if (command !== "") {
+                    addToHistory(command, 'user');
+                    processCommand(command);
+                    input.value = "";
+                    scrollToBottom();
+                }
+            }
+        });
+
+        function addToHistory(text, type) {
+            const line = document.createElement('div');
+            line.classList.add('term-line');
+            if(type === 'user') line.classList.add('term-user');
+            if(type === 'error') line.classList.add('term-error');
+            if(type === 'info') line.classList.add('term-info');
+            line.textContent = text;
+            historyDiv.appendChild(line);
+        }
+
+        function scrollToBottom() {
+            historyDiv.scrollTop = historyDiv.scrollHeight;
+        }
+
+        function processCommand(cmd) {
+            const lowerCmd = cmd.toLowerCase();
+            setTimeout(() => { 
+                if (lowerCmd === '/help') {
+                    addToHistory("AVAILABLE COMMANDS:", 'info');
+                    addToHistory("  /help    - Show this list", 'system');
+                    addToHistory("  /clear   - Clear terminal history", 'system');
+                    addToHistory("  /status  - Check system status", 'system');
+                    addToHistory("  /login   - Force reconnect", 'system');
+                } 
+                else if (lowerCmd === '/clear') {
+                    historyDiv.innerHTML = "";
+                    addToHistory("Console cleared.", 'info');
+                }
+                else if (lowerCmd === '/status') {
+                    addToHistory("SYSTEM CHECK...", 'info');
+                    addToHistory("CPU: 34% | RAM: 12GB/32GB | NET: ONLINE", 'system');
+                }
+                else if (lowerCmd === '/login') {
+                    addToHistory("Authenticating...", 'info');
+                    addToHistory("Access Granted. Welcome back, Commander.", 'system');
+                }
+                else {
+                    addToHistory(`bash: ${cmd}: command not found`, 'error');
+                }
+                scrollToBottom();
+            }, 200);
+        }
+
+        const card = document.querySelector('.id-card');
+        const container = document.querySelector('.id-card-container');
+        if(container && card) {
+            document.addEventListener('mousemove', (e) => {
+                if(document.getElementById('profile-view').classList.contains('hidden')) return;
+                const rect = container.getBoundingClientRect();
+                const xAxis = (rect.width / 2 - (e.clientX - rect.left)) / 20;
+                const yAxis = (rect.height / 2 - (e.clientY - rect.top)) / 20;
+                card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+            });
+            container.addEventListener('mouseleave', (e) => {
+                card.style.transform = `rotateY(0deg) rotateX(0deg)`;
+            });
+        }
+    </script>
 </body>
 </html>
