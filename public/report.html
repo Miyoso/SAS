@@ -344,25 +344,54 @@ ${proof}
             });
         }
 
+        // --- ENVOI AUTOMATIQUE DISCORD AVEC PDF ---
         async function sendToDiscordAPI() {
             const btn = event.target;
             const originalText = btn.innerText;
-            btn.innerText = "TRANSMISSION EN COURS...";
+            
+            // Feedback visuel
+            btn.innerText = "GÉNÉRATION & ENVOI...";
             btn.style.opacity = "0.7";
+            btn.disabled = true;
 
-            const data = {
-                opname: document.getElementById('inp-opname').value.toUpperCase() || 'SANS NOM',
-                type: document.getElementById('inp-type').value,
-                status: document.getElementById('inp-status').value,
-                date: document.getElementById('out-date').innerText,
-                lead: document.getElementById('inp-lead').value,
-                agents: document.getElementById('inp-agents').value,
-                content: document.getElementById('inp-content').value || 'Rien à signaler.',
-                proof: document.getElementById('inp-proof').value || 'Aucune.',
-                ref: document.getElementById('out-ref').innerText
+            // 1. Récupération des données texte
+            const ref = document.getElementById('out-ref').innerText;
+            const opname = document.getElementById('inp-opname').value.toUpperCase() || 'SANS NOM';
+            
+            // 2. Génération du PDF en Base64 (en mémoire)
+            const element = document.getElementById('print-area');
+            window.scrollTo(0, 0); // Important pour éviter le bug du blanc
+            
+            const opt = {
+                margin: 0,
+                filename: `RAPPORT_SAS_${ref}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             try {
+                // On génère le PDF et on le récupère sous forme de chaine de caractères (Data URI)
+                const pdfDataUri = await html2pdf().set(opt).from(element).output('datauristring');
+                const pdfBase64 = pdfDataUri.split(',')[1]; // On garde juste la partie code, pas l'en-tête
+
+                // 3. Préparation du paquet à envoyer
+                const data = {
+                    opname: opname,
+                    type: document.getElementById('inp-type').value,
+                    status: document.getElementById('inp-status').value,
+                    date: document.getElementById('out-date').innerText,
+                    lead: document.getElementById('inp-lead').value,
+                    agents: document.getElementById('inp-agents').value,
+                    content: document.getElementById('inp-content').value || 'Rien à signaler.',
+                    proof: document.getElementById('inp-proof').value || 'Aucune.',
+                    ref: ref,
+                    // Ajout du fichier
+                    fileData: pdfBase64,
+                    fileName: `RAPPORT_SAS_${ref}.pdf`
+                };
+
+                // 4. Envoi à l'API
                 const response = await fetch('/api/send-discord', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -370,15 +399,22 @@ ${proof}
                 });
 
                 if (response.ok) {
-                    alert("✅ RAPPORT TRANSMIS AU QG AVEC SUCCÈS.");
+                    alert("✅ DOSSIER PDF TRANSMIS AU QG AVEC SUCCÈS.");
                 } else {
-                    alert("❌ ERREUR DE TRANSMISSION (Vérifiez le Webhook).");
+                    const errText = await response.text();
+                    console.error("Erreur API:", errText);
+                    alert("❌ ERREUR DE TRANSMISSION. (Fichier trop lourd ?)");
                 }
+
             } catch (error) {
-                alert("❌ ERREUR RÉSEAU.");
+                console.error(error);
+                alert("❌ ERREUR LORS DE LA GÉNÉRATION OU DE L'ENVOI.");
             }
+
+            // Reset bouton
             btn.innerText = originalText;
             btn.style.opacity = "1";
+            btn.disabled = false;
         }
     </script>
 </body>
