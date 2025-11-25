@@ -14,12 +14,11 @@ export default async function handler(req, res) {
   const { username, password } = req.body;
 
   try {
-    // On génère le hash (10 tours de salage)
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      'INSERT INTO agents (username, password) VALUES ($1, $2) RETURNING id, username, rank',
-      [username, hashedPassword]
+      'INSERT INTO agents (username, password, rank) VALUES ($1, $2, $3) RETURNING id, username, rank',
+      [username, hashedPassword, '1']
     );
 
     return res.status(200).json({ 

@@ -16,9 +16,11 @@
             --primary: #00ff9d;
             --secondary: #00f3ff;
             --danger: #ff3333;
+            --warning: #eebb00;
             --dim: #445566;
             --font-ui: 'Share Tech Mono', monospace;
             --font-code: 'JetBrains Mono', monospace;
+            --font-barcode: 'Libre Barcode 128 Text', cursive;
             --glass: blur(10px);
         }
 
@@ -78,11 +80,6 @@
         h1 span { color: var(--danger); }
         .meta-data { font-size: 0.8rem; color: var(--secondary); text-align: right; font-family: var(--font-code); }
 
-        /* Indicateur de statut dynamique */
-        #status-indicator { font-weight: bold; transition: color 0.3s; }
-        .status-on { color: var(--primary); text-shadow: 0 0 5px var(--primary); }
-        .status-off { color: var(--danger); text-shadow: 0 0 5px var(--danger); }
-
         .view-section {
             display: flex; flex: 1; overflow: hidden;
             transition: opacity 0.5s ease;
@@ -105,7 +102,7 @@
 
         .module-card {
             background: rgba(10, 15, 20, 0.4); border: 1px solid var(--dim); padding: 20px;
-            position: relative; transition: all 0.3s ease; text-decoration: none; cursor: pointer;
+            position: relative; transition: all 0.3s ease; text-decoration: none;
             display: flex; flex-direction: column; justify-content: space-between; min-height: 120px;
             clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
         }
@@ -224,7 +221,6 @@
         .term-system { color: #ccc; }
         .term-error { color: var(--danger); }
         .term-info { color: var(--secondary); }
-        .term-success { color: var(--primary); font-weight: bold; }
 
         .terminal-input-area {
             display: flex; align-items: center; gap: 10px;
@@ -259,7 +255,7 @@
             <div class="header-strip">
                 <h1>SAS <span style="text-shadow: 0 0 10px var(--danger);">MAINFRAME</span></h1>
                 <div class="meta-data">
-                    <span id="status-indicator" class="status-off">DISCONNECTED</span> // PING: 12ms<br>
+                    <span id="conn-status" style="color:var(--primary)">CONNECTED</span> // PING: 12ms<br>
                     SYS.VER.4.0.2
                 </div>
             </div>
@@ -286,20 +282,39 @@
                 </div>
 
                 <div class="sidebar-section">
-                    <div class="mini-profile">
-                        <div class="mini-avatar">👤</div>
-                        <div class="mini-details">
-                            <div class="mini-name">UNKNOWN_USER</div>
-                            <div class="mini-rank" id="user-rank-display">GUEST // NO ACCESS</div>
-                            <button onclick="switchView('profile')" class="btn-profile-access">VOIR PROFIL ></button>
+                    
+                    <div id="sidebar-guest">
+                        <div class="mini-profile" style="border-color: var(--dim);">
+                            <div class="mini-avatar" style="border-color: var(--dim); color: var(--dim);">?</div>
+                            <div class="mini-details">
+                                <div class="mini-name" style="color: var(--dim);">GUEST_USER</div>
+                                <div class="mini-rank">NO ACCESS</div>
+                            </div>
+                        </div>
+                        <div class="sidebar-header" style="color: var(--danger);">>> ACCESS RESTRICTED</div>
+                        <div style="padding: 20px; font-size: 0.8rem; color: #888;">
+                            Veuillez vous identifier via le terminal.<br><br>
+                            Tapez :<br>
+                            <span style="color: var(--primary)">/login [user] [pass]</span>
                         </div>
                     </div>
-                    <div class="sidebar-header">>> SERVER_LOGS</div>
-                    <div class="log-container">
-                        <div class="log-entry"><span class="log-time">[14:02:01]</span> Connexion établie</div>
-                        <div class="log-entry"><span class="log-time">[14:02:05]</span> En attente d'authentification...</div>
-                        <div class="log-entry" id="log-auth-status" style="color:var(--danger)">[ALERT] USER NOT AUTHENTICATED</div>
+
+                    <div id="sidebar-logged" class="hidden">
+                        <div class="mini-profile">
+                            <div class="mini-avatar">👤</div>
+                            <div class="mini-details">
+                                <div class="mini-name" id="mini-username">AGENT</div>
+                                <div class="mini-rank">LVL <span id="mini-rank">0</span></div>
+                                <button onclick="switchView('profile')" class="btn-profile-access">VOIR PROFIL ></button>
+                            </div>
+                        </div>
+                        <div class="sidebar-header">>> SERVER_LOGS</div>
+                        <div class="log-container">
+                            <div class="log-entry"><span class="log-time">[SYS]</span> Authenticated</div>
+                            <div class="log-entry"><span class="log-time">[SYS]</span> Uplink established</div>
+                        </div>
                     </div>
+
                 </div>
             </div>
 
@@ -307,10 +322,10 @@
                 <button onclick="switchView('dashboard')" class="back-button">< RETOUR DASHBOARD</button>
                 <div class="id-card-container">
                     <div class="id-card">
-                        <div class="card-header"><span class="card-logo-text">SAS AGENT</span><span class="security-level">LVL. 5</span></div>
+                        <div class="card-header"><span class="card-logo-text">SAS AGENT</span><span class="security-level">LVL. <span id="p-rank">0</span></span></div>
                         <div class="card-body">
                             <div class="photo-box">👤</div>
-                            <div class="agent-info"><div class="card-label">Nom de code</div><div class="card-value">GHOST</div><div class="card-label">Matricule</div><div class="card-code">TX-9940-AZ</div></div>
+                            <div class="agent-info"><div class="card-label">Nom de code</div><div class="card-value" id="p-username">UNKNOWN</div><div class="card-label">Matricule</div><div class="card-code">TX-9940-AZ</div></div>
                         </div>
                         <div class="card-footer"><div class="barcode">CODE 847</div></div>
                     </div>
@@ -328,8 +343,7 @@
         <div id="terminal-history" class="terminal-history">
             <div class="term-line term-info">SAS Mainframe [Version 4.0.2]</div>
             <div class="term-line term-info">(c) Corporation 2025. All rights reserved.</div>
-            <div class="term-line">System is locked. Please login.</div>
-            <div class="term-line">Type '/login' to authenticate.</div>
+            <div class="term-line">Type '/help' for a list of commands.</div>
             <br>
         </div>
         
@@ -339,156 +353,30 @@
         </div>
     </div>
 
+    <script src="js/script.js"></script>
     <script>
-        // --- GESTION DE LA SÉCURITÉ ---
-        // Par défaut, on met le niveau à 0 (Invité)
-        // Pour garder la session active entre les pages, on utilise localStorage
-        if (!localStorage.getItem('userSecurityLevel')) {
-            localStorage.setItem('userSecurityLevel', 0);
-        }
-        
-        updateInterfaceBasedOnLevel(); // Met à jour l'affichage au chargement
-
-        function updateInterfaceBasedOnLevel() {
-            const level = parseInt(localStorage.getItem('userSecurityLevel'));
-            const statusInd = document.getElementById('status-indicator');
-            const rankDisplay = document.getElementById('user-rank-display');
-            const logStatus = document.getElementById('log-auth-status');
-            const nameDisplay = document.querySelector('.mini-name');
-
-            if (level >= 1) {
-                statusInd.textContent = "CONNECTED";
-                statusInd.className = "status-on";
-                rankDisplay.textContent = "LVL 4 // COMMANDER";
-                nameDisplay.textContent = "COMMANDER_K";
-                logStatus.textContent = "[SUCCESS] AUTHENTICATION VERIFIED";
-                logStatus.style.color = "var(--primary)";
-            } else {
-                statusInd.textContent = "DISCONNECTED";
-                statusInd.className = "status-off";
-                rankDisplay.textContent = "GUEST // RESTRICTED";
-                nameDisplay.textContent = "UNKNOWN_USER";
-                logStatus.textContent = "[ALERT] USER NOT AUTHENTICATED";
-                logStatus.style.color = "var(--danger)";
-            }
-        }
-
         function accessModule(url, requiredLevel) {
             const currentLevel = parseInt(localStorage.getItem('userSecurityLevel') || 0);
             if (currentLevel >= requiredLevel) {
-                // Animation sonore ou visuelle possible ici
-                console.log("Access Granted to " + url);
                 window.location.href = url;
             } else {
-                // Alerte visuelle
-                alert("⛔ ACCÈS REFUSÉ : VEUILLEZ VOUS CONNECTER VIA LE TERMINAL (/login)");
-                // Ouvre le terminal automatiquement pour aider l'utilisateur
-                document.getElementById('terminal-console').classList.add('open');
-                document.getElementById('cmd-input').focus();
+                alert("⛔ ACCÈS REFUSÉ : ACCRÉDITATION INSUFFISANTE");
             }
         }
 
-        // --- GESTION VUES ---
-        function switchView(viewName) {
-            const dashboard = document.getElementById('dashboard-view');
-            const profile = document.getElementById('profile-view');
-            if (viewName === 'profile') {
-                dashboard.classList.add('hidden'); profile.classList.remove('hidden');
-            } else {
-                profile.classList.add('hidden'); dashboard.classList.remove('hidden');
-            }
-        }
-
-        // --- TERMINAL ---
-        const terminal = document.getElementById('terminal-console');
-        const input = document.getElementById('cmd-input');
-        const historyDiv = document.getElementById('terminal-history');
-
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'F9') {
-                event.preventDefault(); 
-                terminal.classList.toggle('open');
-                if (terminal.classList.contains('open')) {
-                    setTimeout(() => input.focus(), 100);
-                    scrollToBottom();
-                } else {
-                    input.blur();
-                }
-            }
-        });
-
-        input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                const command = input.value.trim();
-                if (command !== "") {
-                    addToHistory(command, 'user');
-                    processCommand(command);
-                    input.value = "";
-                    scrollToBottom();
-                }
-            }
-        });
-
-        function addToHistory(text, type) {
-            const line = document.createElement('div');
-            line.classList.add('term-line');
-            if(type === 'user') line.classList.add('term-user');
-            if(type === 'error') line.classList.add('term-error');
-            if(type === 'info') line.classList.add('term-info');
-            if(type === 'success') line.classList.add('term-success');
-            line.textContent = text;
-            historyDiv.appendChild(line);
-        }
-
-        function scrollToBottom() {
-            historyDiv.scrollTop = historyDiv.scrollHeight;
-        }
-
-        // --- COMMANDES DU TERMINAL ---
-        function processCommand(cmd) {
-            const lowerCmd = cmd.toLowerCase();
-            
-            // Simulation de délai réseau
-            setTimeout(() => { 
-                if (lowerCmd === '/help') {
-                    addToHistory("AVAILABLE COMMANDS:", 'info');
-                    addToHistory("  /login   - Authenticate as Commander", 'system');
-                    addToHistory("  /logout  - Disconnect session", 'system');
-                    addToHistory("  /status  - Check security clearance", 'system');
-                    addToHistory("  /clear   - Clear terminal", 'system');
-                } 
-                else if (lowerCmd === '/clear') {
-                    historyDiv.innerHTML = "";
-                    addToHistory("Console cleared.", 'info');
-                }
-                else if (lowerCmd === '/status') {
-                    const lvl = localStorage.getItem('userSecurityLevel');
-                    addToHistory("SYSTEM STATUS:", 'info');
-                    addToHistory(`Current Security Level: ${lvl}`, 'system');
-                    if(lvl > 0) addToHistory("ACCESS: GRANTED", 'success');
-                    else addToHistory("ACCESS: RESTRICTED", 'error');
-                }
-                else if (lowerCmd === '/login') {
-                    addToHistory("Initiating Handshake...", 'info');
-                    addToHistory("Verifying Biometrics...", 'system');
-                    
-                    setTimeout(() => {
-                        localStorage.setItem('userSecurityLevel', 4); // On passe admin
-                        updateInterfaceBasedOnLevel(); // On met à jour l'écran derrière
-                        addToHistory("SUCCESS: Identity Confirmed.", 'success');
-                        addToHistory("Welcome back, Commander.", 'info');
-                    }, 1000);
-                }
-                else if (lowerCmd === '/logout') {
-                    localStorage.setItem('userSecurityLevel', 0);
-                    updateInterfaceBasedOnLevel();
-                    addToHistory("Session terminated.", 'error');
-                }
-                else {
-                    addToHistory(`bash: ${cmd}: command not found`, 'error');
-                }
-                scrollToBottom();
-            }, 300);
+        const card = document.querySelector('.id-card');
+        const container = document.querySelector('.id-card-container');
+        if(container && card) {
+            document.addEventListener('mousemove', (e) => {
+                if(document.getElementById('profile-view').classList.contains('hidden')) return;
+                const rect = container.getBoundingClientRect();
+                const xAxis = (rect.width / 2 - (e.clientX - rect.left)) / 20;
+                const yAxis = (rect.height / 2 - (e.clientY - rect.top)) / 20;
+                card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+            });
+            container.addEventListener('mouseleave', (e) => {
+                card.style.transform = `rotateY(0deg) rotateX(0deg)`;
+            });
         }
     </script>
 </body>

@@ -71,29 +71,37 @@ function unlockInterface(agent) {
     sidebarGuest.classList.add('hidden');
     sidebarLogged.classList.remove('hidden');
 
-    miniUsername.textContent = agent.username.toUpperCase();
-    miniRank.textContent = agent.rank;
+    if(miniUsername) miniUsername.textContent = agent.username.toUpperCase();
+    if(miniRank) miniRank.textContent = agent.rank;
     
-    pUsername.textContent = agent.username.toUpperCase();
-    pRank.textContent = agent.rank;
+    if(pUsername) pUsername.textContent = agent.username.toUpperCase();
+    if(pRank) pRank.textContent = agent.rank;
     
-    connStatus.textContent = "CONNECTED";
-    connStatus.style.color = "var(--primary)";
-    promptSpan.textContent = `${agent.username}@sas-mainframe:~#`;
+    localStorage.setItem('userSecurityLevel', agent.rank);
+    
+    if(connStatus) {
+        connStatus.textContent = "CONNECTED";
+        connStatus.style.color = "var(--primary)";
+    }
+    if(promptSpan) promptSpan.textContent = `${agent.username}@sas-mainframe:~#`;
 }
 
 function logout() {
     currentUser = null;
     localStorage.removeItem('sas_session');
     
+    localStorage.removeItem('userSecurityLevel');
+    
     switchView('dashboard');
 
     sidebarLogged.classList.add('hidden');
     sidebarGuest.classList.remove('hidden');
 
-    connStatus.textContent = "DISCONNECTED";
-    connStatus.style.color = "var(--danger)";
-    promptSpan.textContent = "guest@sas-node:~#";
+    if(connStatus) {
+        connStatus.textContent = "DISCONNECTED";
+        connStatus.style.color = "var(--danger)";
+    }
+    if(promptSpan) promptSpan.textContent = "guest@sas-node:~#";
     addToHistory("System logout completed.", 'info');
 }
 window.logout = logout;
@@ -168,10 +176,14 @@ async function processCommand(cmd) {
         addToHistory("  /login [user] [pass]", 'system');
         addToHistory("  /register [user] [pass]", 'system');
         addToHistory("  /clear", 'system');
+        addToHistory("  /logout", 'system');
     } 
     else if (command === '/clear') {
         historyDiv.innerHTML = "";
         addToHistory("Console cleared.", 'info');
+    }
+    else if (command === '/logout') {
+        logout();
     }
     else {
         addToHistory(`bash: ${cmd}: command not found`, 'error');
