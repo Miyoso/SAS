@@ -78,11 +78,15 @@
 
         /* La feuille A4 exacte */
         .preview-panel {
-            width: 210mm; /* Largeur A4 */
-            min-height: 297mm; /* Hauteur A4 */
+            width: 210mm;
+            min-height: 297mm;
             background: #fff; 
             color: #000;
-            padding: 20mm;
+            
+            /* AVANT : padding: 20mm; */
+            /* APRÈS : On met seulement 5mm en haut, et 20mm sur les côtés */
+            padding: 5mm 20mm 20mm 20mm; 
+            
             font-family: 'Courier New', Courier, monospace;
             position: relative;
             box-shadow: 0 0 50px rgba(0,0,0,0.8);
