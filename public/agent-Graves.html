@@ -11,7 +11,30 @@
     
     <link rel="stylesheet" href="/css/style-mo.css">
 
-    
+    <style>
+        /* Style HUD spécifique pour cette page si style-mo.css n'est pas modifié */
+        .user-hud {
+            position: fixed;
+            top: 20px;
+            right: 30px;
+            background: rgba(10, 15, 20, 0.9);
+            border: 1px solid #445566;
+            border-left: 3px solid #00ff9d;
+            padding: 8px 15px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.85rem;
+            color: #fff;
+            z-index: 10000;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .hud-label { color: #445566; font-size: 0.7rem; letter-spacing: 1px; }
+        .hud-value { color: #00ff9d; font-weight: bold; text-transform: uppercase; }
+        .hud-rank { color: #00f3ff; }
+    </style>
 </head>
 <body>
 
