@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS - RÈGLEMENT INTÉRIEUR</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style-mo.css">
+
+    <style>
+        /* Styles spécifiques pour la lecture de document */
+        .doc-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 40px;
+            background: rgba(0, 0, 0, 0.2);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #ccc;
+            position: relative;
+        }
+
+        /* Barre de défilement stylisée */
+        .doc-container::-webkit-scrollbar { width: 8px; }
+        .doc-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        .doc-container::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 4px; }
+        .doc-container::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        /* Blocs d'articles */
+        .article-block {
+            margin-bottom: 30px;
+            border-left: 2px solid var(--dim);
+            padding-left: 20px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.02), transparent);
+        }
+
+        .article-title {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        
+        /* Variantes de couleurs par thème */
+        .theme-general { border-left-color: var(--primary); }
+        .theme-general .article-title { color: var(--primary); }
+
+        .theme-danger { border-left-color: var(--danger); background: linear-gradient(90deg, rgba(255, 51, 51, 0.05), transparent); }
+        .theme-danger .article-title { color: var(--danger); text-shadow: 0 0 10px rgba(255, 51, 51, 0.4); }
+
+        .theme-warning { border-left-color: var(--warning); }
+        .theme-warning .article-title { color: var(--warning); }
+
+        /* Règles individuelles */
+        .rule-item {
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        .rule-id {
+            color: var(--secondary);
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        .rule-sub {
+            margin-left: 40px;
+            color: #8899aa;
+            list-style-type: square;
+        }
+
+        /* Boite d'alerte en haut */
+        .alert-box {
+            border: 1px solid var(--danger);
+            background: rgba(255, 51, 51, 0.1);
+            color: var(--danger);
+            padding: 15px;
+            margin-bottom: 30px;
+            font-weight: bold;
+            text-align: center;
+            letter-spacing: 1px;
+            box-shadow: 0 0 20px rgba(255, 51, 51, 0.1);
+            animation: pulseAlert 4s infinite;
+        }
+        @keyframes pulseAlert { 0%, 100% {opacity: 1;} 50% {opacity: 0.8;} }
+
+        .back-nav {
+            padding: 15px 30px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn-back {
+            background: transparent; border: 1px solid var(--primary); color: var(--primary);
+            padding: 8px 16px; font-family: 'Share Tech Mono'; cursor: pointer;
+            text-decoration: none; display: inline-block; font-size: 0.8rem;
+            transition: 0.3s;
+        }
+        .btn-back:hover { background: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary); }
+
+    </style>
+</head>
+<body>
+
+    <div class="crt-overlay"></div>
+
+    <style>
+        body::before { content: "DOC.VIEWER // READ_ONLY"; position: fixed; top: 100px; left: 20px; writing-mode: vertical-rl; transform: rotate(180deg); color: #445566; font-size: 0.6rem; letter-spacing: 2px; border-left: 1px dashed #333; height: 200px; display: flex; align-items: center; }
+    </style>
+
+    <div class="terminal-wrapper">
+        <div class="terminal" style="padding: 0;">
+            
+            <div class="header-strip" style="margin: 0; border-bottom: none; padding: 20px 30px;">
+                <div>
+                    <h1>SHADOW <span style="text-shadow: 0 0 10px var(--danger);">RULES</span></h1>
+                    <div style="font-size: 0.8rem; color: #667788; letter-spacing: 2px; margin-top: 5px;">INTERNAL REGULATIONS MANUAL</div>
+                </div>
+                <div class="meta-data">
+                    DOC.REF: <span style="color:var(--secondary)">REG-404</span><br>
+                    ACCESS: <span class="blink" style="color:var(--danger)">CONFIDENTIAL</span>
+                </div>
+            </div>
+
+            <div class="back-nav">
+                <a href="index.html" class="btn-back">< RETOUR DASHBOARD</a>
+            </div>
+
+            <div class="doc-container">
+
+                <p style="margin-bottom: 20px; color: #8899aa; font-style: italic;">
+                    Le manuel du règlement interne de la Shadow Company est remis à chaque agent dès son incorporation en tant que recrue. Ce manuel expose les principes essentiels et obligatoires que chaque agent doit suivre en tant que représentant de la Shadow Company.
+                </p>
+
+                <div class="alert-box">
+                    ATTENTION : CE DOCUMENT EST CONFIDENTIEL ET SA DIFFUSION À TOUTE PERSONNE CIVILE EST STRICTEMENT INTERDITE. SEULS LES AGENTS DE LA SHADOW COMPANY SONT AUTORISÉS À LE CONSULTER.
+                </div>
+
+                <div class="article-block theme-general">
+                    <div class="article-title">Article [1.00] - Cadre général</div>
+                    
+                    <div class="rule-item">
+                        <span class="rule-id">[1.01]</span> Chaque agent de la Shadow Company est tenu d'exercer ses fonctions au sein du service en respectant scrupuleusement l'ensemble des règles établies.
+                    </div>
+                    
+                    <div class="rule-item">
+                        <span class="rule-id">[1.02]</span> Le respect de la hiérarchie et du règlement est d'une importance capitale au sein du service ; tout manquement sera sanctionné selon l'échelle suivante :
+                        <ul class="rule-sub">
+                            <li>Mise à pied</li>
+                            <li>Avertissement</li>
+                            <li>Licenciement sans solde</li>
+                        </ul>
+                    </div>
+
+                    <div class="rule-item">
+                        <span class="rule-id">[1.03]</span> La direction de la Shadow Company est habilitée à évaluer si un profil ne correspond pas aux critères du département, pouvant entraîner une mise à pied, un avertissement, voire un licenciement sans solde.
+                    </div>
+
+                    <div class="rule-item">
+                        <span class="rule-id">[1.04]</span> Tout incident observé par l'état major doit être signalé à la direction.
+                    </div>
+
+                    <div class="rule-item">
+                        <span class="rule-id">[1.05]</span> Les fautes graves peuvent conduire à un licenciement immédiat sans solde.
+                    </div>
+
+                    <div class="rule-item">
+                        <span class="rule-id">[1.06]</span> À son arrivée dans la Shadow Company en tant que soldat, chaque individu est en période d'essai ; le personnel exécutif se réserve ainsi le droit de mettre fin à son contrat de travail à tout moment si son profil ne correspond pas à nos attentes.
+                    </div>
+                </div>
+
+                <div class="article-block theme-danger">
+                    <div class="article-title">Article [2.00] - Confidentialité</div>
+
+                    <div class="rule-item">
+                        <span class="rule-id">[2.01]</span> Chaque agent de la Shadow Company, ou ayant appartenu à ce service, est tenu de maintenir la confidentialité de tous les procédés, procédures, enquêtes et techniques opérationnelles du service. En cas de violation, l’agent se verra encourir des répercussions graves.
+                    </div>
+
+                    <div class="rule-item">
+                        <span class="rule-id">[2.02]</span> Toute divulgation d'informations relatives à des rapports, enquêtes ou affaires internes classées confidentiel au sein du service entraînera un licenciement sans solde et des répercussions graves, que cette fuite d'information provienne du service, en interne ou en externe.
+                    </div>
+
+                    <div class="rule-item">
+                        <span class="rule-id">[2.03]</span> La corruption est strictement prohibée. La corruption constitue un crime au sein de la Shadow Company. En cas d'accusation, des mesures telles qu'une mise à pied ou un licenciement sans solde peuvent être prises par le service.
+                    </div>
+
+                    <div class="rule-item">
+                        <span class="rule-id">[2.04]</span> L’agent est tenu de soumettre un rapport d'incident après :
+                        <ul class="rule-sub">
+                            <li>Une opération sur le terrain, convoi VIP, convoi de fonds</li>
+                            <li>Une constatation de faits</li>
+                            <li>Un enlèvement de VIP</li>
+                            <li>Une prise d'otages impliquant les VIP</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="article-block theme-warning">
+                    <div class="article-title">Article [3.00] - L’équipement</div>
+
+                    <div class="rule-item"><span class="rule-id">[3.01]</span> Il est strictement interdit de prêter ou de dérober l'équipement de quiconque.</div>
+                    <div class="rule-item"><span class="rule-id">[3.02]</span> Votre arme à feu doit être sécurisée et sous votre contrôle en tout temps. Elle ne doit appartenir qu'à vous.</div>
+                    <div class="rule-item"><span class="rule-id">[3.03]</span> Toute perte d'équipement doit être immédiatement signalée à la hiérarchie.</div>
+                    <div class="rule-item"><span class="rule-id">[3.04]</span> Le déploiement des armes lourdes est soumis à l'autorisation de la direction de la Shadow Company.</div>
+                    <div class="rule-item"><span class="rule-id">[3.05]</span> Avant chaque début ou fin de service, chaque soldat doit vérifier que son équipement est fonctionnel et opérationnel.</div>
+                    <div class="rule-item"><span class="rule-id">[3.06]</span> L'utilisation de l'équipement doit être effectuée de manière raisonnable et justifiable.</div>
+                </div>
+
+                <div class="article-block theme-warning">
+                    <div class="article-title">Article [4.00] - L’Uniforme</div>
+
+                    <div class="rule-item">
+                        <span class="rule-id">[4.01]</span> Tout agent affecté à des missions spécifiques doit obligatoirement revêtir l’un des uniformes correspondant à son grade.
+                        <br><span style="color:#666; font-size:0.8rem;">> Les agents affectés à n'importe quelle mission doivent maintenir une apparence professionnelle, soignée et propre.</span>
+                        <br><span style="color:#666; font-size:0.8rem;">> En service, les agents doivent revêtir l'une des tenues réglementaires consultables. Toute suggestion d'amélioration doit être soumise à l'intranet.</span>
+                    </div>
+
+                    <div class="rule-item">
+                        <span class="rule-id">[4.02]</span> Si vous souhaitez porter des accessoires (lunettes, montres, etc.), les couleurs doivent être sombres et neutres.
+                        <ul class="rule-sub">
+                            <li>Les lunettes élégantes ou tape-à-l'œil sont strictement interdites.</li>
+                            <li>Les couvre-chefs de toute nature sont formellement interdits en dessous du grade de sergent.</li>
+                            <li style="color:var(--primary)">Nota : Seules les casquettes noires tactiques sont autorisées pour les soldats.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="article-block theme-general">
+                    <div class="article-title">Article [5.00] - Agissements sur le terrain</div>
+
+                    <div class="rule-item"><span class="rule-id">[5.01]</span> L'insubordination ainsi que la rébellion sont formellement interdites.</div>
+                    <div class="rule-item"><span class="rule-id">[5.02]</span> Vous n’êtes pas autorisés à divulguer vos identités ou informations professionnelles pendant votre service.</div>
+                    <div class="rule-item"><span class="rule-id">[5.03]</span> Le respect entre collègues est primordial, quel que soit le grade.</div>
+                    <div class="rule-item"><span class="rule-id">[5.04]</span> Si un supérieur vous donne un ordre, vous êtes tenu de l'exécuter. Cependant, en cas de doute sur l'aspect excessif ou irréel de l'ordre, vous avez le droit de le réévaluer avec votre supérieur.</div>
+                    <div class="rule-item"><span class="rule-id">[5.05]</span> Les débordements verbaux tels que hurlements ou insultes sont strictement interdits et seront sévèrement sanctionnés.</div>
+                    <div class="rule-item"><span class="rule-id">[5.06]</span> Le tutoiement des VIP est rigoureusement interdit, même avec une autorisation explicite du VIP concerné.</div>
+                    <div class="rule-item"><span class="rule-id">[5.07]</span> Les débordements physiques et verbaux envers les collègues et les VIP sont strictement interdits.</div>
+                    <div class="rule-item"><span class="rule-id">[5.08]</span> En cas d'absence ou d'indisponibilité d'un superviseur, il est impératif de nommer un subalterne qualifié pour superviser les unités sur le terrain.</div>
+                    <div class="rule-item"><span class="rule-id">[5.09]</span> Une mauvaise utilisation de la transmission radio sera sanctionnée.</div>
+                    
+                    <div class="rule-item" style="border: 1px dashed var(--danger); padding: 10px; margin-top: 10px;">
+                        <span class="rule-id" style="color:var(--danger)">[5.10] USAGE DE LA FORCE</span><br>
+                        Toute utilisation disproportionnée de la force peut entraîner des sanctions sévères. La politique stipule que le personnel ne peut utiliser que la force qui est « objectivement raisonnable » dans les situations suivantes :
+                        <ul class="rule-sub" style="color:#fff;">
+                            <li>Se défendre</li>
+                            <li>Défendre les autres (les VIP, ses collègues)</li>
+                            <li>Danger de mort</li>
+                        </ul>
+                        <br>
+                        <span style="color:var(--danger)">USAGE LÉTAL :</span> Les agents sont autorisés à recourir à l'arme létale pour se protéger ou protéger les autres contre ce qui est raisonnablement considéré comme une menace imminente de mort ou de blessures graves.
+                    </div>
+                </div>
+
+                <div class="article-block theme-general">
+                    <div class="article-title">Article [8.00] - Attitude</div>
+
+                    <div class="rule-item">
+                        <span class="rule-id">[8.01]</span> Être agent de la Shadow Company engendre de grandes responsabilités. Chaque agent est le reflet de l'image de la Shadow Company et se doit d'adopter un comportement irréprochable en service.
+                        <br><br>
+                        <span style="color:var(--danger)">TOLÉRANCE ZÉRO</span> envers les comportements inappropriés.
+                        <ul class="rule-sub">
+                            <li>Un agent en uniforme doit respecter son uniforme, incarnant la protection et le service envers les VIP et ses Supérieurs.</li>
+                            <li>Tout comportement indigne (colère, plaintes incessantes) sera immédiatement sanctionné d'un avertissement ou rétrogradation.</li>
+                            <li>Tout manquement à la discipline (langage/gestuelle) ou au respect envers autrui sera sanctionné.</li>
+                            <li>Tout abus de pouvoir sera sanctionné par un avertissement et une mise à pied.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 50px; color: #444; font-size: 0.7rem;">
+                    END OF DOCUMENT // SC-REG-2024
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
