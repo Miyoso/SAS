@@ -1,266 +1,88 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS - TACTICAL MAP</title>
-    
-    <script>
-        const session = localStorage.getItem('sas_session');
-        // if (!session) window.location.href = 'index.html';
-    </script>
-
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style-mo.css">
-
-    <style>
-        /* --- STYLES SPÉCIFIQUES CARTE --- */
-        body { overflow: hidden; } /* On veut que ça ressemble à une appli, pas de scroll global */
-
-        .map-wrapper {
-            display: flex; height: 100vh; width: 100vw;
-            padding: 80px 20px 20px 20px; gap: 20px;
-        }
-
-        /* COLONNE GAUCHE : LA CARTE */
-        .map-container {
-            flex: 3;
-            background: #000;
-            border: 1px solid rgba(255,255,255,0.2);
-            position: relative;
-            overflow: hidden;
-            cursor: crosshair;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-        }
-
-        .tactical-map {
-            max-width: 100%; max-height: 100%;
-            object-fit: contain;
-            /* Filtre pour donner un look "écran tactique" à l'image */
-            filter: contrast(1.2) grayscale(0.2) sepia(0.1) brightness(0.8);
-            transition: transform 0.3s;
-        }
-
-        /* Grille par dessus la carte */
-        .grid-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 255, 157, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 157, 0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none; z-index: 10;
-        }
-
-        /* COLONNE DROITE : CONTRÔLES */
-        .sidebar-controls {
-            flex: 1; min-width: 300px; max-width: 400px;
-            display: flex; flex-direction: column; gap: 20px;
-        }
-
-        .control-panel {
-            background: rgba(10, 15, 20, 0.9);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 20px; display: flex; flex-direction: column; gap: 15px;
-            backdrop-filter: blur(5px);
-        }
-
-        .panel-header {
-            font-family: 'Share Tech Mono'; color: var(--primary); 
-            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 5px;
-            letter-spacing: 2px; font-weight: bold;
-        }
-
-        .tool-btn {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #ccc;
-            padding: 10px; cursor: pointer; font-family: 'JetBrains Mono'; text-align: left;
-            transition: 0.2s; display: flex; align-items: center; gap: 10px;
-        }
-        .tool-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .tool-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0,255,157,0.1); }
-
-        .intel-feed {
-            flex: 1; overflow-y: auto;
-            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);
-            padding: 10px;
-        }
-        .intel-item {
-            font-size: 0.8rem; padding: 10px; margin-bottom: 5px;
-            border-left: 3px solid #555; background: rgba(255,255,255,0.02);
-            cursor: pointer; transition: 0.2s;
-        }
-        .intel-item:hover { background: rgba(255,255,255,0.05); }
-
-        /* MODAL D'AJOUT */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 1000;
-            display: none; align-items: center; justify-content: center;
-            backdrop-filter: blur(5px);
-        }
-        .modal-box {
-            background: #0f1215; border: 1px solid var(--primary);
-            padding: 30px; width: 400px;
-            box-shadow: 0 0 50px rgba(0, 255, 157, 0.2);
-            font-family: 'JetBrains Mono';
-        }
-        .input-group { margin-bottom: 15px; }
-        .input-label { display: block; color: #8899aa; font-size: 0.8rem; margin-bottom: 5px; }
-        .input-field { 
-            width: 100%; background: #050505; border: 1px solid #333; color: #fff; 
-            padding: 8px; font-family: 'JetBrains Mono'; outline: none;
-        }
-        .input-field:focus { border-color: var(--primary); }
-        
-        .btn-action {
-            width: 100%; padding: 10px; margin-top: 10px;
-            background: var(--primary); color: #000; font-weight: bold; border: none; cursor: pointer;
-        }
-        .btn-action:hover { opacity: 0.9; }
-        .btn-cancel { background: transparent; color: #888; border: 1px solid #333; margin-top: 5px; }
-        .btn-cancel:hover { color: #fff; border-color: #fff; }
-
-        /* MARKERS SUR LA CARTE */
-        .map-marker {
-            position: absolute; transform: translate(-50%, -50%);
-            z-index: 20; cursor: pointer; transition: 0.2s;
-        }
-        /* Icone Point */
-        .marker-icon {
-            width: 20px; height: 20px; border-radius: 50%;
-            border: 2px solid #fff; 
-            box-shadow: 0 0 10px currentColor;
-            animation: pulse 2s infinite;
-        }
-        /* Zone (Cercle) */
-        .marker-zone {
-            width: 100px; height: 100px; border-radius: 50%;
-            border: 1px dashed currentColor;
-            background: radial-gradient(circle, currentColor 0%, transparent 70%);
-            opacity: 0.4; pointer-events: none; /* Le clic se fait sur l'icône centrale */
-        }
-
-        /* Tooltip au survol d'un point */
-        .marker-tooltip {
-            position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); color: #fff; padding: 5px 10px;
-            font-size: 0.7rem; white-space: nowrap; border: 1px solid currentColor;
-            display: none; z-index: 30; pointer-events: none;
-        }
-        .map-marker:hover .marker-tooltip { display: block; }
-        .map-marker:hover { z-index: 100; transform: translate(-50%, -50%) scale(1.2); }
-
-        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(255,255,255,0.4);} 70% {box-shadow: 0 0 0 10px rgba(255,255,255,0);} 100% {box-shadow: 0 0 0 0 rgba(255,255,255,0);} }
-
-        /* Couleurs Menace */
-        .level-low { color: var(--primary); border-color: var(--primary) !important; }
-        .level-mid { color: var(--warning); border-color: var(--warning) !important; }
-        .level-high { color: var(--danger); border-color: var(--danger) !important; }
-
-        .bg-low { background: rgba(0, 255, 157, 0.1); border-left-color: var(--primary); }
-        .bg-mid { background: rgba(238, 187, 0, 0.1); border-left-color: var(--warning); }
-        .bg-high { background: rgba(255, 51, 51, 0.1); border-left-color: var(--danger); }
-
-    </style>
-</head>
-<body>
-
-    <div class="crt-overlay"></div>
-
-    <div style="position:fixed; top:20px; left:20px; z-index:100;">
-        <h1 style="font-size:1.5rem; text-shadow:0 0 10px var(--primary);">TACTICAL <span style="color:#fff">MAP</span></h1>
-        <div class="meta-data" style="text-align:left;">SECTOR: GLOBAL // LIVE FEED</div>
-    </div>
-    <div style="position:fixed; top:30px; right:30px; z-index:100;">
-        <a href="index.html" class="btn-profile-access" style="background:#000; border-color:var(--primary);">< RETOUR DASHBOARD</a>
-    </div>
-
-    <div class="map-wrapper">
-        
-        <div class="map-container" id="map-container">
-            <div class="grid-overlay"></div>
-            <img src="assets/carte.jpg" class="tactical-map" id="tactical-map" alt="No Signal">
-            
-            <div id="markers-layer"></div>
-        </div>
-
-        <div class="sidebar-controls">
-            
-            <div class="control-panel">
-                <div class="panel-header">OUTILS</div>
-                <div class="tool-btn active" onclick="setTool('pointer')">🖱️ NAVIGATION</div>
-                <div class="tool-btn" onclick="setTool('marker')">📍 MARQUEUR (POINT)</div>
-                <div class="tool-btn" onclick="setTool('zone')">⭕ ZONE DE DANGER</div>
-                <div class="tool-btn" onclick="clearMap()" style="color:var(--danger); border-color:var(--danger);">🗑️ NETTOYER CARTE</div>
-            </div>
-
-            <div class="control-panel" style="flex:1; padding:0; overflow:hidden;">
-                <div class="panel-header" style="padding:15px;">INTEL FEED</div>
-                <div id="intel-list" class="intel-feed">
-                    </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="add-modal">
-        <div class="modal-box">
-            <h2 style="color:var(--primary); margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:10px;">NOUVEAU POINT D'INTÉRÊT</h2>
-            
-            <div class="input-group">
-                <label class="input-label">DESCRIPTION</label>
-                <input type="text" id="input-desc" class="input-field" placeholder="Ex: Cible VIP, Cache d'armes..." autocomplete="off">
-            </div>
-
-            <div class="input-group">
-                <label class="input-label">NIVEAU D'IMPORTANCE</label>
-                <select id="input-level" class="input-field">
-                    <option value="low">FAIBLE (Observation)</option>
-                    <option value="mid">MOYEN (Attention requise)</option>
-                    <option value="high">CRITIQUE (Action immédiate)</option>
-                </select>
-            </div>
-
-            <input type="hidden" id="input-type" value="marker">
-            <input type="hidden" id="input-x">
-            <input type="hidden" id="input-y">
-
-            <button onclick="confirmAdd()" class="btn-action">CONFIRMER</button>
-            <button onclick="closeModal()" class="btn-action btn-cancel">ANNULER</button>
-        </div>
-    </div>
-
-    <script>
+<script>
         // VARIABLES GLOBALES
         let currentTool = 'pointer';
-        let markers = JSON.parse(localStorage.getItem('sas_map_data') || '[]');
+        let markers = []; // On part d'une liste vide, on la remplira via l'API
         const mapContainer = document.getElementById('map-container');
         const markersLayer = document.getElementById('markers-layer');
         const modal = document.getElementById('add-modal');
+        const intelList = document.getElementById('intel-list');
 
         // INITIALISATION
         document.addEventListener('DOMContentLoaded', () => {
-            renderMap();
-            updateIntelList();
+            fetchMarkers(); // Premier chargement
+            
+            // SYSTÈME "TEMPS RÉEL" (POLLING)
+            // Rafraîchit les données toutes les 3 secondes pour voir les changements des autres
+            setInterval(fetchMarkers, 3000);
         });
 
-        // GESTION DES OUTILS
+        // --- COMMUNICATION AVEC LA BDD ---
+
+        // 1. RÉCUPÉRER (GET)
+        async function fetchMarkers() {
+            try {
+                const response = await fetch('/api/markers');
+                if (response.ok) {
+                    markers = await response.json();
+                    renderMap();
+                    updateIntelList();
+                }
+            } catch (e) {
+                console.error("Erreur de connexion tactique:", e);
+            }
+        }
+
+        // 2. AJOUTER (POST)
+        async function pushMarkerToDB(newMarker) {
+            try {
+                await fetch('/api/markers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        x: newMarker.x,
+                        y: newMarker.y,
+                        type: newMarker.type,
+                        desc: newMarker.desc,
+                        level: newMarker.level,
+                        author: newMarker.author
+                    })
+                });
+                fetchMarkers(); // On recharge immédiatement pour voir le résultat confirmé
+            } catch (e) {
+                alert("ERREUR DE TRANSMISSION AU QG.");
+            }
+        }
+
+        // 3. SUPPRIMER (DELETE)
+        async function deleteMarkerFromDB(id) {
+            try {
+                await fetch('/api/markers', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                });
+                fetchMarkers();
+            } catch (e) {
+                alert("IMPOSSIBLE DE SUPPRIMER LA CIBLE.");
+            }
+        }
+
+        // --- LOGIQUE D'INTERFACE (Inchangée ou adaptée) ---
+
         function setTool(tool) {
             currentTool = tool;
-            // Mise à jour visuelle des boutons
             document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active'); // L'event est passé implicitement via onclick
-
-            // Curseur
+            // Note: l'event est passé implicitement, attention si appelé sans event
+            if(event) event.currentTarget.classList.add('active');
+            
             if (tool === 'pointer') mapContainer.style.cursor = 'grab';
             else mapContainer.style.cursor = 'crosshair';
         }
 
-        // CLIC SUR LA CARTE
         mapContainer.addEventListener('click', (e) => {
             if (currentTool === 'pointer') return;
-            if (e.target.closest('.map-marker')) return; // Évite de déclencher si on clique sur un marqueur existant
+            if (e.target.closest('.map-marker')) return;
 
-            // Calcul des coordonnées en pourcentage (pour que ça reste bien placé si on redimensionne)
             const rect = mapContainer.getBoundingClientRect();
             const x = ((e.clientX - rect.left) / rect.width) * 100;
             const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -268,14 +90,12 @@
             openModal(x, y, currentTool);
         });
 
-        // GESTION MODAL
         function openModal(x, y, type) {
             document.getElementById('input-x').value = x;
             document.getElementById('input-y').value = y;
             document.getElementById('input-type').value = type;
             document.getElementById('input-desc').value = '';
             document.getElementById('input-level').value = 'low';
-            
             modal.style.display = 'flex';
             document.getElementById('input-desc').focus();
         }
@@ -290,51 +110,38 @@
             const type = document.getElementById('input-type').value;
             const x = document.getElementById('input-x').value;
             const y = document.getElementById('input-y').value;
+            
+            const session = localStorage.getItem('sas_session');
+            const author = session ? JSON.parse(session).username : 'Unknown';
 
-            // Création de l'objet
-            const newMarker = {
-                id: Date.now(),
-                x: parseFloat(x),
-                y: parseFloat(y),
-                type: type,
-                desc: desc,
-                level: level,
-                author: JSON.parse(localStorage.getItem('sas_session'))?.username || 'Unknown'
-            };
-
-            markers.push(newMarker);
-            saveData();
-            renderMap();
-            updateIntelList();
+            // On envoie à la BDD au lieu du tableau local
+            pushMarkerToDB({ x, y, type, desc, level, author });
+            
             closeModal();
         }
 
-        // RENDU DE LA CARTE
         function renderMap() {
-            markersLayer.innerHTML = ''; // Nettoyer
-
+            markersLayer.innerHTML = '';
             markers.forEach(m => {
                 const el = document.createElement('div');
+                // Note: m.level vient de la BDD, assurez-vous que c'est bien 'low', 'mid', 'high'
                 el.className = `map-marker level-${m.level}`;
                 el.style.left = m.x + '%';
                 el.style.top = m.y + '%';
                 
-                // Contenu selon le type
                 let innerHTML = '';
                 if(m.type === 'zone') {
-                    // Cercle de zone + icône centrale
                     innerHTML = `
                         <div class="marker-zone" style="background: radial-gradient(circle, currentColor 0%, transparent 70%);"></div>
                         <div class="marker-icon" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:10px; height:10px;"></div>
                     `;
                 } else {
-                    // Juste le point
                     innerHTML = `<div class="marker-icon"></div>`;
                 }
 
-                // Tooltip
+                // Ajout de l'ID pour la suppression
                 innerHTML += `<div class="marker-tooltip">
-                    <strong style="color:var(--primary)">${m.desc}</strong><br>
+                    <strong style="color:var(--primary)">${m.description || m.desc}</strong><br>
                     <span style="font-size:0.6rem">PAR: ${m.author}</span><br>
                     <span style="color:#888; cursor:pointer;" onclick="deleteMarker(${m.id})">[SUPPRIMER]</span>
                 </div>`;
@@ -344,57 +151,42 @@
             });
         }
 
-        // LISTE DE DROITE
         function updateIntelList() {
-            const list = document.getElementById('intel-list');
-            list.innerHTML = '';
-
+            intelList.innerHTML = '';
             if(markers.length === 0) {
-                list.innerHTML = '<div style="padding:10px; color:#666;">AUCUN RAPPORT D\'ACTIVITÉ.</div>';
+                intelList.innerHTML = '<div style="padding:10px; color:#666;">AUCUN RAPPORT D\'ACTIVITÉ.</div>';
                 return;
             }
-
-            markers.forEach(m => {
+            // On inverse pour avoir les plus récents en haut
+            [...markers].reverse().forEach(m => {
                 const item = document.createElement('div');
                 item.className = `intel-item bg-${m.level}`;
                 const icon = m.type === 'zone' ? '⭕' : '📍';
+                // Gestion date format
+                const dateStr = m.created_at ? new Date(m.created_at).toLocaleTimeString() : 'UNKNOWN';
+                
                 item.innerHTML = `
                     <div style="display:flex; justify-content:space-between;">
-                        <strong>${icon} ${m.desc}</strong>
-                        <span style="font-size:0.65rem; opacity:0.7;">${new Date(m.id).toLocaleTimeString()}</span>
+                        <strong>${icon} ${m.description || m.desc}</strong>
+                        <span style="font-size:0.65rem; opacity:0.7;">${dateStr}</span>
                     </div>
                     <div style="font-size:0.7rem; color:#aaa; margin-top:2px;">
                         MENACE: ${m.level.toUpperCase()} // AGENT: ${m.author}
                     </div>
                 `;
-                // Click sur la liste = focus sur la map (optionnel, on pourrait zoomer)
-                list.appendChild(item);
+                intelList.appendChild(item);
             });
         }
 
-        // SUPPRESSION
+        // Fonction globale pour le onclick dans le HTML généré
         window.deleteMarker = function(id) {
-            if(confirm("Confirmer la suppression de ce marqueur ?")) {
-                markers = markers.filter(m => m.id !== id);
-                saveData();
-                renderMap();
-                updateIntelList();
+            if(confirm("CONFIRMER LA SUPPRESSION DE CE MARQUEUR ?")) {
+                deleteMarkerFromDB(id);
             }
         };
 
         function clearMap() {
-            if(confirm("ATTENTION : VOULEZ-VOUS EFFACER TOUTES LES DONNÉES TACTIQUES ?")) {
-                markers = [];
-                saveData();
-                renderMap();
-                updateIntelList();
-            }
+            alert("Fonction désactivée pour sécurité globale. Supprimez les points individuellement.");
+            // Pour réactiver, il faudrait une route API DELETE ALL, dangereux pour une équipe.
         }
-
-        function saveData() {
-            localStorage.setItem('sas_map_data', JSON.stringify(markers));
-        }
-
     </script>
-</body>
-</html>
