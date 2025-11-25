@@ -22,14 +22,15 @@
             padding-top: 50px;
         }
         
-        /* Animation d'entrée */
         .terminal-wrapper {
-            animation: slideIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        opacity: 0; /* On part de 0 pour l'effet d'entrée */
+        animation: slideIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
         /* Bouton de déconnexion stylisé */
         .btn-logout {
