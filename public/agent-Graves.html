@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHADOW CO. :: TARGET [GRAVES]</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Share+Tech+Mono&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/css/style-mo.css">
+
+</head>
+<body>
+
+    <div class="crt-overlay"></div>
+
+    <div id="boot-screen">
+        <div class="boot-text">ESTABLISHING SECURE CONNECTION...</div>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+        <div style="margin-top: 10px; font-size: 0.8rem; color: #555;">ENCRYPTION: AES-256 // BYPASSING PROXY</div>
+    </div>
+
+    <div class="terminal-wrapper">
+        <main class="terminal">
+            
+            <header class="header-strip">
+                <div>
+                    <h1>DOSSIER :: <span>GRAVES</span></h1>
+                    <div style="color: var(--primary); font-size: 0.9rem; letter-spacing: 3px;">SHADOW COMPANY // ARCHIVES</div>
+                </div>
+                <div class="meta-data">
+                    <div>SRC: LAS ALMAS DATA CENTER</div>
+                    <div>REQ ID: <span class="blink">_X99-ALPHA</span></div>
+                </div>
+            </header>
+
+            <section class="hero-section">
+                <div class="id-card-container">
+                    <div class="id-card" id="card">
+                        <div class="holo-overlay"></div>
+                        
+                        <div class="card-header">
+                            <div class="card-logo-text">SHADOW CO.</div>
+                            <div class="security-level">ACTIVATE</div>
+                        </div>
+            
+                        <div class="card-body">
+                            <div class="photo-box">
+                                <img src="/assets/Graves.jpg" alt="Agent">
+                                </div>
+                            <div class="agent-info">
+                                <div class="card-label">ID</div>
+                                <div class="card-value">GRAVES</div>
+                                
+                                <div class="card-label">SIGN</div>
+                                <div class="card-value text-danger">SHADOW 0-1</div>
+
+                                <div class="card-label">CLEARANCE ID</div>
+                                <div class="card-code">LVL-5-X99</div>
+                            </div>
+                        </div>
+            
+                        <div class="card-footer">
+                            <div class="barcode" style="font-family: 'Libre Barcode 128 Text', cursive;">726309452</div>
+                            <div class="chip"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="intel-grid">
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">BIO_METRICS</span>
+                        <div class="audio-viz">
+                            <div class="bar" style="animation-delay:0s"></div>
+                            <div class="bar" style="animation-delay:0.1s"></div>
+                            <div class="bar" style="animation-delay:0.2s"></div>
+                            <div class="bar" style="animation-delay:0.3s"></div>
+                        </div>
+                    </div>
+                    <div class="log-entry">
+                        <span class="label">AFFILIATION:</span><br>
+                        <span class="text-danger">SHADOW COMPANY</span>
+                    </div>
+                    <div class="log-entry">
+                        <span class="label">LAST KNOWN LOC:</span><br>
+                        <span class="redacted" data-real="UNKNOWN" data-scramble="0x985L0"></span>
+                    </div>
+                    <div class="log-entry">
+                        <span class="label">STATUS:</span><br>
+                        <span class="text-warning">PRESUMED ALIVE</span>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">ÉVALUATION</span>
+                        <span style="color:var(--secondary); font-size:0.7rem;">PROFIL_PSY</span>
+                    </div>
+                    
+                    <div class="log-entry">
+                         
+                         <span style="color: var(--primary)">[+] 
+                             <span class="redacted" style="color:var(--primary)" data-real="ERR_" data-scramble="UNKNOWN"></span>
+                         </span>
+                    </div>
+                    
+                    <div class="log-entry">
+                         
+                         <span style="color: var(--primary)">[+] 
+                             <span class="redacted" style="color:var(--primary)" data-real="SYS_" data-scramble="UNKNOWN"></span>
+                         </span>
+                    </div>
+
+                    <div class="log-entry">
+                         
+                         <span style="color: var(--danger)">[-] 
+                             <span class="redacted" style="color:var(--danger)" data-real="0xNULL_PTR" data-scramble="UNKNOWN"></span>
+                         </span>
+                    </div>
+
+                    <div class="log-entry">
+                         
+                         <span style="color: var(--danger)">[-] 
+                             <span class="redacted" style="color:var(--danger)" data-real="0xBAD_ACCESS" data-scramble="UNKNOWN"></span>
+                         </span>
+                    </div>
+
+                    <div style="margin-top: 15px; font-size: 0.75rem; color: #666; border-top: 1px dashed #444; padding-top: 10px;">
+                        // NOTE:BUFFER_OVERRUN_DETECTED.
+                    </div>
+                </div>
+
+            </section>
+
+            <section class="logs-section">
+                <div class="panel" style="border-top: 2px solid var(--primary);">
+                    <div class="panel-header">
+                        <span class="panel-title">HISTORIQUE OPÉRATIONNEL [CRYPTÉ]</span>
+                        <span style="font-family: var(--font-code); font-size: 0.7rem;">LVL-5 ONLY</span>
+                    </div>
+                    
+                    <table class="ops-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">DATE // REF</th>
+                                <th width="30%">OPÉRATION</th>
+                                <th width="25%">LOC</th>
+                                <th width="20%">OBJECTIF</th>
+                                <th width="10%">STATUT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2022-07</td>
+                                <td>DARK WATER</td>
+                                <td><span class="redacted" data-real="24.5N-91.2W" data-scramble="UNKNOWN"></span></td>
+                                <td><span class="redacted" data-real="H-ZYANI" data-scramble="UNKNOWN"></span></td>
+                                <td><span class="status-badge st-success">SUCCÈS</span></td>
+                            </tr>
+                            <tr>
+                                <td>2022-10</td>
+                                <td>
+                                    <span class="redacted" data-real="BETRAYAL" data-scramble="ALONE"></span>
+                                </td>
+                                <td><span class="redacted" data-real="MX-LAS-AL" data-scramble="UNKNOWN"></span></td>
+                                <td><span class="redacted" data-real="TF-141" data-scramble="UNKNOWN"></span></td>
+                                <td><span class="status-badge st-success">SUCCÈS</span></td>
+                            </tr>
+                            <tr>
+                                <td>2023-08</td>
+                                <td>OBSERVATORY</td>
+                                <td><span class="redacted" data-real="URZ-ZAYA" data-scramble="UNKNOWN"></span></td>
+                                <td><span class="redacted" data-real="KONNI-GRP" data-scramble="UNKNOWN"></span></td>
+                                <td><span class="status-badge st-success">SUCCÈS</span></td>
+                            </tr>
+                            <tr>
+                                <td><span style="color:var(--dim)">----</span></td>
+                                <td>
+                                    <span class="redacted text-danger" data-real="SIEGE" data-scramble="OP-KINGFISH"></span>
+                                </td>
+                                <td><span class="redacted" data-real="0x991A-B" data-scramble="UNKNOWN"></span></td>
+                                <td><span class="redacted" data-real="V.MAKAROV" data-scramble="UNKNOWN"></span></td>
+                                <td><span class="status-badge st-success">SUCCÈS</span></td>
+                            </tr>
+                            <tr>
+                                <td>0x1F4A</td>
+                                <td>
+                                    <span class="redacted" data-real="GHOST-PRO" data-scramble="SHADOW"></span>
+                                </td>
+                                <td><span class="redacted" data-real="BNK-11" data-scramble="UNKNOWN"></span></td>
+                                <td><span class="redacted" data-real="000-000" data-scramble="UNKNOWN"></span></td>
+                                <td><span class="status-badge st-success">SUCCÈS</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <footer class="footer">
+                <div>SECURE TERMINAL V.4.0.2</div>
+                <div>
+                    <a href="/Niv1/database.html" class="text-danger" style="text-decoration: none;">[ TERMINATE SESSION ]</a>
+                </div>
+            </footer>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. BOOT SCREEN
+            const bootScreen = document.getElementById('boot-screen');
+            const bootText = document.querySelector('.boot-text');
+            
+            setTimeout(() => { bootText.textContent = "AUTHENTICATING USER..."; }, 1000);
+            setTimeout(() => { bootText.textContent = "DECRYPTING FILES..."; }, 2000);
+            setTimeout(() => {
+                bootScreen.style.opacity = '0';
+                setTimeout(() => bootScreen.remove(), 1000);
+            }, 2500);
+
+            // 2. 3D CARD EFFECT
+            const card = document.getElementById('card');
+            const cardContainer = document.querySelector('.id-card-container');
+
+            cardContainer.addEventListener('mousemove', (e) => {
+                const rect = cardContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = ((y - centerY) / centerY) * -10; 
+                const rotateY = ((x - centerX) / centerX) * 10;
+
+                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+            });
+
+            cardContainer.addEventListener('mouseleave', () => {
+                card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
+            });
+
+            // 3. HACKER TEXT DECRYPTION
+            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
+            
+            document.querySelectorAll('.redacted').forEach(element => {
+                element.textContent = element.getAttribute('data-scramble');
+                
+                element.onmouseover = event => {
+                    let iterations = 0;
+                    const targetText = event.target.getAttribute('data-real');
+                    
+                    if(!targetText) return;
+
+                    const interval = setInterval(() => {
+                        event.target.textContent = targetText
+                            .split("")
+                            .map((letter, index) => {
+                                if(index < iterations) {
+                                    return targetText[index];
+                                }
+                                return letters[Math.floor(Math.random() * 43)]
+                            })
+                            .join("");
+                        
+                        if(iterations >= targetText.length){ 
+                            clearInterval(interval);
+                        }
+                        
+                        iterations += 1 / 2;
+                    }, 30);
+                }
+
+                element.onmouseleave = event => {
+                   element.textContent = element.getAttribute('data-scramble');
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
+   
