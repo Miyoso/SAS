@@ -84,6 +84,7 @@ function unlockInterface(agent) {
 
 function logout() {
     currentUser = null;
+    localStorage.removeItem('sas_session');
     
     switchView('dashboard');
 
@@ -123,6 +124,7 @@ async function processCommand(cmd) {
 
             if (response.ok) {
                 currentUser = data.agent;
+                localStorage.setItem('sas_session', JSON.stringify(currentUser));
                 addToHistory(`ACCESS GRANTED. WELCOME ${currentUser.username}.`, 'info');
                 unlockInterface(currentUser);
             } else {
@@ -175,3 +177,17 @@ async function processCommand(cmd) {
         addToHistory(`bash: ${cmd}: command not found`, 'error');
     }
 }
+
+window.addEventListener('load', () => {
+    const savedSession = localStorage.getItem('sas_session');
+    if (savedSession) {
+        try {
+            const user = JSON.parse(savedSession);
+            currentUser = user;
+            unlockInterface(user);
+            addToHistory(`SESSION RESTORED FOR AGENT ${user.username}.`, 'info');
+        } catch (e) {
+            localStorage.removeItem('sas_session');
+        }
+    }
+});
