@@ -200,130 +200,119 @@
         <div><span style="color:var(--dim)">LVL:</span> <span id="hud-rank" style="color:var(--secondary)">...</span></div>
     </div>
 
-    <div class="terminal-wrapper" style="margin-top: 60px; max-width: 100%;">
-        <div class="terminal" style="min-height: 85vh; border:none; background: transparent; box-shadow: none;">
-            
-            <header class="header-strip" style="background: rgba(10,15,20,0.8); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 40px;">
-                <div>
-                    <h1>SHADOW_NET // <span>HIERARCHY</span></h1>
-                    <div style="color: var(--secondary); font-size: 0.8rem; letter-spacing: 2px;">COMMAND STRUCTURE V4.0</div>
-                </div>
-                <div class="meta-data">
-                    LIVE SYNC: ACTIVE<br>
-                    NODES: 10 ONLINE
-                </div>
-            </header>
+    <div class="hierarchy-wrapper">
 
-            <div class="hierarchy-wrapper">
 
-                <div class="level-1">
-                    <div class="node-card rank-director" onclick="window.location.href='db/agent-Graves.html'">
-                        <div class="node-role">COMMANDER // CEO</div>
-                        <div class="node-name">PHILLIP GRAVES</div>
-                        <div class="node-status" style="color: var(--success);">
-                            <span>STATUS: ACTIVE</span>
-                            <span style="color:var(--gold)">[ DOSSIER MAÎTRE ]</span>
-                        </div>
-                    </div>
-                    <div class="director-stem"></div>
-                </div>
+<!-- LEVEL 1 : COMMANDER -->
+<div class="level-1">
+<div class="node-card rank-director" onclick="window.location.href='db/agent-Graves.html'">
+<div class="node-role">COMMANDER // CEO</div>
+<div class="node-name">PHILLIP GRAVES</div>
+<div class="node-status" style="color: var(--success);">
+<span>STATUS: ACTIVE</span>
+<span style="color:var(--gold)">[ DOSSIER MAÎTRE ]</span>
+</div>
+</div>
+<div class="director-stem"></div>
+</div>
 
-                <div class="level-2-wrapper">
-                    <div class="bridge-horizontal"></div>
-                    <div class="bridge-connector bc-left"></div>
-                    <div class="bridge-connector bc-center"></div>
-                    <div class="bridge-connector bc-right"></div>
 
-                    <div class="node-card rank-ops" onclick="window.location.href='db/agent-Javier.html'">
-                        <div class="node-role">OPS // RIGHT HAND</div>
-                        <div class="node-name">JAVIER</div>
-                        <div class="node-status">
-                            <span>UNIT: ALPHA</span>
-                            <span style="color:var(--danger)">ONLINE</span>
-                        </div>
-                    </div>
+<!-- LEVEL 2 : LIEUTENANTS (Only Javier & Jackal) -->
+<div class="level-2-wrapper">
 
-                    <div class="node-card rank-strat" onclick="window.location.href='db/agent-selena.html'">
-                        <div class="node-role">LEGAL // STRATEGY</div>
-                        <div class="node-name">SELENA</div>
-                        <div class="node-status">
-                            <span>UNIT: ADMIN</span>
-                            <span style="color:var(--warning)">ACTIVE</span>
-                        </div>
-                    </div>
 
-                    <div class="node-card rank-intel" onclick="window.location.href='db/agent-ji.html'">
-                        <div class="node-role">INTEL // LEFT HAND</div>
-                        <div class="node-name">JACKAL</div>
-                        <div class="node-status">
-                            <span>UNIT: GHOST</span>
-                            <span style="color:var(--secondary)">ONLINE</span>
-                        </div>
-                    </div>
-                </div>
+<div class="bridge-horizontal"></div>
+<div class="bridge-connector bc-left"></div>
+<div class="bridge-connector bc-right"></div>
 
-                <div class="level-3-wrapper">
-                    
-                    <div class="unit-column group-ops">
-                        <div class="unit-stem stem-ops"></div>
-                        
-                        <div class="node-card rank-soldier" onclick="window.location.href='db/agent-blitz.html'">
-                            <div class="node-role">ASSAULT</div>
-                            <div class="node-name">BLITZ</div>
-                            <div class="node-status"><span>READY</span> <span style="color:var(--danger)">●</span></div>
-                        </div>
 
-                        <div class="node-card rank-soldier" onclick="window.location.href='db/agent-blake.html'">
-                            <div class="node-role">INFANTRY</div>
-                            <div class="node-name">BLAKE</div>
-                            <div class="node-status"><span>DEPLOYED</span> <span style="color:var(--danger)">●</span></div>
-                        </div>
-                    </div>
+<div class="node-card rank-ops" onclick="window.location.href='db/agent-Javier.html'">
+<div class="node-role">OPS // RIGHT HAND</div>
+<div class="node-name">JAVIER</div>
+<div class="node-status">
+<span>UNIT: OPS</span>
+<span style="color:var(--danger)">ONLINE</span>
+</div>
+</div>
 
-                    <div class="unit-column group-strat">
-                        <div class="unit-stem stem-strat"></div>
 
-                        <div class="node-card rank-soldier" onclick="window.location.href='db/agent-roxanne.html'">
-                            <div class="node-role">PROTECTION</div>
-                            <div class="node-name">ROXANNE</div>
-                            <div class="node-status"><span>GUARD</span> <span style="color:var(--warning)">●</span></div>
-                        </div>
+<div class="node-card rank-intel" onclick="window.location.href='db/agent-ji.html'">
+<div class="node-role">INTEL // LEFT HAND</div>
+<div class="node-name">JACKAL</div>
+<div class="node-status">
+<span>UNIT: INTEL</span>
+<span style="color:var(--secondary)">ONLINE</span>
+</div>
+</div>
 
-                        <div class="node-card rank-soldier" onclick="window.location.href='db/agent-adam.html'">
-                            <div class="node-role">ASSET</div>
-                            <div class="node-name">ADAM</div>
-                            <div class="node-status"><span>PENDING</span> <span style="color:#666">●</span></div>
-                        </div>
-                    </div>
 
-                    <div class="unit-column group-intel">
-                        <div class="unit-stem stem-intel"></div>
+</div>
 
-                        <div class="node-card rank-soldier" onclick="window.location.href='db/agent-wei.html'">
-                            <div class="node-role">RECON</div>
-                            <div class="node-name">DUST</div>
-                            <div class="node-status"><span>OBSERVER</span> <span style="color:var(--secondary)">●</span></div>
-                        </div>
 
-                        <div class="node-card rank-soldier" onclick="window.location.href='db/agent-nyx.html'">
-                            <div class="node-role">CYBER</div>
-                            <div class="node-name">NYX</div>
-                            <div class="node-status"><span>NETRUNNER</span> <span style="color:var(--primary)">●</span></div>
-                        </div>
-                    </div>
+<!-- LEVEL 3 : SOLDIERS (no organization) -->
+<div class="level-3-wrapper" style="justify-content:center; gap:40px; flex-wrap:wrap;">
 
-                </div>
-            </div>
 
-            <footer class="footer">
-                <div>
-                    <a href="index.html" class="text-danger" style="text-decoration: none;">< RETOUR TERMINAL</a>
-                </div>
-                <div>SECURE NETWORK // SHADOW CO.</div>
-            </footer>
+<!-- Blitz -->
+<div class="node-card rank-soldier" onclick="window.location.href='db/agent-blitz.html'">
+<div class="node-role">ASSAULT</div>
+<div class="node-name">BLITZ</div>
+<div class="node-status"><span>READY</span> <span style="color:var(--danger)">●</span></div>
+</div>
 
-        </div>
-    </div>
+
+<!-- Blake -->
+<div class="node-card rank-soldier" onclick="window.location.href='db/agent-blake.html'">
+<div class="node-role">INFANTRY</div>
+<div class="node-name">BLAKE</div>
+<div class="node-status"><span>DEPLOYED</span> <span style="color:var(--danger)">●</span></div>
+</div>
+
+
+<!-- Roxanne -->
+<div class="node-card rank-soldier" onclick="window.location.href='db/agent-roxanne.html'">
+<div class="node-role">PROTECTION</div>
+<div class="node-name">ROXANNE</div>
+<div class="node-status"><span>GUARD</span> <span style="color:var(--warning)">●</span></div>
+</div>
+
+
+<!-- Adam -->
+<div class="node-card rank-soldier" onclick="window.location.href='db/agent-adam.html'">
+<div class="node-role">ASSET</div>
+<div class="node-name">ADAM</div>
+<div class="node-status"><span>PENDING</span> <span style="#666">●</span></div>
+</div>
+
+
+<!-- Dust -->
+<div class="node-card rank-soldier" onclick="window.location.href='db/agent-wei.html'">
+<div class="node-role">RECON</div>
+<div class="node-name">DUST</div>
+<div class="node-status"><span>OBSERVER</span> <span style="color:var(--secondary)">●</span></div>
+</div>
+
+
+<!-- Nyx -->
+<div class="node-card rank-soldier" onclick="window.location.href='db/agent-nyx.html'">
+<div class="node-role">CYBER</div>
+<div class="node-name">NYX</div>
+<div class="node-status"><span>NETRUNNER</span> <span style="color:var(--primary)">●</span></div>
+</div>
+
+
+<!-- Selena (now Soldier) -->
+<div class="node-card rank-soldier" onclick="window.location.href='db/agent-selena.html'">
+<div class="node-role">LEGAL</div>
+<div class="node-name">SELENA</div>
+<div class="node-status"><span>ACTIVE</span> <span style="color:var(--warning)">●</span></div>
+</div>
+
+
+</div>
+
+
+</div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
