@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import bcrypt from 'bcrypt';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -13,9 +14,12 @@ export default async function handler(req, res) {
   const { username, password } = req.body;
 
   try {
+    // On génère le hash (10 tours de salage)
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const result = await pool.query(
       'INSERT INTO agents (username, password) VALUES ($1, $2) RETURNING id, username, rank',
-      [username, password]
+      [username, hashedPassword]
     );
 
     return res.status(200).json({ 
