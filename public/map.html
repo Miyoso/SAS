@@ -125,24 +125,20 @@
         function initMap() {
             // Création de la carte Leaflet
             map = L.map('map', {
-                crs: L.CRS.Simple, // Système de coordonnées simple (plat) pour image
+                crs: L.CRS.Simple, 
                 minZoom: -2,
                 maxZoom: 2,
-                zoomControl: false // On cache le zoom par défaut pour le style
+                zoomControl: false,
+                doubleClickZoom: false // <--- AJOUT CRUCIAL : Désactive le zoom au double-clic
             });
 
-            // Définir les bornes de l'image
             const bounds = [[0, 0], [mapHeight, mapWidth]];
-            
-            // Ajouter l'image
             L.imageOverlay(mapUrl, bounds).addTo(map);
-            
-            // Centrer
             map.fitBounds(bounds);
 
-            // Gestion des clics sur la carte
+            // Gestion des clics
             map.on('click', onMapClick);
-            map.on('dblclick', onMapDblClick);
+            map.on('dblclick', onMapDblClick); // Maintenant, ceci fonctionnera parfaitement
         }
 
         // --- LOGIQUE OUTILS ---

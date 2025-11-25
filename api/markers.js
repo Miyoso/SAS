@@ -9,30 +9,28 @@ export default async function handler(req, res) {
   const method = req.method;
 
   try {
-    // LECTURE
     if (method === 'GET') {
-      // Si la table n'existe pas encore (erreur 42P01), on renvoie vide
+      // Récupère tout
       try {
         const result = await pool.query('SELECT * FROM map_objects ORDER BY created_at ASC');
         return res.status(200).json(result.rows);
       } catch (err) {
+        // Si la table n'existe pas encore, renvoie vide au lieu de planter
         if (err.code === '42P01') return res.status(200).json([]);
         throw err;
       }
     }
 
-    // AJOUT
     if (method === 'POST') {
-      const { type, data } = req.body; // data contient { latlngs, desc, level, author }
-      
+      // Sauvegarde le paquet de données complet (points, desc, couleur...)
+      const { type, data } = req.body;
       const result = await pool.query(
         'INSERT INTO map_objects (type, data) VALUES ($1, $2) RETURNING id',
         [type, data]
       );
-      return res.status(200).json({ message: 'Added', id: result.rows[0].id });
+      return res.status(200).json({ message: 'Saved', id: result.rows[0].id });
     }
 
-    // SUPPRESSION
     if (method === 'DELETE') {
       const { id } = req.body;
       await pool.query('DELETE FROM map_objects WHERE id = $1', [id]);
