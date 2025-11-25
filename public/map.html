@@ -12,17 +12,13 @@
 
     <style>
         body { margin: 0; padding: 0; overflow: hidden; background: #000; }
-        
-        /* Conteneur Carte Plein Écran */
         #map { height: 100vh; width: 100vw; background: #0a0a0a; z-index: 1; }
 
-        /* UI Overlay (HUD) */
         .ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 1000;
         }
 
-        /* Sidebar Controls */
         .sidebar {
             position: absolute; top: 20px; right: 20px; width: 300px;
             background: rgba(10, 15, 20, 0.9); border: 1px solid rgba(255,255,255,0.2);
@@ -38,14 +34,25 @@
         .tool-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
         .tool-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 157, 0.1); }
 
-        /* Popup customisée Leaflet */
+        /* NOUVEAU : BOUTON DE VALIDATION FLOTTANT */
+        #finish-container {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            pointer-events: auto; display: none; /* Caché par défaut */
+        }
+        .finish-btn {
+            background: var(--primary); color: #000; font-weight: bold; border: none;
+            padding: 12px 24px; font-family: 'Share Tech Mono'; cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 255, 157, 0.4); font-size: 1rem;
+        }
+        .finish-btn:hover { transform: scale(1.05); }
+
+        /* Popups & Modal */
         .leaflet-popup-content-wrapper {
             background: rgba(10, 15, 20, 0.95); border: 1px solid var(--primary);
             color: #fff; font-family: 'JetBrains Mono'; border-radius: 0;
         }
         .leaflet-popup-tip { background: var(--primary); }
         
-        /* Modal Ajout */
         .modal {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #0f1215; border: 1px solid var(--primary); padding: 20px;
@@ -56,7 +63,6 @@
             width: 100%; background: #222; border: 1px solid #444; color: white;
             padding: 8px; margin-bottom: 10px; font-family: 'JetBrains Mono';
         }
-
     </style>
 </head>
 <body>
@@ -79,12 +85,16 @@
             <div class="tool-btn" onclick="selectTool('polygon')">⬢ ZONE (Polygone)</div>
             
             <div style="font-size:0.7rem; color:#666; margin-top:10px;">
-                * Ligne/Zone : Cliquez pour ajouter des points. <br>Double-cliquez pour finir.
+                * Cliquez pour placer les points.
             </div>
         </div>
 
+        <div id="finish-container">
+            <button class="finish-btn" onclick="finishDrawing()">✅ TERMINER LE TRACÉ</button>
+        </div>
+
         <div id="infoModal" class="modal">
-            <h3 style="color:var(--primary); margin-top:0;">NOUVEL ÉLÉMENT</h3>
+            <h3 style="color:var(--primary); margin-top:0;">DÉTAILS</h3>
             <input type="text" id="descInput" class="input-field" placeholder="Description (ex: Ennemis)" autocomplete="off">
             
             <select id="levelInput" class="input-field">
@@ -102,85 +112,79 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <script>
-        // --- CONFIGURATION ---
-        // Dimensions de votre image (Approximatif, Leaflet s'adapte)
         const mapWidth = 2000; 
         const mapHeight = 2000;
         const mapUrl = 'assets/carte.jpg';
 
-        // Variables Globales
         let map;
         let currentTool = 'nav';
-        let tempShape = null; // Forme en cours de dessin
-        let tempPoints = [];  // Points de la forme en cours
-        let drawnItems = [];  // Liste des objets affichés pour updates
+        let tempShape = null; 
+        let tempPoints = [];
+        let drawnItems = [];
 
-        // Initialisation
         document.addEventListener('DOMContentLoaded', () => {
             initMap();
             loadData();
-            setInterval(loadData, 4000); // Rafraichissement auto
+            setInterval(loadData, 4000);
         });
 
         function initMap() {
-            // Création de la carte Leaflet
             map = L.map('map', {
                 crs: L.CRS.Simple, 
                 minZoom: -2,
                 maxZoom: 2,
                 zoomControl: false,
-                doubleClickZoom: false // <--- AJOUT CRUCIAL : Désactive le zoom au double-clic
+                doubleClickZoom: false 
             });
 
             const bounds = [[0, 0], [mapHeight, mapWidth]];
             L.imageOverlay(mapUrl, bounds).addTo(map);
             map.fitBounds(bounds);
 
-            // Gestion des clics
             map.on('click', onMapClick);
-            map.on('dblclick', onMapDblClick); // Maintenant, ceci fonctionnera parfaitement
         }
 
-        // --- LOGIQUE OUTILS ---
+        // --- LOGIQUE DESSIN ---
         function selectTool(tool) {
             currentTool = tool;
-            
-            // UI
             document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            if(event) event.currentTarget.classList.add('active'); // Petite sécurité si appelé sans click direct
 
-            // Curseur
             document.getElementById('map').style.cursor = (tool === 'nav') ? 'grab' : 'crosshair';
-
-            // Reset dessin en cours si changement
-            if(tempShape) { map.removeLayer(tempShape); tempShape = null; tempPoints = []; }
+            
+            // Si on change d'outil, on annule le dessin en cours
+            resetDrawing();
         }
 
         function onMapClick(e) {
             if (currentTool === 'nav') return;
 
-            // 1. MARQUEUR SIMPLE
+            // 1. MARQUEUR : On ouvre direct
             if (currentTool === 'marker') {
                 openModal('marker', [e.latlng]);
             }
             
-            // 2. LIGNE ou POLYGONE (Ajout de point)
+            // 2. LIGNE / ZONE : On ajoute des points
             else if (currentTool === 'line' || currentTool === 'polygon') {
                 tempPoints.push(e.latlng);
-                drawTempShape(); // Visualiser le tracé en cours
-            }
-        }
-
-        // Double clic pour finir une forme
-        function onMapDblClick(e) {
-            if (currentTool === 'line' || currentTool === 'polygon') {
-                if(tempPoints.length > 1) {
-                    openModal(currentTool, tempPoints);
+                drawTempShape();
+                
+                // AFFICHER LE BOUTON "TERMINER" DÈS QU'ON A 1 POINT
+                if (tempPoints.length > 0) {
+                    document.getElementById('finish-container').style.display = 'block';
                 }
             }
         }
 
-        // Dessin temporaire (pendant qu'on clique)
+        // Fonction appelée par le bouton vert "TERMINER LE TRACÉ"
+        function finishDrawing() {
+            if (tempPoints.length < 2) {
+                alert("Il faut au moins 2 points pour créer une forme !");
+                return;
+            }
+            openModal(currentTool, tempPoints);
+        }
+
         function drawTempShape() {
             if (tempShape) map.removeLayer(tempShape);
 
@@ -191,20 +195,27 @@
             }
         }
 
+        function resetDrawing() {
+            if (tempShape) map.removeLayer(tempShape);
+            tempShape = null;
+            tempPoints = [];
+            document.getElementById('finish-container').style.display = 'none';
+        }
+
         // --- MODAL & SAUVEGARDE ---
-        let pendingSave = null; // Stocke les données en attente de description
+        let pendingSave = null;
 
         function openModal(type, latlngs) {
             pendingSave = { type, latlngs };
             document.getElementById('infoModal').style.display = 'block';
             document.getElementById('descInput').focus();
+            // On cache le bouton terminer car on est dans le modal
+            document.getElementById('finish-container').style.display = 'none';
         }
 
         function cancelShape() {
             document.getElementById('infoModal').style.display = 'none';
-            if(tempShape) map.removeLayer(tempShape);
-            tempPoints = [];
-            tempShape = null;
+            resetDrawing();
             pendingSave = null;
         }
 
@@ -219,14 +230,13 @@
             const payload = {
                 type: pendingSave.type,
                 data: {
-                    latlngs: pendingSave.latlngs, // Leaflet gère ça très bien
+                    latlngs: pendingSave.latlngs,
                     desc: desc,
                     level: level,
                     author: author
                 }
             };
 
-            // Envoi BDD
             try {
                 await fetch('/api/markers', {
                     method: 'POST',
@@ -234,50 +244,33 @@
                     body: JSON.stringify(payload)
                 });
                 cancelShape();
-                loadData(); // Recharger pour voir le résultat final
+                loadData();
             } catch(e) {
                 alert("Erreur Sauvegarde");
             }
         }
 
-        // --- CHARGEMENT & AFFICHAGE ---
+        // --- CHARGEMENT ---
         async function loadData() {
             try {
                 const res = await fetch('/api/markers');
                 if(!res.ok) return;
                 const items = await res.json();
 
-                // Nettoyage bourrin mais efficace pour éviter les doublons
                 drawnItems.forEach(layer => map.removeLayer(layer));
                 drawnItems = [];
 
                 items.forEach(item => {
                     const { latlngs, desc, level, author } = item.data;
                     let layer;
-                    
-                    // Couleur selon le niveau
-                    let color = '#00ff9d'; // Low (Green)
-                    if(level === 'mid') color = '#eebb00'; // Yellow
-                    if(level === 'high') color = '#ff3333'; // Red
+                    let color = '#00ff9d'; 
+                    if(level === 'mid') color = '#eebb00';
+                    if(level === 'high') color = '#ff3333';
 
-                    // Création de l'objet Leaflet
                     if (item.type === 'marker') {
-                        // On prend le premier point du tableau (car marker stocké comme [latlng])
                         const pos = Array.isArray(latlngs) ? latlngs[0] : latlngs;
-                        
-                        // Icône custom CSS
-                        const iconHtml = `<div style="
-                            width:12px; height:12px; background:${color}; 
-                            border-radius:50%; box-shadow:0 0 10px ${color};
-                            border:2px solid white;"></div>`;
-                        
-                        const customIcon = L.divIcon({
-                            className: 'custom-pin',
-                            html: iconHtml,
-                            iconSize: [16, 16],
-                            iconAnchor: [8, 8] // Centre
-                        });
-
+                        const iconHtml = `<div style="width:12px; height:12px; background:${color}; border-radius:50%; box-shadow:0 0 10px ${color}; border:2px solid white;"></div>`;
+                        const customIcon = L.divIcon({ className: 'custom-pin', html: iconHtml, iconSize: [16, 16], iconAnchor: [8, 8] });
                         layer = L.marker(pos, {icon: customIcon});
                     } 
                     else if (item.type === 'line') {
@@ -288,7 +281,6 @@
                     }
 
                     if(layer) {
-                        // Popup d'information
                         const popupContent = `
                             <strong style="color:${color}">${desc}</strong><br>
                             <span style="font-size:0.8em; color:#aaa;">PAR: ${author}</span><br>
@@ -299,11 +291,9 @@
                         drawnItems.push(layer);
                     }
                 });
-
-            } catch(e) { console.error("Erreur load", e); }
+            } catch(e) { console.error(e); }
         }
 
-        // Fonction globale pour suppression
         window.deleteItem = async function(id) {
             if(confirm("Supprimer cet élément ?")) {
                 await fetch('/api/markers', {
@@ -315,7 +305,6 @@
                 loadData();
             }
         }
-
     </script>
 </body>
 </html>
