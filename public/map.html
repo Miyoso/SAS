@@ -5,535 +5,320 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAS - TACTICAL MAP V2</title>
     
-    <script>
-        const session = localStorage.getItem('sas_session');
-        // if (!session) window.location.href = 'index.html';
-    </script>
-
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style-mo.css">
 
     <style>
-        body { overflow: hidden; background: #050505; }
+        body { margin: 0; padding: 0; overflow: hidden; background: #000; }
+        
+        /* Conteneur Carte Plein Écran */
+        #map { height: 100vh; width: 100vw; background: #0a0a0a; z-index: 1; }
 
-        /* --- LAYOUT --- */
-        .map-wrapper {
-            display: flex; height: 100vh; width: 100vw;
-            position: relative;
-        }
-
-        /* --- CONTAINER CARTE (ZOOMABLE) --- */
-        .viewport {
-            flex: 1;
-            background: #0a0a0a;
-            overflow: hidden;
-            position: relative;
-            cursor: grab;
-            /* Grille de fond fixe par rapport à la fenêtre */
-            background-image: 
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-        }
-        .viewport:active { cursor: grabbing; }
-
-        /* C'est cet élément qui va bouger et zoomer */
-        .transform-layer {
-            position: absolute; top: 0; left: 0;
-            transform-origin: 0 0;
-            transition: transform 0.1s ease-out; /* Fluidité */
+        /* UI Overlay (HUD) */
+        .ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 1000;
         }
 
-        .tactical-map {
-            display: block;
-            pointer-events: none; /* On clique au travers de l'image */
-            filter: contrast(1.1) grayscale(0.3) brightness(0.7);
+        /* Sidebar Controls */
+        .sidebar {
+            position: absolute; top: 20px; right: 20px; width: 300px;
+            background: rgba(10, 15, 20, 0.9); border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px); padding: 15px; pointer-events: auto;
+            display: flex; flex-direction: column; gap: 10px;
         }
 
-        /* --- INTERFACE HUD (SIDEBAR FLOTTANTE) --- */
-        .sidebar-overlay {
-            position: absolute; top: 20px; right: 20px; bottom: 20px; width: 350px;
-            display: flex; flex-direction: column; gap: 15px; pointer-events: none;
-        }
-        .panel {
-            background: rgba(10, 15, 20, 0.9);
-            border: 1px solid rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px); padding: 15px;
-            pointer-events: auto; /* Réactive les clics */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .panel-title {
-            font-family: 'Share Tech Mono'; color: var(--primary); font-size: 0.9rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 10px;
-            display: flex; justify-content: space-between;
-        }
-
-        /* BOUTONS OUTILS */
-        .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .tool-btn {
             background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            color: #ccc; padding: 12px; cursor: pointer; font-family: 'JetBrains Mono'; font-size: 0.75rem;
-            display: flex; flex-direction: column; align-items: center; gap: 5px; transition: 0.2s;
+            color: #ccc; padding: 10px; cursor: pointer; font-family: 'Share Tech Mono';
+            display: flex; align-items: center; gap: 10px; transition: 0.2s;
         }
         .tool-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .tool-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 157, 0.1); box-shadow: 0 0 15px rgba(0, 255, 157, 0.1); }
-        .tool-icon { font-size: 1.2rem; }
+        .tool-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 157, 0.1); }
 
-        /* ZOOM CONTROLS */
-        .zoom-controls {
-            position: absolute; bottom: 20px; left: 20px;
-            display: flex; gap: 5px; pointer-events: auto;
+        /* Popup customisée Leaflet */
+        .leaflet-popup-content-wrapper {
+            background: rgba(10, 15, 20, 0.95); border: 1px solid var(--primary);
+            color: #fff; font-family: 'JetBrains Mono'; border-radius: 0;
         }
-        .zoom-btn {
-            width: 40px; height: 40px; background: #000; border: 1px solid var(--primary);
-            color: var(--primary); font-size: 1.2rem; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .zoom-btn:hover { background: var(--primary); color: #000; }
-
-        /* --- FORMES TACTIQUES CSS --- */
-        .map-marker { position: absolute; transform: translate(-50%, -50%); z-index: 100; cursor: pointer; }
-        .map-marker:hover { z-index: 200; filter: brightness(1.5); }
-
-        /* Label texte */
-        .marker-label {
-            position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); padding: 2px 6px; border-radius: 4px;
-            font-size: 0.6rem; color: #fff; white-space: nowrap; margin-top: 5px;
-            border: 1px solid currentColor; display: none;
-        }
-        .map-marker:hover .marker-label { display: block; }
-
-        /* Formes de base */
-        .shape { width: 100%; height: 100%; opacity: 0.5; transition: 0.3s; }
+        .leaflet-popup-tip { background: var(--primary); }
         
-        /* 1. CERCLE (Zone standard) */
-        .type-circle .shape {
-            border-radius: 50%; border: 2px dashed currentColor; background: radial-gradient(circle, currentColor 0%, transparent 70%);
+        /* Modal Ajout */
+        .modal {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #0f1215; border: 1px solid var(--primary); padding: 20px;
+            width: 300px; pointer-events: auto; display: none;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
         }
-        
-        /* 2. CARRÉ (Zone fortifiée / Batiment) */
-        .type-square .shape {
-            border: 2px solid currentColor; background: linear-gradient(45deg, currentColor 0%, transparent 20%, transparent 80%, currentColor 100%);
+        .input-field {
+            width: 100%; background: #222; border: 1px solid #444; color: white;
+            padding: 8px; margin-bottom: 10px; font-family: 'JetBrains Mono';
         }
-
-        /* 3. HEXAGONE (QG / Point stratégique) */
-        .type-hex .shape {
-            background: currentColor; opacity: 0.3;
-            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-        }
-        .type-hex::after { /* Contour Hex */
-            content:''; position:absolute; top:0; left:0; width:100%; height:100%;
-            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-            background: currentColor; z-index:-1; transform: scale(1.05); opacity: 0.8;
-        }
-
-        /* 4. LIGNE (Direction / Frontière) */
-        .type-line {
-            /* Pour la ligne, on triche : c'est un rectangle très fin et long */
-            height: 6px !important; /* Écrase la hauteur dynamique */
-            border-radius: 3px;
-        }
-        .type-line .shape {
-            background: currentColor; opacity: 0.8; box-shadow: 0 0 10px currentColor;
-        }
-
-        /* Couleurs Niveaux */
-        .lvl-low { color: #00ff9d; }
-        .lvl-mid { color: #eebb00; }
-        .lvl-high { color: #ff3333; }
-
-        /* MODAL */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);
-        }
-        .modal-box { background: #0f1215; border: 1px solid var(--primary); padding: 25px; width: 350px; }
-        .input-field { width: 100%; background: #050505; border: 1px solid #444; color: #fff; padding: 8px; margin-top: 5px; font-family: 'JetBrains Mono'; }
 
     </style>
 </head>
 <body>
 
-    <div class="crt-overlay"></div>
+    <div id="map"></div>
 
-    <div class="map-wrapper">
+    <div class="ui-layer">
         
-        <div class="viewport" id="viewport">
-            <div class="transform-layer" id="map-layer">
-                <img src="assets/carte.jpg" class="tactical-map" id="tactical-map" alt="Map">
-                <div id="markers-container"></div>
-            </div>
+        <div style="position:absolute; top:20px; left:20px; pointer-events:auto;">
+            <h1 style="margin:0; font-size:1.5rem; text-shadow:0 0 10px var(--primary);">TACTICAL MAP <span style="font-size:0.8rem; color:#666;">// LIVE</span></h1>
+            <a href="index.html" style="color:var(--primary); font-size:0.8rem; text-decoration:none;">< RETOUR</a>
         </div>
 
-        <div class="zoom-controls">
-            <div class="zoom-btn" onclick="adjustZoom(0.2)">+</div>
-            <div class="zoom-btn" onclick="adjustZoom(-0.2)">-</div>
-            <div class="zoom-btn" onclick="resetView()" style="font-size:0.7rem">RST</div>
-        </div>
-
-        <div class="sidebar-overlay">
+        <div class="sidebar">
+            <div style="color:var(--primary); border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:5px;">OUTILS</div>
             
-            <div class="panel">
-                <div class="panel-title">
-                    <span>OPERATION MAP</span>
-                    <span id="coords-display" style="color:#fff">000, 000</span>
-                </div>
-                <div style="font-size:0.7rem; color:#888;">
-                    <a href="index.html" style="color:var(--primary); text-decoration:none;">< RETOUR DASHBOARD</a>
-                </div>
+            <div class="tool-btn active" onclick="selectTool('nav')">✋ NAVIGATION</div>
+            <div class="tool-btn" onclick="selectTool('marker')">📍 MARQUEUR</div>
+            <div class="tool-btn" onclick="selectTool('line')">➖ LIGNE (Trajet)</div>
+            <div class="tool-btn" onclick="selectTool('polygon')">⬢ ZONE (Polygone)</div>
+            
+            <div style="font-size:0.7rem; color:#666; margin-top:10px;">
+                * Ligne/Zone : Cliquez pour ajouter des points. <br>Double-cliquez pour finir.
             </div>
-
-            <div class="panel">
-                <div class="panel-title">PALETTE TACTIQUE</div>
-                <div class="tools-grid">
-                    <div class="tool-btn active" onclick="setTool('pointer')">
-                        <span class="tool-icon">✋</span> NAV
-                    </div>
-                    <div class="tool-btn" onclick="setTool('point')">
-                        <span class="tool-icon">📍</span> POINT
-                    </div>
-                    <div class="tool-btn" onclick="setTool('circle')">
-                        <span class="tool-icon">⭕</span> ZONE (ROND)
-                    </div>
-                    <div class="tool-btn" onclick="setTool('square')">
-                        <span class="tool-icon">🔲</span> ZONE (CARRÉ)
-                    </div>
-                    <div class="tool-btn" onclick="setTool('hex')">
-                        <span class="tool-icon">⬢</span> HEXAGONE
-                    </div>
-                    <div class="tool-btn" onclick="setTool('line')">
-                        <span class="tool-icon">➖</span> LIGNE
-                    </div>
-                </div>
-                <div style="margin-top:10px; font-size:0.65rem; color:#666;">
-                    * Sélectionnez un outil puis cliquez sur la carte.
-                </div>
-            </div>
-
-            <div class="panel" style="flex:1; overflow:hidden; display:flex; flex-direction:column;">
-                <div class="panel-title">RAPPORT LIVE</div>
-                <div id="intel-feed" style="overflow-y:auto; flex:1; font-size:0.75rem; color:#aaa;">
-                    Chargement...
-                </div>
-            </div>
-
         </div>
+
+        <div id="infoModal" class="modal">
+            <h3 style="color:var(--primary); margin-top:0;">NOUVEL ÉLÉMENT</h3>
+            <input type="text" id="descInput" class="input-field" placeholder="Description (ex: Ennemis)" autocomplete="off">
+            
+            <select id="levelInput" class="input-field">
+                <option value="low">MENACE FAIBLE (Vert)</option>
+                <option value="mid">MENACE MOYENNE (Jaune)</option>
+                <option value="high">MENACE CRITIQUE (Rouge)</option>
+            </select>
+
+            <button onclick="saveShape()" class="tool-btn" style="width:100%; justify-content:center; border-color:var(--primary);">CONFIRMER</button>
+            <button onclick="cancelShape()" class="tool-btn" style="width:100%; justify-content:center; margin-top:5px;">ANNULER</button>
+        </div>
+
     </div>
 
-    <div class="modal-overlay" id="add-modal">
-        <div class="modal-box">
-            <h3 style="color:var(--primary); margin-bottom:15px;">CONFIGURER ÉLÉMENT</h3>
-            
-            <div style="margin-bottom:15px;">
-                <label style="font-size:0.7rem; color:#888;">DESCRIPTION</label>
-                <input type="text" id="inp-desc" class="input-field" placeholder="Ex: Ennemis, Objectif..." autocomplete="off">
-            </div>
-
-            <div style="margin-bottom:15px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <div>
-                    <label style="font-size:0.7rem; color:#888;">MENACE</label>
-                    <select id="inp-level" class="input-field">
-                        <option value="low">FAIBLE (Vert)</option>
-                        <option value="mid">MOYEN (Jaune)</option>
-                        <option value="high">CRITIQUE (Rouge)</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="font-size:0.7rem; color:#888;">TAILLE (PX)</label>
-                    <input type="number" id="inp-size" class="input-field" value="100" min="20" max="500">
-                </div>
-            </div>
-
-            <div style="margin-bottom:15px;" id="group-rotation">
-                <label style="font-size:0.7rem; color:#888;">ROTATION (DEGRÉS)</label>
-                <input type="range" id="inp-rot" class="input-field" min="0" max="360" value="0" oninput="document.getElementById('rot-val').innerText = this.value + '°'">
-                <div style="text-align:right; font-size:0.7rem; color:var(--secondary);" id="rot-val">0°</div>
-            </div>
-
-            <input type="hidden" id="inp-x">
-            <input type="hidden" id="inp-y">
-            <input type="hidden" id="inp-type">
-
-            <button onclick="confirmAdd()" class="tool-btn active" style="width:100%; justify-content:center;">CONFIRMER</button>
-            <button onclick="closeModal()" class="tool-btn" style="width:100%; margin-top:5px; justify-content:center;">ANNULER</button>
-        </div>
-    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <script>
-        // --- 1. GESTION ZOOM & PAN ---
-        let scale = 1;
-        let panning = false;
-        let pointX = 0;
-        let pointY = 0;
-        let startX = 0;
-        let startY = 0;
+        // --- CONFIGURATION ---
+        // Dimensions de votre image (Approximatif, Leaflet s'adapte)
+        const mapWidth = 2000; 
+        const mapHeight = 2000;
+        const mapUrl = 'assets/carte.jpg';
 
-        const viewport = document.getElementById('viewport');
-        const mapLayer = document.getElementById('map-layer');
-        
-        // Initialisation Zoom
-        function updateTransform() {
-            mapLayer.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
-        }
+        // Variables Globales
+        let map;
+        let currentTool = 'nav';
+        let tempShape = null; // Forme en cours de dessin
+        let tempPoints = [];  // Points de la forme en cours
+        let drawnItems = [];  // Liste des objets affichés pour updates
 
-        viewport.addEventListener('mousedown', (e) => {
-            if (currentTool !== 'pointer') return; // Seulement en mode Nav
-            if (e.target.closest('.map-marker')) return; // Pas si on clique sur un marqueur
-            panning = true;
-            startX = e.clientX - pointX;
-            startY = e.clientY - pointY;
-            viewport.style.cursor = 'grabbing';
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            loadData();
+            setInterval(loadData, 4000); // Rafraichissement auto
         });
 
-        window.addEventListener('mouseup', () => {
-            panning = false;
-            if(currentTool === 'pointer') viewport.style.cursor = 'grab';
-        });
+        function initMap() {
+            // Création de la carte Leaflet
+            map = L.map('map', {
+                crs: L.CRS.Simple, // Système de coordonnées simple (plat) pour image
+                minZoom: -2,
+                maxZoom: 2,
+                zoomControl: false // On cache le zoom par défaut pour le style
+            });
 
-        window.addEventListener('mousemove', (e) => {
-            if (panning) {
-                e.preventDefault();
-                pointX = e.clientX - startX;
-                pointY = e.clientY - startY;
-                updateTransform();
-            }
-            // Mise à jour coordonnées HUD (visuel)
-            document.getElementById('coords-display').innerText = `${e.clientX}, ${e.clientY}`;
-        });
-
-        // Zoom Roulette
-        viewport.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const xs = (e.clientX - pointX) / scale;
-            const ys = (e.clientY - pointY) / scale;
-            const delta = -e.deltaY;
+            // Définir les bornes de l'image
+            const bounds = [[0, 0], [mapHeight, mapWidth]];
             
-            (delta > 0) ? (scale *= 1.1) : (scale /= 1.1);
+            // Ajouter l'image
+            L.imageOverlay(mapUrl, bounds).addTo(map);
             
-            // Limites Zoom
-            if (scale < 0.2) scale = 0.2;
-            if (scale > 5) scale = 5;
+            // Centrer
+            map.fitBounds(bounds);
 
-            pointX = e.clientX - xs * scale;
-            pointY = e.clientY - ys * scale;
-
-            updateTransform();
-        });
-
-        function adjustZoom(amount) {
-            scale += amount;
-            if (scale < 0.2) scale = 0.2;
-            updateTransform();
-        }
-        function resetView() {
-            scale = 1; pointX = 0; pointY = 0;
-            updateTransform();
+            // Gestion des clics sur la carte
+            map.on('click', onMapClick);
+            map.on('dblclick', onMapDblClick);
         }
 
-        // --- 2. LOGIQUE OUTILS & MARQUEURS ---
-        let currentTool = 'pointer';
-        let markers = [];
-        
-        // Elements
-        const markersContainer = document.getElementById('markers-container');
-        const modal = document.getElementById('add-modal');
-        const intelFeed = document.getElementById('intel-feed');
-
-        function setTool(tool) {
+        // --- LOGIQUE OUTILS ---
+        function selectTool(tool) {
             currentTool = tool;
+            
+            // UI
             document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
             event.currentTarget.classList.add('active');
+
+            // Curseur
+            document.getElementById('map').style.cursor = (tool === 'nav') ? 'grab' : 'crosshair';
+
+            // Reset dessin en cours si changement
+            if(tempShape) { map.removeLayer(tempShape); tempShape = null; tempPoints = []; }
+        }
+
+        function onMapClick(e) {
+            if (currentTool === 'nav') return;
+
+            // 1. MARQUEUR SIMPLE
+            if (currentTool === 'marker') {
+                openModal('marker', [e.latlng]);
+            }
             
-            if(tool === 'pointer') {
-                viewport.style.cursor = 'grab';
-            } else {
-                viewport.style.cursor = 'crosshair';
+            // 2. LIGNE ou POLYGONE (Ajout de point)
+            else if (currentTool === 'line' || currentTool === 'polygon') {
+                tempPoints.push(e.latlng);
+                drawTempShape(); // Visualiser le tracé en cours
             }
         }
 
-        // Clic pour ajouter (géré sur le mapLayer pour suivre les coordonnées de l'image, pas de l'écran)
-        mapLayer.addEventListener('click', (e) => {
-            if (currentTool === 'pointer') return;
-            if (panning) return; // Évite d'ajouter si on glisse juste
-            if (e.target.closest('.map-marker')) return;
-
-            // Coordonnées relatives à l'image (pour que le marqueur reste au bon endroit quand on zoom/pan)
-            const rect = mapLayer.getBoundingClientRect();
-            const clickX = (e.clientX - rect.left) / scale; // On compense le scale
-            const clickY = (e.clientY - rect.top) / scale;
-
-            openModal(clickX, clickY, currentTool);
-        });
-
-        function openModal(x, y, type) {
-            document.getElementById('inp-x').value = x;
-            document.getElementById('inp-y').value = y;
-            document.getElementById('inp-type').value = type;
-            document.getElementById('inp-desc').value = '';
-            document.getElementById('inp-desc').focus();
-
-            // Réglages par défaut selon type
-            if (type === 'point') {
-                document.getElementById('inp-size').value = 20;
-                document.getElementById('group-rotation').style.display = 'none';
-            } else if (type === 'line') {
-                document.getElementById('inp-size').value = 200; // Longueur
-                document.getElementById('group-rotation').style.display = 'block';
-            } else {
-                document.getElementById('inp-size').value = 150; // Taille zone
-                document.getElementById('group-rotation').style.display = 'none';
-            }
-
-            modal.style.display = 'flex';
-        }
-
-        function closeModal() { modal.style.display = 'none'; }
-
-        // --- 3. COMMUNICATION BDD ---
-        async function fetchMarkers() {
-            try {
-                const res = await fetch('/api/markers');
-                if(res.ok) {
-                    markers = await res.json();
-                    renderMarkers();
-                    updateFeed();
+        // Double clic pour finir une forme
+        function onMapDblClick(e) {
+            if (currentTool === 'line' || currentTool === 'polygon') {
+                if(tempPoints.length > 1) {
+                    openModal(currentTool, tempPoints);
                 }
-            } catch(e) { console.error(e); }
+            }
         }
 
-        async function confirmAdd() {
-            const data = {
-                x: document.getElementById('inp-x').value,
-                y: document.getElementById('inp-y').value,
-                type: document.getElementById('inp-type').value,
-                desc: document.getElementById('inp-desc').value || 'Cible',
-                level: document.getElementById('inp-level').value,
-                // Données supplémentaires pour formes
-                rotation: document.getElementById('inp-rot').value || 0,
-                scale: document.getElementById('inp-size').value || 100, // On utilise scale pour stocker la taille en px
-                author: JSON.parse(localStorage.getItem('sas_session'))?.username || 'Unknown'
+        // Dessin temporaire (pendant qu'on clique)
+        function drawTempShape() {
+            if (tempShape) map.removeLayer(tempShape);
+
+            if (currentTool === 'line') {
+                tempShape = L.polyline(tempPoints, {color: '#fff', dashArray: '5, 5'}).addTo(map);
+            } else if (currentTool === 'polygon') {
+                tempShape = L.polygon(tempPoints, {color: '#fff', dashArray: '5, 5'}).addTo(map);
+            }
+        }
+
+        // --- MODAL & SAUVEGARDE ---
+        let pendingSave = null; // Stocke les données en attente de description
+
+        function openModal(type, latlngs) {
+            pendingSave = { type, latlngs };
+            document.getElementById('infoModal').style.display = 'block';
+            document.getElementById('descInput').focus();
+        }
+
+        function cancelShape() {
+            document.getElementById('infoModal').style.display = 'none';
+            if(tempShape) map.removeLayer(tempShape);
+            tempPoints = [];
+            tempShape = null;
+            pendingSave = null;
+        }
+
+        async function saveShape() {
+            if(!pendingSave) return;
+
+            const desc = document.getElementById('descInput').value || 'Zone';
+            const level = document.getElementById('levelInput').value;
+            const session = JSON.parse(localStorage.getItem('sas_session'));
+            const author = session ? session.username : 'Inconnu';
+
+            const payload = {
+                type: pendingSave.type,
+                data: {
+                    latlngs: pendingSave.latlngs, // Leaflet gère ça très bien
+                    desc: desc,
+                    level: level,
+                    author: author
+                }
             };
 
+            // Envoi BDD
             try {
                 await fetch('/api/markers', {
-                    method: 'POST', headers:{'Content-Type':'application/json'},
-                    body: JSON.stringify(data)
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
                 });
-                closeModal();
-                fetchMarkers();
-            } catch(e) { alert("Erreur réseau"); }
-        }
-
-        async function deleteMarker(id) {
-            if(confirm("SUPPRIMER CET ÉLÉMENT ?")) {
-                await fetch('/api/markers', {
-                    method: 'DELETE', headers:{'Content-Type':'application/json'},
-                    body: JSON.stringify({id})
-                });
-                fetchMarkers();
+                cancelShape();
+                loadData(); // Recharger pour voir le résultat final
+            } catch(e) {
+                alert("Erreur Sauvegarde");
             }
         }
 
-       // --- 4. RENDU OPTIMISÉ ---
-        function renderMarkers() {
-            if(!markersLayer) return;
-            markersLayer.innerHTML = '';
-            
-            markers.forEach(m => {
-                const el = document.createElement('div');
-                
-                // Sécurisation des données
-                const safeType = m.type || 'point';
-                const safeLevel = m.level || 'low';
-                const safeRotation = m.rotation || 0;
-                
-                // Classes CSS
-                el.className = `map-marker type-${safeType} lvl-${safeLevel}`;
-                
-                // Positionnement
-                el.style.left = m.x + '%';
-                el.style.top = m.y + '%';
-                
-                // Taille (Scale)
-                // Pour un point, on ignore le scale pour garder une taille fixe (sauf si vous voulez des gros points)
-                const baseSize = (safeType === 'point') ? 20 : 100; 
-                const size = m.scale || baseSize;
-                
-                el.style.width = size + 'px';
-                el.style.height = size + 'px';
-                
-                // Rotation & Centrage (On écrase proprement le transform)
-                // Note: Pour une ligne, la rotation est essentielle
-                el.style.transform = `translate(-50%, -50%) rotate(${safeRotation}deg)`;
+        // --- CHARGEMENT & AFFICHAGE ---
+        async function loadData() {
+            try {
+                const res = await fetch('/api/markers');
+                if(!res.ok) return;
+                const items = await res.json();
 
-                // Contenu visuel interne
-                let inner = '';
-                if(safeType === 'point') {
-                    // Point simple (rond lumineux)
-                    inner = `<div style="width:100%; height:100%; border-radius:50%; background:currentColor; box-shadow:0 0 10px currentColor;"></div>`;
-                } else {
-                    // Formes (Gérées par le CSS .shape)
-                    inner = `<div class="shape"></div>`;
-                }
+                // Nettoyage bourrin mais efficace pour éviter les doublons
+                drawnItems.forEach(layer => map.removeLayer(layer));
+                drawnItems = [];
 
-                // Tooltip au survol
-                const safeDesc = m.description || m.desc || 'Inconnu';
-                const safeAuthor = m.author || 'Système';
-                
-                inner += `
-                    <div class="marker-label">
-                        <span style="font-weight:bold; color:#fff">${safeDesc}</span><br>
-                        <span style="opacity:0.7; font-size:0.55rem">OPT: ${safeAuthor}</span>
-                        <div style="margin-top:3px; border-top:1px solid #555; padding-top:2px; text-align:center;">
-                            <span style="color:#ff5555; cursor:pointer;" onclick="deleteMarker(${m.id})">SUPPRIMER</span>
-                        </div>
-                    </div>
-                `;
+                items.forEach(item => {
+                    const { latlngs, desc, level, author } = item.data;
+                    let layer;
+                    
+                    // Couleur selon le niveau
+                    let color = '#00ff9d'; // Low (Green)
+                    if(level === 'mid') color = '#eebb00'; // Yellow
+                    if(level === 'high') color = '#ff3333'; // Red
 
-                el.innerHTML = inner;
-                markersLayer.appendChild(el);
-            });
+                    // Création de l'objet Leaflet
+                    if (item.type === 'marker') {
+                        // On prend le premier point du tableau (car marker stocké comme [latlng])
+                        const pos = Array.isArray(latlngs) ? latlngs[0] : latlngs;
+                        
+                        // Icône custom CSS
+                        const iconHtml = `<div style="
+                            width:12px; height:12px; background:${color}; 
+                            border-radius:50%; box-shadow:0 0 10px ${color};
+                            border:2px solid white;"></div>`;
+                        
+                        const customIcon = L.divIcon({
+                            className: 'custom-pin',
+                            html: iconHtml,
+                            iconSize: [16, 16],
+                            iconAnchor: [8, 8] // Centre
+                        });
+
+                        layer = L.marker(pos, {icon: customIcon});
+                    } 
+                    else if (item.type === 'line') {
+                        layer = L.polyline(latlngs, {color: color, weight: 3});
+                    } 
+                    else if (item.type === 'polygon') {
+                        layer = L.polygon(latlngs, {color: color, fillColor: color, fillOpacity: 0.2});
+                    }
+
+                    if(layer) {
+                        // Popup d'information
+                        const popupContent = `
+                            <strong style="color:${color}">${desc}</strong><br>
+                            <span style="font-size:0.8em; color:#aaa;">PAR: ${author}</span><br>
+                            <button onclick="deleteItem(${item.id})" style="background:transparent; border:1px solid red; color:red; font-size:0.7em; margin-top:5px; cursor:pointer;">SUPPRIMER</button>
+                        `;
+                        layer.bindPopup(popupContent);
+                        layer.addTo(map);
+                        drawnItems.push(layer);
+                    }
+                });
+
+            } catch(e) { console.error("Erreur load", e); }
         }
 
-        function updateFeed() {
-            intelFeed.innerHTML = '';
-            if(markers.length === 0) intelFeed.innerHTML = '<div style="padding:10px;">Aucune donnée.</div>';
-            
-            [...markers].reverse().forEach(m => {
-                const div = document.createElement('div');
-                div.style.padding = '8px';
-                div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
-                div.style.cursor = 'pointer';
-                div.onclick = () => {
-                    // Focus sur le point (reset zoom simple)
-                    scale = 1.5;
-                    pointX = -m.x * scale + viewport.clientWidth/2;
-                    pointY = -m.y * scale + viewport.clientHeight/2;
-                    updateTransform();
-                };
-
-                let icon = '📍';
-                if(m.type === 'circle') icon = '⭕';
-                if(m.type === 'square') icon = '🔲';
-                if(m.type === 'line') icon = '➖';
-                if(m.type === 'hex') icon = '⬢';
-
-                div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; color:var(--primary);">
-                        <span>${icon} ${m.desc}</span>
-                    </div>
-                    <div style="color:#666;">${m.author} // ${m.level.toUpperCase()}</div>
-                `;
-                intelFeed.appendChild(div);
-            });
+        // Fonction globale pour suppression
+        window.deleteItem = async function(id) {
+            if(confirm("Supprimer cet élément ?")) {
+                await fetch('/api/markers', {
+                    method: 'DELETE',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({id})
+                });
+                map.closePopup();
+                loadData();
+            }
         }
-
-        // Démarrage
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchMarkers();
-            setInterval(fetchMarkers, 3000); // Temps réel
-        });
 
     </script>
 </body>
