@@ -1,54 +1,60 @@
 export default async function handler(req, res) {
+  // --- DEBUG MODE ---
+  
+  // 1. Vérifier la méthode
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Méthode non autorisée (attendu: POST)' });
   }
 
+  // 2. Vérifier la variable d'environnement
   const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
-
   if (!WEBHOOK_URL) {
-    return res.status(500).json({ error: 'Configuration serveur manquante (Webhook)' });
+    console.error("ERREUR: Variable DISCORD_WEBHOOK_URL introuvable.");
+    return res.status(500).json({ error: 'Variable DISCORD_WEBHOOK_URL manquante sur le serveur.' });
   }
 
-  const { opname, type, status, date, lead, agents, content, proof, ref } = req.body;
+  // 3. Vérifier le contenu reçu
+  const { opname, status } = req.body;
+  if (!opname) {
+    return res.status(400).json({ error: 'Données incomplètes reçues du formulaire.' });
+  }
 
-  let color = 3066993; 
-  if (status === 'ÉCHEC' || status === 'CLASSIFIÉ') color = 15158332;
-  if (status === 'EN COURS') color = 15105570;
+  // Construction du message Discord
+  let color = 3066993; // Vert
+  if (status === 'ÉCHEC' || status === 'CLASSIFIÉ') color = 15158332; // Rouge
+  if (status === 'EN COURS') color = 15105570; // Orange
 
   const embed = {
     title: `📄 RAPPORT : ${opname}`,
     color: color,
-    description: `**REF:** SAS-${ref}\n**DATE:** ${date}`,
+    description: `Test transmission`,
     fields: [
-      { name: "STATUT", value: status, inline: true },
-      { name: "TYPE", value: type, inline: true },
-      { name: "OFFICIER", value: lead, inline: true },
-      { name: "EFFECTIFS", value: agents, inline: false },
-      { name: "RAPPORT DE SITUATION", value: content.substring(0, 1024) },
-      { name: "PREUVES / PJ", value: proof }
+      { name: "STATUT", value: status || "Inconnu", inline: true }
     ],
-    footer: {
-      text: "SAS SECURE SYSTEM // AUTOMATED TRANSMISSION"
-    },
-    timestamp: new Date().toISOString()
+    footer: { text: "DEBUG MODE" }
   };
 
   try {
+    // 4. Tenter l'envoi à Discord
     const response = await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        username: "SAS MAINFRAME",
+        username: "SAS DEBUGGER",
         embeds: [embed]
       })
     });
 
+    // 5. Analyser la réponse de Discord
     if (response.ok) {
-      return res.status(200).json({ message: 'Envoyé' });
+      return res.status(200).json({ message: 'Succès ! Discord a accepté le message.' });
     } else {
-      return res.status(500).json({ error: 'Erreur Discord' });
+      const errorText = await response.text();
+      console.error("Discord a rejeté le message :", errorText);
+      return res.status(500).json({ error: `Discord a refusé : ${errorText}` });
     }
+
   } catch (error) {
-    return res.status(500).json({ error: 'Erreur Serveur' });
+    return res.status(500).json({ error: `Erreur technique : ${error.message}` });
   }
 }
