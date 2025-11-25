@@ -77,20 +77,26 @@
         }
 
         /* La feuille A4 exacte */
+     
         .preview-panel {
             width: 210mm;
             min-height: 297mm;
             background: #fff; 
             color: #000;
-            
-            /* AVANT : padding: 20mm; */
-            /* APRÈS : On met seulement 5mm en haut, et 20mm sur les côtés */
-            padding: 5mm 20mm 20mm 20mm; 
-            
+            /* Marges réduites : Haut Droite Bas Gauche */
+            padding: 10mm 20mm 20mm 20mm; 
             font-family: 'Courier New', Courier, monospace;
             position: relative;
             box-shadow: 0 0 50px rgba(0,0,0,0.8);
             overflow: hidden;
+        }
+
+        /* En-tête compact */
+        .report-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 3px solid #000; 
+            padding-bottom: 10px; /* Réduit */
+            margin-bottom: 15px; /* Réduit */
         }
 
         /* Filigrane Logo */
@@ -361,11 +367,18 @@
             const element = document.getElementById('print-area');
             const ref = document.getElementById('out-ref').innerText;
             
+            // On remonte la page pour éviter le bug du blanc
+            window.scrollTo(0, 0);
+
             const opt = {
-                margin:       0,
+                margin:       0, // Pas de marge PDF (géré par le CSS)
                 filename:     `RAPPORT_SAS_${ref}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true, 
+                    scrollY: 0  // <--- C'EST CETTE LIGNE QUI CORRIGE LE VIDE
+                },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
