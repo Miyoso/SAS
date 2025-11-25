@@ -13,7 +13,6 @@ export default async function handler(req, res) {
   const { username, password } = req.body;
 
   try {
-    // Vérifie si l'utilisateur existe avec ce mot de passe
     const result = await pool.query(
       'SELECT id, username, rank, created_at FROM agents WHERE username = $1 AND password = $2',
       [username, password]

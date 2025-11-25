@@ -29,19 +29,57 @@
 
             <div id="dashboard-view" class="view-section dashboard-container">
                 <div class="modules-section">
-                    <div style="padding: 2rem; text-align: center; color: var(--dim); margin-top: 10%;">
-                        <h2>SYSTEM LOCKED</h2>
-                        <p>AUTHENTICATION REQUIRED TO ACCESS MODULES.</p>
+                    <div class="category-title">// ACCRÉDITATION NIVEAU 1 [GÉNÉRAL]</div>
+                    <div class="grid-modules">
+                        <a href="#" class="module-card status-online"><div class="module-icon">👥</div><div><div class="module-name">BASE AGENTS</div><div class="module-status">● SYSTEM ONLINE</div></div></a>
+                        <a href="#" class="module-card status-online"><div class="module-icon">📜</div><div><div class="module-name">RÈGLEMENT</div><div class="module-status">● READ ONLY</div></div></a>
+                        <a href="#" class="module-card status-online"><div class="module-icon">🗺️</div><div><div class="module-name">CARTOGRAPHIE</div><div class="module-status">● LIVE FEED</div></div></a>
+                    </div>
+                    <div class="category-title">// ACCRÉDITATION NIVEAU 2 [CONFIDENTIEL]</div>
+                    <div class="grid-modules">
+                        <a href="#" class="module-card status-restricted"><div class="module-icon">🔍</div><div><div class="module-name">INVESTIGATION</div><div class="module-status">● RESTRICTED</div></div></a>
+                        <a href="#" class="module-card status-danger"><div class="module-icon">🎯</div><div><div class="module-name">VIP TARGETS</div><div class="module-status">● HIGH PRIORITY</div></div></a>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    
+                    <div id="sidebar-guest" style="padding: 2rem; text-align: center; color: var(--dim); margin-top: 10%;">
+                        <h2 style="color: var(--danger);">SYSTEM LOCKED</h2>
+                        <p style="font-size: 0.8rem; margin-top: 10px;">AUTHENTICATION REQUIRED.</p>
                         <br>
-                        <p style="font-family: var(--font-code); color: var(--primary);">
-                            > Ouvrez le terminal (F9)<br>
-                            > Tapez: /login [user] [pass]
+                        <p style="font-family: var(--font-code); color: var(--primary); font-size: 0.8rem;">
+                            > TAPEZ F9<br>
+                            > /login [user] [pass]
                         </p>
                     </div>
+
+                    <div id="sidebar-logged" class="hidden">
+                        <div class="mini-profile">
+                            <div class="mini-avatar">👤</div>
+                            <div class="mini-details">
+                                <div id="mini-username" class="mini-name">UNKNOWN</div>
+                                <div id="mini-rank" class="mini-rank">LOADING...</div>
+                                <button onclick="switchView('profile')" class="btn-profile-access" style="margin-top: 5px; cursor: pointer; background: transparent; border: 1px solid var(--secondary); color: var(--secondary); font-family: var(--font-ui); padding: 2px 8px;">
+                                    VOIR PROFIL >
+                                </button>
+                            </div>
+                        </div>
+                        <div class="sidebar-header">>> SERVER_LOGS</div>
+                        <div class="log-container">
+                            <div class="log-entry"><span class="log-time">[SYS]</span> Uplink established</div>
+                            <div class="log-entry"><span class="log-time">[SYS]</span> Waiting for input...</div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
             <div id="profile-view" class="view-section hidden" style="flex-direction: column; padding: 30px;">
+                <button onclick="switchView('dashboard')" style="margin-bottom: 20px; width: fit-content; background: transparent; border: 1px solid var(--dim); color: var(--dim); padding: 5px 15px; cursor: pointer; font-family: var(--font-code);">
+                    < RETOUR DASHBOARD
+                </button>
+
                 <div class="profile-header" style="border-bottom: 1px solid var(--primary); padding-bottom: 20px; margin-bottom: 20px;">
                     <h2 style="color: var(--primary);">>> AGENT PROFILE</h2>
                 </div>

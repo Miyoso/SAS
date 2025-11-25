@@ -2,15 +2,31 @@ const terminal = document.getElementById('terminal-console');
 const input = document.getElementById('cmd-input');
 const historyDiv = document.getElementById('terminal-history');
 
-// Éléments du profil
 const dashboardView = document.getElementById('dashboard-view');
 const profileView = document.getElementById('profile-view');
+
+const sidebarGuest = document.getElementById('sidebar-guest');
+const sidebarLogged = document.getElementById('sidebar-logged');
+const miniUsername = document.getElementById('mini-username');
+const miniRank = document.getElementById('mini-rank');
+
 const pUsername = document.getElementById('p-username');
 const pRank = document.getElementById('p-rank');
 const connStatus = document.getElementById('conn-status');
 const promptSpan = document.querySelector('.prompt');
 
 let currentUser = null;
+
+function switchView(viewName) {
+    if (viewName === 'profile') {
+        dashboardView.classList.add('hidden');
+        profileView.classList.remove('hidden');
+    } else {
+        profileView.classList.add('hidden');
+        dashboardView.classList.remove('hidden');
+    }
+}
+window.switchView = switchView;
 
 document.addEventListener('keydown', function(event) {
     if (event.key === 'F9') {
@@ -51,16 +67,16 @@ function scrollToBottom() {
     historyDiv.scrollTop = historyDiv.scrollHeight;
 }
 
-// Fonction pour passer du dashboard au profil
-function showProfile(agent) {
-    dashboardView.classList.add('hidden');
-    profileView.classList.remove('hidden');
+function unlockInterface(agent) {
+    sidebarGuest.classList.add('hidden');
+    sidebarLogged.classList.remove('hidden');
+
+    miniUsername.textContent = agent.username.toUpperCase();
+    miniRank.textContent = agent.rank;
     
-    // Mise à jour des données
     pUsername.textContent = agent.username.toUpperCase();
     pRank.textContent = agent.rank;
     
-    // Mise à jour de l'interface système
     connStatus.textContent = "CONNECTED";
     connStatus.style.color = "var(--primary)";
     promptSpan.textContent = `${agent.username}@sas-mainframe:~#`;
@@ -68,15 +84,17 @@ function showProfile(agent) {
 
 function logout() {
     currentUser = null;
-    dashboardView.classList.remove('hidden');
-    profileView.classList.add('hidden');
+    
+    switchView('dashboard');
+
+    sidebarLogged.classList.add('hidden');
+    sidebarGuest.classList.remove('hidden');
+
     connStatus.textContent = "DISCONNECTED";
     connStatus.style.color = "var(--danger)";
     promptSpan.textContent = "guest@sas-node:~#";
     addToHistory("System logout completed.", 'info');
 }
-
-// Rendre la fonction accessible au bouton HTML
 window.logout = logout;
 
 async function processCommand(cmd) {
@@ -84,7 +102,6 @@ async function processCommand(cmd) {
     const command = parts[0].toLowerCase();
     const args = parts.slice(1);
 
-    // --- COMMANDE: LOGIN ---
     if (command === '/login') {
         if (args.length < 2) {
             addToHistory("USAGE: /login [username] [password]", 'error');
@@ -93,7 +110,6 @@ async function processCommand(cmd) {
         
         const username = args[0];
         const password = args[1];
-
         addToHistory("VERIFYING CREDENTIALS...", 'info');
 
         try {
@@ -107,8 +123,8 @@ async function processCommand(cmd) {
 
             if (response.ok) {
                 currentUser = data.agent;
-                addToHistory(`ACCESS GRANTED. WELCOME AGENT ${currentUser.username}.`, 'info');
-                showProfile(currentUser);
+                addToHistory(`ACCESS GRANTED. WELCOME ${currentUser.username}.`, 'info');
+                unlockInterface(currentUser);
             } else {
                 addToHistory(`ERROR: ${data.error}`, 'error');
             }
@@ -118,7 +134,6 @@ async function processCommand(cmd) {
         return;
     }
 
-    // --- COMMANDE: REGISTER ---
     if (command === '/register') {
         if (args.length < 2) {
             addToHistory("USAGE: /register [username] [password]", 'error');
@@ -148,9 +163,9 @@ async function processCommand(cmd) {
 
     if (command === '/help') {
         addToHistory("AVAILABLE COMMANDS:", 'info');
-        addToHistory("  /login [user] [pass]    - Access System", 'system');
-        addToHistory("  /register [user] [pass] - Create ID", 'system');
-        addToHistory("  /clear                  - Clear terminal", 'system');
+        addToHistory("  /login [user] [pass]", 'system');
+        addToHistory("  /register [user] [pass]", 'system');
+        addToHistory("  /clear", 'system');
     } 
     else if (command === '/clear') {
         historyDiv.innerHTML = "";

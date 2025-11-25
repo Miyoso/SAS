@@ -24,6 +24,6 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    return res.status(500).json({ error: 'DATABASE ERROR: Username probably taken' });
+    return res.status(500).json({ error: 'DATABASE ERROR' });
   }
 }
