@@ -190,3 +190,7 @@ h1 span { color: var(--danger); }
 .terminal-history::-webkit-scrollbar-track { background: #000; }
 .terminal-history::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 4px; }
 .terminal-history::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+.hidden {
+    display: none !important;
+}

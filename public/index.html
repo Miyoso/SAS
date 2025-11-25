@@ -14,7 +14,6 @@
 <body>
 
     <div class="crt-overlay"></div>
-
     <div class="term-hint">PRESS [ F9 ] FOR CONSOLE</div>
 
     <div class="terminal-wrapper">
@@ -23,42 +22,62 @@
             <div class="header-strip">
                 <h1>SAS <span style="text-shadow: 0 0 10px var(--danger);">MAINFRAME</span></h1>
                 <div class="meta-data">
-                    <span style="color:var(--primary)">CONNECTED</span> // PING: 12ms<br>
+                    <span id="conn-status" style="color:var(--danger)">DISCONNECTED</span> // PING: 12ms<br>
                     SYS.VER.4.0.2
                 </div>
             </div>
 
             <div id="dashboard-view" class="view-section dashboard-container">
                 <div class="modules-section">
-                    <div class="category-title">// ACCRÉDITATION NIVEAU 1 [GÉNÉRAL]</div>
-                    <div class="grid-modules">
-                        <a href="#" class="module-card status-online"><div class="module-icon">👥</div><div><div class="module-name">BASE AGENTS</div><div class="module-status">● SYSTEM ONLINE</div></div></a>
-                        <a href="#" class="module-card status-online"><div class="module-icon">📜</div><div><div class="module-name">RÈGLEMENT</div><div class="module-status">● READ ONLY</div></div></a>
-                        <a href="#" class="module-card status-online"><div class="module-icon">🗺️</div><div><div class="module-name">CARTOGRAPHIE</div><div class="module-status">● LIVE FEED</div></div></a>
-                    </div>
-                    <div class="category-title">// ACCRÉDITATION NIVEAU 2 [CONFIDENTIEL]</div>
-                    <div class="grid-modules">
-                        <a href="#" class="module-card status-restricted"><div class="module-icon">🔍</div><div><div class="module-name">INVESTIGATION</div><div class="module-status">● RESTRICTED</div></div></a>
-                        <a href="#" class="module-card status-danger"><div class="module-icon">🎯</div><div><div class="module-name">VIP TARGETS</div><div class="module-status">● HIGH PRIORITY</div></div></a>
+                    <div style="padding: 2rem; text-align: center; color: var(--dim); margin-top: 10%;">
+                        <h2>SYSTEM LOCKED</h2>
+                        <p>AUTHENTICATION REQUIRED TO ACCESS MODULES.</p>
+                        <br>
+                        <p style="font-family: var(--font-code); color: var(--primary);">
+                            > Ouvrez le terminal (F9)<br>
+                            > Tapez: /login [user] [pass]
+                        </p>
                     </div>
                 </div>
+            </div>
 
-                <div class="sidebar-section">
-                    <div class="mini-profile">
-                        <div class="mini-avatar">👤</div>
-                        <div class="mini-details">
-                            <div class="mini-name">COMMANDER_K</div>
-                            <div class="mini-rank">LVL 4 // ADMIN</div>
+            <div id="profile-view" class="view-section hidden" style="flex-direction: column; padding: 30px;">
+                <div class="profile-header" style="border-bottom: 1px solid var(--primary); padding-bottom: 20px; margin-bottom: 20px;">
+                    <h2 style="color: var(--primary);">>> AGENT PROFILE</h2>
+                </div>
+                
+                <div style="display: flex; gap: 30px;">
+                    <div class="id-card" style="width: 350px; background: rgba(0,0,0,0.5); border: 1px solid var(--dim); padding: 20px;">
+                        <div style="display: flex; gap: 15px;">
+                            <div style="width: 80px; height: 100px; background: #111; border: 1px solid var(--secondary); display: flex; align-items: center; justify-content: center; font-size: 2rem;">👤</div>
+                            <div>
+                                <div style="color: var(--dim); font-size: 0.8rem;">AGENT ID</div>
+                                <div id="p-username" style="font-size: 1.5rem; color: #fff; font-weight: bold;">UNKNOWN</div>
+                                <div style="color: var(--dim); font-size: 0.8rem; margin-top: 10px;">CLEARANCE</div>
+                                <div id="p-rank" style="color: var(--danger); font-weight: bold;">UNAUTHORIZED</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px; font-family: var(--font-barcode); font-size: 2.5rem; color: #555;">CODE 847</div>
+                    </div>
+
+                    <div style="flex: 1; font-family: var(--font-code);">
+                        <p style="color: var(--secondary); margin-bottom: 10px;">// SYSTEM STATUS</p>
+                        <ul style="list-style: none; padding-left: 0;">
+                            <li style="margin-bottom: 8px;">> UPLINK ESTABLISHED ..... [OK]</li>
+                            <li style="margin-bottom: 8px;">> DATABASE SYNC .......... [OK]</li>
+                            <li style="margin-bottom: 8px;">> ENCRYPTION ............. [AES-256]</li>
+                        </ul>
+                        <br>
+                        <p style="color: var(--secondary); margin-bottom: 10px;">// MISSION LOGS</p>
+                        <div style="background: rgba(0,0,0,0.3); padding: 10px; border-left: 2px solid var(--dim);">
+                            <span style="color: #666;">No active missions assigned to this unit.</span>
                         </div>
                     </div>
-                    <div class="sidebar-header">>> SERVER_LOGS</div>
-                    <div class="log-container">
-                        <div class="log-entry"><span class="log-time">[14:02:01]</span> Connexion établie</div>
-                        <div class="log-entry"><span class="log-time">[14:02:05]</span> Agent_K accède à Base Agents</div>
-                        <div class="log-entry"><span class="log-time">[14:05:12]</span> Synchronisation BDD... OK</div>
-                        <div class="log-entry"><span class="log-time">[14:08:44]</span> WARNING: Packet loss détecté</div>
-                    </div>
                 </div>
+                
+                <button onclick="logout()" style="margin-top: auto; width: fit-content; background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 10px 20px; cursor: pointer; font-family: var(--font-code);">
+                    < LOGOUT
+                </button>
             </div>
 
         </div>
@@ -67,14 +86,13 @@
     <div id="terminal-console" class="terminal-console">
         <div id="terminal-history" class="terminal-history">
             <div class="term-line term-info">SAS Mainframe [Version 4.0.2]</div>
-            <div class="term-line term-info">(c) Corporation 2025. All rights reserved.</div>
-            <div class="term-line">Type '/help' for a list of commands.</div>
+            <div class="term-line term-info">Ready to authenticate...</div>
             <br>
         </div>
         
         <div class="terminal-input-area">
-            <span class="prompt">root@sas-mainframe:~#</span>
-            <input type="text" id="cmd-input" class="cmd-input" placeholder="Entrez une commande..." autocomplete="off">
+            <span class="prompt">guest@sas-node:~#</span>
+            <input type="text" id="cmd-input" class="cmd-input" placeholder="Enter command..." autocomplete="off">
         </div>
     </div>
 
