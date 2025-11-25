@@ -1,9 +1,7 @@
-// --- GESTION DU TERMINAL (F9) ---
 const terminal = document.getElementById('terminal-console');
 const input = document.getElementById('cmd-input');
 const historyDiv = document.getElementById('terminal-history');
 
-// Toggle Open/Close avec F9
 document.addEventListener('keydown', function(event) {
     if (event.key === 'F9') {
         event.preventDefault(); 
@@ -17,18 +15,12 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-// Gestion Entrée & Commandes
 input.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
         const command = input.value.trim();
         if (command !== "") {
-            // 1. Ajouter la ligne de l'utilisateur
             addToHistory(command, 'user');
-            
-            // 2. Traiter la commande (Simulation)
             processCommand(command);
-            
-            // 3. Vider l'input
             input.value = "";
             scrollToBottom();
         }
@@ -50,28 +42,62 @@ function scrollToBottom() {
     historyDiv.scrollTop = historyDiv.scrollHeight;
 }
 
-// Simulation de commandes basiques
-function processCommand(cmd) {
-    const lowerCmd = cmd.toLowerCase();
+async function processCommand(cmd) {
+    const parts = cmd.trim().split(" ");
+    const command = parts[0].toLowerCase();
+    const args = parts.slice(1);
 
-    setTimeout(() => { 
-        if (lowerCmd === '/help') {
-            addToHistory("AVAILABLE COMMANDS:", 'info');
-            addToHistory("  /help    - Show this list", 'system');
-            addToHistory("  /clear   - Clear terminal history", 'system');
-            addToHistory("  /status  - Check system status", 'system');
-        } 
-        else if (lowerCmd === '/clear') {
-            historyDiv.innerHTML = "";
-            addToHistory("Console cleared.", 'info');
+    if (command === '/register') {
+        if (args.length < 2) {
+            addToHistory("USAGE: /register [username] [password]", 'error');
+            return;
         }
-        else if (lowerCmd === '/status') {
-            addToHistory("SYSTEM CHECK...", 'info');
-            addToHistory("CPU: 34% | RAM: 12GB/32GB | NET: ONLINE", 'system');
+        
+        const username = args[0];
+        const password = args[1];
+
+        addToHistory("INITIATING UPLINK TO NEON DB...", 'info');
+
+        try {
+            const response = await fetch('/api/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                addToHistory(`SUCCESS: Agent ${data.agent.username} registered.`, 'info');
+                addToHistory(`RANK: ${data.agent.rank}`, 'info');
+            } else {
+                addToHistory(`ERROR: ${data.error}`, 'error');
+            }
+        } catch (err) {
+            addToHistory("FATAL ERROR: Connection failed.", 'error');
         }
-        else {
-            addToHistory(`bash: ${cmd}: command not found`, 'error');
-        }
+        
         scrollToBottom();
-    }, 200);
+        return; 
+    }
+
+    if (command === '/help') {
+        addToHistory("AVAILABLE COMMANDS:", 'info');
+        addToHistory("  /register [user] [pass] - Create ID", 'system');
+        addToHistory("  /help    - Show this list", 'system');
+        addToHistory("  /clear   - Clear terminal history", 'system');
+        addToHistory("  /status  - Check system status", 'system');
+    } 
+    else if (command === '/clear') {
+        historyDiv.innerHTML = "";
+        addToHistory("Console cleared.", 'info');
+    }
+    else if (command === '/status') {
+        addToHistory("SYSTEM CHECK...", 'info');
+        addToHistory("CPU: 34% | RAM: 12GB/32GB | NET: ONLINE", 'system');
+    }
+    else {
+        addToHistory(`bash: ${cmd}: command not found`, 'error');
+    }
+    scrollToBottom();
 }
