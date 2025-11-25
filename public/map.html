@@ -435,41 +435,64 @@
             }
         }
 
-        // --- 4. RENDU ---
+       // --- 4. RENDU OPTIMISÉ ---
         function renderMarkers() {
-            markersContainer.innerHTML = '';
+            if(!markersLayer) return;
+            markersLayer.innerHTML = '';
+            
             markers.forEach(m => {
                 const el = document.createElement('div');
-                // Classes: map-marker + type (square, hex...) + level (high, low...)
-                el.className = `map-marker type-${m.type} lvl-${m.level}`;
                 
-                // Position
-                el.style.left = m.x + 'px';
-                el.style.top = m.y + 'px';
+                // Sécurisation des données
+                const safeType = m.type || 'point';
+                const safeLevel = m.level || 'low';
+                const safeRotation = m.rotation || 0;
                 
-                // Taille et Rotation (stockés dans 'scale' et 'rotation')
-                const size = m.scale || (m.type === 'point' ? 20 : 100);
+                // Classes CSS
+                el.className = `map-marker type-${safeType} lvl-${safeLevel}`;
+                
+                // Positionnement
+                el.style.left = m.x + '%';
+                el.style.top = m.y + '%';
+                
+                // Taille (Scale)
+                // Pour un point, on ignore le scale pour garder une taille fixe (sauf si vous voulez des gros points)
+                const baseSize = (safeType === 'point') ? 20 : 100; 
+                const size = m.scale || baseSize;
+                
                 el.style.width = size + 'px';
-                el.style.height = size + 'px'; // Pour la ligne, le CSS force la hauteur, width devient longueur
+                el.style.height = size + 'px';
                 
-                if(m.rotation) el.style.transform += ` translate(-50%, -50%) rotate(${m.rotation}deg)`;
-                else el.style.transform += ` translate(-50%, -50%)`; // Centrage standard
+                // Rotation & Centrage (On écrase proprement le transform)
+                // Note: Pour une ligne, la rotation est essentielle
+                el.style.transform = `translate(-50%, -50%) rotate(${safeRotation}deg)`;
 
-                // Contenu visuel
+                // Contenu visuel interne
                 let inner = '';
-                if(m.type === 'point') inner = `<div style="width:100%; height:100%; border-radius:50%; background:currentColor; box-shadow:0 0 10px currentColor;"></div>`;
-                else inner = `<div class="shape"></div>`; // Les formes sont gérées par CSS (voir style)
+                if(safeType === 'point') {
+                    // Point simple (rond lumineux)
+                    inner = `<div style="width:100%; height:100%; border-radius:50%; background:currentColor; box-shadow:0 0 10px currentColor;"></div>`;
+                } else {
+                    // Formes (Gérées par le CSS .shape)
+                    inner = `<div class="shape"></div>`;
+                }
 
-                // Tooltip au survol (contient bouton supprimer)
+                // Tooltip au survol
+                const safeDesc = m.description || m.desc || 'Inconnu';
+                const safeAuthor = m.author || 'Système';
+                
                 inner += `
                     <div class="marker-label">
-                        ${m.desc} (${m.author}) 
-                        <span style="color:#fff; font-weight:bold; cursor:pointer; margin-left:5px;" onclick="deleteMarker(${m.id})">✖</span>
+                        <span style="font-weight:bold; color:#fff">${safeDesc}</span><br>
+                        <span style="opacity:0.7; font-size:0.55rem">OPT: ${safeAuthor}</span>
+                        <div style="margin-top:3px; border-top:1px solid #555; padding-top:2px; text-align:center;">
+                            <span style="color:#ff5555; cursor:pointer;" onclick="deleteMarker(${m.id})">SUPPRIMER</span>
+                        </div>
                     </div>
                 `;
 
                 el.innerHTML = inner;
-                markersContainer.appendChild(el);
+                markersLayer.appendChild(el);
             });
         }
 
