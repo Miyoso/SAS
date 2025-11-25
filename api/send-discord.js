@@ -4,51 +4,63 @@ export default async function handler(req, res) {
   }
 
   const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+  if (!WEBHOOK_URL) return res.status(500).json({ error: 'Webhook manquant' });
 
-  if (!WEBHOOK_URL) {
-    return res.status(500).json({ error: 'Configuration serveur manquante (Webhook)' });
-  }
+  const { opname, type, status, date, lead, agents, content, proof, ref, fileData, fileName } = req.body;
 
-  const { opname, type, status, date, lead, agents, content, proof, ref } = req.body;
-
-  let color = 3066993; 
-  if (status === 'ÉCHEC' || status === 'CLASSIFIÉ') color = 15158332;
-  if (status === 'EN COURS') color = 15105570;
+  // 1. Préparer l'Embed (Le joli cadre coloré)
+  let color = 3066993; // Vert
+  if (status === 'ÉCHEC' || status === 'CLASSIFIÉ') color = 15158332; // Rouge
+  if (status === 'EN COURS') color = 15105570; // Orange
 
   const embed = {
-    title: `📄 RAPPORT : ${opname}`,
+    title: `📄 NOUVEAU RAPPORT : ${opname}`,
     color: color,
-    description: `**REF:** SAS-${ref}\n**DATE:** ${date}`,
+    description: `**REF:** SAS-${ref}\n**DATE:** ${date}\n\nLe rapport complet est disponible en pièce jointe (PDF).`,
     fields: [
       { name: "STATUT", value: status, inline: true },
       { name: "TYPE", value: type, inline: true },
       { name: "OFFICIER", value: lead, inline: true },
-      { name: "EFFECTIFS", value: agents, inline: false },
-      { name: "RAPPORT DE SITUATION", value: content.substring(0, 1024) },
-      { name: "PREUVES / PJ", value: proof }
+      { name: "EFFECTIFS", value: agents, inline: false }
     ],
-    footer: {
-      text: "SAS SECURE SYSTEM // AUTOMATED TRANSMISSION"
-    },
+    footer: { text: "SAS SECURE SYSTEM // PDF SECURED" },
     timestamp: new Date().toISOString()
   };
 
   try {
+    // 2. Créer un formulaire Multipart pour Discord (Fichier + JSON)
+    const formData = new FormData();
+    
+    // Ajout des infos JSON (payload_json est le champ spécial Discord pour les embeds)
+    formData.append('payload_json', JSON.stringify({
+      username: "SAS MAINFRAME",
+      embeds: [embed]
+    }));
+
+    // Ajout du fichier PDF si présent
+    if (fileData && fileName) {
+      // Conversion Base64 -> Buffer -> Blob
+      const buffer = Buffer.from(fileData, 'base64');
+      const pdfBlob = new Blob([buffer], { type: 'application/pdf' });
+      formData.append('files[0]', pdfBlob, fileName);
+    }
+
+    // 3. Envoi à Discord
     const response = await fetch(WEBHOOK_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username: "SAS MAINFRAME",
-        embeds: [embed]
-      })
+      body: formData
     });
 
     if (response.ok) {
-      return res.status(200).json({ message: 'Envoyé' });
+      return res.status(200).json({ message: 'Envoyé avec succès' });
     } else {
-      return res.status(500).json({ error: 'Erreur Discord' });
+      const err = await response.text();
+      console.error("Discord Error:", err);
+      return res.status(500).json({ error: 'Refus de Discord' });
     }
+
   } catch (error) {
-    return res.status(500).json({ error: 'Erreur Serveur' });
+    console.error("Server Error:", error);
+    return res.status(500).json({ error: 'Erreur interne' });
   }
 }
