@@ -1,9 +1,8 @@
 import { Pool } from 'pg';
 
-// Connexion à Neon
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false } // Nécessaire pour Neon
+  ssl: { rejectUnauthorized: false }
 });
 
 export default async function handler(req, res) {
@@ -14,9 +13,6 @@ export default async function handler(req, res) {
   const { username, password } = req.body;
 
   try {
-    // Attention: Pour un vrai site pro, on crypte le mot de passe ici (avec bcrypt)
-    // Pour l'instant on fait simple pour apprendre.
-    
     const result = await pool.query(
       'INSERT INTO agents (username, password) VALUES ($1, $2) RETURNING id, username, rank',
       [username, password]
@@ -28,7 +24,6 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: 'DATABASE ERROR: Username probably taken' });
   }
 }
