@@ -10,11 +10,13 @@
         // if (!session) window.location.href = 'index.html';
     </script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style-mo.css">
 
     <style>
-        body { overflow-y: auto; height: auto; }
+        body { overflow-y: auto; height: auto; background-color: #050505; }
 
         /* Layout en 2 colonnes */
         .report-wrapper {
@@ -31,6 +33,7 @@
             padding: 25px;
             backdrop-filter: blur(10px);
             display: flex; flex-direction: column; gap: 20px;
+            height: fit-content;
         }
 
         .section-title {
@@ -49,7 +52,7 @@
         .form-textarea { min-height: 150px; resize: vertical; }
 
         /* Boutons */
-        .actions { display: flex; gap: 10px; margin-top: auto; }
+        .actions { display: flex; gap: 10px; margin-top: 20px; }
         .btn-gen {
             flex: 1; padding: 15px; border: 1px solid var(--primary); background: rgba(0, 255, 157, 0.1);
             color: var(--primary); font-weight: bold; cursor: pointer; font-family: 'Share Tech Mono';
@@ -65,16 +68,25 @@
         .btn-copy:hover { background: var(--secondary); color: #000; box-shadow: 0 0 20px var(--secondary); }
 
         /* COLONNE DROITE : PREVIEW (FEUILLE PAPIER TACTIQUE) */
-        .preview-panel {
+        .preview-container {
             flex: 1;
-            background: #fff; /* Fond blanc cassé pour effet papier/doc */
+            display: flex; justify-content: center;
+            background: #222; /* Fond sombre autour de la feuille */
+            padding: 20px;
+            border: 1px solid #444;
+        }
+
+        /* La feuille A4 exacte */
+        .preview-panel {
+            width: 210mm; /* Largeur A4 */
+            min-height: 297mm; /* Hauteur A4 */
+            background: #fff; 
             color: #000;
-            padding: 40px;
-            font-family: 'Courier New', Courier, monospace; /* Police machine à écrire */
+            padding: 20mm;
+            font-family: 'Courier New', Courier, monospace;
             position: relative;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
             overflow: hidden;
-            min-height: 800px;
         }
 
         /* Filigrane Logo */
@@ -93,37 +105,38 @@
         }
         .header-logo { width: 80px; height: auto; }
         .header-text { text-align: right; }
-        .header-title { font-size: 1.5rem; font-weight: bold; letter-spacing: -1px; }
-        .header-sub { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
+        .header-title { font-size: 24px; font-weight: bold; letter-spacing: -1px; margin: 0; }
+        .header-sub { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; }
 
         .report-meta-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
-            background: #f0f0f0; padding: 15px; border: 1px solid #ccc;
+            background: #f4f4f4; padding: 15px; border: 1px solid #ccc;
         }
-        .meta-item strong { text-transform: uppercase; font-size: 0.8rem; display: block; color: #555; }
+        .meta-item strong { text-transform: uppercase; font-size: 10px; display: block; color: #666; margin-bottom: 2px; }
+        .meta-item span { font-weight: bold; font-size: 14px; }
         
-        .report-body { flex: 1; white-space: pre-wrap; line-height: 1.5; text-align: justify; }
+        .report-body { flex: 1; white-space: pre-wrap; line-height: 1.6; text-align: justify; font-size: 14px; }
         
         .report-footer {
-            margin-top: auto; border-top: 1px solid #000; padding-top: 20px;
+            margin-top: 50px; border-top: 1px solid #000; padding-top: 20px;
             display: flex; justify-content: space-between; align-items: flex-end;
         }
-        .signature-box { width: 200px; border-bottom: 1px solid #000; margin-bottom: 5px; }
+        .signature-box { width: 200px; height: 40px; border-bottom: 1px solid #000; margin-bottom: 5px; }
 
         /* Statut Stamp */
         .stamp {
-            position: absolute; top: 100px; right: 40px;
-            border: 5px solid; padding: 10px 20px;
-            font-size: 2rem; font-weight: bold; text-transform: uppercase;
+            position: absolute; top: 80px; right: 40px;
+            border: 4px solid; padding: 10px 20px;
+            font-size: 30px; font-weight: bold; text-transform: uppercase;
             transform: rotate(-15deg); opacity: 0.7; letter-spacing: 5px;
-            pointer-events: none;
+            pointer-events: none; z-index: 10;
         }
         .stamp-open { color: #000; border-color: #000; }
-        .stamp-closed { color: var(--danger); border-color: var(--danger); }
-        .stamp-classified { color: var(--danger); border-color: var(--danger); }
+        .stamp-closed { color: #aa0000; border-color: #aa0000; }
 
-        @media (max-width: 1000px) {
+        @media (max-width: 1200px) {
             .report-wrapper { flex-direction: column; }
+            .preview-panel { width: 100%; min-height: 800px; }
         }
     </style>
 </head>
@@ -135,11 +148,11 @@
         <div style="display:flex; align-items:center; gap:15px;">
             <img src="assets/logo-sas.png" style="height:40px;">
             <div>
-                <h1 style="font-size:1.2rem; margin:0;">REPORT <span style="color:var(--primary)">GENERATOR</span></h1>
+                <h1 style="font-size:1.2rem; margin:0; color:#fff;">REPORT <span style="color:var(--primary)">GENERATOR</span></h1>
                 <div style="font-size:0.7rem; color:#666;">SAN ANDREAS SECURITY // INTERNAL TOOL</div>
             </div>
         </div>
-        <a href="index.html" class="btn-profile-access" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:5px 15px; text-decoration:none;">< DASHBOARD</a>
+        <a href="index.html" class="btn-profile-access" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:5px 15px; text-decoration:none; font-family:'Share Tech Mono';">< RETOUR DASHBOARD</a>
     </div>
 
     <div class="report-wrapper">
@@ -158,13 +171,13 @@
                     <select id="inp-type" class="form-select" onchange="updatePreview()">
                         <option value="PATROUILLE">PATROUILLE</option>
                         <option value="INTERVENTION">INTERVENTION ARMÉE</option>
-                        <option value="RECONNAISSANCE">RECONNAISSANCE / FILATURE</option>
+                        <option value="RECONNAISSANCE">RECONNAISSANCE</option>
                         <option value="PROTECTION VIP">PROTECTION VIP</option>
                         <option value="ENTRAINEMENT">ENTRAINEMENT</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">RÉSULTAT (STATUT)</label>
+                    <label class="form-label">RÉSULTAT</label>
                     <select id="inp-status" class="form-select" onchange="updatePreview()">
                         <option value="SUCCÈS">SUCCÈS</option>
                         <option value="ÉCHEC">ÉCHEC</option>
@@ -187,7 +200,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">AGENTS IMPLIQUÉS (Séparez par des virgules)</label>
+                <label class="form-label">AGENTS IMPLIQUÉS</label>
                 <input type="text" id="inp-agents" class="form-input" placeholder="Ex: Blitz, Roxanne, Adam..." oninput="updatePreview()">
             </div>
 
@@ -199,78 +212,87 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">PREUVES / PIÈCES JOINTES (URL)</label>
+                <label class="form-label">PREUVES (URL / TEXTE)</label>
                 <input type="text" id="inp-proof" class="form-input" placeholder="Lien photo, bodycam..." oninput="updatePreview()">
             </div>
 
             <div class="actions">
-                <button class="btn-copy" onclick="copyToClipboard()">📋 COPIER TEXTE (DISCORD)</button>
+                <button class="btn-gen" onclick="downloadPDF()">📄 TÉLÉCHARGER PDF</button>
+                <button class="btn-copy" onclick="copyToClipboard()">📋 COPIER (DISCORD)</button>
             </div>
         </div>
 
-        <div class="preview-panel" id="print-area">
-            <img src="assets/logo-sas.png" class="watermark">
-            
-            <div id="stamp-overlay" class="stamp stamp-open">SUCCÈS</div>
+        <div class="preview-container">
+            <div class="preview-panel" id="print-area">
+                
+                <img src="assets/logo-sas.png" class="watermark">
+                
+                <div id="stamp-overlay" class="stamp stamp-open">SUCCÈS</div>
 
-            <div class="report-content">
-                <div class="report-header">
-                    <img src="assets/logo-sas.png" class="header-logo">
-                    <div class="header-text">
-                        <div class="header-title">RAPPORT D'INTERVENTION</div>
-                        <div class="header-sub">SAN ANDREAS SECURITY // INTERNAL</div>
+                <div class="report-content">
+                    <div class="report-header">
+                        <img src="assets/logo-sas.png" class="header-logo">
+                        <div class="header-text">
+                            <div class="header-title">RAPPORT D'INTERVENTION</div>
+                            <div class="header-sub">SAN ANDREAS SECURITY // INTERNAL USE ONLY</div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="report-meta-grid">
-                    <div class="meta-item">
-                        <strong>OPÉRATION</strong>
-                        <span id="out-opname">N/A</span>
+                    <div class="report-meta-grid">
+                        <div class="meta-item">
+                            <strong>OPÉRATION</strong>
+                            <span id="out-opname">...</span>
+                        </div>
+                        <div class="meta-item">
+                            <strong>DATE & HEURE</strong>
+                            <span id="out-date">...</span>
+                        </div>
+                        <div class="meta-item">
+                            <strong>OFFICIER EN CHARGE</strong>
+                            <span id="out-lead">...</span>
+                        </div>
+                        <div class="meta-item">
+                            <strong>TYPE</strong>
+                            <span id="out-type">PATROUILLE</span>
+                        </div>
+                        <div class="meta-item">
+                            <strong>LIEU</strong>
+                            <span id="out-loc">...</span>
+                        </div>
+                        <div class="meta-item">
+                            <strong>EFFECTIFS</strong>
+                            <span id="out-agents">...</span>
+                        </div>
                     </div>
-                    <div class="meta-item">
-                        <strong>DATE & HEURE</strong>
-                        <span id="out-date">...</span>
-                    </div>
-                    <div class="meta-item">
-                        <strong>OFFICIER EN CHARGE</strong>
-                        <span id="out-lead">...</span>
-                    </div>
-                    <div class="meta-item">
-                        <strong>TYPE</strong>
-                        <span id="out-type">PATROUILLE</span>
-                    </div>
-                    <div class="meta-item">
-                        <strong>LIEU</strong>
-                        <span id="out-loc">Inconnu</span>
-                    </div>
-                    <div class="meta-item">
-                        <strong>EFFECTIFS</strong>
-                        <span id="out-agents">Aucun</span>
-                    </div>
-                </div>
 
-                <div style="border-bottom: 1px solid #000; padding-bottom: 5px; font-weight: bold; margin-top: 20px;">
-                    RAPPORT DE SITUATION :
-                </div>
-                <div class="report-body" id="out-content">
-                    [En attente de saisie...]
-                </div>
-
-                <div style="border-bottom: 1px solid #000; padding-bottom: 5px; font-weight: bold; margin-top: 20px;">
-                    PIÈCES JOINTES :
-                </div>
-                <div id="out-proof" style="font-style:italic; color:#444;">
-                    Aucune.
-                </div>
-
-                <div class="report-footer">
-                    <div style="font-size:0.7rem;">
-                        REF: SAS-<span id="out-ref">000</span><br>
-                        GÉNÉRÉ LE: <span id="out-gen-date">...</span>
+                    <div style="margin-top: 30px;">
+                        <div style="border-bottom: 2px solid #000; padding-bottom: 5px; font-weight: bold; font-size:16px;">
+                            I. RAPPORT DE SITUATION
+                        </div>
+                        <div class="report-body" id="out-content" style="margin-top:10px;">
+                            [En attente de saisie...]
+                        </div>
                     </div>
-                    <div style="text-align:center;">
-                        <div class="signature-box"></div>
-                        <div style="font-size:0.8rem;">SIGNATURE DE L'OFFICIER</div>
+
+                    <div style="margin-top: 20px;">
+                        <div style="border-bottom: 2px solid #000; padding-bottom: 5px; font-weight: bold; font-size:16px;">
+                            II. PIÈCES JOINTES & PREUVES
+                        </div>
+                        <div id="out-proof" style="margin-top:10px; font-style:italic; color:#444;">
+                            Aucune.
+                        </div>
+                    </div>
+
+                    <div class="report-footer">
+                        <div style="font-size:12px; line-height:1.4;">
+                            REF DOSSIER: SAS-<span id="out-ref">000</span><br>
+                            GÉNÉRÉ LE: <span id="out-gen-date">...</span><br>
+                            <span style="font-weight:bold;">CERTIFIÉ CONFORME</span>
+                        </div>
+                        <div style="text-align:center;">
+                            <div class="signature-box"></div>
+                            <div style="font-size:10px; text-transform:uppercase;">SIGNATURE DE L'OFFICIER</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -323,20 +345,67 @@
             stamp.className = 'stamp'; // Reset classes
             if(status === 'SUCCÈS') {
                 stamp.classList.add('stamp-open');
-                stamp.style.color = '#000'; stamp.style.borderColor = '#000';
             } else if (status === 'ÉCHEC' || status === 'CLASSIFIÉ') {
                 stamp.classList.add('stamp-closed');
-                stamp.style.color = '#aa0000'; stamp.style.borderColor = '#aa0000';
             } else {
                 stamp.style.color = '#555'; stamp.style.borderColor = '#555';
             }
         }
 
+        // --- PDF GENERATION ---
+        function downloadPDF() {
+            const element = document.getElementById('print-area');
+            const ref = document.getElementById('out-ref').innerText;
+            
+            const opt = {
+                margin:       0,
+                filename:     `RAPPORT_SAS_${ref}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // On lance la génération
+            html2pdf().set(opt).from(element).save().catch(err => {
+                console.error("Erreur PDF:", err);
+                alert("Erreur lors de la génération du PDF.");
+            });
+        }
+
+        // --- DISCORD COPY ---
         function copyToClipboard() {
-            // Formatage Markdown pour Discord
             const opname = document.getElementById('inp-opname').value.toUpperCase();
             const type = document.getElementById('inp-type').value;
             const status = document.getElementById('inp-status').value;
             const date = document.getElementById('out-date').innerText;
             const lead = document.getElementById('inp-lead').value;
-            const agents = document.getElementById
+            const agents = document.getElementById('inp-agents').value;
+            const content = document.getElementById('inp-content').value;
+            const proof = document.getElementById('inp-proof').value;
+
+            const markdown = `
+\`\`\`fix
+DOSSIER MISSION : ${opname}
+\`\`\`
+**DATE :** ${date}
+**STATUT :** ${status}
+**TYPE :** ${type}
+**OFFICIER :** ${lead}
+**EFFECTIFS :** ${agents}
+
+**RAPPORT :**
+${content}
+
+**PREUVES :**
+${proof}
+
+*SAS SYSTEM V.4.0.2*
+            `;
+
+            navigator.clipboard.writeText(markdown).then(() => {
+                alert("FORMAT DISCORD COPIÉ !");
+            });
+        }
+    </script>
+</body>
+</html>
