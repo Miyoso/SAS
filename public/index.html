@@ -7,154 +7,152 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Libre+Barcode+128+Text&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Libre+Barcode+128+Text&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/style-mo.css">
 
     <style>
-        :root {
-            --bg-dark: #050505;
-            --panel-bg: rgba(15, 20, 25, 0.95);
-            --primary: #00ff9d;
-            --secondary: #00f3ff;
-            --danger: #ff3333;
-            --warning: #eebb00;
-            --dim: #445566;
-            --font-ui: 'Share Tech Mono', monospace;
-            --font-code: 'JetBrains Mono', monospace;
-            --font-barcode: 'Libre Barcode 128 Text', cursive;
-            --glass: blur(10px);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; cursor: crosshair; }
-
-        body {
-            background-color: var(--bg-dark);
-            color: #eee;
-            font-family: var(--font-ui);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden; 
-        }
-
-        body::before {
-            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, rgba(20, 30, 40, 1) 0%, rgba(0,0,0,1) 90%),
-                        repeating-linear-gradient(0deg, transparent 0px, transparent 1px, rgba(0, 255, 157, 0.02) 2px, transparent 3px);
-            z-index: -2;
-        }
-
-        .crt-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none; z-index: 9999; opacity: 0.5;
-            animation: flicker 0.15s infinite;
-        }
-        @keyframes flicker { 0% {opacity: 0.45;} 50% {opacity: 0.5;} 100% {opacity: 0.45;} }
-
-        .terminal-wrapper {
-            width: 100%; height: 100vh;
-            padding: 2rem;
-            display: flex; flex-direction: column;
-        }
-
-        .terminal {
-            background: rgba(10, 15, 20, 0.85);
-            border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: var(--glass);
-            box-shadow: 0 0 50px rgba(0,0,0,0.8), 0 0 0 1px rgba(0, 255, 157, 0.1);
-            flex: 1;
-            display: flex; flex-direction: column;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .header-strip {
-            padding: 20px 30px;
-            border-bottom: 2px solid rgba(255,255,255,0.1);
-            display: flex; justify-content: space-between; align-items: flex-end;
-            position: relative; background: rgba(0,0,0,0.3);
-        }
-        h1 { font-family: var(--font-code); font-weight: 800; font-size: 2rem; letter-spacing: -1px; margin: 0; }
-        h1 span { color: var(--danger); }
-        .meta-data { font-size: 0.8rem; color: var(--secondary); text-align: right; font-family: var(--font-code); }
-
+        /* --- STYLES SPÉCIFIQUES DASHBOARD --- */
+        
+        /* Layout principal */
         .view-section {
             display: flex; flex: 1; overflow: hidden;
             transition: opacity 0.5s ease;
+            position: relative;
         }
         .hidden { display: none !important; }
 
+        /* Section Modules (Gauche) */
         .modules-section {
             flex: 3; padding: 30px; overflow-y: auto;
             border-right: 1px solid rgba(255,255,255,0.05);
+            mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
         }
+        .modules-section::-webkit-scrollbar { width: 6px; }
+        .modules-section::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 3px; }
+
         .category-title {
-            color: var(--secondary); font-size: 0.9rem; margin-top: 20px; margin-bottom: 15px;
-            display: flex; align-items: center; letter-spacing: 2px;
+            color: var(--secondary); font-size: 0.8rem; margin-top: 25px; margin-bottom: 20px;
+            display: flex; align-items: center; letter-spacing: 3px; font-weight: bold;
+            text-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
         }
-        .category-title::after { content: ''; flex: 1; height: 1px; background: var(--dim); margin-left: 15px; opacity: 0.5; }
+        .category-title::before { content: '>'; margin-right: 10px; color: var(--danger); }
+        .category-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--dim), transparent); margin-left: 15px; opacity: 0.5; }
         
         .grid-modules {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px;
         }
 
+        /* Cartes Modules (Style Tactique) */
         .module-card {
-            background: rgba(10, 15, 20, 0.4); border: 1px solid var(--dim); padding: 20px;
-            position: relative; transition: all 0.3s ease; text-decoration: none;
-            display: flex; flex-direction: column; justify-content: space-between; min-height: 120px;
-            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
+            background: rgba(15, 20, 25, 0.6); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            padding: 20px;
+            position: relative; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            text-decoration: none;
+            display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;
+            /* Forme biseautée */
+            clip-path: polygon(
+                0 0, 100% 0, 
+                100% calc(100% - 15px), calc(100% - 15px) 100%, 
+                0 100%
+            );
+            backdrop-filter: blur(5px);
         }
+        
+        /* Effet High-Tech au survol */
         .module-card:hover {
-            transform: translateY(-5px); background: rgba(0, 255, 157, 0.05);
-            border-color: var(--primary); box-shadow: 0 10px 30px rgba(0, 255, 157, 0.1);
+            transform: translateY(-5px) scale(1.02); 
+            background: rgba(20, 30, 40, 0.8);
+            border-color: rgba(255,255,255,0.4);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 10;
         }
-        .module-icon { font-size: 1.8rem; margin-bottom: 10px; color: #fff; }
-        .module-name { font-family: var(--font-code); font-weight: bold; color: #fff; font-size: 1.1rem; text-transform: uppercase; }
-        .module-status { font-size: 0.7rem; color: var(--dim); margin-top: 5px; letter-spacing: 1px; }
+        .module-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            transition: 0.3s;
+        }
+        
+        .module-icon { font-size: 2rem; margin-bottom: 15px; color: #ccc; transition: 0.3s; }
+        .module-card:hover .module-icon { transform: scale(1.1); color: #fff; text-shadow: 0 0 15px currentColor; }
 
-        .status-online { border-left: 3px solid var(--primary); }
-        .status-online .module-status { color: var(--primary); }
-        .status-restricted { border-left: 3px solid var(--warning); }
-        .status-restricted .module-status { color: var(--warning); }
-        .status-danger { border-left: 3px solid var(--danger); }
-        .status-danger .module-status { color: var(--danger); }
+        .module-name { font-family: var(--font-code); font-weight: 800; color: #fff; font-size: 1.1rem; letter-spacing: 1px; }
+        .module-status { font-size: 0.65rem; color: #667788; margin-top: 8px; letter-spacing: 1px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
 
+        /* Status Colors */
+        .status-online { border-top: 2px solid var(--primary); }
+        .status-online::before { background: var(--primary); opacity: 0.5; }
+        .status-online:hover::before { opacity: 1; box-shadow: 0 0 10px var(--primary); }
+        .status-online .module-icon { color: var(--primary); }
+        
+        .status-restricted { border-top: 2px solid var(--warning); }
+        .status-restricted::before { background: var(--warning); opacity: 0.5; }
+        .status-restricted:hover::before { opacity: 1; box-shadow: 0 0 10px var(--warning); }
+        .status-restricted .module-icon { color: var(--warning); }
+
+        .status-danger { border-top: 2px solid var(--danger); }
+        .status-danger::before { background: var(--danger); opacity: 0.5; }
+        .status-danger:hover::before { opacity: 1; box-shadow: 0 0 10px var(--danger); }
+        .status-danger .module-icon { color: var(--danger); }
+
+        /* Sidebar (Droite) */
         .sidebar-section {
             flex: 1; padding: 0; background: rgba(0,0,0,0.2);
             display: flex; flex-direction: column;
             border-left: 1px solid rgba(255,255,255,0.1);
+            min-width: 300px;
         }
+        
+        /* Mini Profil */
         .mini-profile {
-            padding: 20px; border-bottom: 1px solid var(--primary);
-            background: linear-gradient(180deg, rgba(0,255,157,0.05) 0%, rgba(0,0,0,0) 100%);
-            display: flex; align-items: center; gap: 15px;
+            padding: 30px 20px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+            display: flex; align-items: center; gap: 20px;
         }
         .mini-avatar {
-            width: 50px; height: 50px; border: 1px solid var(--primary);
-            display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
-            box-shadow: 0 0 10px rgba(0,255,157,0.2);
+            width: 60px; height: 60px; border: 2px solid rgba(255,255,255,0.2);
+            display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+            background: #000; box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            position: relative;
         }
+        /* Scan avatar */
+        .mini-avatar::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: var(--primary); animation: scanAvatar 2s infinite linear;
+            opacity: 0.7; box-shadow: 0 0 5px var(--primary);
+        }
+        @keyframes scanAvatar { 0% {top:0} 100% {top:100%} }
+
         .mini-details { flex: 1; }
-        .mini-name { color: #fff; font-weight: bold; font-family: var(--font-code); font-size: 1rem; }
-        .mini-rank { color: var(--secondary); font-size: 0.75rem; letter-spacing: 1px; }
+        .mini-name { color: #fff; font-weight: 800; font-family: var(--font-code); font-size: 1.1rem; letter-spacing: 1px; }
+        .mini-rank { color: var(--secondary); font-size: 0.75rem; letter-spacing: 2px; margin-top: 2px; }
+        
         .btn-profile-access {
             background: transparent; border: 1px solid var(--dim); color: var(--dim);
-            padding: 5px 10px; font-size: 0.7rem; cursor: pointer; font-family: var(--font-ui);
-            transition: 0.2s; text-decoration: none; display: inline-block; margin-top: 5px;
+            padding: 6px 12px; font-size: 0.65rem; cursor: pointer; font-family: var(--font-ui);
+            transition: 0.2s; text-decoration: none; display: inline-block; margin-top: 10px;
+            text-transform: uppercase; letter-spacing: 1px;
         }
-        .btn-profile-access:hover { border-color: var(--primary); color: var(--primary); }
-        .sidebar-header {
-            padding: 15px 20px; border-bottom: 1px solid var(--dim);
-            background: rgba(255,255,255,0.02);
-            font-weight: bold; color: var(--primary); letter-spacing: 1px; font-size: 0.8rem;
-        }
-        .log-container { padding: 20px; font-family: var(--font-code); font-size: 0.8rem; overflow-y: auto; flex:1; }
-        .log-entry { margin-bottom: 8px; padding-left: 10px; border-left: 2px solid var(--dim); color: #888; transition: 0.2s; }
-        .log-entry:hover { border-left-color: var(--secondary); color: #fff; }
-        .log-time { color: var(--secondary); margin-right: 5px; }
+        .btn-profile-access:hover { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 157, 0.05); }
 
+        .sidebar-header {
+            padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05);
+            background: rgba(0,0,0,0.3);
+            font-weight: bold; color: #8899aa; letter-spacing: 2px; font-size: 0.7rem;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .sidebar-header::before { content: ''; width: 6px; height: 6px; background: currentColor; }
+
+        .log-container { padding: 20px; font-family: var(--font-code); font-size: 0.75rem; overflow-y: auto; flex:1; }
+        .log-entry { 
+            margin-bottom: 8px; padding-left: 12px; border-left: 2px solid rgba(255,255,255,0.1); 
+            color: #667788; transition: 0.2s; 
+        }
+        .log-entry:hover { border-left-color: var(--secondary); color: #ccc; padding-left: 18px; background: linear-gradient(90deg, rgba(255,255,255,0.02), transparent); }
+        .log-time { color: var(--dim); margin-right: 8px; font-size: 0.7rem; }
+
+        /* Profile View Container */
         .profile-view-container {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             height: 100%; width: 100%; position: relative;
@@ -163,83 +161,38 @@
             position: absolute; top: 20px; left: 20px;
             background: transparent; border: 1px solid var(--danger); color: var(--danger);
             padding: 10px 20px; cursor: pointer; font-family: var(--font-code);
-            transition: 0.3s;
+            transition: 0.3s; z-index: 50;
         }
         .back-button:hover { background: var(--danger); color: #000; box-shadow: 0 0 15px var(--danger); }
-        .id-card-container { width: 420px; perspective: 1000px; z-index: 10; margin-bottom: 2rem; }
-        .id-card {
-            width: 100%; height: 250px;
-            background: rgba(13, 17, 23, 0.95);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 20px rgba(0, 255, 157, 0.05);
-            transition: transform 0.1s; transform-style: preserve-3d;
-            background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 20px);
-        }
-        .card-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid rgba(0, 255, 157, 0.3); }
-        .card-logo-text { font-weight: bold; color: var(--primary); font-size: 1.2rem; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 255, 157, 0.5); }
-        .security-level { background: var(--danger); color: #fff; padding: 2px 8px; font-size: 0.8rem; font-weight: bold; border-radius: 4px; }
-        .card-body { display: flex; padding: 20px; gap: 20px; }
-        .photo-box { width: 85px; height: 105px; border: 2px solid var(--secondary); background: #111; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: var(--secondary); box-shadow: 0 0 10px rgba(0, 243, 255, 0.2); }
-        .agent-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-        .card-label { font-size: 0.7rem; color: var(--secondary); letter-spacing: 1px; text-transform: uppercase; }
-        .card-value { font-size: 1.1rem; color: #fff; margin-bottom: 8px; text-transform: uppercase; font-weight: bold; }
-        .card-code { font-family: var(--font-code); color: var(--primary); font-size: 0.9rem; }
-        .card-footer { position: absolute; bottom: 12px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .barcode { font-family: var(--font-barcode); font-size: 2.5rem; color: #fff; opacity: 0.8; line-height: 0.8; }
 
+        /* Terminal Console (Modifié pour matcher le nouveau thème) */
         .terminal-console { 
-            position: fixed; 
-            bottom: 0; left: 0; width: 100%;
-            height: 40vh; 
-            background: #080a0c; 
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 40vh; 
+            background: rgba(5, 8, 10, 0.95); 
             border-top: 2px solid var(--primary); 
-            display: flex; flex-direction: column;
-            z-index: 2000; 
-            transform: translateY(100%); 
-            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-            box-shadow: 0 -5px 20px rgba(0, 255, 157, 0.2);
-            padding: 0;
+            display: flex; flex-direction: column; z-index: 2000; 
+            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            backdrop-filter: blur(10px);
         }
-
         .terminal-console.open { transform: translateY(0); }
-
+        
         .terminal-history {
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 15px 30px;
-            font-family: var(--font-code);
-            font-size: 0.9rem;
-            color: #ccc;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex: 1; overflow-y: auto; padding: 20px 40px;
+            font-family: var(--font-code); font-size: 0.9rem; color: #aaa;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-
-        .term-line { margin-bottom: 5px; word-break: break-all; }
-        .term-user { color: var(--primary); font-weight: bold; }
-        .term-user::before { content: "> "; }
-        .term-system { color: #ccc; }
-        .term-error { color: var(--danger); }
-        .term-info { color: var(--secondary); }
-
         .terminal-input-area {
-            display: flex; align-items: center; gap: 10px;
-            padding: 15px 30px;
-            background: rgba(0,0,0,0.5);
+            display: flex; align-items: center; gap: 15px; padding: 20px 40px;
+            background: rgba(0,0,0,0.3);
         }
-
-        .prompt { color: var(--primary); font-weight: bold; font-family: var(--font-code); }
-        .cmd-input { background: transparent; border: none; outline: none; color: #fff; font-family: var(--font-code); font-size: 1rem; width: 100%; }
+        .prompt { color: var(--primary); font-weight: bold; font-family: var(--font-code); text-shadow: 0 0 5px var(--primary); }
+        .cmd-input { background: transparent; border: none; outline: none; color: #fff; font-family: var(--font-code); font-size: 1rem; width: 100%; caret-color: var(--primary); }
 
         .term-hint {
-            position: fixed; bottom: 10px; right: 20px; font-size: 0.7rem; color: var(--dim); z-index: 100;
-            opacity: 0.5;
+            position: fixed; bottom: 10px; right: 20px; font-size: 0.7rem; 
+            color: var(--dim); z-index: 100; opacity: 0.5; letter-spacing: 1px;
+            font-family: var(--font-code);
         }
-
-        .terminal-history::-webkit-scrollbar { width: 8px; }
-        .terminal-history::-webkit-scrollbar-track { background: #000; }
-        .terminal-history::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 4px; }
-        .terminal-history::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
     </style>
 </head>
@@ -247,71 +200,109 @@
 
     <div class="crt-overlay"></div>
 
-    <div class="term-hint">PRESS [ F9 ] FOR CONSOLE</div>
+    <div class="term-hint">PRESS [ F9 ] TO TOGGLE TERMINAL</div>
 
     <div class="terminal-wrapper">
         <div class="terminal">
             
             <div class="header-strip">
-                <h1>SAS <span style="text-shadow: 0 0 10px var(--danger);">MAINFRAME</span></h1>
+                <div>
+                    <h1>SAS <span style="text-shadow: 0 0 10px var(--danger);">MAINFRAME</span></h1>
+                    <div style="font-size: 0.8rem; color: #667788; letter-spacing: 2px; margin-top: 5px;">SECURE ACCESS SYSTEM // RESTRICTED AREA</div>
+                </div>
                 <div class="meta-data">
                     <span id="conn-status" style="color:var(--primary)">CONNECTED</span> // PING: 12ms<br>
-                    SYS.VER.4.0.2
+                    SYS.VER.4.0.2 // <span class="blink">MONITORING</span>
                 </div>
             </div>
 
             <div id="dashboard-view" class="view-section dashboard-container">
+                
                 <div class="modules-section">
-                    <div class="category-title">// ACCRÉDITATION NIVEAU 1 [GÉNÉRAL]</div>
+                    <div class="category-title">ACCRÉDITATION NIVEAU 1 [GÉNÉRAL]</div>
                     <div class="grid-modules">
-                        <div class="module-card status-online" onclick="accessModule('database.html', 1)">
+                        <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('database.html', 1)">
                             <div class="module-icon">👥</div>
                             <div>
                                 <div class="module-name">BASE AGENTS</div>
-                                <div class="module-status">● SYSTEM ONLINE</div>
+                                <div class="module-status"><span style="color:var(--primary)">●</span> SYSTEM ONLINE</div>
                             </div>
                         </div>
-                        <a href="#" class="module-card status-online"><div class="module-icon">📜</div><div><div class="module-name">RÈGLEMENT</div><div class="module-status">● READ ONLY</div></div></a>
-                        <a href="#" class="module-card status-online"><div class="module-icon">🗺️</div><div><div class="module-name">CARTOGRAPHIE</div><div class="module-status">● LIVE FEED</div></div></a>
+                        
+                        <a href="#" class="module-card status-online">
+                            <div class="module-icon">📜</div>
+                            <div>
+                                <div class="module-name">RÈGLEMENT</div>
+                                <div class="module-status"><span style="color:var(--primary)">●</span> READ ONLY</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="module-card status-online">
+                            <div class="module-icon">🗺️</div>
+                            <div>
+                                <div class="module-name">CARTOGRAPHIE</div>
+                                <div class="module-status"><span style="color:var(--primary)">●</span> LIVE FEED</div>
+                            </div>
+                        </a>
                     </div>
-                    <div class="category-title">// ACCRÉDITATION NIVEAU 2 [CONFIDENTIEL]</div>
+
+                    <div class="category-title">ACCRÉDITATION NIVEAU 2 [CONFIDENTIEL]</div>
                     <div class="grid-modules">
-                        <a href="#" class="module-card status-restricted"><div class="module-icon">🔍</div><div><div class="module-name">INVESTIGATION</div><div class="module-status">● RESTRICTED</div></div></a>
-                        <a href="#" class="module-card status-danger"><div class="module-icon">🎯</div><div><div class="module-name">VIP TARGETS</div><div class="module-status">● HIGH PRIORITY</div></div></a>
+                        <a href="#" class="module-card status-restricted">
+                            <div class="module-icon">🔍</div>
+                            <div>
+                                <div class="module-name">INVESTIGATION</div>
+                                <div class="module-status"><span style="color:var(--warning)">●</span> RESTRICTED ACCESS</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="module-card status-danger">
+                            <div class="module-icon">🎯</div>
+                            <div>
+                                <div class="module-name">VIP TARGETS</div>
+                                <div class="module-status"><span style="color:var(--danger)">●</span> HIGH PRIORITY</div>
+                            </div>
+                        </a>
                     </div>
                 </div>
 
                 <div class="sidebar-section">
                     
                     <div id="sidebar-guest">
-                        <div class="mini-profile" style="border-color: var(--dim);">
-                            <div class="mini-avatar" style="border-color: var(--dim); color: var(--dim);">?</div>
+                        <div class="mini-profile" style="border-color: rgba(255,255,255,0.1);">
+                            <div class="mini-avatar" style="border-color: #444; color: #444; box-shadow: none;">?</div>
                             <div class="mini-details">
-                                <div class="mini-name" style="color: var(--dim);">GUEST_USER</div>
+                                <div class="mini-name" style="color: #666;">GUEST_USER</div>
                                 <div class="mini-rank">NO ACCESS</div>
                             </div>
                         </div>
-                        <div class="sidebar-header" style="color: var(--danger);">>> ACCESS RESTRICTED</div>
-                        <div style="padding: 20px; font-size: 0.8rem; color: #888;">
-                            Veuillez vous identifier via le terminal.<br><br>
-                            Tapez :<br>
-                            <span style="color: var(--primary)">/login [user] [pass]</span>
+                        <div class="sidebar-header" style="color: var(--danger);">>> AUTHENTICATION REQUIRED</div>
+                        <div style="padding: 25px; font-size: 0.85rem; color: #8899aa; line-height: 1.6;">
+                            Accès sécurisé.<br>
+                            Veuillez vous identifier via le terminal de commande.<br><br>
+                            <div style="background: rgba(0,0,0,0.3); padding: 10px; border: 1px dashed #444; font-family: var(--font-code);">
+                                > <span style="color: var(--primary)">/login [user] [pass]</span>
+                            </div>
                         </div>
                     </div>
 
                     <div id="sidebar-logged" class="hidden">
                         <div class="mini-profile">
-                            <div class="mini-avatar">👤</div>
+                            <div class="mini-avatar">
+                                👤
+                            </div>
                             <div class="mini-details">
                                 <div class="mini-name" id="mini-username">AGENT</div>
-                                <div class="mini-rank">LVL <span id="mini-rank">0</span></div>
-                                <button onclick="switchView('profile')" class="btn-profile-access">VOIR PROFIL ></button>
+                                <div class="mini-rank">CLEARANCE: LVL <span id="mini-rank">0</span></div>
+                                <button onclick="window.location.href='profile.html'" class="btn-profile-access">VOIR PROFIL ></button>
                             </div>
                         </div>
                         <div class="sidebar-header">>> SERVER_LOGS</div>
                         <div class="log-container">
-                            <div class="log-entry"><span class="log-time">[SYS]</span> Authenticated</div>
-                            <div class="log-entry"><span class="log-time">[SYS]</span> Uplink established</div>
+                            <div class="log-entry"><span class="log-time">[SYS]</span> Handshake protocol init...</div>
+                            <div class="log-entry"><span class="log-time">[SYS]</span> Uplink established.</div>
+                            <div class="log-entry"><span class="log-time">[NET]</span> Encryption: AES-256.</div>
+                            <div class="log-entry" style="color:var(--primary)"><span class="log-time">[USR]</span> Authentication successful.</div>
                         </div>
                     </div>
 
@@ -319,22 +310,7 @@
             </div>
 
             <div id="profile-view" class="view-section hidden profile-view-container">
-                <button onclick="switchView('dashboard')" class="back-button">< RETOUR DASHBOARD</button>
-                <div class="id-card-container">
-                    <div class="id-card">
-                        <div class="card-header"><span class="card-logo-text">SAS AGENT</span><span class="security-level">LVL. <span id="p-rank">0</span></span></div>
-                        <div class="card-body">
-                            <div class="photo-box">👤</div>
-                            <div class="agent-info"><div class="card-label">Nom de code</div><div class="card-value" id="p-username">UNKNOWN</div><div class="card-label">Matricule</div><div class="card-code">TX-9940-AZ</div></div>
-                        </div>
-                        <div class="card-footer"><div class="barcode">CODE 847</div></div>
-                    </div>
                 </div>
-                <div style="margin-top: 20px; color: var(--dim); text-align: center; font-size: 0.9rem;">
-                    DERNIÈRE SYNCHRONISATION: <span style="color:var(--primary)">AUJOURD'HUI 08:00</span><br>
-                    LOCALISATION: <span style="color:var(--secondary)">SECTEUR 4</span>
-                </div>
-            </div>
 
         </div>
     </div>
@@ -342,41 +318,28 @@
     <div id="terminal-console" class="terminal-console">
         <div id="terminal-history" class="terminal-history">
             <div class="term-line term-info">SAS Mainframe [Version 4.0.2]</div>
-            <div class="term-line term-info">(c) Corporation 2025. All rights reserved.</div>
-            <div class="term-line">Type '/help' for a list of commands.</div>
+            <div class="term-line term-info">(c) Shadow Company 2025. All rights reserved.</div>
+            <div class="term-line">System ready. Type '/help' for a list of commands.</div>
             <br>
         </div>
         
         <div class="terminal-input-area">
             <span class="prompt">root@sas-mainframe:~#</span>
-            <input type="text" id="cmd-input" class="cmd-input" placeholder="Entrez une commande..." autocomplete="off">
+            <input type="text" id="cmd-input" class="cmd-input" placeholder="Enter command..." autocomplete="off">
         </div>
     </div>
 
     <script src="js/script.js"></script>
     <script>
+        // Fonction simple de vérification de niveau pour l'accès aux modules
         function accessModule(url, requiredLevel) {
             const currentLevel = parseInt(localStorage.getItem('userSecurityLevel') || 0);
             if (currentLevel >= requiredLevel) {
                 window.location.href = url;
             } else {
+                // Petit effet sonore ou visuel d'erreur fictif
                 alert("⛔ ACCÈS REFUSÉ : ACCRÉDITATION INSUFFISANTE");
             }
-        }
-
-        const card = document.querySelector('.id-card');
-        const container = document.querySelector('.id-card-container');
-        if(container && card) {
-            document.addEventListener('mousemove', (e) => {
-                if(document.getElementById('profile-view').classList.contains('hidden')) return;
-                const rect = container.getBoundingClientRect();
-                const xAxis = (rect.width / 2 - (e.clientX - rect.left)) / 20;
-                const yAxis = (rect.height / 2 - (e.clientY - rect.top)) / 20;
-                card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
-            });
-            container.addEventListener('mouseleave', (e) => {
-                card.style.transform = `rotateY(0deg) rotateX(0deg)`;
-            });
         }
     </script>
 </body>

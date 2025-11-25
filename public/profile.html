@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS - User Profile [CLASSIFIED]</title>
+
+    <script>
+        const session = localStorage.getItem('sas_session');
+        if (!session) {
+            window.location.href = 'index.html'; // Redirection si pas connecté
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style-mo.css">
+
+    <style>
+        /* Ajustements spécifiques pour le centrage du profil */
+        body {
+            justify-content: flex-start; /* Permet le scroll si nécessaire */
+            padding-top: 50px;
+        }
+        
+        /* Animation d'entrée */
+        .terminal-wrapper {
+            animation: slideIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Bouton de déconnexion stylisé */
+        .btn-logout {
+            background: transparent;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 10px 20px;
+            font-family: 'Share Tech Mono';
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-logout:hover {
+            background: rgba(255, 51, 51, 0.1);
+            box-shadow: 0 0 15px rgba(255, 51, 51, 0.3);
+            text-shadow: 0 0 5px var(--danger);
+        }
+
+        /* Avatar par défaut générique */
+        .default-avatar {
+            width: 100%; height: 100%;
+            background: #111;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="crt-overlay"></div>
+
+    <div class="terminal-wrapper">
+        <main class="terminal">
+            
+            <header class="header-strip">
+                <div>
+                    <h1>DOSSIER :: <span id="header-username">UNKNOWN</span></h1>
+                    <div style="color: var(--primary); font-size: 0.9rem; letter-spacing: 3px;">SHADOW COMPANY // PERSONNEL</div>
+                </div>
+                <div class="meta-data">
+                    <div>STATUS: <span style="color: var(--primary)">ONLINE</span></div>
+                    <div>SESSION ID: <span class="blink" id="session-id">...</span></div>
+                </div>
+            </header>
+
+            <section class="hero-section">
+                <div class="id-card-container">
+                    <div class="id-card" id="card">
+                        <div class="holo-overlay"></div>
+                        
+                        <div class="card-header">
+                            <div class="card-logo-text">SHADOW CO.</div>
+                            <div class="security-level" id="card-rank-badge" style="background: var(--primary); color: #000;">OPERATOR</div>
+                        </div>
+            
+                        <div class="card-body">
+                            <div class="photo-box" style="border-color: var(--secondary);">
+                                <div class="default-avatar">👤</div>
+                            </div>
+                            <div class="agent-info">
+                                <div class="card-label">NOM DE CODE</div>
+                                <div class="card-value" id="card-username">...</div>
+                                
+                                <div class="card-label">UNITÉ</div>
+                                <div class="card-value" style="color: var(--secondary);">FIELD OPS</div>
+
+                                <div class="card-label">ACCRÉDITATION</div>
+                                <div class="card-code" id="card-rank-code">LVL-?-UNDEF</div>
+                            </div>
+                        </div>
+            
+                        <div class="card-footer">
+                            <div class="barcode" style="font-family: 'Libre Barcode 128 Text', cursive;">1100101010</div>
+                            <div class="chip"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="intel-grid">
+                
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">SERVICE_RECORD</span>
+                        <div class="audio-viz">
+                            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                        </div>
+                    </div>
+                    <div class="log-entry">
+                        <span class="label">DATE D'ACTIVATION:</span><br>
+                        <span id="info-date" class="text-warning">...</span>
+                    </div>
+                    <div class="log-entry">
+                        <span class="label">BASE D'OPÉRATION:</span><br>
+                        <span>[CLASSIFIED] // SERVER-NODE-01</span>
+                    </div>
+                    <div class="log-entry">
+                        <span class="label">MATRICULE INTERNE:</span><br>
+                        <span id="info-id" class="redacted" data-real="UNKNOWN" data-scramble="Generate..."></span>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">SYSTÈME</span>
+                        <span style="color:var(--secondary); font-size:0.7rem;">ACCESS_LOG</span>
+                    </div>
+                    
+                    <div class="log-entry">
+                         <span style="color: var(--primary)">[+] 
+                             <span>CONNEXION SÉCURISÉE ÉTABLIE</span>
+                         </span>
+                    </div>
+                    
+                    <div class="log-entry">
+                         <span style="color: var(--primary)">[+] 
+                             <span>AUTHENTIFICATION BIOMÉTRIQUE : OK</span>
+                         </span>
+                    </div>
+
+                    <div style="margin-top: 15px; border-top: 1px dashed #444; padding-top: 10px;">
+                        <button onclick="logout()" class="btn-logout">[ TERMINATE SESSION ]</button>
+                    </div>
+                </div>
+
+            </section>
+
+            <footer class="footer">
+                <div>SECURE TERMINAL V.4.0.2</div>
+                <div>
+                    <a href="database.html" style="color: var(--secondary); text-decoration: none;">[ ACCÉDER À LA BASE DE DONNÉES ]</a>
+                </div>
+            </footer>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Récupération des données utilisateur
+            const sessionData = JSON.parse(localStorage.getItem('sas_session'));
+
+            if (sessionData) {
+                const { username, rank, created_at, id } = sessionData;
+                
+                // Mise à jour de l'interface
+                document.getElementById('header-username').textContent = username.toUpperCase();
+                document.getElementById('card-username').textContent = username.toUpperCase();
+                
+                // Gestion du rang
+                const rankDisplay = `LVL-${rank}`;
+                document.getElementById('card-rank-code').textContent = rankDisplay;
+                document.getElementById('card-rank-badge').textContent = rank >= 5 ? 'COMMAND' : (rank >= 3 ? 'OFFICER' : 'OPERATOR');
+                
+                // Date
+                const joinDate = created_at ? new Date(created_at).toLocaleDateString('fr-FR') : 'UNKNOWN';
+                document.getElementById('info-date').textContent = joinDate;
+
+                // ID Fictif ou Réel
+                const displayId = id ? `SAS-${id.toString().padStart(4, '0')}` : 'SAS-GHOST';
+                const idElement = document.getElementById('info-id');
+                idElement.setAttribute('data-real', displayId);
+                idElement.setAttribute('data-scramble', 'ENCRYPTED');
+                idElement.textContent = displayId;
+
+                // Session ID aléatoire pour le style
+                document.getElementById('session-id').textContent = '0x' + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
+            }
+
+            // 2. Animation Carte 3D (code identique aux autres pages)
+            const card = document.getElementById('card');
+            const cardContainer = document.querySelector('.id-card-container');
+
+            cardContainer.addEventListener('mousemove', (e) => {
+                const rect = cardContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -10; 
+                const rotateY = ((x - centerX) / centerX) * 10;
+                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+            });
+            cardContainer.addEventListener('mouseleave', () => {
+                card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
+            });
+
+            // 3. Effet de décryptage texte
+            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            document.querySelectorAll('.redacted').forEach(element => {
+                element.onmouseover = event => {
+                    let iterations = 0;
+                    const targetText = event.target.getAttribute('data-real');
+                    if(!targetText) return;
+                    const interval = setInterval(() => {
+                        event.target.textContent = targetText.split("").map((letter, index) => {
+                            if(index < iterations) return targetText[index];
+                            return letters[Math.floor(Math.random() * letters.length)]
+                        }).join("");
+                        if(iterations >= targetText.length) clearInterval(interval);
+                        iterations += 1 / 3;
+                    }, 30);
+                }
+            });
+        });
+
+        // Fonction de déconnexion
+        function logout() {
+            // Animation visuelle
+            document.body.style.transition = "opacity 0.5s";
+            document.body.style.opacity = "0";
+            
+            setTimeout(() => {
+                localStorage.removeItem('sas_session');
+                localStorage.removeItem('userSecurityLevel');
+                window.location.href = 'index.html';
+            }, 500);
+        }
+    </script>
+</body>
+</html>
