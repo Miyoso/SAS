@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHADOW CO. :: AGENT [LIN JI]</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Share+Tech+Mono&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/css/style-mo.css">
+
+</head>
+<body>
+
+    <div class="crt-overlay"></div>
+
+    <div id="boot-screen">
+        <div class="boot-text">SEARCHING DATABASE...</div>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+        <div style="margin-top: 10px; font-size: 0.8rem; color: #555;">TARGET: JACKAL // SOURCE: ENCRYPTED</div>
+    </div>
+
+    <div class="terminal-wrapper">
+        <main class="terminal">
+            
+            <header class="header-strip">
+                <div>
+                    <h1>DOSSIER :: <span>LIN JI</span></h1>
+                    <div style="color: var(--primary); font-size: 0.9rem; letter-spacing: 3px;">SHADOW COMPANY // ASSET</div>
+                </div>
+                <div class="meta-data">
+                    <div>SRC: HONG KONG STATION</div>
+                    <div>REQ ID: <span class="blink">_X00-JACKAL</span></div>
+                </div>
+            </header>
+
+            <section class="hero-section">
+                <div class="id-card-container">
+                    <div class="id-card" id="card">
+                        <div class="holo-overlay"></div>
+                        
+                        <div class="card-header">
+                            <div class="card-logo-text">SHADOW CO.</div>
+                            <div class="security-level" style="background: var(--secondary); color: #000;">ACTIVE</div>
+                        </div>
+            
+                        <div class="card-body">
+                            <div class="photo-box">
+                                <img src="/assets/Jackal.jpg" alt="Agent Lin Ji" style="filter: grayscale(1) contrast(1.5);">
+                            </div>
+                            <div class="agent-info">
+                                <div class="card-label">NOM OPÉRATEUR</div>
+                                <div class="card-value">LIN JI</div>
+                                
+                                <div class="card-label">CALLSIGN</div>
+                                <div class="card-value text-danger">JACKAL</div>
+
+                                <div class="card-label">CLEARANCE ID</div>
+                                <div class="card-code">LVL-4-SOG</div>
+                            </div>
+                        </div>
+            
+                        <div class="card-footer">
+                            <div class="barcode" style="font-family: 'Libre Barcode 128 Text', cursive;">224568422</div>
+                            <div class="chip"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="intel-grid">
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">BIO_METRICS</span>
+                        <div class="audio-viz">
+                            <div class="bar" style="animation-delay:0s"></div>
+                            <div class="bar" style="animation-delay:0.1s"></div>
+                            <div class="bar" style="animation-delay:0.2s"></div>
+                            <div class="bar" style="animation-delay:0.3s"></div>
+                        </div>
+                    </div>
+                    <div class="log-entry">
+                        <span class="label">ORIGINE:</span><br>
+                        <span class="text-danger">TRIADE "BIG CIRCLE"</span>
+                    </div>
+                    <div class="log-entry">
+                        <span class="label">DERNIÈRE POSITION:</span><br>
+                        <span class="redacted" data-real="NEW YORK - EXILE" data-scramble="UNKNOWN"></span>
+                    </div>
+                    <div class="log-entry">
+                        <span class="label">RELATION:</span><br>
+                        <span class="redacted text-warning" data-real="LIN WEI (FRÈRE)" data-scramble="REDACTED"></span>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">ÉVALUATION</span>
+                        <span style="color:var(--secondary); font-size:0.7rem;">PSY_PROFILE</span>
+                    </div>
+                    
+                    <div class="log-entry">
+                         <span class="label">ATOUTS MAJEURS:</span><br>
+                         <span style="color: var(--primary)">[+] 
+                             <span class="redacted" style="color:var(--primary)" data-real="MÉTHODIQUE / CALME" data-scramble="ANALYSING..."></span>
+                         </span>
+                    </div>
+                    
+                    <div class="log-entry">
+                         <span class="label">LEADERSHIP:</span><br>
+                         <span style="color: var(--primary)">[+] 
+                             <span class="redacted" style="color:var(--primary)" data-real="AUTORITÉ NATURELLE" data-scramble="ANALYSING..."></span>
+                         </span>
+                    </div>
+
+                    <div class="log-entry">
+                         <span class="label">FAIBLESSES:</span><br>
+                         <span style="color: var(--danger)">[-] 
+                             <span class="redacted" style="color:var(--danger)" data-real="RANCUNIER / RIGIDE" data-scramble="ANALYSING..."></span>
+                         </span>
+                    </div>
+
+                    <div style="margin-top: 15px; font-size: 0.75rem; color: #666; border-top: 1px dashed #444; padding-top: 10px;">
+                        // NOTE: LOYAUTÉ ENVERS GRAVES CONDITIONNÉE PAR LA PROTECTION DE SON FRÈRE.
+                    </div>
+                </div>
+
+            </section>
+
+            <section class="logs-section" style="margin-top: 1.5rem;">
+                <div class="panel" style="border-color: var(--danger);">
+                    <div class="panel-header">
+                        <span class="panel-title text-danger">ARCHIVES CLASSIFIÉES [TRIADE]</span>
+                        <span style="font-family: var(--font-code); font-size: 0.7rem; color: var(--danger);">LVL-5 EYES ONLY</span>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 10px; font-family: var(--font-code); font-size: 0.8rem; color: #aaa;">
+                        <p>
+                            SUJET: FILS DE LIN TAO. ÉLEVÉ À HONG KONG. 
+                            INCIDENT MAJEUR À L'ÂGE DE 22 ANS.
+                        </p>
+                        <p style="color: #666; word-break: break-all;">
+                            HEX DUMP: 4a 61 76 69 65 72 20 65 73 74 20 75 6e 20 61 67 65 6e 74...
+                        </p>
+                        <div class="log-entry" style="border-left-color: var(--danger);">
+                            <span class="label text-danger">NOTE CRITIQUE:</span><br>
+                            A NÉGOCIÉ AVEC GRAVES POUR EFFACER SON CASIER JUDICIAIRE (MEURTRE) EN ÉCHANGE DE SES SERVICES.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="logs-section">
+                <div class="panel" style="border-top: 2px solid var(--secondary);">
+                    <div class="panel-header">
+                        <span class="panel-title">HISTORIQUE OPÉRATIONNEL</span>
+                        <span style="font-family: var(--font-code); font-size: 0.7rem;">ENCRYPTED</span>
+                    </div>
+                    
+                    <table class="ops-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">DATE</th>
+                                <th width="30%">OPÉRATION</th>
+                                <th width="25%">ZONE</th>
+                                <th width="20%">OBJECTIF</th>
+                                <th width="10%">RÉSULTAT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2012</td>
+                                <td>INCIDENT ZERO</td>
+                                <td><span class="redacted" data-real="HONG KONG" data-scramble="UNKNOWN"></span></td>
+                                <td>RIVAL TRIAD</td>
+                                <td><span class="status-badge st-fail">EXIL</span></td>
+                            </tr>
+                            <tr>
+                                <td>2012-22</td>
+                                <td>
+                                    <span class="redacted" data-real="UNDERGROUND" data-scramble="SURVIVAL"></span>
+                                </td>
+                                <td><span class="redacted" data-real="NEW YORK" data-scramble="USA-EAST"></span></td>
+                                <td>NONE</td>
+                                <td><span class="status-badge st-pending">HIDDEN</span></td>
+                            </tr>
+                            <tr>
+                                <td>2023</td>
+                                <td>GRAVES CONTACT</td>
+                                <td><span class="redacted" data-real="CLASSIFIED" data-scramble="UNKNOWN"></span></td>
+                                <td>RECRUITMENT</td>
+                                <td><span class="status-badge st-success">ACCORD</span></td>
+                            </tr>
+                            <tr>
+                                <td><span style="color:var(--dim)">----</span></td>
+                                <td>
+                                    <span class="redacted text-danger" data-real="SHADOW SIEGE" data-scramble="OP-JACKAL"></span>
+                                </td>
+                                <td><span class="redacted" data-real="KONNI HQ" data-scramble="UNKNOWN"></span></td>
+                                <td>MAKAROV</td>
+                                <td><span class="status-badge st-pending">EN COURS</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <footer class="footer">
+                <div>SECURE TERMINAL V.4.0.2 // USR: GRAVES</div>
+                <div>
+                    <a href="/Niv1/database.html" class="text-secondary" style="text-decoration: none;">[ REVENIR AU DOSSIER MAÎTRE ]</a>
+                </div>
+            </footer>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. BOOT SCREEN
+            const bootScreen = document.getElementById('boot-screen');
+            const bootText = document.querySelector('.boot-text');
+            
+            setTimeout(() => { bootText.textContent = "DECRYPTING BIOMETRICS..."; }, 500);
+            setTimeout(() => { bootText.textContent = "ACCESS GRANTED."; }, 1200);
+            setTimeout(() => {
+                bootScreen.style.opacity = '0';
+                setTimeout(() => bootScreen.remove(), 1000);
+            }, 1500);
+
+            // 2. 3D CARD EFFECT
+            const card = document.getElementById('card');
+            const cardContainer = document.querySelector('.id-card-container');
+
+            cardContainer.addEventListener('mousemove', (e) => {
+                const rect = cardContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -10; 
+                const rotateY = ((x - centerX) / centerX) * 10;
+                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+            });
+            cardContainer.addEventListener('mouseleave', () => {
+                card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
+            });
+
+            // 3. HACKER TEXT DECRYPTION
+            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
+            document.querySelectorAll('.redacted').forEach(element => {
+                element.textContent = element.getAttribute('data-scramble');
+                element.onmouseover = event => {
+                    let iterations = 0;
+                    const targetText = event.target.getAttribute('data-real');
+                    if(!targetText) return;
+                    const interval = setInterval(() => {
+                        event.target.textContent = targetText.split("").map((letter, index) => {
+                            if(index < iterations) return targetText[index];
+                            return letters[Math.floor(Math.random() * 43)]
+                        }).join("");
+                        if(iterations >= targetText.length) clearInterval(interval);
+                        iterations += 1 / 2;
+                    }, 30);
+                }
+                element.onmouseleave = event => {
+                   element.textContent = element.getAttribute('data-scramble');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

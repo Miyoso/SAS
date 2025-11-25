@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHADOW CO. :: AGENT [ARSENAULT]</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Share+Tech+Mono&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/css/style-mo.css">
+
+</head>
+<body>
+
+    <div class="crt-overlay"></div>
+
+    <div id="boot-screen">
+        <div class="boot-text">ACCESSING PERSONNEL FILE...</div>
+        <div class="progress-bar"><div class="progress-fill" style="background: var(--primary);"></div></div>
+        <div style="margin-top: 10px; font-size: 0.8rem; color: #555;">ID: AR-0026 // CLEARANCE: GRANTED</div>
+    </div>
+
+    <div class="terminal-wrapper">
+        <main class="terminal">
+            
+            <header class="header-strip">
+                <div>
+                    <h1>DOSSIER :: <span>ROXANNE</span></h1>
+                    <div style="color: var(--primary); font-size: 0.9rem; letter-spacing: 3px;">SHADOW COMPANY // PROTECTION</div>
+                </div>
+                <div class="meta-data">
+                    <div>SRC: QUEBEC STATION</div>
+                    <div>REQ ID: <span class="blink">_AR-0026</span></div>
+                </div>
+            </header>
+
+            <section class="hero-section">
+                <div class="id-card-container">
+                    <div class="id-card" id="card">
+                        <div class="holo-overlay"></div>
+                        
+                        <div class="card-header">
+                            <div class="card-logo-text">SHADOW CO.</div>
+                            <div class="security-level" style="background: var(--primary); color: #000;">ACTIVE</div>
+                        </div>
+            
+                        <div class="card-body">
+                            <div class="photo-box">
+                                <div class="photo-box" style="border-color: var(--secondary);">
+                                <img src="/assets/Roxanne.jpg" alt="Agent Roxanne" style="filter: grayscale(1) contrast(1.2) brightness(0.8);">
+                            </div>
+                            </div>
+                            <div class="agent-info">
+                                <div class="card-label">NOM</div>
+                                <div class="card-value">ROXANNE</div>
+                                
+                                <div class="card-label">UNITÉ</div>
+                                <div class="card-value text-danger">PROTECTION</div>
+
+                                <div class="card-label">CLEARANCE ID</div>
+                                <div class="card-code">LVL-1-SEC</div>
+                            </div>
+                        </div>
+            
+                        <div class="card-footer">
+                            <div class="barcode" style="font-family: 'Libre Barcode 128 Text', cursive;">578547747</div>
+                            <div class="chip"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="intel-grid">
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">BIO_METRICS</span>
+                        <div class="audio-viz">
+                            <div class="bar" style="animation-delay:0s"></div>
+                            <div class="bar" style="animation-delay:0.1s"></div>
+                            <div class="bar" style="animation-delay:0.2s"></div>
+                            <div class="bar" style="animation-delay:0.3s"></div>
+                        </div>
+                    </div>
+                    <div class="log-entry">
+                        <span class="label">ORIGINE:</span><br>
+                        <span>QUÉBEC, CANADA</span>
+                    </div>
+                    <div class="log-entry">
+                        <span class="label">ÂGE:</span><br>
+                        <span class="redacted" data-real="26 ANS" data-scramble="XX ANS"></span>
+                    </div>
+                    <div class="log-entry">
+                        <span class="label">SIGNES DISTINCTIFS:</span><br>
+                        <span class="redacted text-warning" data-real="CHEVEUX ROUX / TACHES ROUSSEUR" data-scramble="CLASSIFIED"></span>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">ÉVALUATION</span>
+                        <span style="color:var(--secondary); font-size:0.7rem;">PSY_PROFILE</span>
+                    </div>
+                    
+                    <div class="log-entry">
+                         
+                         <span style="color: var(--primary)">[+] 
+                             <span class="redacted" style="color:var(--primary)" data-real="LOYALE / PROTECTRICE" data-scramble="ANALYSING..."></span>
+                         </span>
+                    </div>
+                    
+                    <div class="log-entry">
+                         
+                         <span style="color: var(--primary)">[+] 
+                             <span class="redacted" style="color:var(--primary)" data-real="MÉTHODIQUE" data-scramble="ANALYSING..."></span>
+                         </span>
+                    </div>
+
+                    <div class="log-entry">
+                         
+                         <span style="color: var(--danger)">[-] 
+                             <span class="redacted" style="color:var(--danger)" data-real="MÉFIANTE (PARANO)" data-scramble="ANALYSING..."></span>
+                         </span>
+                    </div>
+
+                    <div class="log-entry">
+                         
+                         <span style="color: var(--danger)">[-] 
+                             <span class="redacted" style="color:var(--danger)" data-real="IMPULSIVE (SI PROVOQUÉE)" data-scramble="ANALYSING..."></span>
+                         </span>
+                    </div>
+
+                    <div style="margin-top: 15px; font-size: 0.75rem; color: #666; border-top: 1px dashed #444; padding-top: 10px;">
+                        // NOTE: SA LOYAUTÉ EST SA FORCE, MAIS AUSSI SON POINT DE RUPTURE.
+                    </div>
+                </div>
+
+            </section>
+
+            <section class="logs-section" style="margin-top: 1.5rem;">
+                <div class="panel" style="border-color: var(--danger);">
+                    <div class="panel-header">
+                        <span class="panel-title text-danger">NOTES DE TERRAIN [COMPORTEMENT]</span>
+                        <span style="font-family: var(--font-code); font-size: 0.7rem; color: var(--danger);">RESTRICTED</span>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 10px; font-family: var(--font-code); font-size: 0.8rem; color: #aaa;">
+                        <div class="log-entry">
+                            <span class="label">FIXATION ORALE:</span><br>
+                            Mastication constante (Chewing-gum menthe) ou cure-dents.
+                        </div>
+                        <div class="log-entry">
+                            <span class="label">ANTHROPOMORPHISME:</span><br>
+                            A nommé son arme de service "CHARLIE". Attachement émotionnel à l'équipement.
+                        </div>
+                        <div class="log-entry">
+                            <span class="label">CONTACT PHYSIQUE:</span><br>
+                            <span class="text-danger">RÉACTION NÉGATIVE IMMÉDIATE</span> à tout contact non sollicité.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="logs-section">
+                <div class="panel" style="border-top: 2px solid var(--warning);">
+                    <div class="panel-header">
+                        <span class="panel-title">SURVEILLANCE CONTINUE</span>
+                        <span style="font-family: var(--font-code); font-size: 0.7rem;">LVL-7 EYES ONLY</span>
+                    </div>
+                    
+                    <table class="ops-table">
+                        <thead>
+                            <tr>
+                                <th width="20%">OBJET</th>
+                                <th width="40%">OBSERVATION</th>
+                                <th width="30%">ANALYSE</th>
+                                <th width="10%">STATUT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>CARNET NOIR</td>
+                                <td>Gardé en permanence sur soi.</td>
+                                <td><span class="redacted" data-real="CONTENU INCONNU" data-scramble="SCANNING..."></span></td>
+                                <td><span class="status-badge st-fail">LOCKED</span></td>
+                            </tr>
+                            <tr>
+                                <td>PLAQUE MILITAIRE</td>
+                                <td>Rayée, origine inconnue.</td>
+                                <td><span class="redacted" data-real="VALEUR SENTIMENTALE" data-scramble="HISTORIQUE"></span></td>
+                                <td><span class="status-badge st-pending">UNKNOWN</span></td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <footer class="footer">
+                <div>SECURE TERMINAL V.4.0.2 // USR: GRAVES</div>
+                <div>
+                    <a href="/Niv1/database.html" class="text-secondary" style="text-decoration: none;">[ REVENIR AU DOSSIER MAÎTRE ]</a>
+                </div>
+            </footer>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. BOOT SCREEN
+            const bootScreen = document.getElementById('boot-screen');
+            const bootText = document.querySelector('.boot-text');
+            
+            setTimeout(() => { bootText.textContent = "VERIFYING BIOMETRICS..."; }, 600);
+            setTimeout(() => { bootText.textContent = "ACCESS GRANTED."; }, 1400);
+            setTimeout(() => {
+                bootScreen.style.opacity = '0';
+                setTimeout(() => bootScreen.remove(), 1000);
+            }, 1800);
+
+            // 2. 3D CARD EFFECT
+            const card = document.getElementById('card');
+            const cardContainer = document.querySelector('.id-card-container');
+
+            cardContainer.addEventListener('mousemove', (e) => {
+                const rect = cardContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -10; 
+                const rotateY = ((x - centerX) / centerX) * 10;
+                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+            });
+            cardContainer.addEventListener('mouseleave', () => {
+                card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
+            });
+
+            // 3. HACKER TEXT DECRYPTION
+            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
+            document.querySelectorAll('.redacted').forEach(element => {
+                element.textContent = element.getAttribute('data-scramble');
+                element.onmouseover = event => {
+                    let iterations = 0;
+                    const targetText = event.target.getAttribute('data-real');
+                    if(!targetText) return;
+                    const interval = setInterval(() => {
+                        event.target.textContent = targetText.split("").map((letter, index) => {
+                            if(index < iterations) return targetText[index];
+                            return letters[Math.floor(Math.random() * 43)]
+                        }).join("");
+                        if(iterations >= targetText.length) clearInterval(interval);
+                        iterations += 1 / 2;
+                    }, 30);
+                }
+                element.onmouseleave = event => {
+                   element.textContent = element.getAttribute('data-scramble');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

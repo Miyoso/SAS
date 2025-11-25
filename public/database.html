@@ -6,196 +6,277 @@
     <title>SAS - Command Hierarchy</title>
     
     <script>
-        // Vérification de sécurité immédiate
         const session = localStorage.getItem('sas_session');
         if (!session) {
             window.location.href = 'index.html';
-        } else {
-            const user = JSON.parse(session);
-            // Vérification basique du niveau (optionnel, selon tes besoins)
-            if (parseInt(user.rank) < 1) {
-                alert("⚠️ SECURITY BREACH DETECTED // REDIRECTING...");
-                window.location.href = 'index.html'; 
-            }
         }
     </script>
 
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style-mo.css">
 
     <style>
-        :root {
-            --bg-dark: #050505;
-            --secondary: #00f3ff;
-            --primary: #00ff9d;
-            --dim: #445566;
-            --danger: #ff3333;
-            --glass: blur(10px);
-            --font-ui: 'Share Tech Mono', monospace;
-        }
-
         body {
-            background-color: var(--bg-dark);
-            color: #eee;
-            font-family: var(--font-ui);
-            margin: 0; padding: 20px;
-            display: flex; justify-content: center;
-            min-height: 100vh;
-            overflow-x: hidden;
+            overflow-y: auto;
+            display: block;
+            padding-top: 40px;
         }
 
-        body::after {
-            content: " "; display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 999;
-        }
-
-        /* NOUVEAU : Style du HUD Utilisateur */
-        .user-hud {
-            position: fixed;
-            top: 20px;
-            right: 30px;
-            background: rgba(10, 15, 20, 0.9);
-            border: 1px solid var(--dim);
-            border-left: 3px solid var(--primary);
-            padding: 8px 15px;
-            font-family: var(--font-ui);
-            font-size: 0.85rem;
-            color: #fff;
-            z-index: 10000;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        .hierarchy-wrapper {
             display: flex;
-            gap: 10px;
+            flex-direction: column;
             align-items: center;
-            backdrop-filter: blur(5px);
-        }
-        .hud-label { color: var(--dim); font-size: 0.7rem; letter-spacing: 1px; }
-        .hud-value { color: var(--primary); font-weight: bold; text-transform: uppercase; }
-        .hud-rank { color: var(--secondary); }
-
-        .terminal-wrapper { width: 100%; max-width: 1200px; position: relative; z-index: 10; }
-
-        .terminal {
-            background: rgba(15, 20, 25, 0.95);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 2rem;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            padding-bottom: 50px;
+            position: relative;
+            z-index: 5;
         }
 
-        .header-strip {
-            border-bottom: 2px solid var(--secondary);
-            padding-bottom: 15px; margin-bottom: 40px;
-            display: flex; justify-content: space-between; align-items: flex-end;
-        }
-        h1 { margin: 0; font-size: 2rem; letter-spacing: -1px; }
-        h1 span { color: var(--danger); }
-        .meta-data { text-align: right; color: var(--secondary); font-size: 0.8rem; }
-
-        .org-container { display: flex; flex-direction: column; align-items: center; }
-
-        .chart-node {
-            background: rgba(10, 15, 20, 0.6);
+        .node-card {
+            background: rgba(10, 15, 20, 0.8);
             border: 1px solid var(--dim);
-            padding: 15px; width: 220px; text-align: center;
-            transition: all 0.3s ease;
-            position: relative; z-index: 2;
+            padding: 15px;
+            width: 240px;
+            text-align: center;
+            position: relative;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            cursor: pointer;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
-        .chart-node:hover {
+        .node-card:hover {
+            transform: scale(1.05) translateY(-5px);
             border-color: var(--secondary);
             background: rgba(0, 243, 255, 0.1);
-            transform: translateY(-3px);
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 243, 255, 0.2);
+            z-index: 10;
         }
 
-        .role { font-size: 0.7rem; color: var(--secondary); margin-bottom: 5px; letter-spacing: 2px; }
-        .name { font-size: 1.2rem; font-weight: bold; color: #fff; margin-bottom: 10px; text-transform: uppercase; }
-        .lead { border-top: 3px solid #d4af37; }
-        .subordinate { border-top: 3px solid var(--secondary); }
-        .team-member { border-left: 3px solid var(--dim); width: 100%; text-align: left; padding-left: 20px; }
-        .team-member .name { font-size: 1rem; }
+        .rank-director {
+            border-color: var(--gold);
+            width: 280px;
+        }
+        .rank-director .role { color: var(--gold); text-shadow: 0 0 5px var(--gold); }
+        .rank-director:hover { border-color: var(--danger); box-shadow: 0 0 25px rgba(255, 50, 50, 0.4); }
+
+        .rank-lt {
+            border-color: var(--secondary);
+        }
+        .rank-lt .role { color: var(--secondary); }
+
+        .rank-soldier {
+            border-color: var(--dim);
+            width: 200px;
+        }
+        .rank-soldier:hover { border-color: var(--primary); }
+        .rank-soldier .role { color: #888; }
+        .rank-soldier:hover .role { color: var(--primary); }
+
+        .node-name {
+            font-family: var(--font-code);
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 5px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .node-role {
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .node-status {
+            font-size: 0.65rem;
+            color: var(--dim);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 8px;
+            padding-top: 5px;
+        }
+
+        .level-1 { margin-bottom: 40px; }
         
-        .status-green { border-left-color: var(--primary); }
-        .status-red { border-left-color: var(--danger); }
-        .status-gray { border-left-color: var(--dim); }
-
-        .action-button {
-            display: inline-block; padding: 4px 8px; border: 1px solid var(--dim);
-            color: var(--dim); text-decoration: none; font-size: 0.7rem; transition: 0.2s;
+        .level-2-container {
+            display: flex;
+            gap: 150px;
+            margin-bottom: 40px;
+            position: relative;
         }
-        .action-button:hover { color: var(--secondary); border-color: var(--secondary); }
-
-        .level-1 { margin-bottom: 50px; position: relative; }
-        .level-1::after {
-            content: ''; position: absolute; bottom: -52px; left: 50%; width: 2px; height: 50px;
+        .level-2-bridge {
+            position: absolute;
+            top: -20px;
+            left: 120px;
+            right: 120px;
+            height: 2px;
             background: var(--secondary);
+            box-shadow: 0 0 8px var(--secondary);
         }
-        
-        .wings-wrapper { display: flex; gap: 40px; width: 100%; justify-content: center; position: relative; }
-        .wings-wrapper::before {
-            content: ''; position: absolute; top: -2px; left: 25%; right: 25%; height: 2px;
+        .level-2-bridge::before, .level-2-bridge::after {
+            content: ''; position: absolute; top: 0; width: 2px; height: 20px;
             background: var(--secondary);
+            box-shadow: 0 0 8px var(--secondary);
         }
-
-        .wing { display: flex; flex-direction: column; align-items: center; flex: 1; max-width: 400px; }
+        .level-2-bridge::before { left: 0; }
+        .level-2-bridge::after { right: 0; }
         
-        .connector-vertical { width: 2px; height: 30px; background: var(--secondary); margin-bottom: 20px; }
-        
-        .squad-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-top: 20px;
-            border-top: 2px solid var(--secondary); padding-top: 20px; position: relative;
-        }
-        .squad-grid::before {
-            content: ''; position: absolute; top: -20px; left: 50%; width: 2px; height: 20px; background: var(--secondary);
+        .director-stem {
+            width: 2px; height: 40px;
+            background: var(--gold);
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 0 8px var(--gold);
         }
 
-        .portal-footer { margin-top: 50px; text-align: center; padding-top: 20px; border-top: 1px solid var(--dim); }
-        .back-link { color: var(--danger); text-decoration: none; font-weight: bold; border: 1px solid var(--danger); padding: 10px 20px; }
-        .back-link:hover { background: var(--danger); color: #000; }
+        .level-3-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            margin-top: 30px;
+        }
+        .soldier-group {
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .soldier-stem {
+            width: 1px; height: 30px; background: var(--dim); margin-bottom: 10px;
+        }
 
+        .user-hud {
+            position: fixed; top: 20px; right: 30px;
+            background: rgba(10, 15, 20, 0.9);
+            border: 1px solid var(--dim); border-left: 3px solid var(--primary);
+            padding: 8px 15px; font-family: var(--font-ui); font-size: 0.85rem; color: #fff;
+            z-index: 10000; backdrop-filter: blur(5px); display: flex; gap: 10px; align-items: center;
+        }
+
+        @media (max-width: 1000px) {
+            .level-2-container { gap: 50px; }
+            .level-3-grid { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
 
+    <div class="crt-overlay"></div>
+
     <div id="user-hud" class="user-hud" style="display: none;">
-        <div><span class="hud-label">AGENT:</span> <span id="hud-username" class="hud-value">...</span></div>
+        <div><span style="color:var(--dim)">OP:</span> <span id="hud-username" style="color:var(--primary); font-weight:bold">...</span></div>
         <div style="color:var(--dim)">|</div>
-        <div><span class="hud-label">CLEARANCE:</span> <span id="hud-rank" class="hud-value hud-rank">...</span></div>
+        <div><span style="color:var(--dim)">LVL:</span> <span id="hud-rank" style="color:var(--secondary)">...</span></div>
     </div>
 
-    <div class="terminal-wrapper">
-        <div class="terminal">
+    <div class="terminal-wrapper" style="margin-top: 60px; max-width: 1400px;">
+        <div class="terminal" style="min-height: 85vh;">
             
-            <div class="header-strip">
-                <h1>SHADOW_NET // <span>HIERARCHY_V3</span></h1>
-                <div class="meta-data">SERVER: ONLINE<br>SYNC: DATABASE_LINKED</div>
-            </div>
+            <header class="header-strip">
+                <div>
+                    <h1>SHADOW_NET // <span>HIERARCHY</span></h1>
+                    <div style="color: var(--secondary); font-size: 0.8rem; letter-spacing: 2px;">COMMAND STRUCTURE V3.0</div>
+                </div>
+                <div class="meta-data">
+                    LIVE SYNC: ACTIVE<br>
+                    NODES: 7 ONLINE
+                </div>
+            </header>
 
-            <div class="org-container">
+            <div class="hierarchy-wrapper">
 
                 <div class="level-1">
-                    <div class="chart-node lead" id="node-graves">
-                        <div class="role">DIRECTEUR</div>
-                        <div class="name">GRAVES</div>
-                        <a href="agent-Graves.html" class="action-button">DOSSIER MAÎTRE</a>
+                    <div class="node-card rank-director" onclick="window.location.href='agent-Graves.html'">
+                        <div class="node-role">COMMANDER // CEO</div>
+                        <div class="node-name">PHILLIP GRAVES</div>
+                        <div class="node-status" style="color: var(--success); display:flex; justify-content:space-between;">
+                            <span>STATUS: ACTIVE</span>
+                            <span style="color:var(--gold)">[ DOSSIER MAÎTRE ]</span>
+                        </div>
+                    </div>
+                    <div class="director-stem"></div>
+                </div>
+
+                <div class="level-2-container">
+                    <div class="level-2-bridge"></div>
+
+                    <div class="node-card rank-lt" onclick="window.location.href='agent-Jackal.html'">
+                        <div class="node-role">LIEUTENANT // LEFT HAND</div>
+                        <div class="node-name">JACKAL</div>
+                        <div class="node-status">
+                            <span>UNIT: ALPHA-1</span>
+                            <span style="float:right; color:var(--secondary)">ONLINE</span>
+                        </div>
+                    </div>
+
+                    <div class="node-card rank-lt" onclick="window.location.href='agent-Javier.html'">
+                        <div class="node-role">LIEUTENANT // RIGHT HAND</div>
+                        <div class="node-name">JAVIER</div>
+                        <div class="node-status">
+                            <span>UNIT: ALPHA-2</span>
+                            <span style="float:right; color:var(--secondary)">ONLINE</span>
+                        </div>
                     </div>
                 </div>
 
+                <div style="width: 100%; display: flex; justify-content: center; position: relative; margin-top: -40px; margin-bottom: 20px; z-index: -1;">
+                    <div style="width: 60%; height: 40px; border-left: 1px dashed var(--dim); border-right: 1px dashed var(--dim); border-bottom: 1px dashed var(--dim);"></div>
                 </div>
 
-            <div class="portal-footer">
-                <a href="index.html" class="back-link">< LOGOUT_TERMINAL</a>
+                <div class="level-3-grid">
+                    
+                    <div class="soldier-group">
+                        <div class="soldier-stem"></div>
+                        <div class="node-card rank-soldier" onclick="window.location.href='agent-Vance.html'">
+                            <div class="node-role">OPERATOR</div>
+                            <div class="node-name">VANCE</div>
+                            <div class="node-status">READY</div>
+                        </div>
+                    </div>
+
+                    <div class="soldier-group">
+                        <div class="soldier-stem"></div>
+                        <div class="node-card rank-soldier" onclick="window.location.href='agent-Atlas.html'">
+                            <div class="node-role">OPERATOR</div>
+                            <div class="node-name">ATLAS</div>
+                            <div class="node-status">READY</div>
+                        </div>
+                    </div>
+
+                    <div class="soldier-group">
+                        <div class="soldier-stem"></div>
+                        <div class="node-card rank-soldier" onclick="window.location.href='agent-Bishop.html'">
+                            <div class="node-role">OPERATOR</div>
+                            <div class="node-name">BISHOP</div>
+                            <div class="node-status">DEPLOYED</div>
+                        </div>
+                    </div>
+
+                    <div class="soldier-group">
+                        <div class="soldier-stem"></div>
+                        <div class="node-card rank-soldier" onclick="window.location.href='agent-Rook.html'">
+                            <div class="node-role">RECRUIT</div>
+                            <div class="node-name">ROOK</div>
+                            <div class="node-status">TRAINING</div>
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
+
+            <footer class="footer">
+                <div>
+                    <a href="index.html" class="text-danger" style="text-decoration: none;">< RETOUR TERMINAL</a>
+                </div>
+                <div>SECURE NETWORK // SHADOW CO.</div>
+            </footer>
 
         </div>
     </div>
 
     <script>
-        // Logique pour afficher l'utilisateur dans le HUD
         document.addEventListener('DOMContentLoaded', () => {
             const sessionRaw = localStorage.getItem('sas_session');
             if (sessionRaw) {
                 const currentUser = JSON.parse(sessionRaw);
                 document.getElementById('hud-username').textContent = currentUser.username;
-                document.getElementById('hud-rank').textContent = 'LVL ' + currentUser.rank;
+                document.getElementById('hud-rank').textContent = currentUser.rank;
                 document.getElementById('user-hud').style.display = 'flex';
             }
         });

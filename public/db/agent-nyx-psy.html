@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOSSIER CONFIDENTIEL :: NYX_CORTEX</title>
+
+    <script>
+        const REQUIRED_LEVEL = 3;
+    </script>
+    <script src="../security.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style-nyx.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        #bouton-visualiseur {
+            width: 250px; /* Un peu plus large */
+            height: 70px;
+            background-color: rgba(0, 0, 0, 0.3); /* Fond sombre */
+            border: 1px solid #32CD32; /* Bordure verte (similaire à text-green-400) */
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            margin-top: 1.5rem; /* Espace au-dessus */
+            margin-bottom: 1rem; /* Espace en-dessous */
+        }
+
+        #visualiseur-conteneur {
+            display: flex;
+            align-items: flex-end; 
+            height: 50px; /* Hauteur max barres */
+            width: 100%;
+            justify-content: center;
+        }
+
+        .barre-visualiseur {
+            width: 4px;
+            height: 4px; /* Hauteur min */
+            background-color: #32CD32; /* Barres vertes */
+            margin: 0 2px;
+            transition: height 0.05s;
+        }
+
+        #icone-play {
+            color: rgba(50, 205, 50, 0.5); /* Vert transparent */
+            font-size: 30px;
+            position: absolute; 
+            z-index: 10;
+            font-family: 'Share Tech Mono', monospace; /* Utilise la police du thème */
+        }
+    </style>
+    </head>
+<body class="text-green-400 min-h-screen p-4 md:p-8 scanline">
+
+    <div class="max-w-6xl mx-auto border-2 border-red-700/50 shadow-2xl shadow-red-900/50">
+        <header class="font-tech text-lg md:text-xl p-4 bg-red-900/30 border-b-2 border-red-700/50 flex justify-between items-center">
+            <span>[TERMINAL CONFIDENTIEL // ACCÈS NIVEAU 7 REQUIS]</span>
+            <span class="text-red-500 animate-pulse">● REC</span>
+        </header>
+        <div class="p-6 md:p-8 space-y-8">
+            <div>
+                <span class="text-green-300">$</span> <span class="text-white">load --file=analyse_psy_cortex.dat</span>
+                <p class="text-cyan-400">... Déchiffrement du conteneur sécurisé ...</p>
+                <p class="text-red-500">ACCÈS CONFIDENTIEL CONFIRMÉ.</p>
+                <span class="text-green-300">$</span> <span class="cursor-blink"></span>
+            </div>
+            <section class="border border-green-600/30 p-4 rounded-lg bg-black/20">
+                <h2 class="font-tech text-2xl text-white mb-4">[ANALYSE PSYCHOLOGIQUE CORTEX]</h2>
+                
+                <div class="bio-text">
+                    <p>&gt; SUJET: BLACKWOOD, NYX</p>
+                    <p>&gt; PROFIL: "GHOST"</p>
+                    <br>
+                    
+                    <p>&gt; Le sujet semble détenir des informations sensibles, potentiellement traumatisantes, qu'il exprime le regret de posséder. Une tendance marquée à l'évitement (fuite, déni) est observée comme mécanisme de défense principal face à ces connaissances. Le sujet a initié une rupture active avec la source perçue de ces informations.</p>
+                    <br>
+                    
+                    <p>&gt; Le sujet maintient une dissimulation émotionnelle active, projetant un "air faussement joyeux" quasi permanent. Cette façade se fissure lors des tentatives d'exploration des informations susmentionnées, révélant des indicateurs de détresse significative (bégaiements, altérations vocales traduisant la tristesse). Le sujet refuse catégoriquement de divulguer la nature des informations en sa possession.</p>
+                    <br>
+                    
+                    <p>&gt; Lors du contact initial avec les agents, le sujet a explicitement mentionné que cette interaction représentait pour elle un "échappatoire", indiquant une recherche active de voie de sortie de sa situation actuelle.</p>
+                    <br>
+                    
+                    <p class="text-red-500">&gt; &gt; NOTE D'ADA :: Le sujet a connaissance de l'existence de ce dossier. Elle le recherche activement, avec l'intention présumée de le supprimer.</p>
+
+                    <audio id="mon-audio" src="musique.mp3" preload="auto"></audio>
+
+                    <div id="bouton-visualiseur">
+                        <div id="visualiseur-conteneur">
+                            </div>
+                        <span id="icone-play">▶</span> 
+                    </div>
+                    
+                    </div>
+            </section>
+            
+            <div>
+                <span class="text-green-300">$</span> <span class="text-white">exit</span>
+                <p class="text-red-500">... Déconnexion ...</p>
+                <div class="mt-8 text-center border-t border-green-700/50 pt-4">
+                    <a href="agent-nyx.html" class="font-tech text-green-400 hover:text-white hover:bg-green-700 p-2 transition-all">
+                        &lt;&lt; RETURN_TO_DOSSIER_NYX
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Attendre que le DOM soit chargé
+    window.addEventListener('DOMContentLoaded', () => {
+
+        // --- 1. Récupérer nos éléments ---
+        const bouton = document.getElementById('bouton-visualiseur');
+        const audio = document.getElementById('mon-audio');
+        const conteneur = document.getElementById('visualiseur-conteneur');
+        const iconePlay = document.getElementById('icone-play');
+        
+        // --- 2. Initialisation de l'API Audio ---
+        let audioContext;
+        let analyseur;
+        let source;
+        let dataArray;
+        let barresVisualiseur = [];
+        let estInitialise = false;
+
+        // Nombre de barres que nous voulons
+        const NOMBRE_DE_BARRES = 32;
+
+        // --- 3. Fonction d'initialisation (ne s'exécute qu'une fois) ---
+        function initialiserAudio() {
+            if (estInitialise) return;
+
+            // Créer le contexte audio
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Créer l'analyseur
+            analyseur = audioContext.createAnalyser();
+            // Définir la "précision" de l'analyse. Doit être une puissance de 2.
+            analyseur.fftSize = 128; 
+            
+            // Créer la source depuis notre élément <audio>
+            source = audioContext.createMediaElementSource(audio);
+            
+            // Connecter les "nœuds" audio ensemble
+            // Source -> Analyseur -> Destination (les haut-parleurs)
+            source.connect(analyseur);
+            analyseur.connect(audioContext.destination);
+
+            // Créer le tableau pour stocker les données de fréquence
+            const bufferLength = analyseur.frequencyBinCount;
+            dataArray = new Uint8Array(bufferLength);
+
+            // --- 4. Créer les barres HTML ---
+            conteneur.innerHTML = ''; // Vider le conteneur
+            for (let i = 0; i < NOMBRE_DE_BARRES; i++) {
+                const barre = document.createElement('div');
+                barre.classList.add('barre-visualiseur');
+                conteneur.appendChild(barre);
+                barresVisualiseur.push(barre); // Stocker la référence
+            }
+
+            estInitialise = true;
+        }
+
+        // --- 5. La boucle d'animation ---
+        function boucleAnimation() {
+            // Demander à redessiner au prochain "frame"
+            requestAnimationFrame(boucleAnimation);
+
+            // Récupérer les données de fréquence audio dans notre tableau
+            analyseur.getByteFrequencyData(dataArray);
+
+            // Mettre à jour la hauteur de chaque barre
+            // On fait la moyenne pour utiliser moins de barres que de données
+            const step = Math.floor(dataArray.length / NOMBRE_DE_BARRES);
+            for (let i = 0; i < NOMBRE_DE_BARRES; i++) {
+                let hauteurMoyenne = dataArray[i * step];
+                
+                // dataArray contient des valeurs de 0 à 255
+                const hauteurBarre = (hauteurMoyenne / 255) * 50; // 50px = hauteur max du conteneur
+                const barre = barresVisualiseur[i];
+                
+                if (barre) {
+                    // On met une hauteur minimale
+                    barre.style.height = (hauteurBarre > 4 ? hauteurBarre : 4) + 'px';
+                }
+            }
+        }
+
+        // --- 6. Gérer le clic sur le bouton ---
+        bouton.addEventListener('click', () => {
+            // L'API Audio DOIT être initialisée après un clic de l'utilisateur
+            if (!estInitialise) {
+                initialiserAudio();
+            }
+
+            // Reprendre le contexte audio s'il était suspendu
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
+            // Gérer le Play / Pause
+            if (audio.paused) {
+                audio.play();
+                iconePlay.textContent = '❚❚'; // Symbole Pause
+                // Lancer l'animation
+                boucleAnimation();
+            } else {
+                audio.pause();
+                iconePlay.textContent = '▶'; // Symbole Play
+            }
+        });
+    });
+    </script>
+</body>
+</html>
