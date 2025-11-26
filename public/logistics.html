@@ -4,96 +4,137 @@
     <meta charset="UTF-8">
     <title>SAS // LOGISTIQUE</title>
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        /* Tableaux style terminal */
-        .log-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-family: 'Courier New', monospace; }
-        .log-table th { text-align: left; border-bottom: 2px solid #369; padding: 10px; color: #369; }
-        .log-table td { padding: 8px; border-bottom: 1px solid #112; color: #ccc; }
-        .log-table tr:hover { background: rgba(51, 102, 153, 0.1); }
-
-        /* Badges de statut */
-        .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
-        .badge-stock { background: #1a4a1a; color: #4f4; border: 1px solid #4f4; } /* Vert */
-        .badge-issued { background: #4a3a1a; color: #fb0; border: 1px solid #fb0; } /* Orange */
-        
-        /* Contrôles */
-        .controls { display: flex; gap: 10px; margin-bottom: 20px; background: rgba(0,0,0,0.5); padding: 15px; border: 1px solid #333; }
-        .search-bar { flex-grow: 1; background: transparent; border: 1px solid #369; color: white; padding: 8px; }
-        
-        .action-btn { cursor: pointer; background: #369; color: white; border: none; padding: 5px 10px; }
-        .action-btn:hover { background: #47a; }
-    </style>
-</head>
+    <link rel="stylesheet" href="css/logistics.css"> </head>
 <body>
     <div class="scanlines"></div>
-    <div class="main-container">
-        <h1 style="border-bottom: 2px solid #369; padding-bottom: 10px;">REGISTRE MATÉRIEL</h1>
+    <div class="crt-overlay"></div>
 
-        <div class="controls">
-            <input type="text" id="search-input" class="search-bar" placeholder="Rechercher (Série, Nom, Agent...)" onkeyup="loadData()">
-            <button onclick="openModal('create')" class="btn-main">⊕ NOUVEL OBJET</button>
-        </div>
+    <div class="layout-container">
+        <nav class="sidebar">
+            <div class="sas-logo"><img src="assets/logo-sas.png" alt="SAS"></div>
+            <a href="/index.html" class="nav-item">ACCUEIL</a>
+            <a href="/investigation.html" class="nav-item">ENQUÊTE</a>
+            <a href="/logistics.html" class="nav-item active">LOGISTIQUE</a>
+            <a href="/database.html" class="nav-item">BASE DE DONNÉES</a>
+        </nav>
 
-        <table class="log-table">
-            <thead>
-                <tr>
-                    <th>SÉRIE (S/N)</th>
-                    <th>OBJET</th>
-                    <th>LOCALISATION / DÉTENTEUR</th>
-                    <th>STATUT</th>
-                    <th>ACTIONS</th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                </tbody>
-        </table>
+        <main class="main-content">
+            <header class="terminal-header">
+                <h1>>> MODULE_LOGISTIQUE // <span class="blink">ACTIF</span></h1>
+                <div class="user-status">CONNECTÉ: <span id="user-display">AGENT</span></div>
+            </header>
+
+            <div class="control-panel">
+                <div class="search-box">
+                    <span class="prefix">> RECHERCHE:</span>
+                    <input type="text" id="search-input" placeholder="NUMÉRO SÉRIE / NOM..." onkeyup="loadData()">
+                </div>
+                <button onclick="openModal('create')" class="btn-tech">
+                    [ + ENREGISTRER NOUVEL OBJET ]
+                </button>
+            </div>
+
+            <div class="data-display">
+                <table class="terminal-table">
+                    <thead>
+                        <tr>
+                            <th>MATRICULE (S/N)</th>
+                            <th>TYPE</th>
+                            <th>OBJET</th>
+                            <th>LOCALISATION</th>
+                            <th>STATUT</th>
+                            <th style="text-align:right;">COMMANDES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        </tbody>
+                </table>
+            </div>
+        </main>
     </div>
 
     <div id="modal-create" class="modal-overlay hidden">
-        <div class="modal-box">
-            <h2>ENREGISTRER MATÉRIEL</h2>
-            <input id="new-sn" placeholder="N° DE SÉRIE (ex: GLK-001)">
-            <input id="new-name" placeholder="NOM (ex: Glock 17)">
-            <select id="new-cat">
-                <option value="ARME">ARME</option>
-                <option value="RADIO">RADIO</option>
-                <option value="VEHICULE">VÉHICULE</option>
-                <option value="DIVERS">DIVERS</option>
-            </select>
-            <input id="new-loc" placeholder="LIEU STOCKAGE (ex: Armurerie A)">
-            <div class="modal-actions">
-                <button onclick="createItem()">VALIDER</button>
-                <button onclick="closeModals()" class="btn-cancel">ANNULER</button>
+        <div class="terminal-modal">
+            <div class="modal-header">>> NOUVELLE ENTRÉE STOCK</div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>N° SÉRIE:</label>
+                    <input id="new-sn" type="text" placeholder="ex: GLK-001">
+                </div>
+                <div class="input-group">
+                    <label>NOM OBJET:</label>
+                    <input id="new-name" type="text" placeholder="ex: GLOCK 17 GEN5">
+                </div>
+                <div class="input-group">
+                    <label>CATÉGORIE:</label>
+                    <select id="new-cat">
+                        <option value="ARME">ARME</option>
+                        <option value="MUNITION">MUNITION</option>
+                        <option value="RADIO">RADIO</option>
+                        <option value="TENUE">TENUE</option>
+                        <option value="VÉHICULE">VÉHICULE</option>
+                        <option value="PREUVE">PREUVE</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>LIEU DE STOCKAGE:</label>
+                    <input id="new-loc" type="text" placeholder="ex: ARMURERIE CASIER A1">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="createItem()" class="btn-confirm">[ CONFIRMER ]</button>
+                <button onclick="closeModals()" class="btn-cancel">[ ANNULER ]</button>
             </div>
         </div>
     </div>
 
     <div id="modal-assign" class="modal-overlay hidden">
-        <div class="modal-box">
-            <h2>SORTIE DE STOCK</h2>
-            <p id="assign-item-name" style="color:#369; font-weight:bold;"></p>
-            <input type="hidden" id="assign-id">
-            <input id="assign-agent" placeholder="NOM DE L'AGENT (ex: Graves)">
-            <div class="modal-actions">
-                <button onclick="confirmAssign()">CONFIRMER LA REMISE</button>
-                <button onclick="closeModals()" class="btn-cancel">ANNULER</button>
+        <div class="terminal-modal">
+            <div class="modal-header">>> SORTIE DE STOCK</div>
+            <div class="modal-body">
+                <p>ATTRIBUTION DU MATÉRIEL : <span id="assign-item-name" class="highlight"></span></p>
+                <input type="hidden" id="assign-id">
+                <div class="input-group">
+                    <label>MATRICULE AGENT:</label>
+                    <input id="assign-agent" type="text" placeholder="ex: GRAVES">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="confirmAssign()" class="btn-confirm">[ VALIDER SORTIE ]</button>
+                <button onclick="closeModals()" class="btn-cancel">[ ANNULER ]</button>
             </div>
         </div>
     </div>
 
     <div id="modal-return" class="modal-overlay hidden">
-        <div class="modal-box">
-            <h2>RETOUR EN STOCK</h2>
-            <p>Où range-t-on cet objet ?</p>
-            <input type="hidden" id="return-id">
-            <input id="return-loc" placeholder="LIEU (ex: Armurerie, Coffre 3...)">
-            <div class="modal-actions">
-                <button onclick="confirmReturn()">RANGEMENT</button>
-                <button onclick="closeModals()" class="btn-cancel">ANNULER</button>
+        <div class="terminal-modal">
+            <div class="modal-header">>> RETOUR STOCK</div>
+            <div class="modal-body">
+                <p>RÉINTÉGRATION DU MATÉRIEL</p>
+                <input type="hidden" id="return-id">
+                <div class="input-group">
+                    <label>NOUVEL EMPLACEMENT:</label>
+                    <input id="return-loc" type="text" placeholder="ex: COFFRE PREUVES">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="confirmReturn()" class="btn-confirm">[ VALIDER RETOUR ]</button>
+                <button onclick="closeModals()" class="btn-cancel">[ ANNULER ]</button>
             </div>
         </div>
     </div>
 
     <script src="js/equipment.js"></script>
+    <script>
+        // Petit script pour afficher le nom de l'utilisateur connecté si disponible
+        const token = localStorage.getItem('sas_token');
+        // (Décodage basique du JWT pour l'affichage - optionnel)
+        if(token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                document.getElementById('user-display').innerText = payload.username.toUpperCase();
+            } catch(e){}
+        }
+    </script>
 </body>
 </html>
