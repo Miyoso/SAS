@@ -5,10 +5,8 @@ const historyDiv = document.getElementById('terminal-history');
 const dashboardView = document.getElementById('dashboard-view');
 const profileView = document.getElementById('profile-view');
 
-const sidebarGuest = document.getElementById('sidebar-guest');
-const sidebarLogged = document.getElementById('sidebar-logged');
-const miniUsername = document.getElementById('mini-username');
-const miniRank = document.getElementById('mini-rank');
+
+
 
 const pUsername = document.getElementById('p-username');
 const pRank = document.getElementById('p-rank');
@@ -68,12 +66,21 @@ function scrollToBottom() {
 }
 
 function unlockInterface(agent) {
-    sidebarGuest.classList.add('hidden');
-    sidebarLogged.classList.remove('hidden');
+   
+    const sidebarGuest = document.getElementById('sidebar-guest');
+    const sidebarLogged = document.getElementById('sidebar-logged');
+    const miniUsername = document.getElementById('mini-username');
+    const miniRank = document.getElementById('mini-rank');
 
-    if(miniUsername) miniUsername.textContent = agent.username.toUpperCase();
-    if(miniRank) miniRank.textContent = agent.rank;
-    
+   
+    if (sidebarGuest && sidebarLogged) {
+        sidebarGuest.classList.add('hidden');
+        sidebarLogged.classList.remove('hidden');
+        if(miniUsername) miniUsername.textContent = agent.username.toUpperCase();
+        if(miniRank) miniRank.textContent = agent.rank;
+    }
+
+    // Mise à jour du Dashboard
     if(pUsername) pUsername.textContent = agent.username.toUpperCase();
     if(pRank) pRank.textContent = agent.rank;
     
@@ -89,13 +96,18 @@ function unlockInterface(agent) {
 function logout() {
     currentUser = null;
     localStorage.removeItem('sas_session');
-    
     localStorage.removeItem('userSecurityLevel');
     
     switchView('dashboard');
 
-    sidebarLogged.classList.add('hidden');
-    sidebarGuest.classList.remove('hidden');
+   
+    const sidebarGuest = document.getElementById('sidebar-guest');
+    const sidebarLogged = document.getElementById('sidebar-logged');
+
+    if (sidebarGuest && sidebarLogged) {
+        sidebarLogged.classList.add('hidden');
+        sidebarGuest.classList.remove('hidden');
+    }
 
     if(connStatus) {
         connStatus.textContent = "DISCONNECTED";
@@ -190,7 +202,31 @@ async function processCommand(cmd) {
     }
 }
 
-window.addEventListener('load', () => {
+
+
+async function loadComponents() {
+    const placeholder = document.getElementById('sidebar-placeholder');
+    
+    if (placeholder) {
+        try {
+            const response = await fetch('/components/sidebar.html');
+            if (response.ok) {
+                const html = await response.text();
+                placeholder.innerHTML = html;
+                
+               
+                restoreSession(); 
+            }
+        } catch (error) {
+            console.error("Erreur chargement sidebar:", error);
+        }
+    } else {
+        
+        restoreSession();
+    }
+}
+
+function restoreSession() {
     const savedSession = localStorage.getItem('sas_session');
     if (savedSession) {
         try {
@@ -202,4 +238,9 @@ window.addEventListener('load', () => {
             localStorage.removeItem('sas_session');
         }
     }
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadComponents();
 });

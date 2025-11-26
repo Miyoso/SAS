@@ -221,41 +221,7 @@
                         </a>
                     </div>
                 </div>
-                <div class="sidebar-section">
-                    <div id="sidebar-guest">
-                        <div class="mini-profile" style="border-color: rgba(255,255,255,0.1);">
-                            <div class="mini-avatar" style="border-color: #444; color: #444; box-shadow: none;">?</div>
-                            <div class="mini-details">
-                                <div class="mini-name" style="color: #666;">GUEST_USER</div>
-                                <div class="mini-rank">NO ACCESS</div>
-                            </div>
-                        </div>
-                        <div class="sidebar-header" style="color: var(--danger);">>> AUTHENTICATION REQUIRED</div>
-                        <div style="padding: 25px; font-size: 0.85rem; color: #8899aa; line-height: 1.6;">
-                            Accès sécurisé.<br>
-                            Veuillez vous identifier via le terminal de commande.<br><br>
-                            <div style="background: rgba(0,0,0,0.3); padding: 10px; border: 1px dashed #444; font-family: var(--font-code);">
-                                > <span style="color: var(--primary)">/login [user] [pass]</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="sidebar-logged" class="hidden">
-                        <div class="mini-profile">
-                            <div class="mini-avatar">👤</div>
-                            <div class="mini-details">
-                                <div class="mini-name" id="mini-username">AGENT</div>
-                                <div class="mini-rank">CLEARANCE: LVL <span id="mini-rank">0</span></div>
-                                <button onclick="window.location.href='profile.html'" class="btn-profile-access">VOIR PROFIL ></button>
-                            </div>
-                        </div>
-                        <div class="sidebar-header">>> SERVER_LOGS</div>
-                        <div class="log-container">
-                            <div class="log-entry"><span class="log-time">[SYS]</span> Handshake protocol init...</div>
-                            <div class="log-entry"><span class="log-time">[SYS]</span> Uplink established.</div>
-                            <div class="log-entry"><span class="log-time">[NET]</span> Encryption: AES-256.</div>
-                            <div class="log-entry" style="color:var(--primary)"><span class="log-time">[USR]</span> Authentication successful.</div>
-                        </div>
-                    </div>
+                <div id="sidebar-placeholder"></div>
                 </div>
             </div>
             <div id="profile-view" class="view-section hidden profile-view-container"></div>

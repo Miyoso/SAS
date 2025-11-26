@@ -1,0 +1,38 @@
+<div class="sidebar-section">
+    <div id="sidebar-guest">
+        <div class="mini-profile" style="border-color: rgba(255,255,255,0.1);">
+            <div class="mini-avatar" style="border-color: #444; color: #444; box-shadow: none;">?</div>
+            <div class="mini-details">
+                <div class="mini-name" style="color: #666;">GUEST_USER</div>
+                <div class="mini-rank">NO ACCESS</div>
+            </div>
+        </div>
+        <div class="sidebar-header" style="color: var(--danger);">>> AUTHENTICATION REQUIRED</div>
+        <div style="padding: 25px; font-size: 0.85rem; color: #8899aa; line-height: 1.6;">
+            Accès sécurisé.<br>
+            Veuillez vous identifier via le terminal.<br>
+            <span style="color: var(--primary)">> /login [user] [pass]</span>
+        </div>
+    </div>
+
+    <div id="sidebar-logged" class="hidden">
+        <div class="mini-profile">
+            <div class="mini-avatar">👤</div>
+            <div class="mini-details">
+                <div class="mini-name" id="mini-username">AGENT</div>
+                <div class="mini-rank">CLEARANCE: LVL <span id="mini-rank">0</span></div>
+                <a href="/profile.html" class="btn-profile-access">VOIR PROFIL ></a>
+            </div>
+        </div>
+        
+        <div class="sidebar-header">>> NAVIGATION</div>
+        <div class="log-container">
+            <div class="log-entry"><a href="/index.html" style="color:inherit; text-decoration:none;">[ DASHBOARD ]</a></div>
+            <div class="log-entry"><a href="/database.html" style="color:inherit; text-decoration:none;">[ BASE DE DONNÉES ]</a></div>
+            <div class="log-entry"><a href="/map.html" style="color:inherit; text-decoration:none;">[ CARTE TACTIQUE ]</a></div>
+            <div class="log-entry"><a href="/report.html" style="color:inherit; text-decoration:none;">[ RAPPORTS ]</a></div>
+            <br>
+            <div class="log-entry" style="color:var(--danger); cursor:pointer;" onclick="logout()">[ DÉCONNEXION ]</div>
+        </div>
+    </div>
+</div>
