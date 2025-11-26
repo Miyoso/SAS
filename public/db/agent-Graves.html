@@ -227,10 +227,12 @@
         </main>
     </div>
 
+    <div id="sidebar-placeholder"></div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
-            // 1. GESTION DU HUD UTILISATEUR
+           
             const sessionRaw = localStorage.getItem('sas_session');
             if (sessionRaw) {
                 const currentUser = JSON.parse(sessionRaw);
@@ -241,11 +243,10 @@
                     hud.style.display = 'flex';
                 }
             } else {
-                // Optionnel : Rediriger si pas connecté
-                // window.location.href = 'index.html';
+                
             }
 
-            // 2. BOOT SCREEN
+       
             const bootScreen = document.getElementById('boot-screen');
             const bootText = document.querySelector('.boot-text');
             
@@ -256,7 +257,7 @@
                 setTimeout(() => bootScreen.remove(), 1000);
             }, 2500);
 
-            // 3. 3D CARD EFFECT
+      
             const card = document.getElementById('card');
             const cardContainer = document.querySelector('.id-card-container');
 
@@ -280,7 +281,7 @@
                 });
             }
 
-            // 4. HACKER TEXT DECRYPTION
+        
             const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
             
             document.querySelectorAll('.redacted').forEach(element => {

@@ -250,6 +250,9 @@
             </div>
         </div>
     </div>
+
+<div id="sidebar-placeholder"></div>
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const session = JSON.parse(localStorage.getItem('sas_session'));
@@ -344,23 +347,22 @@ ${proof}
             });
         }
 
-        // --- ENVOI AUTOMATIQUE DISCORD AVEC PDF ---
         async function sendToDiscordAPI() {
             const btn = event.target;
             const originalText = btn.innerText;
             
-            // Feedback visuel
+         
             btn.innerText = "GÉNÉRATION & ENVOI...";
             btn.style.opacity = "0.7";
             btn.disabled = true;
 
-            // 1. Récupération des données texte
+  
             const ref = document.getElementById('out-ref').innerText;
             const opname = document.getElementById('inp-opname').value.toUpperCase() || 'SANS NOM';
             
-            // 2. Génération du PDF en Base64 (en mémoire)
+          
             const element = document.getElementById('print-area');
-            window.scrollTo(0, 0); // Important pour éviter le bug du blanc
+            window.scrollTo(0, 0); 
             
             const opt = {
                 margin: 0,
@@ -371,11 +373,10 @@ ${proof}
             };
 
             try {
-                // On génère le PDF et on le récupère sous forme de chaine de caractères (Data URI)
+               
                 const pdfDataUri = await html2pdf().set(opt).from(element).output('datauristring');
-                const pdfBase64 = pdfDataUri.split(',')[1]; // On garde juste la partie code, pas l'en-tête
+                const pdfBase64 = pdfDataUri.split(',')[1]; 
 
-                // 3. Préparation du paquet à envoyer
                 const data = {
                     opname: opname,
                     type: document.getElementById('inp-type').value,
@@ -391,7 +392,7 @@ ${proof}
                     fileName: `RAPPORT_SAS_${ref}.pdf`
                 };
 
-                // 4. Envoi à l'API
+               
                 const response = await fetch('/api/send-discord', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -411,7 +412,7 @@ ${proof}
                 alert("❌ ERREUR LORS DE LA GÉNÉRATION OU DE L'ENVOI.");
             }
 
-            // Reset bouton
+            
             btn.innerText = originalText;
             btn.style.opacity = "1";
             btn.disabled = false;
