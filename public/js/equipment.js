@@ -5,7 +5,29 @@ function getAuthHeaders() {
     };
 }
 
-document.addEventListener('DOMContentLoaded', loadData);
+document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+    loadAgents(); // Chargement de la liste des agents au démarrage
+});
+
+// Nouvelle fonction pour charger les utilisateurs dans le select
+async function loadAgents() {
+    try {
+        const res = await fetch('/api/users', { headers: getAuthHeaders() });
+        if(res.ok) {
+            const agents = await res.json();
+            const select = document.getElementById('assign-agent');
+            select.innerHTML = '<option value="" disabled selected>CHOISIR UN AGENT...</option>';
+            
+            agents.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.innerText = name.toUpperCase(); // Affiche en majuscules style militaire
+                select.appendChild(opt);
+            });
+        }
+    } catch(e) { console.error("Erreur chargement agents", e); }
+}
 
 async function loadData() {
     const search = document.getElementById('search-input').value;
@@ -85,12 +107,14 @@ async function createItem() {
     });
 
     if(res.ok) { closeModals(); loadData(); }
-    else alert("Erreur");
+    else alert("Erreur (Doublon S/N ?)");
 }
 
 window.openAssign = function(id, name) {
     document.getElementById('assign-id').value = id;
     document.getElementById('assign-item-name').innerText = name;
+    // Réinitialiser la sélection à l'ouverture
+    document.getElementById('assign-agent').value = "";
     document.getElementById('modal-assign').classList.remove('hidden');
 }
 
@@ -98,6 +122,11 @@ async function confirmAssign() {
     const id = document.getElementById('assign-id').value;
     const agent = document.getElementById('assign-agent').value;
     
+    if (!agent) {
+        alert("Veuillez sélectionner un agent.");
+        return;
+    }
+
     await fetch('/api/equipment', {
         method: 'PUT', headers: getAuthHeaders(),
         body: JSON.stringify({ id, action: 'ASSIGN', target: agent })
