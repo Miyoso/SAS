@@ -5,9 +5,6 @@ const historyDiv = document.getElementById('terminal-history');
 const dashboardView = document.getElementById('dashboard-view');
 const profileView = document.getElementById('profile-view');
 
-
-
-
 const pUsername = document.getElementById('p-username');
 const pRank = document.getElementById('p-rank');
 const connStatus = document.getElementById('conn-status');
@@ -66,13 +63,11 @@ function scrollToBottom() {
 }
 
 function unlockInterface(agent) {
-   
     const sidebarGuest = document.getElementById('sidebar-guest');
     const sidebarLogged = document.getElementById('sidebar-logged');
     const miniUsername = document.getElementById('mini-username');
     const miniRank = document.getElementById('mini-rank');
 
-   
     if (sidebarGuest && sidebarLogged) {
         sidebarGuest.classList.add('hidden');
         sidebarLogged.classList.remove('hidden');
@@ -80,7 +75,6 @@ function unlockInterface(agent) {
         if(miniRank) miniRank.textContent = agent.rank;
     }
 
-    // Mise à jour du Dashboard
     if(pUsername) pUsername.textContent = agent.username.toUpperCase();
     if(pRank) pRank.textContent = agent.rank;
     
@@ -97,10 +91,10 @@ function logout() {
     currentUser = null;
     localStorage.removeItem('sas_session');
     localStorage.removeItem('userSecurityLevel');
+    localStorage.removeItem('sas_token');
     
     switchView('dashboard');
 
-   
     const sidebarGuest = document.getElementById('sidebar-guest');
     const sidebarLogged = document.getElementById('sidebar-logged');
 
@@ -144,6 +138,7 @@ async function processCommand(cmd) {
 
             if (response.ok) {
                 currentUser = data.agent;
+                localStorage.setItem('sas_token', data.token);
                 localStorage.setItem('sas_session', JSON.stringify(currentUser));
                 addToHistory(`ACCESS GRANTED. WELCOME ${currentUser.username}.`, 'info');
                 unlockInterface(currentUser);
@@ -202,8 +197,6 @@ async function processCommand(cmd) {
     }
 }
 
-
-
 async function loadComponents() {
     const placeholder = document.getElementById('sidebar-placeholder');
     
@@ -213,15 +206,12 @@ async function loadComponents() {
             if (response.ok) {
                 const html = await response.text();
                 placeholder.innerHTML = html;
-                
-               
                 restoreSession(); 
             }
         } catch (error) {
             console.error("Erreur chargement sidebar:", error);
         }
     } else {
-        
         restoreSession();
     }
 }
@@ -236,10 +226,10 @@ function restoreSession() {
             addToHistory(`SESSION RESTORED FOR AGENT ${user.username}.`, 'info');
         } catch (e) {
             localStorage.removeItem('sas_session');
+            localStorage.removeItem('sas_token');
         }
     }
 }
-
 
 document.addEventListener('DOMContentLoaded', () => {
     loadComponents();

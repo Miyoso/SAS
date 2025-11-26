@@ -1,35 +1,35 @@
-// --- VARIABLES GLOBALES ---
 let activeItem = null;
 let isPanning = false;
 
-// Positions pour le Drag des items
 let dragOffsetX, dragOffsetY;
 
-// Positions pour le Panning (Déplacement du monde)
 let panX = 0, panY = 0;
 let startPanX, startPanY;
 
-// Gestion des liens
 let linksData = []; 
 let isLinking = false; 
 let linkStartId = null;
-let currentLinkColor = '#ff3333'; // Rouge par défaut
+let currentLinkColor = '#ff3333';
 
-// --- DÉMARRAGE ---
+function getAuthHeaders() {
+    const token = localStorage.getItem('sas_token');
+    return { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadBoardData();
-    setupPanning(); // Activer le déplacement du fond
+    setupPanning();
 });
 
-// --- 1. CHARGEMENT ---
 async function loadBoardData() {
     const world = document.getElementById('board-world');
     
-    // Nettoyage (sauf SVG)
     const existingItems = document.querySelectorAll('.board-item');
     existingItems.forEach(e => e.remove());
     
-    // On s'assure que le SVG est là
     let svg = document.getElementById('connections-layer');
     if (!svg) {
         svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -38,7 +38,17 @@ async function loadBoardData() {
     }
 
     try {
-        const res = await fetch('/api/investigation');
+        const res = await fetch('/api/investigation', {
+            method: 'GET',
+            headers: getAuthHeaders()
+        });
+
+        if (res.status === 401) {
+            alert("SESSION EXPIRÉE. VEUILLEZ VOUS RECONNECTER.");
+            window.location.href = '/index.html';
+            return;
+        }
+        
         const data = await res.json();
         
         linksData = data.links || []; 
@@ -50,7 +60,6 @@ async function loadBoardData() {
     } catch (err) { console.error("Erreur chargement:", err); }
 }
 
-// --- 2. RENDU NODE ---
 function renderNode(node) {
     const world = document.getElementById('board-world');
     const el = document.createElement('div');
@@ -61,7 +70,6 @@ function renderNode(node) {
     el.style.left = node.x + 'px';
     el.style.top = node.y + 'px';
 
-    // Gestion image/contenu
     let contentHtml = '';
     let pinColor = 'pin-red';
     let img = node.image_url || '';
@@ -87,18 +95,15 @@ function renderNode(node) {
         <button class="btn-del" onclick="deleteNode(${node.id}, event)">×</button>
     `;
 
-    // Événement Souris sur la fiche
     el.addEventListener("mousedown", handleNodeClick);
     
     world.appendChild(el);
 }
 
-// --- 3. PANNING (DÉPLACEMENT DU FOND) ---
 function setupPanning() {
     const viewport = document.getElementById('board-viewport');
 
     viewport.addEventListener('mousedown', (e) => {
-        // Si on clique sur une fiche, on ne pan pas
         if (e.target.closest('.board-item')) return;
         if (e.target.closest('.hud-overlay')) return;
         if (e.target.closest('.modal-overlay')) return;
@@ -129,13 +134,11 @@ function updateWorldTransform() {
     world.style.transform = `translate(${panX}px, ${panY}px)`;
 }
 
-// --- 4. DRAG & DROP DES FICHES ---
 function handleNodeClick(e) {
     if(e.target.classList.contains('btn-del')) return;
 
-    // MODE LIEN
     if (isLinking) {
-        e.stopPropagation(); // Empêcher le pan
+        e.stopPropagation();
         const clickedNode = e.currentTarget;
         const dbId = clickedNode.getAttribute('data-db-id');
 
@@ -149,13 +152,10 @@ function handleNodeClick(e) {
         return;
     }
 
-    // MODE DRAG
-    e.stopPropagation(); // Empêcher le pan du fond
+    e.stopPropagation();
     activeItem = e.currentTarget;
     
-    // Calcul précis prenant en compte le zoom/pan
-    // La position de la souris relative au viewport - la position de l'objet - le décalage du pan
-    const rect = activeItem.getBoundingClientRect(); // Position visuelle à l'écran
+    const rect = activeItem.getBoundingClientRect();
     dragOffsetX = e.clientX - rect.left;
     dragOffsetY = e.clientY - rect.top;
 
@@ -167,8 +167,6 @@ function itemDrag(e) {
     if (activeItem) {
         e.preventDefault();
         
-        // Calculer la position X/Y dans le "Monde" (donc en soustrayant le Pan)
-        // MouseX - PanX - OffsetInterne
         const newX = e.clientX - panX - dragOffsetX;
         const newY = e.clientY - panY - dragOffsetY;
 
@@ -185,11 +183,10 @@ async function itemDragEnd() {
         const x = parseInt(activeItem.style.left);
         const y = parseInt(activeItem.style.top);
 
-        // Sauvegarde
         try {
             await fetch('/api/investigation', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders(),
                 body: JSON.stringify({ id, x, y })
             });
         } catch(e) {}
@@ -200,7 +197,6 @@ async function itemDragEnd() {
     }
 }
 
-// --- 5. GESTION LIENS & COULEURS ---
 window.setLinkColor = function(color, btn) {
     currentLinkColor = color;
     document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
@@ -214,7 +210,7 @@ window.toggleLinkMode = function() {
 
     if (isLinking) {
         container.classList.add('linking-mode');
-        btn.style.background = currentLinkColor; // Le bouton prend la couleur choisie
+        btn.style.background = currentLinkColor;
         btn.style.color = (currentLinkColor === '#ffffff') ? '#000' : '#fff';
         btn.innerText = "SÉLECTIONNER...";
     } else {
@@ -235,13 +231,12 @@ function resetLinkMode() {
 }
 
 async function createLink(fromId, toId) {
-    // Optimistic update
     linksData.push({ from_id: parseInt(fromId), to_id: parseInt(toId), color: currentLinkColor });
     drawLines();
 
     await fetch('/api/investigation', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ 
             action: 'create_link', 
             from_id: fromId, 
@@ -255,16 +250,11 @@ function drawLines() {
     const svg = document.getElementById('connections-layer');
     svg.innerHTML = ''; 
     
-    // On dessine dans le référentiel du "Monde", donc c'est simple
-    // Les coordonnées des nodes (style.left/top) sont déjà dans ce référentiel
-    
     linksData.forEach(link => {
         const el1 = document.getElementById(`node-${link.from_id}`);
         const el2 = document.getElementById(`node-${link.to_id}`);
 
         if (el1 && el2) {
-            // On récupère les positions CSS brutes (relatives au monde)
-            // + la moitié de la taille pour centrer (width ~180, height selon contenu)
             const x1 = parseInt(el1.style.left) + el1.offsetWidth / 2;
             const y1 = parseInt(el1.style.top) + el1.offsetHeight / 2;
             const x2 = parseInt(el2.style.left) + el2.offsetWidth / 2;
@@ -275,7 +265,6 @@ function drawLines() {
             line.setAttribute('x2', x2); line.setAttribute('y2', y2);
             
             line.classList.add('connection-line');
-            // Appliquer la couleur stockée ou rouge par défaut
             line.style.stroke = link.color || '#ff3333'; 
             
             svg.appendChild(line);
@@ -283,11 +272,9 @@ function drawLines() {
     });
 }
 
-// --- 6. CRÉATION MODAL ---
 let currentModalType = 'target';
 window.createNode = function(type) {
     document.getElementById('creation-modal').classList.remove('hidden');
-    // Centrer le modal si besoin, ou reset inputs
     document.getElementById('inp-label').value = '';
     document.getElementById('inp-sub').value = '';
     document.getElementById('inp-img').value = '';
@@ -304,9 +291,6 @@ window.confirmCreateNode = async function() {
     const sub = document.getElementById('inp-sub').value;
     const img = document.getElementById('inp-img').value;
 
-    // On crée l'objet au centre de l'écran visible (en tenant compte du Pan)
-    // Centre Écran = (Width/2, Height/2)
-    // Coordonnée Monde = Centre Écran - PanX
     const centerX = (window.innerWidth / 2) - panX - 90;
     const centerY = (window.innerHeight / 2) - panY - 100;
 
@@ -322,7 +306,7 @@ window.confirmCreateNode = async function() {
 
     const res = await fetch('/api/investigation', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload)
     });
 
@@ -338,7 +322,7 @@ window.deleteNode = async function(id, event) {
     if(confirm("Supprimer ce dossier ?")) {
         await fetch('/api/investigation', {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders(),
             body: JSON.stringify({ id })
         });
         document.getElementById(`node-${id}`).remove();
