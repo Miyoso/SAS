@@ -153,6 +153,28 @@
             color: var(--dim); z-index: 100; opacity: 0.5; letter-spacing: 1px;
             font-family: var(--font-code);
         }
+
+        /* --- STYLES DU BOUTON CONNECT --- */
+        .btn-connect {
+            background: rgba(0, 255, 157, 0.05);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            font-family: 'Share Tech Mono', monospace;
+            padding: 5px 15px;
+            cursor: pointer;
+            margin-top: 5px;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            box-shadow: 0 0 5px rgba(0, 255, 157, 0.1);
+        }
+        .btn-connect:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 15px var(--primary);
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -167,7 +189,9 @@
                 </div>
                 <div class="meta-data">
                     <span id="conn-status" style="color:var(--primary)">CONNECTED</span> // PING: 12ms<br>
-                    SYS.VER.4.0.2 // <span class="blink">MONITORING</span>
+                    SYS.VER.4.0.2 // <span class="blink">MONITORING</span><br>
+                    
+                    <button class="btn-connect" onclick="toggleTerminal()">> CONNEXION TERMINAL</button>
                 </div>
             </div>
             <div id="dashboard-view" class="view-section dashboard-container">
@@ -247,6 +271,22 @@
                 window.location.href = url;
             } else {
                 alert("⛔ ACCÈS REFUSÉ : ACCRÉDITATION INSUFFISANTE");
+            }
+        }
+
+        // FONCTION POUR LE BOUTON DE CONNEXION
+        function toggleTerminal() {
+            const term = document.getElementById('terminal-console');
+            const input = document.getElementById('cmd-input');
+            const history = document.getElementById('terminal-history');
+
+            // Ajoute ou enlève la classe qui fait monter le terminal
+            term.classList.toggle('open');
+            
+            // Si le terminal est ouvert, on focus le champ texte et on scroll en bas
+            if(term.classList.contains('open')) {
+                setTimeout(() => input.focus(), 100);
+                if(history) history.scrollTop = history.scrollHeight;
             }
         }
     </script>
