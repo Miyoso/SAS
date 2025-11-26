@@ -1,59 +1,83 @@
+// --- VARIABLES GLOBALES ---
 let activeItem = null;
 let currentX, currentY, initialX, initialY;
-let linksData = []; // Pour stocker les liens venant de la BDD
+let linksData = []; 
+let isLinking = false; 
+let linkStartId = null;
 
+// --- DÉMARRAGE ---
 document.addEventListener('DOMContentLoaded', () => {
-    loadBoardData(); // Charger les données depuis Neon au démarrage
+    console.log("Investigation Board : Démarrage...");
+    loadBoardData();
 });
 
 // --- 1. CHARGEMENT DES DONNÉES ---
 async function loadBoardData() {
     const container = document.getElementById('board-container');
-    container.innerHTML = '<svg id="connections-layer"></svg>'; // Reset sauf le calque SVG
+    
+    // On s'assure que le calque SVG existe toujours
+    let svg = document.getElementById('connections-layer');
+    if (!svg) {
+        svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.id = "connections-layer";
+        container.prepend(svg);
+    }
+    
+    // On vide les fiches existantes (mais pas le SVG)
+    document.querySelectorAll('.board-item').forEach(e => e.remove());
 
     try {
+        console.log("Appel API en cours...");
         const res = await fetch('/api/investigation');
-        const data = await res.json();
         
-        // Stocker les liens pour plus tard
-        linksData = data.links;
+        if (!res.ok) throw new Error(`Erreur API: ${res.status}`);
+        
+        const data = await res.json();
+        console.log("Données reçues :", data);
 
-        // Générer les cartes (Nodes)
-        data.nodes.forEach(node => {
-            renderNode(node);
-        });
+        linksData = data.links || []; 
 
-        // Dessiner les liens une fois que les cartes sont là
-        drawLines();
+        if (data.nodes && data.nodes.length > 0) {
+            data.nodes.forEach(node => renderNode(node));
+            drawLines();
+        } else {
+            console.log("Aucune donnée dans la base (Table vide ?)");
+        }
 
-    } catch (err) {
-        console.error("Erreur chargement:", err);
+    } catch (err) { 
+        console.error("Erreur critique chargement:", err);
+        alert("Erreur de chargement du tableau. Vérifiez la console (F12).");
     }
 }
 
-// --- 2. AFFICHER UNE CARTE (RENDER) ---
+// --- 2. RENDU VISUEL D'UNE FICHE ---
 function renderNode(node) {
     const container = document.getElementById('board-container');
     const el = document.createElement('div');
+    
     el.classList.add('board-item');
-    el.id = `node-${node.id}`; // Important pour les liens : node-1, node-2...
+    el.id = `node-${node.id}`;
+    el.setAttribute('data-db-id', node.id);
     el.style.left = node.x + 'px';
     el.style.top = node.y + 'px';
-    el.setAttribute('data-id', node.id); // ID réel pour l'API
 
-    // Contenu selon le type
-    let pinColor = 'pin-red';
+    // Gestion de l'image
+    let img = node.image_url;
     let contentHtml = '';
+    let pinColor = 'pin-red';
 
     if (node.type === 'target') {
+        if (!img) img = 'assets/Adam.jpg'; // Image par défaut
+        contentHtml = `<img src="${img}" draggable="false">`;
         pinColor = 'pin-red';
-        contentHtml = `<img src="${node.image_url || 'assets/unknown.jpg'}">`;
     } else if (node.type === 'evidence') {
         pinColor = 'pin-yellow';
-        contentHtml = `<div class="evidence-content">DOC</div>`;
+        contentHtml = img ? `<img src="${img}" draggable="false">` : `<div class="evidence-content" style="padding:20px; color:#aaa; font-size:0.8rem;">DOC CLASSÉ</div>`;
     } else {
+        // Location ou Autre
         pinColor = 'pin-blue';
-        contentHtml = `<img src="${node.image_url}" style="opacity:0.8">`;
+        if (!img) img = 'assets/carte.jpg';
+        contentHtml = `<img src="${img}" style="opacity:0.8" draggable="false">`;
     }
 
     el.innerHTML = `
@@ -64,20 +88,41 @@ function renderNode(node) {
         <button class="btn-del" onclick="deleteNode(${node.id}, event)">×</button>
     `;
 
-    container.appendChild(el);
-    setupDraggable(el);
-}
-
-// --- 3. DRAG & DROP AVEC SAUVEGARDE ---
-function setupDraggable(item) {
-    item.addEventListener("mousedown", dragStart);
-}
-
-function dragStart(e) {
-    if(e.target.tagName === 'BUTTON') return; // Ignorer clic sur bouton supprimer
+    // Événement Souris (Drag ou Link)
+    el.addEventListener("mousedown", handleNodeClick);
     
+    container.appendChild(el);
+}
+
+// --- 3. GESTION CLIC / DRAG ---
+function handleNodeClick(e) {
+    // Si on clique sur le bouton supprimer, on ne fait rien ici
+    if(e.target.classList.contains('btn-del')) return;
+
+    // MODE LIEN (FIL ROUGE)
+    if (isLinking) {
+        const clickedNode = e.currentTarget;
+        const dbId = clickedNode.getAttribute('data-db-id');
+
+        if (!linkStartId) {
+            // Premier clic
+            linkStartId = dbId;
+            clickedNode.classList.add('selected-link');
+        } else {
+            // Deuxième clic
+            if (linkStartId !== dbId) {
+                createLink(linkStartId, dbId);
+            }
+            resetLinkMode();
+        }
+        return;
+    }
+
+    // MODE DÉPLACEMENT (DRAG)
     activeItem = e.currentTarget;
     const rect = activeItem.getBoundingClientRect();
+    
+    // On calcule le décalage souris/coin de la boîte
     initialX = e.clientX - rect.left;
     initialY = e.clientY - rect.top;
 
@@ -96,24 +141,26 @@ function drag(e) {
 
         activeItem.style.left = newX + "px";
         activeItem.style.top = newY + "px";
-
-        drawLines(); // Mettre à jour les fils rouges en temps réel
+        
+        // Mise à jour des fils en temps réel
+        requestAnimationFrame(drawLines);
     }
 }
 
-// C'est ici qu'on sauvegarde la nouvelle position !
 async function dragEnd(e) {
     if (activeItem) {
-        const id = activeItem.getAttribute('data-id');
+        const id = activeItem.getAttribute('data-db-id');
         const x = parseInt(activeItem.style.left);
         const y = parseInt(activeItem.style.top);
 
-        // Appel API pour sauvegarder
-        await fetch('/api/investigation', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, x, y })
-        });
+        // Sauvegarde en BDD
+        try {
+            await fetch('/api/investigation', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, x, y })
+            });
+        } catch (err) { console.error("Erreur sauvegarde pos:", err); }
 
         document.removeEventListener("mouseup", dragEnd);
         document.removeEventListener("mousemove", drag);
@@ -121,65 +168,61 @@ async function dragEnd(e) {
     }
 }
 
-// --- 4. CRÉATION (Create) ---
-async function createNode(type) {
-    // Données par défaut selon le type
-    let payload = {
-        type: type,
-        x: Math.floor(window.innerWidth/2 - 50),
-        y: Math.floor(window.innerHeight/2 - 50)
-    };
+// --- 4. GESTION DES LIENS (SVG) ---
+function toggleLinkMode() {
+    isLinking = !isLinking;
+    const container = document.getElementById('board-container');
+    const btn = document.querySelector('.tools button:last-child'); 
 
-    if (type === 'target') {
-        const name = prompt("Nom de la cible ?", "INCONNU");
-        if (!name) return;
-        payload.label = name.toUpperCase();
-        payload.sub_label = "SUSPECT";
-        payload.image_url = "assets/Adam.jpg"; // Image par défaut temporaire
+    if (isLinking) {
+        container.classList.add('linking-mode'); // Ajoute un curseur spécial via CSS
+        if(btn) {
+            btn.style.background = 'var(--warning)';
+            btn.style.color = '#000';
+            btn.innerText = "SÉLECTIONNER FICHE 1...";
+        }
     } else {
-        const note = prompt("Titre de la note ?", "INDICE");
-        if (!note) return;
-        payload.label = note.toUpperCase();
-        payload.sub_label = "PREUVE";
-        payload.image_url = null;
-    }
-
-    // Sauvegarde en BDD
-    const res = await fetch('/api/investigation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    });
-
-    if (res.ok) {
-        const newNode = await res.json();
-        renderNode(newNode); // Afficher immédiatement
+        resetLinkMode();
     }
 }
 
-// --- 5. SUPPRESSION (Delete) ---
-async function deleteNode(id, event) {
-    event.stopPropagation(); // Empêcher le drag
-    if(confirm("Supprimer cet élément ?")) {
-        await fetch('/api/investigation', {
-            method: 'DELETE',
+function resetLinkMode() {
+    isLinking = false;
+    linkStartId = null;
+    document.getElementById('board-container').classList.remove('linking-mode');
+    document.querySelectorAll('.selected-link').forEach(el => el.classList.remove('selected-link'));
+    
+    const btn = document.querySelector('.tools button:last-child');
+    if(btn) {
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.innerText = "🔗 LIER (FIL ROUGE)";
+    }
+}
+
+async function createLink(fromId, toId) {
+    try {
+        const res = await fetch('/api/investigation', {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id })
+            body: JSON.stringify({ action: 'create_link', from_id: fromId, to_id: toId })
         });
-        document.getElementById(`node-${id}`).remove();
-        drawLines(); // Nettoyer les lignes orphelines
-    }
+        
+        if (res.ok) {
+            linksData.push({ from_id: parseInt(fromId), to_id: parseInt(toId) });
+            drawLines();
+        }
+    } catch (err) { console.error("Erreur création lien:", err); }
 }
 
-// --- 6. DESSINER LES LIGNES (SVG) ---
 function drawLines() {
     const svg = document.getElementById('connections-layer');
-    svg.innerHTML = ''; 
+    if(!svg) return;
+    
+    svg.innerHTML = ''; // Reset du dessin
     const containerRect = document.getElementById('board-container').getBoundingClientRect();
 
     linksData.forEach(link => {
-        // Attention : en BDD on a from_id, to_id (ex: 1, 2)
-        // Dans le DOM on a des ID HTML (ex: node-1, node-2)
         const el1 = document.getElementById(`node-${link.from_id}`);
         const el2 = document.getElementById(`node-${link.to_id}`);
 
@@ -187,6 +230,7 @@ function drawLines() {
             const rect1 = el1.getBoundingClientRect();
             const rect2 = el2.getBoundingClientRect();
 
+            // Calcul des centres relatifs au conteneur
             const x1 = (rect1.left + rect1.width / 2) - containerRect.left;
             const y1 = (rect1.top + rect1.height / 2) - containerRect.top;
             const x2 = (rect2.left + rect2.width / 2) - containerRect.left;
@@ -195,8 +239,85 @@ function drawLines() {
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             line.setAttribute('x1', x1); line.setAttribute('y1', y1);
             line.setAttribute('x2', x2); line.setAttribute('y2', y2);
-            line.classList.add('connection-line');
+            line.classList.add('connection-line'); // Classe CSS définie
             svg.appendChild(line);
         }
     });
 }
+
+// --- 5. MODALE DE CRÉATION ---
+let currentModalType = 'target';
+
+// Expose functions to global window scope for HTML buttons
+window.createNode = function(type) {
+    document.getElementById('creation-modal').classList.remove('hidden');
+    // Reset champs
+    document.getElementById('inp-label').value = '';
+    document.getElementById('inp-sub').value = '';
+    document.getElementById('inp-img').value = '';
+    setModalType(type);
+}
+
+window.closeModal = function() {
+    document.getElementById('creation-modal').classList.add('hidden');
+}
+
+window.setModalType = function(type) {
+    currentModalType = type;
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById(`btn-type-${type}`);
+    if(btn) btn.classList.add('active');
+}
+
+window.confirmCreateNode = async function() {
+    const label = document.getElementById('inp-label').value || 'INCONNU';
+    const sub = document.getElementById('inp-sub').value;
+    const img = document.getElementById('inp-img').value;
+
+    const payload = {
+        action: 'create_node',
+        type: currentModalType,
+        label: label.toUpperCase(),
+        sub_label: sub ? sub.toUpperCase() : '',
+        image_url: img,
+        // Position au centre de l'écran (approximatif)
+        x: Math.floor(window.innerWidth/2 - 90),
+        y: Math.floor(window.innerHeight/2 - 100)
+    };
+
+    try {
+        const res = await fetch('/api/investigation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            const newNode = await res.json();
+            renderNode(newNode);
+            closeModal();
+        }
+    } catch (err) { console.error("Erreur création:", err); }
+}
+
+window.deleteNode = async function(id, event) {
+    event.stopPropagation(); // Important : ne pas déclencher le drag
+    if(confirm("Supprimer ce dossier ?")) {
+        try {
+            await fetch('/api/investigation', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            
+            const el = document.getElementById(`node-${id}`);
+            if(el) el.remove();
+
+            // Nettoyer les liens locaux
+            linksData = linksData.filter(l => l.from_id !== id && l.to_id !== id);
+            drawLines();
+        } catch (err) { console.error("Erreur suppression:", err); }
+    }
+}
+
+window.toggleLinkMode = toggleLinkMode;
