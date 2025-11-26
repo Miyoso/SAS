@@ -181,3 +181,21 @@
     width: 5000px; height: 5000px; /* Très grand pour couvrir le déplacement */
     pointer-events: none; overflow: visible;
 }
+
+/* Séparateur de catégorie */
+.category-row td {
+    background: linear-gradient(90deg, rgba(0, 168, 255, 0.2), transparent);
+    color: var(--term-blue);
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding-top: 20px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 2px solid var(--term-blue) !important;
+    letter-spacing: 3px;
+    text-shadow: 0 0 5px var(--term-blue);
+}
+
+/* Petit ajustement pour que la première ligne ne soit pas collée en haut */
+.category-row:first-child td {
+    padding-top: 10px !important;
+}

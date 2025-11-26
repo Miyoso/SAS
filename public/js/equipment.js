@@ -23,7 +23,21 @@ function renderTable(items) {
     const tbody = document.getElementById('table-body');
     tbody.innerHTML = '';
 
+    let currentCategory = null;
+
     items.forEach(item => {
+        // 1. Gestion de l'en-tête de catégorie
+        if (item.category !== currentCategory) {
+            currentCategory = item.category;
+            
+            const catRow = document.createElement('tr');
+            catRow.className = 'category-row';
+            // colspan="6" pour que le titre prenne toute la largeur du tableau
+            catRow.innerHTML = `<td colspan="6">/// SECTION : ${currentCategory}</td>`;
+            tbody.appendChild(catRow);
+        }
+
+        // 2. Création de la ligne normale (comme avant)
         const tr = document.createElement('tr');
         
         let statusHtml = '';
@@ -40,7 +54,6 @@ function renderTable(items) {
             actionsHtml = `<button class="btn-action" onclick="openReturn(${item.id})"><< RENDRE</button>`;
         }
 
-        // Ajout d'un bouton de suppression discret
         actionsHtml += ` <button class="btn-action" style="border-color:#522; color:#a55;" onclick="deleteItem(${item.id})">X</button>`;
 
         tr.innerHTML = `
