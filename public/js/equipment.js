@@ -26,18 +26,14 @@ function renderTable(items) {
     let currentCategory = null;
 
     items.forEach(item => {
-        // 1. Gestion de l'en-tête de catégorie
         if (item.category !== currentCategory) {
             currentCategory = item.category;
-            
             const catRow = document.createElement('tr');
             catRow.className = 'category-row';
-            // colspan="6" pour que le titre prenne toute la largeur du tableau
             catRow.innerHTML = `<td colspan="6">/// SECTION : ${currentCategory}</td>`;
             tbody.appendChild(catRow);
         }
 
-        // 2. Création de la ligne normale (comme avant)
         const tr = document.createElement('tr');
         
         let statusHtml = '';
@@ -68,23 +64,10 @@ function renderTable(items) {
     });
 }
 
-async function deleteItem(id) {
-    if(!confirm("CONFIRMER LA DESTRUCTION DE CET OBJET ? CETTE ACTION EST IRRÉVERSIBLE.")) return;
-    await fetch('/api/equipment', {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ id })
-    });
-    loadData();
-}
-
-/* --- GESTION DES MODALES --- */
-
 function closeModals() {
     document.querySelectorAll('.modal-overlay').forEach(el => el.classList.add('hidden'));
 }
 
-// 1. CRÉATION
 window.openModal = function(type) {
     if(type === 'create') document.getElementById('modal-create').classList.remove('hidden');
 }
@@ -102,10 +85,9 @@ async function createItem() {
     });
 
     if(res.ok) { closeModals(); loadData(); }
-    else alert("Erreur (Numéro de série en double ?)");
+    else alert("Erreur");
 }
 
-// 2. ASSIGNATION (SORTIE)
 window.openAssign = function(id, name) {
     document.getElementById('assign-id').value = id;
     document.getElementById('assign-item-name').innerText = name;
@@ -123,7 +105,6 @@ async function confirmAssign() {
     closeModals(); loadData();
 }
 
-// 3. RETOUR (STOCK)
 window.openReturn = function(id) {
     document.getElementById('return-id').value = id;
     document.getElementById('modal-return').classList.remove('hidden');
@@ -138,4 +119,14 @@ async function confirmReturn() {
         body: JSON.stringify({ id, action: 'STORE', target: loc })
     });
     closeModals(); loadData();
+}
+
+async function deleteItem(id) {
+    if(!confirm("CONFIRMER LA DESTRUCTION DE CET OBJET ?")) return;
+    await fetch('/api/equipment', {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ id })
+    });
+    loadData();
 }
