@@ -142,3 +142,42 @@
 .linking-mode .board-item { opacity: 0.5; }
 .linking-mode .board-item:hover { opacity: 1; border-color: var(--warning); cursor: crosshair; }
 .board-item.selected-link { border-color: var(--warning); box-shadow: 0 0 20px var(--warning); opacity: 1 !important; }
+
+/* VIEWPORT FIXE */
+#board-viewport {
+    width: 100vw; height: 100vh;
+    position: relative; overflow: hidden;
+    cursor: grab; /* Curseur main pour déplacer */
+}
+
+#board-viewport:active { cursor: grabbing; }
+
+/* LE MONDE QUI BOUGE */
+#board-world {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    transform-origin: 0 0;
+    /* La transformation sera gérée par le JS (translate X Y) */
+}
+
+/* PALETTE DE COULEURS */
+.separator { width: 1px; height: 30px; background: #555; margin: 0 10px; }
+
+.color-picker-group {
+    display: flex; gap: 8px; background: rgba(0,0,0,0.5); 
+    padding: 5px 10px; border-radius: 20px; border: 1px solid #444;
+}
+
+.color-dot {
+    width: 18px; height: 18px; border-radius: 50%; cursor: pointer;
+    border: 2px solid transparent; transition: 0.2s;
+}
+
+.color-dot:hover { transform: scale(1.2); }
+.color-dot.active { border-color: #fff; box-shadow: 0 0 10px currentColor; transform: scale(1.1); }
+
+/* SVG LAYER */
+#connections-layer {
+    position: absolute; top: 0; left: 0; 
+    width: 5000px; height: 5000px; /* Très grand pour couvrir le déplacement */
+    pointer-events: none; overflow: visible;
+}
