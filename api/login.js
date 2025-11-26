@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs'; // [MODIFIÉ]
 import jwt from 'jsonwebtoken';
 
 const pool = new Pool({
@@ -25,6 +25,7 @@ export default async function handler(req, res) {
     }
 
     const user = result.rows[0];
+    // bcryptjs utilise la même syntaxe que bcrypt
     const match = await bcrypt.compare(password, user.password);
 
     if (!match) {

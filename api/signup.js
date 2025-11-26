@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs'; // [MODIFIÉ]
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -14,6 +14,7 @@ export default async function handler(req, res) {
   const { username, password } = req.body;
 
   try {
+    // bcryptjs utilise la même syntaxe que bcrypt
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
@@ -27,6 +28,7 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ error: 'DATABASE ERROR' });
   }
 }
