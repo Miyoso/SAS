@@ -48,6 +48,43 @@
 
     <div id="sidebar-placeholder"></div>
 
+<div id="creation-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h2 class="modal-title">NOUVEAU DOSSIER</h2>
+            
+            <div class="form-group">
+                <label>TYPE DE DOSSIER</label>
+                <div class="type-selector">
+                    <button class="type-btn active" onclick="setModalType('target')" id="btn-type-target">CIBLE</button>
+                    <button class="type-btn" onclick="setModalType('evidence')" id="btn-type-evidence">PREUVE</button>
+                    <button class="type-btn" onclick="setModalType('location')" id="btn-type-location">LIEU</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>NOM PRINCIPAL (ex: GRAVES)</label>
+                <input type="text" id="inp-label" placeholder="Entrez le nom...">
+            </div>
+
+            <div class="form-group">
+                <label>INFOS ANNEXES (ex: Cible Prioritaire)</label>
+                <input type="text" id="inp-sub" placeholder="Sous-titre...">
+            </div>
+
+            <div class="form-group">
+                <label>IMAGE (Lien Direct Goopics)</label>
+                <input type="text" id="inp-img" placeholder="https://i.goopics.net/...">
+                <small style="color:#666; font-size:0.7rem;">Laissez vide pour une image par défaut.</small>
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="closeModal()" class="btn-cancel">ANNULER</button>
+                <button onclick="confirmCreateNode()" class="btn-confirm">CONFIRMER</button>
+            </div>
+        </div>
+    </div>
+
+
     <script src="js/script.js"></script>
     <script src="js/investigation.js"></script>
 </body>
