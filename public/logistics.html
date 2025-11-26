@@ -2,71 +2,172 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAS // LOGISTIQUE</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/logistics.css"> </head>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/style-mo.css">
+    
+    <style>
+        /* STYLES SPÉCIFIQUES LOGISTIQUE (ADAPTÉS AU THÈME) */
+        
+        /* Layout interne pour la sidebar */
+        .content-layout { display: flex; height: 100%; overflow: hidden; }
+        #sidebar-placeholder { width: 300px; flex-shrink: 0; border-right: 1px solid rgba(255,255,255,0.05); }
+        .main-area { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; }
+
+        /* Panneau de contrôle */
+        .control-panel {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 25px; padding: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-left: 2px solid var(--primary);
+        }
+
+        .search-box { display: flex; align-items: center; gap: 15px; flex: 1; }
+        
+        .search-input {
+            background: transparent; border: none; border-bottom: 1px solid var(--dim);
+            color: #fff; font-family: var(--font-ui); font-size: 1rem; padding: 5px;
+            width: 300px; transition: 0.3s;
+        }
+        .search-input:focus { border-bottom-color: var(--primary); outline: none; width: 350px; }
+
+        /* Tableau */
+        .data-display { flex: 1; overflow-y: auto; }
+        
+        .category-row td {
+            background: linear-gradient(90deg, rgba(0, 255, 157, 0.1), transparent);
+            color: var(--primary);
+            font-weight: bold; letter-spacing: 2px;
+            padding-top: 20px !important; padding-bottom: 10px !important;
+            border-bottom: 1px solid var(--primary) !important;
+        }
+
+        /* Badges & Boutons Table */
+        .badge { padding: 3px 8px; font-size: 0.7rem; font-weight: bold; letter-spacing: 1px; border: 1px solid transparent; text-transform: uppercase; }
+        .badge-stock { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 157, 0.05); }
+        .badge-issued { border-color: var(--warning); color: var(--warning); background: rgba(238, 187, 0, 0.05); }
+        
+        .btn-action {
+            background: transparent; border: 1px solid var(--dim); color: var(--dim);
+            padding: 4px 8px; font-size: 0.7rem; cursor: pointer; transition: 0.2s;
+            font-family: var(--font-code); text-transform: uppercase;
+        }
+        .btn-action:hover { border-color: var(--secondary); color: var(--secondary); background: rgba(0, 243, 255, 0.1); }
+
+        /* Modales (Redéfinition pour correspondre au style-mo) */
+        .modal-overlay {
+            position: fixed; top:0; left:0; right:0; bottom:0;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 5000; opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay:not(.hidden) { opacity: 1; pointer-events: all; }
+        
+        .modal-box {
+            width: 500px; background: #05080a; border: 1px solid var(--dim);
+            padding: 0; box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            transform: scale(0.95); transition: 0.3s; position: relative;
+        }
+        .modal-box::before { content:''; position: absolute; top:0; left:0; width: 100%; height: 2px; background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+        
+        .modal-overlay:not(.hidden) .modal-box { transform: scale(1); border-color: var(--primary-dim); }
+
+        .modal-header {
+            background: rgba(255, 255, 255, 0.03); padding: 15px 20px;
+            color: #fff; font-family: var(--font-code); font-weight: bold; letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .modal-body { padding: 25px; display: flex; flex-direction: column; gap: 20px; }
+
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        .input-group label { color: var(--secondary); font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; }
+        .input-group input, .input-group select {
+            background: rgba(0,0,0,0.3); border: 1px solid #333;
+            color: #fff; padding: 12px; font-family: var(--font-ui); font-size: 1rem;
+        }
+        .input-group input:focus, .input-group select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 10px rgba(0,255,157,0.1); }
+
+        .modal-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: flex-end; gap: 15px; background: rgba(0,0,0,0.2); }
+
+        /* Highlight pour les données dynamiques */
+        .highlight { color: var(--secondary); font-weight: bold; text-shadow: 0 0 5px rgba(0,243,255,0.3); }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
 <body>
-    <div class="scanlines"></div>
     <div class="crt-overlay"></div>
 
-    <div class="layout-container">
-        <nav class="sidebar">
-            <div class="sas-logo"><img src="assets/logo-sas.png" alt="SAS"></div>
-            <a href="/index.html" class="nav-item">ACCUEIL</a>
-            <a href="/investigation.html" class="nav-item">ENQUÊTE</a>
-            <a href="/logistics.html" class="nav-item active">LOGISTIQUE</a>
-            <a href="/database.html" class="nav-item">BASE DE DONNÉES</a>
-        </nav>
-
-        <main class="main-content">
-            <header class="terminal-header">
-                <h1>>> MODULE_LOGISTIQUE // <span class="blink">ACTIF</span></h1>
-                <div class="user-status">CONNECTÉ: <span id="user-display">AGENT</span></div>
-            </header>
-
-            <div class="control-panel">
-                <div class="search-box">
-                    <span class="prefix">> RECHERCHE:</span>
-                    <input type="text" id="search-input" placeholder="NUMÉRO SÉRIE / NOM..." onkeyup="loadData()">
+    <div class="terminal-wrapper">
+        <div class="terminal" style="padding:0; gap:0;"> 
+            
+            <div class="header-strip" style="margin: 20px 30px;">
+                <div>
+                    <h1>SYSTEM // <span style="color:var(--primary);">LOGISTICS</span></h1>
+                    <div style="font-size: 0.8rem; color: var(--dim); letter-spacing: 2px; margin-top: 5px;">INVENTORY MANAGEMENT & TRACKING</div>
                 </div>
-                <button onclick="openModal('create')" class="btn-tech">
-                    [ + ENREGISTRER NOUVEL OBJET ]
-                </button>
+                <div class="meta-data">
+                    <span style="color:var(--primary)">ONLINE</span> // <span id="user-display">GUEST</span><br>
+                    SYS.VER.4.0.2
+                </div>
             </div>
 
-            <div class="data-display">
-                <table class="terminal-table">
-                    <thead>
-                        <tr>
-                            <th>MATRICULE (S/N)</th>
-                            <th>TYPE</th>
-                            <th>OBJET</th>
-                            <th>LOCALISATION</th>
-                            <th>STATUT</th>
-                            <th style="text-align:right;">COMMANDES</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-body">
-                        </tbody>
-                </table>
+            <div class="content-layout">
+                <div id="sidebar-placeholder"></div>
+                
+                <main class="main-area">
+                    <div class="control-panel">
+                        <div class="search-box">
+                            <span style="color:var(--primary); font-weight:bold;">> RECHERCHE:</span>
+                            <input type="text" id="search-input" class="search-input" placeholder="N° SÉRIE / NOM..." onkeyup="loadData()">
+                        </div>
+                        <button onclick="openModal('create')" class="btn-connect">
+                            [ + ENREGISTRER MATÉRIEL ]
+                        </button>
+                    </div>
+
+                    <div class="data-display">
+                        <table class="ops-table">
+                            <thead>
+                                <tr>
+                                    <th>S/N</th>
+                                    <th>CATÉGORIE</th>
+                                    <th>OBJET</th>
+                                    <th>LOCALISATION</th>
+                                    <th>STATUT</th>
+                                    <th style="text-align:right;">COMMANDES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </main>
             </div>
-        </main>
+        </div>
     </div>
 
     <div id="modal-create" class="modal-overlay hidden">
-        <div class="terminal-modal">
+        <div class="modal-box">
             <div class="modal-header">>> NOUVELLE ENTRÉE STOCK</div>
             <div class="modal-body">
                 <div class="input-group">
-                    <label>N° SÉRIE:</label>
+                    <label>N° SÉRIE (S/N)</label>
                     <input id="new-sn" type="text" placeholder="ex: GLK-001">
                 </div>
                 <div class="input-group">
-                    <label>NOM OBJET:</label>
+                    <label>DÉSIGNATION</label>
                     <input id="new-name" type="text" placeholder="ex: GLOCK 17 GEN5">
                 </div>
                 <div class="input-group">
-                    <label>CATÉGORIE:</label>
+                    <label>CATÉGORIE</label>
                     <select id="new-cat">
                         <option value="ARME">ARME</option>
                         <option value="MUNITION">MUNITION</option>
@@ -77,62 +178,62 @@
                     </select>
                 </div>
                 <div class="input-group">
-                    <label>LIEU DE STOCKAGE:</label>
+                    <label>LIEU DE STOCKAGE</label>
                     <input id="new-loc" type="text" placeholder="ex: ARMURERIE CASIER A1">
                 </div>
             </div>
             <div class="modal-footer">
-                <button onclick="createItem()" class="btn-confirm">[ CONFIRMER ]</button>
-                <button onclick="closeModals()" class="btn-cancel">[ ANNULER ]</button>
+                <button onclick="createItem()" class="btn-connect">[ CONFIRMER ]</button>
+                <button onclick="closeModals()" class="btn-action" style="border-color:var(--danger); color:var(--danger);">[ ANNULER ]</button>
             </div>
         </div>
     </div>
 
     <div id="modal-assign" class="modal-overlay hidden">
-        <div class="terminal-modal">
+        <div class="modal-box">
             <div class="modal-header">>> SORTIE DE STOCK</div>
             <div class="modal-body">
-                <p>ATTRIBUTION DU MATÉRIEL : <span id="assign-item-name" class="highlight"></span></p>
+                <p style="color:#8899aa; font-size:0.9rem;">ATTRIBUTION DU MATÉRIEL :<br>
+                <span id="assign-item-name" style="color:#fff; font-size:1.2rem; font-weight:bold; display:block; margin-top:5px;"></span></p>
                 <input type="hidden" id="assign-id">
                 <div class="input-group">
-                    <label>MATRICULE AGENT:</label>
+                    <label>MATRICULE AGENT / CIBLE</label>
                     <input id="assign-agent" type="text" placeholder="ex: GRAVES">
                 </div>
             </div>
             <div class="modal-footer">
-                <button onclick="confirmAssign()" class="btn-confirm">[ VALIDER SORTIE ]</button>
-                <button onclick="closeModals()" class="btn-cancel">[ ANNULER ]</button>
+                <button onclick="confirmAssign()" class="btn-connect">[ VALIDER SORTIE ]</button>
+                <button onclick="closeModals()" class="btn-action" style="border-color:var(--danger); color:var(--danger);">[ ANNULER ]</button>
             </div>
         </div>
     </div>
 
     <div id="modal-return" class="modal-overlay hidden">
-        <div class="terminal-modal">
+        <div class="modal-box">
             <div class="modal-header">>> RETOUR STOCK</div>
             <div class="modal-body">
-                <p>RÉINTÉGRATION DU MATÉRIEL</p>
+                <p style="color:#8899aa;">RÉINTÉGRATION DU MATÉRIEL</p>
                 <input type="hidden" id="return-id">
                 <div class="input-group">
-                    <label>NOUVEL EMPLACEMENT:</label>
+                    <label>NOUVEL EMPLACEMENT</label>
                     <input id="return-loc" type="text" placeholder="ex: COFFRE PREUVES">
                 </div>
             </div>
             <div class="modal-footer">
-                <button onclick="confirmReturn()" class="btn-confirm">[ VALIDER RETOUR ]</button>
-                <button onclick="closeModals()" class="btn-cancel">[ ANNULER ]</button>
+                <button onclick="confirmReturn()" class="btn-connect">[ VALIDER RETOUR ]</button>
+                <button onclick="closeModals()" class="btn-action" style="border-color:var(--danger); color:var(--danger);">[ ANNULER ]</button>
             </div>
         </div>
     </div>
 
-    <script src="js/equipment.js"></script>
-    <script>
-        // Petit script pour afficher le nom de l'utilisateur connecté si disponible
+    <script src="js/script.js"></script> <script src="js/equipment.js"></script> <script>
+        // Récupération du nom utilisateur pour l'en-tête (copié de l'original)
         const token = localStorage.getItem('sas_token');
-        // (Décodage basique du JWT pour l'affichage - optionnel)
         if(token) {
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
-                document.getElementById('user-display').innerText = payload.username.toUpperCase();
+                const display = document.getElementById('user-display');
+                if(display) display.innerText = payload.username.toUpperCase();
             } catch(e){}
         }
     </script>
