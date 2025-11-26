@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>SAS - INVESTIGATION WALL</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style-mo.css">
+    <link rel="stylesheet" href="css/investigation.css"> 
+</head>
+<body>
+
+    <div class="crt-overlay"></div>
+    
+    <div class="tactical-grid"></div>
+    
+    <div id="board-container">
+        <svg id="connections-layer"></svg>
+
+        <div class="board-item item-target" id="node-1" style="top: 300px; left: 500px;" data-type="target">
+            <div class="pin pin-red"></div>
+            <img src="assets/Graves.jpg" alt="Graves">
+            <div class="item-label">GRAVES</div>
+            <div class="item-sub">CIBLE PRIORITAIRE</div>
+        </div>
+
+        <div class="board-item item-evidence" id="node-2" style="top: 150px; left: 200px;" data-type="evidence">
+            <div class="pin pin-yellow"></div>
+            <div class="evidence-content">📄 RAPPORT 404</div>
+            <div class="item-label">INCIDENT ZERO</div>
+        </div>
+
+        <div class="board-item item-loc" id="node-3" style="top: 450px; left: 800px;" data-type="location">
+            <div class="pin pin-blue"></div>
+            <img src="assets/carte.jpg" style="opacity:0.8">
+            <div class="item-label">LAS ALMAS</div>
+        </div>
+
+    </div>
+
+    <div class="hud-overlay">
+        <h1>INVESTIGATION <span style="color:var(--danger)">BOARD</span></h1>
+        <div class="tools">
+            <button onclick="createNode('target')">+ CIBLE</button>
+            <button onclick="createNode('evidence')">+ PREUVE</button>
+            <button onclick="toggleLinkMode()">🔗 LIER (FIL ROUGE)</button>
+        </div>
+    </div>
+
+    <div id="sidebar-placeholder"></div>
+
+    <script src="js/script.js"></script>
+    <script src="js/investigation.js"></script>
+</body>
+</html>
