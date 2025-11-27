@@ -360,3 +360,57 @@ h1 span { color: #fff; text-shadow: 0 0 10px var(--danger), 2px 2px 0px rgba(255
     display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--dim);
 }
 .footer a:hover { color: #fff; text-shadow: 0 0 10px var(--danger); }
+
+:root {
+    /* THÈME PAR DÉFAUT (VERT - STANDARD) */
+    --primary: #00ff9d;
+    --primary-dim: rgba(0, 255, 157, 0.1);
+    --bg-color: #0a0f14;
+    --text-color: #ffffff;
+    --danger: #ff3333;
+    --scan-line: rgba(0, 255, 157, 0.05);
+}
+
+/* THÈME AMBRE (VISION NOCTURNE / RÉTRO) */
+body.theme-amber {
+    --primary: #ffb000;
+    --primary-dim: rgba(255, 176, 0, 0.1);
+    --bg-color: #1a1200; /* Fond légèrement teinté */
+    --text-color: #ffcc00;
+    --danger: #ff5500;
+    --scan-line: rgba(255, 176, 0, 0.05);
+}
+
+/* THÈME ROUGE (ALERTE / CRITIQUE) */
+body.theme-red {
+    --primary: #ff3333;
+    --primary-dim: rgba(255, 51, 51, 0.15);
+    --bg-color: #1a0505;
+    --text-color: #ffaaaa;
+    --danger: #ffffff; /* Le danger devient blanc pour contraster */
+    --scan-line: rgba(255, 51, 51, 0.05);
+}
+
+/* Appliquer les variables */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.5s ease, color 0.3s ease; /* Transition douce */
+}
+
+/* Exemple d'application sur tes éléments existants */
+h1, .panel-title, .modal-title {
+    color: var(--primary) !important;
+    text-shadow: 0 0 10px var(--primary-dim);
+}
+
+button, .tool-btn {
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+}
+
+button:hover, .tool-btn:hover {
+    background: var(--primary) !important;
+    color: #000 !important;
+    box-shadow: 0 0 15px var(--primary);
+}
