@@ -13,11 +13,11 @@
     <div class="layout-container">
         <nav class="sidebar">
             <div class="sas-logo"><img src="assets/logo-sas.png" alt="SAS"></div>
-            <a href="/index.html" class="nav-item">ACCUEIL</a>
-            <a href="/investigation.html" class="nav-item">ENQUÊTE</a>
-            <a href="/logistics.html" class="nav-item active">LOGISTIQUE</a>
-            <a href="/database.html" class="nav-item">BASE DE DONNÉES</a>
-            <a href="/profile.html" class="nav-item">PROFIL</a>
+            <a href="index.html" class="nav-item">ACCUEIL</a>
+            <a href="investigation.html" class="nav-item">ENQUÊTE</a>
+            <a href="logistics.html" class="nav-item active">LOGISTIQUE</a>
+            <a href="database.html" class="nav-item">BASE DE DONNÉES</a>
+            <a href="profile.html" class="nav-item">PROFIL</a>
         </nav>
 
         <main class="main-content">
@@ -49,7 +49,7 @@
                         </tr>
                     </thead>
                     <tbody id="table-body">
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </main>
@@ -130,12 +130,18 @@
 
     <script src="js/equipment.js"></script>
     <script>
+        // Affichage du nom d'utilisateur
         const token = localStorage.getItem('sas_token');
         if(token) {
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
-                document.getElementById('user-display').innerText = payload.username.toUpperCase();
-            } catch(e){}
+                if(document.getElementById('user-display')) {
+                    document.getElementById('user-display').innerText = payload.username.toUpperCase();
+                }
+            } catch(e) { console.error("Erreur token", e); }
+        } else {
+            // Si pas de token, redirection immédiate
+            window.location.href = 'index.html';
         }
     </script>
 </body>
