@@ -28,7 +28,7 @@ function renderMyEquipment(items) {
     if (!container) return; 
     
     if (items.length === 0) {
-        container.innerHTML = '<div style="color:#666; font-style:italic;">Aucune dotation.</div>';
+        container.innerHTML = '<div style="color:rgba(255,255,255,0.4); font-style:italic; font-size:0.8rem; padding:10px;">> AUCUNE DOTATION ENREGISTRÉE</div>';
         return;
     }
 
@@ -40,11 +40,11 @@ function renderMyEquipment(items) {
         if(item.category === 'VÉHICULE') icon = '🚔';
 
         return `
-            <div class="equip-card" style="background:rgba(0,20,40,0.6); border:1px solid #00a8ff; padding:10px; margin-bottom:5px; display:flex; align-items:center; color:white;">
-                <div style="font-size:1.5rem; margin-right:10px;">${icon}</div>
+            <div class="equip-card" style="background:rgba(0, 255, 170, 0.05); border-left:2px solid var(--secondary); padding:8px; margin-bottom:8px; display:flex; align-items:center; color:#ddd;">
+                <div style="font-size:1.2rem; margin-right:12px; opacity:0.8;">${icon}</div>
                 <div>
-                    <div style="font-weight:bold;">${item.item_name}</div>
-                    <div style="font-size:0.8rem; color:#00a8ff; font-family:monospace;">S/N: ${item.serial_number}</div>
+                    <div style="font-weight:bold; font-size:0.9rem; font-family:'Share Tech Mono'; letter-spacing:1px;">${item.item_name}</div>
+                    <div style="font-size:0.7rem; color:var(--primary); font-family:monospace;">ID: ${item.serial_number}</div>
                 </div>
             </div>
         `;

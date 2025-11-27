@@ -8,7 +8,7 @@
     <script>
         const session = localStorage.getItem('sas_session');
         if (!session) {
-            window.location.href = 'index.html'; // Redirection si pas connecté
+            window.location.href = 'index.html';
         }
     </script>
 
@@ -16,23 +16,21 @@
     <link rel="stylesheet" href="css/style-mo.css">
 
     <style>
-        /* Ajustements spécifiques pour le centrage du profil */
         body {
-            justify-content: flex-start; /* Permet le scroll si nécessaire */
+            justify-content: flex-start;
             padding-top: 50px;
         }
         
         .terminal-wrapper {
-        opacity: 0; /* On part de 0 pour l'effet d'entrée */
-        animation: slideIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    }
+            opacity: 0;
+            animation: slideIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
 
-    @keyframes slideIn {
-        from { opacity: 0; transform: translateY(30px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        /* Bouton de déconnexion stylisé */
         .btn-logout {
             background: transparent;
             border: 1px solid var(--danger);
@@ -52,12 +50,22 @@
             text-shadow: 0 0 5px var(--danger);
         }
 
-        /* Avatar par défaut générique */
         .default-avatar {
             width: 100%; height: 100%;
             background: #111;
             display: flex; align-items: center; justify-content: center;
             font-size: 3rem; color: #333;
+        }
+
+        /* Scrollbar pour la liste d'équipement */
+        #my-equipment-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        #my-equipment-list::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
+        }
+        #my-equipment-list::-webkit-scrollbar-thumb {
+            background: var(--primary);
         }
     </style>
 </head>
@@ -138,6 +146,16 @@
 
                 <div class="panel">
                     <div class="panel-header">
+                        <span class="panel-title">DOTATION</span>
+                        <span style="color:var(--secondary); font-size:0.7rem;">GEAR_ASSIGNED</span>
+                    </div>
+                    <div id="my-equipment-list" style="max-height: 200px; overflow-y: auto; padding-right: 5px;">
+                        <div class="blink" style="color: #555;">CHARGEMENT INVENTAIRE...</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
                         <span class="panel-title">SYSTÈME</span>
                         <span style="color:var(--secondary); font-size:0.7rem;">ACCESS_LOG</span>
                     </div>
@@ -171,39 +189,33 @@
         </main>
     </div>
 
+    <script src="js/profile-equipment.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. Récupération des données utilisateur
             const sessionData = JSON.parse(localStorage.getItem('sas_session'));
 
             if (sessionData) {
                 const { username, rank, created_at, id } = sessionData;
                 
-                // Mise à jour de l'interface
                 document.getElementById('header-username').textContent = username.toUpperCase();
                 document.getElementById('card-username').textContent = username.toUpperCase();
                 
-                // Gestion du rang
                 const rankDisplay = `LVL-${rank}`;
                 document.getElementById('card-rank-code').textContent = rankDisplay;
                 document.getElementById('card-rank-badge').textContent = rank >= 5 ? 'COMMAND' : (rank >= 3 ? 'OFFICER' : 'OPERATOR');
                 
-                // Date
                 const joinDate = created_at ? new Date(created_at).toLocaleDateString('fr-FR') : 'UNKNOWN';
                 document.getElementById('info-date').textContent = joinDate;
 
-                // ID Fictif ou Réel
                 const displayId = id ? `SAS-${id.toString().padStart(4, '0')}` : 'SAS-GHOST';
                 const idElement = document.getElementById('info-id');
                 idElement.setAttribute('data-real', displayId);
                 idElement.setAttribute('data-scramble', 'ENCRYPTED');
                 idElement.textContent = displayId;
 
-                // Session ID aléatoire pour le style
                 document.getElementById('session-id').textContent = '0x' + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
             }
 
-            // 2. Animation Carte 3D (code identique aux autres pages)
             const card = document.getElementById('card');
             const cardContainer = document.querySelector('.id-card-container');
 
@@ -221,7 +233,6 @@
                 card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
             });
 
-            // 3. Effet de décryptage texte
             const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             document.querySelectorAll('.redacted').forEach(element => {
                 element.onmouseover = event => {
@@ -240,15 +251,14 @@
             });
         });
 
-        // Fonction de déconnexion
         function logout() {
-            // Animation visuelle
             document.body.style.transition = "opacity 0.5s";
             document.body.style.opacity = "0";
             
             setTimeout(() => {
                 localStorage.removeItem('sas_session');
                 localStorage.removeItem('userSecurityLevel');
+                localStorage.removeItem('sas_token');
                 window.location.href = 'index.html';
             }, 500);
         }
