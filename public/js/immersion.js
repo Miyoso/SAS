@@ -5,7 +5,7 @@ const SAS_IMMERSION = {
     sounds: {
         click: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'), // Bruit mécanique sec
         hover: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'), // Bip léger
-        ambience: new Audio('https://assets.mixkit.co/active_storage/sfx/131/131-preview.mp3'), // Bourdonnement serveur/vaisseau
+        
         alert: new Audio('https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3') // Alarme (pour le mode rouge)
     },
 
