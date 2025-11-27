@@ -1,11 +1,86 @@
-/* --- Formulaire d'ajout --- */
+/* Layout Ajustements */
+.intel-grid.single-panel {
+    grid-template-columns: 1fr; /* Une seule colonne large */
+}
+
+.panel.full-height {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Bouton principal Ajouter */
+.btn-main-action {
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 8px 15px;
+    font-family: 'Share Tech Mono';
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.btn-main-action:hover {
+    background: rgba(0, 255, 65, 0.2);
+    box-shadow: 0 0 10px var(--primary);
+}
+
+/* --- MODAL STYLES --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-window {
+    background: #050505;
+    border: 2px solid var(--primary);
+    width: 600px;
+    max-width: 90%;
+    box-shadow: 0 0 30px rgba(0, 255, 65, 0.15);
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    background: rgba(0, 255, 65, 0.1);
+    border-bottom: 1px solid var(--primary);
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Share Tech Mono';
+    color: var(--primary);
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
 .log-form {
+    padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
 
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
 .form-group {
+    flex: 1;
     display: flex;
     flex-direction: column;
 }
@@ -18,38 +93,56 @@
 }
 
 .form-group input, .form-group select {
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid #333;
-    color: var(--primary);
-    padding: 8px;
+    background: #111;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 10px;
     font-family: 'JetBrains Mono';
     outline: none;
-    transition: 0.3s;
 }
 
 .form-group input:focus, .form-group select:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 5px rgba(0, 255, 65, 0.2);
 }
 
-.btn-scan {
-    background: rgba(0, 255, 65, 0.1);
-    border: 1px solid var(--primary);
-    color: var(--primary);
-    padding: 10px;
-    cursor: pointer;
-    font-family: 'Share Tech Mono';
-    text-transform: uppercase;
-    transition: 0.3s;
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
     margin-top: 10px;
 }
 
-.btn-scan:hover {
+.btn-cancel {
+    background: transparent;
+    border: 1px solid #555;
+    color: #888;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-family: 'Share Tech Mono';
+}
+.btn-cancel:hover { color: #fff; border-color: #fff; }
+
+.btn-scan {
     background: var(--primary);
+    border: none;
     color: #000;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-family: 'Share Tech Mono';
+    font-weight: bold;
+}
+.btn-scan:hover {
+    background: #fff;
 }
 
-/* --- Recherche et Liste --- */
+/* --- INVENTORY LIST --- */
+.search-box {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    margin-left: 20px;
+}
+
 .search-box input {
     background: transparent;
     border: none;
@@ -64,26 +157,23 @@
     flex: 1;
     overflow-y: auto;
     padding-right: 5px;
-    margin-top: 10px;
+    margin-top: 15px;
+    /* On utilise Grid pour afficher plus d'items si l'écran est large */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 10px;
+    align-content: start;
 }
 
 /* Scrollbar custom */
-.equipment-grid::-webkit-scrollbar {
-    width: 5px;
-}
-.equipment-grid::-webkit-scrollbar-track {
-    background: #111;
-}
-.equipment-grid::-webkit-scrollbar-thumb {
-    background: var(--secondary);
-}
+.equipment-grid::-webkit-scrollbar { width: 5px; }
+.equipment-grid::-webkit-scrollbar-track { background: #111; }
+.equipment-grid::-webkit-scrollbar-thumb { background: var(--secondary); }
 
-/* --- Item Card Style --- */
 .equip-item {
     background: rgba(0, 20, 40, 0.4);
-    border-left: 2px solid var(--secondary);
-    padding: 10px;
-    margin-bottom: 8px;
+    border-left: 3px solid var(--secondary);
+    padding: 15px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -92,91 +182,79 @@
 
 .equip-item:hover {
     background: rgba(0, 20, 40, 0.8);
-    transform: translateX(5px);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
 }
 
 .equip-icon {
-    font-size: 1.5rem;
+    font-size: 2rem;
     margin-right: 15px;
     opacity: 0.7;
 }
 
-.equip-info {
-    flex: 1;
-}
+.equip-info { flex: 1; }
 
 .equip-name {
     font-weight: bold;
     font-family: 'Share Tech Mono';
     color: #fff;
+    font-size: 1.1rem;
     letter-spacing: 1px;
 }
 
 .equip-sn {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--secondary);
     font-family: monospace;
 }
 
 .equip-status {
-    font-size: 0.7rem;
-    margin-top: 2px;
+    font-size: 0.75rem;
+    margin-top: 4px;
+    font-weight: bold;
 }
 
 .equip-actions {
     display: flex;
-    gap: 5px;
+    gap: 8px;
     align-items: center;
 }
 
-/* --- Nouveau Style pour le Dropdown (Select) --- */
 .assign-select {
     background: #050505;
     border: 1px solid #444;
-    color: #aaa;
+    color: #ccc;
     padding: 5px;
     font-family: 'Share Tech Mono';
     font-size: 0.8rem;
-    width: 140px;
+    width: 150px;
     cursor: pointer;
-    outline: none;
 }
 
-.assign-select:focus {
-    border-color: var(--primary);
-    color: var(--primary);
-}
-
-.assign-select option {
-    background: #111;
-    color: white;
-}
-
-/* --- Boutons d'action --- */
 .btn-icon {
-    background: transparent;
+    background: rgba(0,0,0,0.3);
     border: 1px solid #444;
     color: var(--primary);
     cursor: pointer;
-    width: 30px;
-    height: 30px;
+    width: 35px;
+    height: 35px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: 0.2s;
+    font-size: 1.2rem;
 }
 
 .btn-icon:hover {
     border-color: var(--primary);
-    background: rgba(0,255,0,0.1);
+    background: rgba(0, 255, 65, 0.1);
 }
 
 .btn-del {
     color: var(--danger);
     border-color: #500;
 }
-
 .btn-del:hover {
     border-color: var(--danger);
-    background: rgba(255,0,0,0.1);
+    background: rgba(255, 0, 0, 0.1);
 }

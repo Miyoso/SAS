@@ -1,13 +1,29 @@
 let agentsList = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadAgents(); // Charge les agents en premier
+    await loadAgents();
     loadEquipment();
     setupForm();
     setupSearch();
 });
 
-// Récupère la liste des agents depuis l'API pour le menu déroulant
+// --- GESTION DU MODAL ---
+function openModal() {
+    document.getElementById('modal-overlay').style.display = 'flex';
+    document.getElementById('item_name').focus();
+}
+
+function closeModal() {
+    document.getElementById('modal-overlay').style.display = 'none';
+    document.getElementById('add-equipment-form').reset();
+}
+
+// Fermer le modal si on clique en dehors de la fenêtre
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'modal-overlay') closeModal();
+});
+// ------------------------
+
 async function loadAgents() {
     const token = localStorage.getItem('sas_token');
     try {
@@ -17,17 +33,15 @@ async function loadAgents() {
         if (res.ok) {
             agentsList = await res.json();
         }
-    } catch (e) {
-        console.error("Erreur chargement agents", e);
-    }
+    } catch (e) { console.error("Erreur chargement agents", e); }
 }
 
 async function loadEquipment(search = '') {
     const token = localStorage.getItem('sas_token');
     const container = document.getElementById('equipment-list');
     
-    // Feedback visuel de chargement
-    container.innerHTML = '<div class="blink" style="padding:20px; color:#555;">SCANNING DATABASE...</div>';
+    // Pas de reset du HTML ici pour éviter le clignotement brutal si on tape vite
+    // On gère ça dans renderList ou on met un petit loader discret si c'est long
 
     try {
         const res = await fetch(`/api/equipment?search=${encodeURIComponent(search)}`, {
@@ -40,7 +54,6 @@ async function loadEquipment(search = '') {
         }
     } catch (e) {
         console.error(e);
-        container.innerHTML = '<div style="color:var(--danger)">ERREUR DE CONNEXION</div>';
     }
 }
 
@@ -61,7 +74,6 @@ function renderList(items, container) {
         if(item.category === 'TENUE') icon = '👕';
         if(item.category === 'VÉHICULE') icon = '🚔';
 
-        // Génération du menu déroulant pour les agents
         const agentSelectOptions = agentsList.map(agent => 
             `<option value="${agent}">${agent}</option>`
         ).join('');
@@ -80,9 +92,9 @@ function renderList(items, container) {
                             <option value="" disabled selected>AFFECTER À...</option>
                             ${agentSelectOptions}
                         </select>
-                        <button onclick="assignItem(${item.id})" class="btn-icon" title="Confirmer l'attribution">➜</button>
+                        <button onclick="assignItem(${item.id})" class="btn-icon" title="Attribuer">➜</button>
                     ` : `
-                        <button onclick="returnItem(${item.id})" class="btn-icon" title="Retour au stock">↩</button>
+                        <button onclick="returnItem(${item.id})" class="btn-icon" title="Retour Stock">↩</button>
                     `}
                     <button onclick="deleteItem(${item.id})" class="btn-icon btn-del" title="Supprimer">×</button>
                 </div>
@@ -113,8 +125,8 @@ function setupForm() {
         });
 
         if (res.ok) {
-            e.target.reset();
-            loadEquipment(); // Recharger la liste
+            closeModal(); // Ferme le popup
+            loadEquipment(); // Actualise la liste
         } else {
             alert('Erreur: Vérifiez si le S/N est unique.');
         }
@@ -138,7 +150,6 @@ async function assignItem(id) {
         alert("Veuillez sélectionner un agent.");
         return;
     }
-
     await updateItem(id, 'ASSIGN', target);
 }
 
@@ -157,12 +168,11 @@ async function updateItem(id, action, target) {
         },
         body: JSON.stringify({ id, action, target })
     });
-    // On recharche avec le terme de recherche actuel pour ne pas perdre le filtre
     loadEquipment(document.getElementById('search-input').value);
 }
 
 async function deleteItem(id) {
-    if(!confirm('ATTENTION: Suppression définitive de la base de données. Continuer ?')) return;
+    if(!confirm('Supprimer définitivement cet objet ?')) return;
     
     const token = localStorage.getItem('sas_token');
     await fetch('/api/equipment', {
@@ -176,7 +186,8 @@ async function deleteItem(id) {
     loadEquipment(document.getElementById('search-input').value);
 }
 
-// Exposition globale pour les onclick dans le HTML généré
 window.assignItem = assignItem;
 window.returnItem = returnItem;
 window.deleteItem = deleteItem;
+window.openModal = openModal;
+window.closeModal = closeModal;

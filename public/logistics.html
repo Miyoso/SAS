@@ -28,54 +28,18 @@
                 </div>
                 <div class="meta-data">
                     <div>SYSTEM: <span style="color: var(--primary)">ONLINE</span></div>
-                    <div>NODE: <span class="blink">LOG-04</span></div>
+                    <button onclick="openModal()" class="btn-main-action">[ + SAISIR NOUVEAU MATÉRIEL ]</button>
                 </div>
             </header>
 
-            <section class="intel-grid">
+            <section class="intel-grid single-panel">
                 
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">ENREGISTREMENT</span>
-                        <span style="color:var(--secondary); font-size:0.7rem;">NEW_ENTRY</span>
-                    </div>
-                    
-                    <form id="add-equipment-form" class="log-form">
-                        <div class="form-group">
-                            <label>NOM DE L'OBJET</label>
-                            <input type="text" id="item_name" required placeholder="EX: M4A1 TACTICAL">
-                        </div>
-
-                        <div class="form-group">
-                            <label>NUMÉRO DE SÉRIE (S/N)</label>
-                            <input type="text" id="serial_number" required placeholder="EX: W-9920-X">
-                        </div>
-
-                        <div class="form-group">
-                            <label>CATÉGORIE</label>
-                            <select id="category">
-                                <option value="ARME">ARME</option>
-                                <option value="RADIO">RADIO</option>
-                                <option value="TENUE">TENUE</option>
-                                <option value="VÉHICULE">VÉHICULE</option>
-                                <option value="AUTRE">AUTRE</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>LIEU DE STOCKAGE</label>
-                            <input type="text" id="storage_location" value="ARMURERIE CENTRALE">
-                        </div>
-
-                        <button type="submit" class="btn-scan">[ AJOUTER AU STOCK ]</button>
-                    </form>
-                </div>
-
-                <div class="panel" style="display: flex; flex-direction: column;">
+                <div class="panel full-height">
                     <div class="panel-header">
                         <span class="panel-title">INVENTAIRE GLOBAL</span>
                         <div class="search-box">
-                            <input type="text" id="search-input" placeholder="RECHERCHER S/N OU NOM...">
+                            <span style="margin-right:10px">FILTRE ::</span>
+                            <input type="text" id="search-input" placeholder="RECHERCHER S/N, NOM OU AGENT...">
                         </div>
                     </div>
 
@@ -87,7 +51,7 @@
             </section>
 
             <footer class="footer">
-                <div>LOGISTICS TERMINAL V.2.1</div>
+                <div>LOGISTICS TERMINAL V.2.2</div>
                 <div>
                     <a href="profile.html" style="color: var(--secondary); margin-right: 15px;">[ RETOUR PROFIL ]</a>
                     <a href="database.html" style="color: var(--secondary);">[ BASE DE DONNÉES ]</a>
@@ -95,6 +59,50 @@
             </footer>
 
         </main>
+    </div>
+
+    <div id="modal-overlay" class="modal-overlay" style="display: none;">
+        <div class="modal-window">
+            <div class="modal-header">
+                <span>ENREGISTREMENT_DOTATION</span>
+                <button onclick="closeModal()" class="btn-close">×</button>
+            </div>
+            
+            <form id="add-equipment-form" class="log-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>NOM DE L'OBJET</label>
+                        <input type="text" id="item_name" required placeholder="EX: M4A1 TACTICAL">
+                    </div>
+                    <div class="form-group">
+                        <label>CATÉGORIE</label>
+                        <select id="category">
+                            <option value="ARME">ARME</option>
+                            <option value="RADIO">RADIO</option>
+                            <option value="TENUE">TENUE</option>
+                            <option value="VÉHICULE">VÉHICULE</option>
+                            <option value="AUTRE">AUTRE</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>NUMÉRO DE SÉRIE (S/N)</label>
+                        <input type="text" id="serial_number" required placeholder="EX: W-9920-X">
+                    </div>
+                    <div class="form-group">
+                        <label>LIEU DE STOCKAGE</label>
+                        <input type="text" id="storage_location" value="ARMURERIE CENTRALE">
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" onclick="closeModal()" class="btn-cancel">[ ANNULER ]</button>
+                    <button type="submit" class="btn-scan">[ CONFIRMER L'AJOUT ]</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script src="js/equipment.js"></script>
