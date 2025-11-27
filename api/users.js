@@ -12,8 +12,8 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      // Récupère tous les pseudos des utilisateurs triés par ordre alphabétique
-      const result = await pool.query('SELECT username FROM users ORDER BY username ASC');
+      // MODIFIED: Changed table name from 'users' to 'agents' to match your database schema
+      const result = await pool.query('SELECT username FROM agents ORDER BY username ASC');
       const users = result.rows.map(row => row.username);
       return res.status(200).json(users);
     } catch (error) {
