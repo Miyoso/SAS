@@ -4,6 +4,7 @@
   "dependencies": {
     "pg": "^8.11.3",
     "bcryptjs": "^2.4.3",
+    "pusher": "^5.1.3",
     "jsonwebtoken": "^9.0.2"
   }
 }

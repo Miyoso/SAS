@@ -81,5 +81,14 @@
 
     <script src="js/script.js"></script>
     <script src="js/investigation.js"></script>
+
+<script>
+    // Lancement au démarrage
+    // Récupérer le nom de session ou mettre un défaut
+    const session = JSON.parse(localStorage.getItem('sas_session')) || { username: 'GHOST' };
+
+    // Initialiser la collab
+    SAS_COLLAB.init(session.username, '#00ff9d');
+</script>
 </body>
 </html>
