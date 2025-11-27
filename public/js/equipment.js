@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
         filterInventory(e.target.value.toLowerCase());
     });
 
-    // Configurer le formulaire d'ajout (Modal)
+    // Configurer le formulaire d'ajout (Modal existante)
     const addForm = document.getElementById('add-equipment-form');
     if(addForm) {
         addForm.addEventListener('submit', async (e) => {
@@ -110,7 +110,7 @@ function renderLogs(logs) {
 }
 
 async function handleItemAction(id, action) {
-    // Son UI si disponible
+    // Son UI si disponible (d'après l'idée précédente)
     if(window.SAS_IMMERSION) window.SAS_IMMERSION.playSFX('click');
 
     try {
@@ -142,7 +142,7 @@ function filterInventory(query) {
 // Fonction existante pour ajouter un item (gardée pour compatibilité)
 async function addNewItem() {
     const name = document.getElementById('item_name').value;
-    const cat = document.getElementById('category').value;
+    const category = document.getElementById('category').value;
     const sn = document.getElementById('serial_number').value;
     const loc = document.getElementById('storage_location').value;
 
@@ -152,6 +152,6 @@ async function addNewItem() {
         body: JSON.stringify({ name, category, serial_number: sn, storage_location: loc, added_by: session.username })
     });
 
-    closeModal(); // Fonction définie dans logistics.html (inline) ou script.js
-    fetchLogisticsData();
+    closeModal(); // Fermer la modal (fonction du script de base)
+    fetchLogisticsData(); // Recharger la liste
 }

@@ -11,7 +11,9 @@ export default async function handler(req, res) {
   // --- GET : Récupérer Inventaire + Logs ---
   if (method === 'GET') {
     try {
+      // Récupérer tout l'équipement
       const inventory = await pool.query('SELECT * FROM equipment ORDER BY category, name');
+      // Récupérer les 50 derniers logs
       const logs = await pool.query('SELECT * FROM logistics_logs ORDER BY timestamp DESC LIMIT 50');
 
       res.status(200).json({
@@ -53,20 +55,24 @@ export default async function handler(req, res) {
       const item = itemResult.rows[0];
 
       if (action === 'TAKE') {
+        // Assigner l'objet à l'agent
         await pool.query(
             "UPDATE equipment SET assigned_to = $1, status = 'ASSIGNED', last_updated = NOW() WHERE id = $2",
             [agent, id]
         );
+        // Créer le log de sortie
         await pool.query(
             'INSERT INTO logistics_logs (item_name, serial_number, action_type, agent_name) VALUES ($1, $2, $3, $4)',
             [item.name, item.serial_number, 'CHECKOUT', agent]
         );
       }
       else if (action === 'RETURN') {
+        // Libérer l'objet
         await pool.query(
             "UPDATE equipment SET assigned_to = NULL, status = 'AVAILABLE', last_updated = NOW() WHERE id = $1",
             [id]
         );
+        // Créer le log de retour
         await pool.query(
             'INSERT INTO logistics_logs (item_name, serial_number, action_type, agent_name) VALUES ($1, $2, $3, $4)',
             [item.name, item.serial_number, 'RETURN', agent]
