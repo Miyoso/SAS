@@ -1,92 +1,147 @@
-/* api/equipment.js */
-import { Pool } from 'pg';
+document.addEventListener('DOMContentLoaded', () => {
+  fetchLogisticsData();
 
-const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL,
+  document.getElementById('search-input').addEventListener('input', (e) => {
+    filterInventory(e.target.value.toLowerCase());
+  });
+
+  const addForm = document.getElementById('add-equipment-form');
+  if(addForm) {
+    addForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await addNewItem();
+    });
+  }
 });
 
-export default async function handler(req, res) {
-  const { method } = req;
+const session = JSON.parse(localStorage.getItem('sas_session')) || { username: 'UNKNOWN_AGENT' };
+let allInventory = [];
 
-  // --- GET : Récupérer Inventaire + Logs ---
-  if (method === 'GET') {
-    try {
-      // Récupérer tout l'équipement
-      const inventory = await pool.query('SELECT * FROM equipment ORDER BY category, name');
-      // Récupérer les 50 derniers logs
-      const logs = await pool.query('SELECT * FROM logistics_logs ORDER BY timestamp DESC LIMIT 50');
+async function fetchLogisticsData() {
+  try {
+    const response = await fetch('/api/equipment');
+    const data = await response.json();
 
-      res.status(200).json({
-        inventory: inventory.rows,
-        logs: logs.rows
-      });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
+    allInventory = data.inventory;
+    renderInventory(allInventory);
+    renderLogs(data.logs);
+  } catch (err) {
+    console.error("Erreur connexion logistique:", err);
   }
+}
 
-  // --- POST : Ajouter un nouvel objet (Admin) ---
-  else if (method === 'POST') {
-    const { name, category, serial_number, storage_location, added_by } = req.body;
-    try {
-      await pool.query(
-          'INSERT INTO equipment (name, category, serial_number, storage_location, status) VALUES ($1, $2, $3, $4, $5)',
-          [name, category, serial_number, storage_location, 'AVAILABLE']
-      );
-      // Log de l'ajout
-      await pool.query(
-          'INSERT INTO logistics_logs (item_name, serial_number, action_type, agent_name) VALUES ($1, $2, $3, $4)',
-          [name, serial_number, 'NEW_STOCK', added_by || 'SYSTEM']
-      );
-      res.status(201).json({ message: 'Equipment added' });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  }
+function renderInventory(items) {
+  const container = document.getElementById('equipment-list');
+  container.innerHTML = '';
 
-  // --- PATCH : Prendre ou Rendre un objet ---
-  else if (method === 'PATCH') {
-    const { id, action, agent } = req.body; // action = 'TAKE' ou 'RETURN'
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'inv-row';
 
-    try {
-      // 1. Récupérer les infos de l'objet AVANT modif
-      const itemResult = await pool.query('SELECT name, serial_number FROM equipment WHERE id = $1', [id]);
-      if (itemResult.rows.length === 0) return res.status(404).json({ error: 'Item not found' });
-      const item = itemResult.rows[0];
+    let statusBadge = `<span class="badge badge-green">DISPONIBLE</span>`;
+    let actionButton = `<button onclick="handleItemAction(${item.id}, 'TAKE')" class="btn-action btn-take">[ RÉQUISITIONNER ]</button>`;
+    let rowClass = '';
 
-      if (action === 'TAKE') {
-        // Assigner l'objet à l'agent
-        await pool.query(
-            "UPDATE equipment SET assigned_to = $1, status = 'ASSIGNED', last_updated = NOW() WHERE id = $2",
-            [agent, id]
-        );
-        // Créer le log de sortie
-        await pool.query(
-            'INSERT INTO logistics_logs (item_name, serial_number, action_type, agent_name) VALUES ($1, $2, $3, $4)',
-            [item.name, item.serial_number, 'CHECKOUT', agent]
-        );
+    if (item.assigned_to) {
+      if (item.assigned_to === session.username) {
+        statusBadge = `<span class="badge badge-blue">EN VOTRE POSSESSION</span>`;
+        actionButton = `<button onclick="handleItemAction(${item.id}, 'RETURN')" class="btn-action btn-return">[ RESTITUER ]</button>`;
+        rowClass = 'row-active';
+      } else {
+        statusBadge = `<span class="badge badge-red">ASSIGNÉ: ${item.assigned_to.toUpperCase()}</span>`;
+        actionButton = `<span class="locked-text">NON DISPO</span>`;
+        rowClass = 'row-locked';
       }
-      else if (action === 'RETURN') {
-        // Libérer l'objet
-        await pool.query(
-            "UPDATE equipment SET assigned_to = NULL, status = 'AVAILABLE', last_updated = NOW() WHERE id = $1",
-            [id]
-        );
-        // Créer le log de retour
-        await pool.query(
-            'INSERT INTO logistics_logs (item_name, serial_number, action_type, agent_name) VALUES ($1, $2, $3, $4)',
-            [item.name, item.serial_number, 'RETURN', agent]
-        );
-      }
-
-      res.status(200).json({ message: 'Update success' });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
     }
-  }
 
-  else {
-    res.setHeader('Allow', ['GET', 'POST', 'PATCH']);
-    res.status(405).end(`Method ${method} Not Allowed`);
+    row.innerHTML = `
+            <div style="flex:2; font-weight:bold; color:#fff">${item.item_name}</div>
+            <div style="flex:1; font-family:'Share Tech Mono'; color:#888">${item.serial_number}</div>
+            <div style="flex:1">${statusBadge}</div>
+            <div style="flex:1; text-align:right">${actionButton}</div>
+        `;
+
+    if(rowClass) row.classList.add(rowClass);
+    container.appendChild(row);
+  });
+}
+
+function renderLogs(logs) {
+  const container = document.getElementById('logs-list');
+  container.innerHTML = '';
+
+  logs.forEach(log => {
+    const div = document.createElement('div');
+    div.className = 'log-entry';
+
+    const date = new Date(log.timestamp);
+    const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+    let icon = '•';
+    let colorClass = '';
+    let text = '';
+
+    if (log.action_type === 'CHECKOUT') {
+      icon = '►'; colorClass = 'log-out';
+      text = `<span class="log-agent">${log.agent_name}</span> a pris <span class="log-item">${log.item_name}</span>`;
+    } else if (log.action_type === 'RETURN') {
+      icon = '◄'; colorClass = 'log-in';
+      text = `<span class="log-agent">${log.agent_name}</span> a rendu <span class="log-item">${log.item_name}</span>`;
+    } else if (log.action_type === 'NEW_STOCK') {
+      icon = '+'; colorClass = 'log-new';
+      text = `Nouveau stock: <span class="log-item">${log.item_name}</span> ajouté par ${log.agent_name}`;
+    }
+
+    div.innerHTML = `
+            <span class="log-time">[${timeStr}]</span>
+            <span class="log-icon ${colorClass}">${icon}</span>
+            <span class="log-text">${text}</span>
+        `;
+    container.appendChild(div);
+  });
+}
+
+async function handleItemAction(id, action) {
+  if(window.SAS_IMMERSION) window.SAS_IMMERSION.playSFX('click');
+
+  try {
+    const res = await fetch('/api/equipment', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, action, agent: session.username })
+    });
+
+    if(res.ok) {
+      fetchLogisticsData();
+    }
+  } catch (e) {
+    alert("Erreur de communication avec le serveur logistique.");
   }
+}
+
+function filterInventory(query) {
+  if(!query) return renderInventory(allInventory);
+
+  const filtered = allInventory.filter(item =>
+      item.item_name.toLowerCase().includes(query) ||
+      item.serial_number.toLowerCase().includes(query) ||
+      (item.assigned_to && item.assigned_to.toLowerCase().includes(query))
+  );
+  renderInventory(filtered);
+}
+
+async function addNewItem() {
+  const name = document.getElementById('item_name').value;
+  const category = document.getElementById('category').value;
+  const sn = document.getElementById('serial_number').value;
+  const loc = document.getElementById('storage_location').value;
+
+  await fetch('/api/equipment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, category, serial_number: sn, storage_location: loc, added_by: session.username })
+  });
+
+  closeModal();
+  fetchLogisticsData();
 }
