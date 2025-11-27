@@ -30,19 +30,34 @@
                 </div>
             </header>
 
-            <section class="intel-grid single-panel">
-                
-                <div class="panel full-height">
+            <section class="intel-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; height: calc(100vh - 140px);">
+
+                <div class="panel full-height" style="display: flex; flex-direction: column;">
                     <div class="panel-header">
-                        <span class="panel-title">INVENTAIRE GLOBAL</span>
+                        <span class="panel-title">INVENTAIRE TACTIQUE</span>
                         <div class="search-box">
-                            <span style="margin-right:10px">FILTRE ::</span>
-                            <input type="text" id="search-input" placeholder="RECHERCHER S/N, NOM OU AGENT...">
+                            <input type="text" id="search-input" placeholder="RECHERCHER (NOM, S/N, AGENT)...">
                         </div>
                     </div>
 
-                    <div id="equipment-list" class="equipment-grid">
-                        <div class="blink" style="padding: 20px; color: #555;">CHARGEMENT DES DONNÉES...</div>
+                    <div class="inventory-header">
+                        <span style="flex:2">MATÉRIEL</span>
+                        <span style="flex:1">S/N</span>
+                        <span style="flex:1">STATUT</span>
+                        <span style="flex:1; text-align:right">ACTION</span>
+                    </div>
+
+                    <div id="equipment-list" class="equipment-list-container">
+                        <div class="blink" style="padding: 20px; color: #555;">CHARGEMENT DU MANIFESTE...</div>
+                    </div>
+                </div>
+
+                <div class="panel full-height" style="display: flex; flex-direction: column;">
+                    <div class="panel-header">
+                        <span class="panel-title" style="color: var(--warning)">REGISTRE_MOUVEMENTS</span>
+                        <span style="font-size:0.7rem; color:#666">LIVE_FEED</span>
+                    </div>
+                    <div id="logs-list" class="logs-container">
                     </div>
                 </div>
 

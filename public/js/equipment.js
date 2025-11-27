@@ -1,193 +1,157 @@
-let agentsList = [];
+/* public/js/equipment.js */
 
-document.addEventListener('DOMContentLoaded', async () => {
-    await loadAgents();
-    loadEquipment();
-    setupForm();
-    setupSearch();
-});
+document.addEventListener('DOMContentLoaded', () => {
+    fetchLogisticsData();
 
-// --- GESTION DU MODAL ---
-function openModal() {
-    document.getElementById('modal-overlay').style.display = 'flex';
-    document.getElementById('item_name').focus();
-}
+    // Configurer la recherche
+    document.getElementById('search-input').addEventListener('input', (e) => {
+        filterInventory(e.target.value.toLowerCase());
+    });
 
-function closeModal() {
-    document.getElementById('modal-overlay').style.display = 'none';
-    document.getElementById('add-equipment-form').reset();
-}
-
-// Fermer le modal si on clique en dehors de la fenêtre
-document.getElementById('modal-overlay').addEventListener('click', (e) => {
-    if (e.target.id === 'modal-overlay') closeModal();
-});
-// ------------------------
-
-async function loadAgents() {
-    const token = localStorage.getItem('sas_token');
-    try {
-        const res = await fetch('/api/users', {
-            headers: { 'Authorization': `Bearer ${token}` }
+    // Configurer le formulaire d'ajout (Modal)
+    const addForm = document.getElementById('add-equipment-form');
+    if(addForm) {
+        addForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await addNewItem();
         });
-        if (res.ok) {
-            agentsList = await res.json();
-        }
-    } catch (e) { console.error("Erreur chargement agents", e); }
+    }
+});
+
+// Récupération de session
+const session = JSON.parse(localStorage.getItem('sas_session')) || { username: 'UNKNOWN_AGENT' };
+let allInventory = []; // Stockage local pour le filtrage
+
+async function fetchLogisticsData() {
+    try {
+        const response = await fetch('/api/equipment');
+        const data = await response.json();
+
+        allInventory = data.inventory; // Sauvegarde pour la recherche
+        renderInventory(allInventory);
+        renderLogs(data.logs);
+    } catch (err) {
+        console.error("Erreur connexion logistique:", err);
+    }
 }
 
-async function loadEquipment(search = '') {
-    const token = localStorage.getItem('sas_token');
+function renderInventory(items) {
     const container = document.getElementById('equipment-list');
-    
-    // Pas de reset du HTML ici pour éviter le clignotement brutal si on tape vite
-    // On gère ça dans renderList ou on met un petit loader discret si c'est long
+    container.innerHTML = '';
+
+    items.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'inv-row';
+
+        // Logique des status et boutons
+        let statusBadge = `<span class="badge badge-green">DISPONIBLE</span>`;
+        let actionButton = `<button onclick="handleItemAction(${item.id}, 'TAKE')" class="btn-action btn-take">[ RÉQUISITIONNER ]</button>`;
+        let rowClass = '';
+
+        if (item.assigned_to) {
+            if (item.assigned_to === session.username) {
+                // C'est MOI qui l'ai
+                statusBadge = `<span class="badge badge-blue">EN VOTRE POSSESSION</span>`;
+                actionButton = `<button onclick="handleItemAction(${item.id}, 'RETURN')" class="btn-action btn-return">[ RESTITUER ]</button>`;
+                rowClass = 'row-active';
+            } else {
+                // C'est quelqu'un d'autre
+                statusBadge = `<span class="badge badge-red">ASSIGNÉ: ${item.assigned_to.toUpperCase()}</span>`;
+                actionButton = `<span class="locked-text">NON DISPO</span>`;
+                rowClass = 'row-locked';
+            }
+        }
+
+        row.innerHTML = `
+            <div style="flex:2; font-weight:bold; color:#fff">${item.name}</div>
+            <div style="flex:1; font-family:'Share Tech Mono'; color:#888">${item.serial_number}</div>
+            <div style="flex:1">${statusBadge}</div>
+            <div style="flex:1; text-align:right">${actionButton}</div>
+        `;
+
+        if(rowClass) row.classList.add(rowClass);
+        container.appendChild(row);
+    });
+}
+
+function renderLogs(logs) {
+    const container = document.getElementById('logs-list');
+    container.innerHTML = '';
+
+    logs.forEach(log => {
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+
+        const date = new Date(log.timestamp);
+        const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+        let icon = '•';
+        let colorClass = '';
+        let text = '';
+
+        if (log.action_type === 'CHECKOUT') {
+            icon = '►'; colorClass = 'log-out';
+            text = `<span class="log-agent">${log.agent_name}</span> a pris <span class="log-item">${log.item_name}</span>`;
+        } else if (log.action_type === 'RETURN') {
+            icon = '◄'; colorClass = 'log-in';
+            text = `<span class="log-agent">${log.agent_name}</span> a rendu <span class="log-item">${log.item_name}</span>`;
+        } else if (log.action_type === 'NEW_STOCK') {
+            icon = '+'; colorClass = 'log-new';
+            text = `Nouveau stock: <span class="log-item">${log.item_name}</span> ajouté par ${log.agent_name}`;
+        }
+
+        div.innerHTML = `
+            <span class="log-time">[${timeStr}]</span>
+            <span class="log-icon ${colorClass}">${icon}</span>
+            <span class="log-text">${text}</span>
+        `;
+        container.appendChild(div);
+    });
+}
+
+async function handleItemAction(id, action) {
+    // Son UI si disponible
+    if(window.SAS_IMMERSION) window.SAS_IMMERSION.playSFX('click');
 
     try {
-        const res = await fetch(`/api/equipment?search=${encodeURIComponent(search)}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const res = await fetch('/api/equipment', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, action, agent: session.username })
         });
-        
-        if (res.ok) {
-            const items = await res.json();
-            renderList(items, container);
+
+        if(res.ok) {
+            fetchLogisticsData(); // Rafraichir l'interface
         }
     } catch (e) {
-        console.error(e);
+        alert("Erreur de communication avec le serveur logistique.");
     }
 }
 
-function renderList(items, container) {
-    if (items.length === 0) {
-        container.innerHTML = '<div style="padding:20px; font-style:italic; opacity:0.6;">AUCUN MATÉRIEL TROUVÉ.</div>';
-        return;
-    }
+function filterInventory(query) {
+    if(!query) return renderInventory(allInventory);
 
-    container.innerHTML = items.map(item => {
-        const isAssigned = item.status === 'ISSUED';
-        const statusColor = isAssigned ? 'var(--warning)' : 'var(--primary)';
-        const statusText = isAssigned ? `EN SERVICE : ${item.assigned_to}` : `EN STOCK : ${item.storage_location}`;
-        
-        let icon = '📦'; 
-        if(item.category === 'ARME') icon = '🔫';
-        if(item.category === 'RADIO') icon = '📻';
-        if(item.category === 'TENUE') icon = '👕';
-        if(item.category === 'VÉHICULE') icon = '🚔';
-
-        const agentSelectOptions = agentsList.map(agent => 
-            `<option value="${agent}">${agent}</option>`
-        ).join('');
-
-        return `
-            <div class="equip-item" style="border-left-color: ${statusColor}">
-                <div class="equip-icon">${icon}</div>
-                <div class="equip-info">
-                    <div class="equip-name">${item.item_name}</div>
-                    <div class="equip-sn">S/N: ${item.serial_number}</div>
-                    <div class="equip-status" style="color:${statusColor}">${statusText}</div>
-                </div>
-                <div class="equip-actions">
-                    ${!isAssigned ? `
-                        <select class="assign-select" id="assign-${item.id}">
-                            <option value="" disabled selected>AFFECTER À...</option>
-                            ${agentSelectOptions}
-                        </select>
-                        <button onclick="assignItem(${item.id})" class="btn-icon" title="Attribuer">➜</button>
-                    ` : `
-                        <button onclick="returnItem(${item.id})" class="btn-icon" title="Retour Stock">↩</button>
-                    `}
-                    <button onclick="deleteItem(${item.id})" class="btn-icon btn-del" title="Supprimer">×</button>
-                </div>
-            </div>
-        `;
-    }).join('');
+    const filtered = allInventory.filter(item =>
+        item.name.toLowerCase().includes(query) ||
+        item.serial_number.toLowerCase().includes(query) ||
+        (item.assigned_to && item.assigned_to.toLowerCase().includes(query))
+    );
+    renderInventory(filtered);
 }
 
-function setupForm() {
-    document.getElementById('add-equipment-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const token = localStorage.getItem('sas_token');
-        
-        const data = {
-            item_name: document.getElementById('item_name').value,
-            serial_number: document.getElementById('serial_number').value,
-            category: document.getElementById('category').value,
-            storage_location: document.getElementById('storage_location').value
-        };
+// Fonction existante pour ajouter un item (gardée pour compatibilité)
+async function addNewItem() {
+    const name = document.getElementById('item_name').value;
+    const cat = document.getElementById('category').value;
+    const sn = document.getElementById('serial_number').value;
+    const loc = document.getElementById('storage_location').value;
 
-        const res = await fetch('/api/equipment', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` 
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (res.ok) {
-            closeModal(); // Ferme le popup
-            loadEquipment(); // Actualise la liste
-        } else {
-            alert('Erreur: Vérifiez si le S/N est unique.');
-        }
-    });
-}
-
-function setupSearch() {
-    const input = document.getElementById('search-input');
-    let timeout;
-    input.addEventListener('input', () => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => loadEquipment(input.value), 300);
-    });
-}
-
-async function assignItem(id) {
-    const selectElement = document.getElementById(`assign-${id}`);
-    const target = selectElement.value;
-    
-    if (!target) {
-        alert("Veuillez sélectionner un agent.");
-        return;
-    }
-    await updateItem(id, 'ASSIGN', target);
-}
-
-async function returnItem(id) {
-    if(!confirm('Confirmer le retour en stock ?')) return;
-    await updateItem(id, 'STORE', 'ARMURERIE CENTRALE');
-}
-
-async function updateItem(id, action, target) {
-    const token = localStorage.getItem('sas_token');
     await fetch('/api/equipment', {
-        method: 'PUT',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({ id, action, target })
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, category, serial_number: sn, storage_location: loc, added_by: session.username })
     });
-    loadEquipment(document.getElementById('search-input').value);
-}
 
-async function deleteItem(id) {
-    if(!confirm('Supprimer définitivement cet objet ?')) return;
-    
-    const token = localStorage.getItem('sas_token');
-    await fetch('/api/equipment', {
-        method: 'DELETE',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({ id })
-    });
-    loadEquipment(document.getElementById('search-input').value);
+    closeModal(); // Fonction définie dans logistics.html (inline) ou script.js
+    fetchLogisticsData();
 }
-
-window.assignItem = assignItem;
-window.returnItem = returnItem;
-window.deleteItem = deleteItem;
-window.openModal = openModal;
-window.closeModal = closeModal;

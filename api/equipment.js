@@ -1,80 +1,86 @@
+/* api/equipment.js */
 import { Pool } from 'pg';
-import { verifyToken } from './utils/auth.js';
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  connectionString: process.env.POSTGRES_URL,
 });
 
 export default async function handler(req, res) {
-  const user = verifyToken(req);
-  if (!user) return res.status(401).json({ error: 'Access Denied' });
+  const { method } = req;
 
-  const method = req.method;
+  // --- GET : Récupérer Inventaire + Logs ---
+  if (method === 'GET') {
+    try {
+      const inventory = await pool.query('SELECT * FROM equipment ORDER BY category, name');
+      const logs = await pool.query('SELECT * FROM logistics_logs ORDER BY timestamp DESC LIMIT 50');
 
-  try {
-    if (method === 'GET') {
-      const { search, assigned_to } = req.query;
-      
-      let query = 'SELECT * FROM equipment';
-      let params = [];
-
-      if (assigned_to) {
-        query += ' WHERE assigned_to = $1 AND status = \'ISSUED\'';
-        params.push(assigned_to);
-      }
-      else if (search) {
-        query += ' WHERE serial_number ILIKE $1 OR item_name ILIKE $1 OR assigned_to ILIKE $1';
-        params.push(`%${search}%`);
-      }
-      
-      query += ' ORDER BY category, item_name';
-      
-      const result = await pool.query(query, params);
-      return res.status(200).json(result.rows);
+      res.status(200).json({
+        inventory: inventory.rows,
+        logs: logs.rows
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
+  }
 
-    if (method === 'POST') {
-      const { serial_number, item_name, category, storage_location } = req.body;
-      
-      const check = await pool.query('SELECT id FROM equipment WHERE serial_number = $1', [serial_number]);
-      if (check.rows.length > 0) return res.status(400).json({ error: "Serial number exists" });
-
+  // --- POST : Ajouter un nouvel objet (Admin) ---
+  else if (method === 'POST') {
+    const { name, category, serial_number, storage_location, added_by } = req.body;
+    try {
       await pool.query(
-        `INSERT INTO equipment (serial_number, item_name, category, status, storage_location) 
-         VALUES ($1, $2, $3, 'STOCK', $4)`,
-        [serial_number.toUpperCase(), item_name.toUpperCase(), category, storage_location]
+          'INSERT INTO equipment (name, category, serial_number, storage_location, status) VALUES ($1, $2, $3, $4, $5)',
+          [name, category, serial_number, storage_location, 'AVAILABLE']
       );
-      return res.status(200).json({ success: true });
+      // Log de l'ajout
+      await pool.query(
+          'INSERT INTO logistics_logs (item_name, serial_number, action_type, agent_name) VALUES ($1, $2, $3, $4)',
+          [name, serial_number, 'NEW_STOCK', added_by || 'SYSTEM']
+      );
+      res.status(201).json({ message: 'Equipment added' });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
+  }
 
-    if (method === 'PUT') {
-      const { id, action, target } = req.body; 
+  // --- PATCH : Prendre ou Rendre un objet ---
+  else if (method === 'PATCH') {
+    const { id, action, agent } = req.body; // action = 'TAKE' ou 'RETURN'
 
-      if (action === 'ASSIGN') {
+    try {
+      // 1. Récupérer les infos de l'objet AVANT modif
+      const itemResult = await pool.query('SELECT name, serial_number FROM equipment WHERE id = $1', [id]);
+      if (itemResult.rows.length === 0) return res.status(404).json({ error: 'Item not found' });
+      const item = itemResult.rows[0];
+
+      if (action === 'TAKE') {
         await pool.query(
-            `UPDATE equipment SET status='ISSUED', assigned_to=$1, storage_location=NULL WHERE id=$2`,
-            [target, id]
+            "UPDATE equipment SET assigned_to = $1, status = 'ASSIGNED', last_updated = NOW() WHERE id = $2",
+            [agent, id]
         );
-      } 
-      else if (action === 'STORE') {
         await pool.query(
-            `UPDATE equipment SET status='STOCK', assigned_to=NULL, storage_location=$1 WHERE id=$2`,
-            [target, id]
+            'INSERT INTO logistics_logs (item_name, serial_number, action_type, agent_name) VALUES ($1, $2, $3, $4)',
+            [item.name, item.serial_number, 'CHECKOUT', agent]
+        );
+      }
+      else if (action === 'RETURN') {
+        await pool.query(
+            "UPDATE equipment SET assigned_to = NULL, status = 'AVAILABLE', last_updated = NOW() WHERE id = $1",
+            [id]
+        );
+        await pool.query(
+            'INSERT INTO logistics_logs (item_name, serial_number, action_type, agent_name) VALUES ($1, $2, $3, $4)',
+            [item.name, item.serial_number, 'RETURN', agent]
         );
       }
 
-      return res.status(200).json({ success: true });
+      res.status(200).json({ message: 'Update success' });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
+  }
 
-    if (method === 'DELETE') {
-        const { id } = req.body;
-        await pool.query('DELETE FROM equipment WHERE id = $1', [id]);
-        return res.status(200).json({ success: true });
-    }
-
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Database Error' });
+  else {
+    res.setHeader('Allow', ['GET', 'POST', 'PATCH']);
+    res.status(405).end(`Method ${method} Not Allowed`);
   }
 }
