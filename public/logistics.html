@@ -2,147 +2,101 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>SAS // LOGISTIQUE</title>
-    <link rel="stylesheet" href="css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS - Logistics [SECURE]</title>
+
+    <script>
+        const session = localStorage.getItem('sas_session');
+        if (!session) window.location.href = 'index.html';
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style-mo.css">
     <link rel="stylesheet" href="css/logistics.css">
 </head>
 <body>
-    <div class="scanlines"></div>
+
     <div class="crt-overlay"></div>
 
-    <div class="layout-container">
-        <nav class="sidebar">
-            <div class="sas-logo"><img src="assets/logo-sas.png" alt="SAS"></div>
-            <a href="index.html" class="nav-item">ACCUEIL</a>
-            <a href="investigation.html" class="nav-item">ENQUÊTE</a>
-            <a href="logistics.html" class="nav-item active">LOGISTIQUE</a>
-            <a href="database.html" class="nav-item">BASE DE DONNÉES</a>
-            <a href="profile.html" class="nav-item">PROFIL</a>
-        </nav>
-
-        <main class="main-content">
-            <header class="terminal-header">
-                <h1>>> MODULE_LOGISTIQUE // <span class="blink">ACTIF</span></h1>
-                <div class="user-status">CONNECTÉ: <span id="user-display">AGENT</span></div>
+    <div class="terminal-wrapper">
+        <main class="terminal">
+            
+            <header class="header-strip">
+                <div>
+                    <h1>LOGISTIQUE :: <span style="color: var(--warning);">ARMURERIE</span></h1>
+                    <div style="color: var(--primary); font-size: 0.9rem; letter-spacing: 3px;">SHADOW COMPANY // SUPPLY CHAIN</div>
+                </div>
+                <div class="meta-data">
+                    <div>SYSTEM: <span style="color: var(--primary)">ONLINE</span></div>
+                    <div>NODE: <span class="blink">LOG-04</span></div>
+                </div>
             </header>
 
-            <div class="control-panel">
-                <div class="search-box">
-                    <span class="prefix">> RECHERCHE:</span>
-                    <input type="text" id="search-input" placeholder="NUMÉRO SÉRIE / NOM..." onkeyup="loadData()">
-                </div>
-                <button onclick="openModal('create')" class="btn-tech">
-                    [ + ENREGISTRER NOUVEL OBJET ]
-                </button>
-            </div>
+            <section class="intel-grid">
+                
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">ENREGISTREMENT</span>
+                        <span style="color:var(--secondary); font-size:0.7rem;">NEW_ENTRY</span>
+                    </div>
+                    
+                    <form id="add-equipment-form" class="log-form">
+                        <div class="form-group">
+                            <label>NOM DE L'OBJET</label>
+                            <input type="text" id="item_name" required placeholder="EX: M4A1 TACTICAL">
+                        </div>
 
-            <div class="data-display">
-                <table class="terminal-table">
-                    <thead>
-                        <tr>
-                            <th>MATRICULE (S/N)</th>
-                            <th>TYPE</th>
-                            <th>OBJET</th>
-                            <th>LOCALISATION</th>
-                            <th>STATUT</th>
-                            <th style="text-align:right;">COMMANDES</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-body">
-                        </tbody>
-                </table>
-            </div>
+                        <div class="form-group">
+                            <label>NUMÉRO DE SÉRIE (S/N)</label>
+                            <input type="text" id="serial_number" required placeholder="EX: W-9920-X">
+                        </div>
+
+                        <div class="form-group">
+                            <label>CATÉGORIE</label>
+                            <select id="category">
+                                <option value="ARME">ARME</option>
+                                <option value="RADIO">RADIO</option>
+                                <option value="TENUE">TENUE</option>
+                                <option value="VÉHICULE">VÉHICULE</option>
+                                <option value="AUTRE">AUTRE</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>LIEU DE STOCKAGE</label>
+                            <input type="text" id="storage_location" value="ARMURERIE CENTRALE">
+                        </div>
+
+                        <button type="submit" class="btn-scan">[ AJOUTER AU STOCK ]</button>
+                    </form>
+                </div>
+
+                <div class="panel" style="display: flex; flex-direction: column;">
+                    <div class="panel-header">
+                        <span class="panel-title">INVENTAIRE GLOBAL</span>
+                        <div class="search-box">
+                            <input type="text" id="search-input" placeholder="RECHERCHER S/N OU NOM...">
+                        </div>
+                    </div>
+
+                    <div id="equipment-list" class="equipment-grid">
+                        <div class="blink" style="padding: 20px; color: #555;">CHARGEMENT DES DONNÉES...</div>
+                    </div>
+                </div>
+
+            </section>
+
+            <footer class="footer">
+                <div>LOGISTICS TERMINAL V.2.1</div>
+                <div>
+                    <a href="profile.html" style="color: var(--secondary); margin-right: 15px;">[ RETOUR PROFIL ]</a>
+                    <a href="database.html" style="color: var(--secondary);">[ BASE DE DONNÉES ]</a>
+                </div>
+            </footer>
+
         </main>
     </div>
 
-    <div id="modal-create" class="modal-overlay hidden">
-        <div class="terminal-modal">
-            <div class="modal-header">>> NOUVELLE ENTRÉE STOCK</div>
-            <div class="modal-body">
-                <div class="input-group">
-                    <label>N° SÉRIE:</label>
-                    <input id="new-sn" type="text" placeholder="ex: GLK-001">
-                </div>
-                <div class="input-group">
-                    <label>NOM OBJET:</label>
-                    <input id="new-name" type="text" placeholder="ex: GLOCK 17 GEN5">
-                </div>
-                <div class="input-group">
-                    <label>CATÉGORIE:</label>
-                    <select id="new-cat">
-                        <option value="ARME">ARME</option>
-                        <option value="MUNITION">MUNITION</option>
-                        <option value="RADIO">RADIO</option>
-                        <option value="TENUE">TENUE</option>
-                        <option value="VÉHICULE">VÉHICULE</option>
-                        <option value="PREUVE">PREUVE</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>LIEU DE STOCKAGE:</label>
-                    <input id="new-loc" type="text" placeholder="ex: ARMURERIE CASIER A1">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button onclick="createItem()" class="btn-confirm">[ CONFIRMER ]</button>
-                <button onclick="closeModals()" class="btn-cancel">[ ANNULER ]</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-assign" class="modal-overlay hidden">
-        <div class="terminal-modal">
-            <div class="modal-header">>> SORTIE DE STOCK</div>
-            <div class="modal-body">
-                <p>ATTRIBUTION DU MATÉRIEL : <span id="assign-item-name" class="highlight"></span></p>
-                <input type="hidden" id="assign-id">
-                <div class="input-group">
-                    <label>SÉLECTIONNER L'AGENT:</label>
-                    <select id="assign-agent">
-                        <option value="" disabled selected>CHARGEMENT LISTE...</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button onclick="confirmAssign()" class="btn-confirm">[ VALIDER SORTIE ]</button>
-                <button onclick="closeModals()" class="btn-cancel">[ ANNULER ]</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-return" class="modal-overlay hidden">
-        <div class="terminal-modal">
-            <div class="modal-header">>> RETOUR STOCK</div>
-            <div class="modal-body">
-                <p>RÉINTÉGRATION DU MATÉRIEL</p>
-                <input type="hidden" id="return-id">
-                <div class="input-group">
-                    <label>NOUVEL EMPLACEMENT:</label>
-                    <input id="return-loc" type="text" placeholder="ex: COFFRE PREUVES">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button onclick="confirmReturn()" class="btn-confirm">[ VALIDER RETOUR ]</button>
-                <button onclick="closeModals()" class="btn-cancel">[ ANNULER ]</button>
-            </div>
-        </div>
-    </div>
-
     <script src="js/equipment.js"></script>
-    <script>
-        // Affichage du nom d'utilisateur
-        const token = localStorage.getItem('sas_token');
-        if(token) {
-            try {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                if(document.getElementById('user-display')) {
-                    document.getElementById('user-display').innerText = payload.username.toUpperCase();
-                }
-            } catch(e) { console.error("Erreur token", e); }
-        } else {
-            // Si pas de token, redirection immédiate
-            window.location.href = 'index.html';
-        }
-    </script>
 </body>
 </html>
