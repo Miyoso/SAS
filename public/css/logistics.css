@@ -1,3 +1,4 @@
+/* --- Formulaire d'ajout --- */
 .log-form {
     display: flex;
     flex-direction: column;
@@ -48,6 +49,7 @@
     color: #000;
 }
 
+/* --- Recherche et Liste --- */
 .search-box input {
     background: transparent;
     border: none;
@@ -76,6 +78,7 @@
     background: var(--secondary);
 }
 
+/* --- Item Card Style --- */
 .equip-item {
     background: rgba(0, 20, 40, 0.4);
     border-left: 2px solid var(--secondary);
@@ -106,6 +109,7 @@
     font-weight: bold;
     font-family: 'Share Tech Mono';
     color: #fff;
+    letter-spacing: 1px;
 }
 
 .equip-sn {
@@ -125,15 +129,30 @@
     align-items: center;
 }
 
-.assign-input {
-    background: #000;
+/* --- Nouveau Style pour le Dropdown (Select) --- */
+.assign-select {
+    background: #050505;
     border: 1px solid #444;
-    color: white;
-    width: 80px;
-    padding: 4px;
-    font-size: 0.7rem;
+    color: #aaa;
+    padding: 5px;
+    font-family: 'Share Tech Mono';
+    font-size: 0.8rem;
+    width: 140px;
+    cursor: pointer;
+    outline: none;
 }
 
+.assign-select:focus {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.assign-select option {
+    background: #111;
+    color: white;
+}
+
+/* --- Boutons d'action --- */
 .btn-icon {
     background: transparent;
     border: 1px solid #444;

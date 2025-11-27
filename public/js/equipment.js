@@ -1,13 +1,34 @@
-document.addEventListener('DOMContentLoaded', () => {
+let agentsList = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadAgents(); // Charge les agents en premier
     loadEquipment();
     setupForm();
     setupSearch();
 });
 
+// Récupère la liste des agents depuis l'API pour le menu déroulant
+async function loadAgents() {
+    const token = localStorage.getItem('sas_token');
+    try {
+        const res = await fetch('/api/users', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            agentsList = await res.json();
+        }
+    } catch (e) {
+        console.error("Erreur chargement agents", e);
+    }
+}
+
 async function loadEquipment(search = '') {
     const token = localStorage.getItem('sas_token');
     const container = document.getElementById('equipment-list');
     
+    // Feedback visuel de chargement
+    container.innerHTML = '<div class="blink" style="padding:20px; color:#555;">SCANNING DATABASE...</div>';
+
     try {
         const res = await fetch(`/api/equipment?search=${encodeURIComponent(search)}`, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -19,19 +40,20 @@ async function loadEquipment(search = '') {
         }
     } catch (e) {
         console.error(e);
+        container.innerHTML = '<div style="color:var(--danger)">ERREUR DE CONNEXION</div>';
     }
 }
 
 function renderList(items, container) {
     if (items.length === 0) {
-        container.innerHTML = '<div style="padding:20px; font-style:italic; opacity:0.6;">AUCUN RÉSULTAT TROUVÉ.</div>';
+        container.innerHTML = '<div style="padding:20px; font-style:italic; opacity:0.6;">AUCUN MATÉRIEL TROUVÉ.</div>';
         return;
     }
 
     container.innerHTML = items.map(item => {
         const isAssigned = item.status === 'ISSUED';
         const statusColor = isAssigned ? 'var(--warning)' : 'var(--primary)';
-        const statusText = isAssigned ? `ASSIGNÉ: ${item.assigned_to}` : `STOCK: ${item.storage_location}`;
+        const statusText = isAssigned ? `EN SERVICE : ${item.assigned_to}` : `EN STOCK : ${item.storage_location}`;
         
         let icon = '📦'; 
         if(item.category === 'ARME') icon = '🔫';
@@ -39,8 +61,13 @@ function renderList(items, container) {
         if(item.category === 'TENUE') icon = '👕';
         if(item.category === 'VÉHICULE') icon = '🚔';
 
+        // Génération du menu déroulant pour les agents
+        const agentSelectOptions = agentsList.map(agent => 
+            `<option value="${agent}">${agent}</option>`
+        ).join('');
+
         return `
-            <div class="equip-item">
+            <div class="equip-item" style="border-left-color: ${statusColor}">
                 <div class="equip-icon">${icon}</div>
                 <div class="equip-info">
                     <div class="equip-name">${item.item_name}</div>
@@ -49,12 +76,15 @@ function renderList(items, container) {
                 </div>
                 <div class="equip-actions">
                     ${!isAssigned ? `
-                        <input type="text" placeholder="Agent..." class="assign-input" id="assign-${item.id}">
-                        <button onclick="assignItem(${item.id})" class="btn-icon">➜</button>
+                        <select class="assign-select" id="assign-${item.id}">
+                            <option value="" disabled selected>AFFECTER À...</option>
+                            ${agentSelectOptions}
+                        </select>
+                        <button onclick="assignItem(${item.id})" class="btn-icon" title="Confirmer l'attribution">➜</button>
                     ` : `
-                        <button onclick="returnItem(${item.id})" class="btn-icon" title="Retour Stock">↩</button>
+                        <button onclick="returnItem(${item.id})" class="btn-icon" title="Retour au stock">↩</button>
                     `}
-                    <button onclick="deleteItem(${item.id})" class="btn-icon btn-del">×</button>
+                    <button onclick="deleteItem(${item.id})" class="btn-icon btn-del" title="Supprimer">×</button>
                 </div>
             </div>
         `;
@@ -84,9 +114,9 @@ function setupForm() {
 
         if (res.ok) {
             e.target.reset();
-            loadEquipment();
+            loadEquipment(); // Recharger la liste
         } else {
-            alert('Erreur lors de l\'ajout (S/N existe peut-être déjà).');
+            alert('Erreur: Vérifiez si le S/N est unique.');
         }
     });
 }
@@ -101,13 +131,19 @@ function setupSearch() {
 }
 
 async function assignItem(id) {
-    const target = document.getElementById(`assign-${id}`).value;
-    if (!target) return;
+    const selectElement = document.getElementById(`assign-${id}`);
+    const target = selectElement.value;
+    
+    if (!target) {
+        alert("Veuillez sélectionner un agent.");
+        return;
+    }
 
     await updateItem(id, 'ASSIGN', target);
 }
 
 async function returnItem(id) {
+    if(!confirm('Confirmer le retour en stock ?')) return;
     await updateItem(id, 'STORE', 'ARMURERIE CENTRALE');
 }
 
@@ -121,11 +157,12 @@ async function updateItem(id, action, target) {
         },
         body: JSON.stringify({ id, action, target })
     });
+    // On recharche avec le terme de recherche actuel pour ne pas perdre le filtre
     loadEquipment(document.getElementById('search-input').value);
 }
 
 async function deleteItem(id) {
-    if(!confirm('Confirmer la suppression définitive ?')) return;
+    if(!confirm('ATTENTION: Suppression définitive de la base de données. Continuer ?')) return;
     
     const token = localStorage.getItem('sas_token');
     await fetch('/api/equipment', {
@@ -139,6 +176,7 @@ async function deleteItem(id) {
     loadEquipment(document.getElementById('search-input').value);
 }
 
+// Exposition globale pour les onclick dans le HTML généré
 window.assignItem = assignItem;
 window.returnItem = returnItem;
 window.deleteItem = deleteItem;
