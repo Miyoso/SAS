@@ -1,16 +1,19 @@
-/* public/js/equipment.js */
-
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialisation
+    loadUsersIfAuthorized(); // Charger les utilisateurs si gradé
     fetchLogisticsData();
 
-    // Configurer la recherche
     document.getElementById('search-input').addEventListener('input', (e) => {
         filterInventory(e.target.value.toLowerCase());
     });
 
-    // Configurer le formulaire d'ajout (Modal existante)
     const addForm = document.getElementById('add-equipment-form');
     if(addForm) {
+        // Si l'utilisateur n'est pas gradé, on peut cacher le formulaire ou empêcher l'envoi
+        if (parseInt(session.rank) < 3) {
+            document.querySelector('.btn-main-action').style.display = 'none';
+        }
+
         addForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             await addNewItem();
@@ -18,16 +21,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Récupération de session
-const session = JSON.parse(localStorage.getItem('sas_session')) || { username: 'UNKNOWN_AGENT' };
-let allInventory = []; // Stockage local pour le filtrage
+const session = JSON.parse(localStorage.getItem('sas_session')) || { username: 'UNKNOWN_AGENT', rank: 0 };
+const token = localStorage.getItem('sas_token');
+let allInventory = [];
+let availableAgents = []; // Liste des agents pour le dropdown
+
+async function loadUsersIfAuthorized() {
+    if (parseInt(session.rank) >= 3) {
+        try {
+            const res = await fetch('/api/users', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                availableAgents = await res.json();
+            }
+        } catch (e) {
+            console.error("Erreur chargement agents", e);
+        }
+    }
+}
 
 async function fetchLogisticsData() {
     try {
-        const response = await fetch('/api/equipment');
-        const data = await response.json();
+        const response = await fetch('/api/equipment', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
 
-        allInventory = data.inventory; // Sauvegarde pour la recherche
+        if (!response.ok) {
+            console.error("Erreur API");
+            return;
+        }
+
+        const data = await response.json();
+        allInventory = data.inventory;
         renderInventory(allInventory);
         renderLogs(data.logs);
     } catch (err) {
@@ -39,31 +65,52 @@ function renderInventory(items) {
     const container = document.getElementById('equipment-list');
     container.innerHTML = '';
 
+    const userRank = parseInt(session.rank);
+
     items.forEach(item => {
         const row = document.createElement('div');
         row.className = 'inv-row';
 
-        // Logique des status et boutons
         let statusBadge = `<span class="badge badge-green">DISPONIBLE</span>`;
-        let actionButton = `<button onclick="handleItemAction(${item.id}, 'TAKE')" class="btn-action btn-take">[ RÉQUISITIONNER ]</button>`;
+        let actionButton = '';
         let rowClass = '';
 
         if (item.assigned_to) {
+            // OBJET DÉJÀ ASSIGNÉ
             if (item.assigned_to === session.username) {
-                // C'est MOI qui l'ai
                 statusBadge = `<span class="badge badge-blue">EN VOTRE POSSESSION</span>`;
                 actionButton = `<button onclick="handleItemAction(${item.id}, 'RETURN')" class="btn-action btn-return">[ RESTITUER ]</button>`;
                 rowClass = 'row-active';
             } else {
-                // C'est quelqu'un d'autre
                 statusBadge = `<span class="badge badge-red">ASSIGNÉ: ${item.assigned_to.toUpperCase()}</span>`;
-                actionButton = `<span class="locked-text">NON DISPO</span>`;
+                // Seul un gradé peut forcer le retour d'un objet assigné à un autre (optionnel, ici on verrouille)
+                actionButton = `<span class="locked-text">INDISPONIBLE</span>`;
                 rowClass = 'row-locked';
+            }
+        } else {
+            // OBJET DISPONIBLE (Logique Rang 3+)
+            if (userRank >= 3) {
+                // Création du dropdown pour les gradés
+                let options = availableAgents.map(agent => `<option value="${agent}">${agent}</option>`).join('');
+                // On met l'utilisateur courant par défaut
+                options = `<option value="${session.username}">-- MOI --</option>` + options;
+
+                const selectId = `assign-select-${item.id}`;
+
+                actionButton = `
+                    <div style="display:flex; gap:5px; justify-content:flex-end;">
+                        <select id="${selectId}" class="assign-select" style="width:120px;">${options}</select>
+                        <button onclick="assignToSelected(${item.id})" class="btn-action btn-take">[ ASSIGNER ]</button>
+                    </div>
+                `;
+            } else {
+                // Soldat simple : Verrouillé
+                actionButton = `<span class="locked-text" style="color:#555">VERROUILLÉ (NIV 3+)</span>`;
             }
         }
 
         row.innerHTML = `
-            <div style="flex:2; font-weight:bold; color:#fff">${item.name}</div>
+            <div style="flex:2; font-weight:bold; color:#fff">${item.item_name}</div>
             <div style="flex:1; font-family:'Share Tech Mono'; color:#888">${item.serial_number}</div>
             <div style="flex:1">${statusBadge}</div>
             <div style="flex:1; text-align:right">${actionButton}</div>
@@ -91,7 +138,7 @@ function renderLogs(logs) {
 
         if (log.action_type === 'CHECKOUT') {
             icon = '►'; colorClass = 'log-out';
-            text = `<span class="log-agent">${log.agent_name}</span> a pris <span class="log-item">${log.item_name}</span>`;
+            text = `<span class="log-agent">${log.agent_name}</span> a assigné <span class="log-item">${log.item_name}</span>`;
         } else if (log.action_type === 'RETURN') {
             icon = '◄'; colorClass = 'log-in';
             text = `<span class="log-agent">${log.agent_name}</span> a rendu <span class="log-item">${log.item_name}</span>`;
@@ -109,19 +156,35 @@ function renderLogs(logs) {
     });
 }
 
-async function handleItemAction(id, action) {
-    // Son UI si disponible (d'après l'idée précédente)
+// Fonction pour les gradés : Assigner à la personne sélectionnée
+async function assignToSelected(id) {
+    const select = document.getElementById(`assign-select-${id}`);
+    const targetAgent = select.value;
+
+    await handleItemAction(id, 'TAKE', targetAgent);
+}
+
+async function handleItemAction(id, action, agentName = null) {
     if(window.SAS_IMMERSION) window.SAS_IMMERSION.playSFX('click');
+
+    // Si pas d'agent spécifié (cas du retour), on utilise le nom de session
+    const targetAgent = agentName || session.username;
 
     try {
         const res = await fetch('/api/equipment', {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, action, agent: session.username })
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ id, action, agent: targetAgent })
         });
 
         if(res.ok) {
-            fetchLogisticsData(); // Rafraichir l'interface
+            fetchLogisticsData();
+        } else {
+            const err = await res.json();
+            alert("ERREUR: " + err.error);
         }
     } catch (e) {
         alert("Erreur de communication avec le serveur logistique.");
@@ -132,26 +195,32 @@ function filterInventory(query) {
     if(!query) return renderInventory(allInventory);
 
     const filtered = allInventory.filter(item =>
-        item.name.toLowerCase().includes(query) ||
+        item.item_name.toLowerCase().includes(query) ||
         item.serial_number.toLowerCase().includes(query) ||
         (item.assigned_to && item.assigned_to.toLowerCase().includes(query))
     );
     renderInventory(filtered);
 }
 
-// Fonction existante pour ajouter un item (gardée pour compatibilité)
 async function addNewItem() {
     const name = document.getElementById('item_name').value;
     const category = document.getElementById('category').value;
     const sn = document.getElementById('serial_number').value;
     const loc = document.getElementById('storage_location').value;
 
-    await fetch('/api/equipment', {
+    const res = await fetch('/api/equipment', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ name, category, serial_number: sn, storage_location: loc, added_by: session.username })
     });
 
-    closeModal(); // Fermer la modal (fonction du script de base)
-    fetchLogisticsData(); // Recharger la liste
+    if (res.ok) {
+        closeModal();
+        fetchLogisticsData();
+    } else {
+        alert("Erreur ajout (Droits insuffisants ?)");
+    }
 }
