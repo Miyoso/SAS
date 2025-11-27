@@ -43,12 +43,17 @@ async function loadUsersIfAuthorized() {
 
 async function fetchLogisticsData() {
     try {
+        // On s'assure que le token est bien envoyé
         const response = await fetch('/api/equipment', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (!response.ok) {
-            console.error("Erreur API");
+            // On lit le message d'erreur envoyé par le serveur
+            const errorText = await response.text();
+            console.error("Détails de l'erreur serveur :", response.status, errorText);
+            // Une alerte pour que vous le voyiez tout de suite
+            alert(`Erreur Serveur (${response.status}) : ${errorText}`);
             return;
         }
 
