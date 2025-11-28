@@ -1,3 +1,5 @@
+/* public/js/equipment.js */
+
 document.addEventListener('DOMContentLoaded', () => {
     // Initialisation
     loadUsersIfAuthorized(); // Charger les utilisateurs si gradé
@@ -11,7 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if(addForm) {
         // Si l'utilisateur n'est pas gradé, on peut cacher le formulaire ou empêcher l'envoi
         if (parseInt(session.rank) < 3) {
-            document.querySelector('.btn-main-action').style.display = 'none';
+            const btnMain = document.querySelector('.btn-main-action');
+            if(btnMain) btnMain.style.display = 'none';
         }
 
         addForm.addEventListener('submit', async (e) => {
@@ -49,11 +52,8 @@ async function fetchLogisticsData() {
         });
 
         if (!response.ok) {
-            // On lit le message d'erreur envoyé par le serveur
             const errorText = await response.text();
             console.error("Détails de l'erreur serveur :", response.status, errorText);
-            // Une alerte pour que vous le voyiez tout de suite
-            alert(`Erreur Serveur (${response.status}) : ${errorText}`);
             return;
         }
 
@@ -81,19 +81,31 @@ function renderInventory(items) {
         let rowClass = '';
 
         if (item.assigned_to) {
-            // OBJET DÉJÀ ASSIGNÉ
+            // --- CAS 1 : OBJET ASSIGNÉ ---
+
             if (item.assigned_to === session.username) {
+                // C'est mon objet
                 statusBadge = `<span class="badge badge-blue">EN VOTRE POSSESSION</span>`;
                 actionButton = `<button onclick="handleItemAction(${item.id}, 'RETURN')" class="btn-action btn-return">[ RESTITUER ]</button>`;
                 rowClass = 'row-active';
             } else {
+                // C'est l'objet de quelqu'un d'autre
                 statusBadge = `<span class="badge badge-red">ASSIGNÉ: ${item.assigned_to.toUpperCase()}</span>`;
-                // Seul un gradé peut forcer le retour d'un objet assigné à un autre (optionnel, ici on verrouille)
-                actionButton = `<span class="locked-text">INDISPONIBLE</span>`;
-                rowClass = 'row-locked';
+
+                // MODIFICATION : Si je suis gradé (Rank 3+), je peux forcer le retour
+                if (userRank >= 3) {
+                    actionButton = `<button onclick="handleItemAction(${item.id}, 'RETURN')" class="btn-action btn-return" style="color:var(--warning); border-color:var(--warning)" title="Forcer la remise en stock">[ RÉCUPÉRER ]</button>`;
+                    // On ne met pas 'row-locked' pour que la ligne reste bien visible
+                } else {
+                    // Soldat normal : ne peut pas toucher
+                    actionButton = `<span class="locked-text">INDISPONIBLE</span>`;
+                    rowClass = 'row-locked';
+                }
             }
         } else {
-            // OBJET DISPONIBLE (Logique Rang 3+)
+            // --- CAS 2 : OBJET DISPONIBLE ---
+
+            // Logique Rang 3+ pour assigner à autrui
             if (userRank >= 3) {
                 // Création du dropdown pour les gradés
                 let options = availableAgents.map(agent => `<option value="${agent}">${agent}</option>`).join('');
@@ -109,7 +121,10 @@ function renderInventory(items) {
                     </div>
                 `;
             } else {
-                // Soldat simple : Verrouillé
+                // Soldat simple : Peut se l'assigner à lui-même (standard) ou verrouillé selon vos règles.
+                // Ici, on garde la logique "Verrouillé (Niv 3+)" du code original pour l'attribution,
+                // mais vous pouvez changer ça si vous voulez que les soldats se servent eux-mêmes.
+                // Pour l'instant, je laisse tel quel :
                 actionButton = `<span class="locked-text" style="color:#555">VERROUILLÉ (NIV 3+)</span>`;
             }
         }
@@ -146,6 +161,7 @@ function renderLogs(logs) {
             text = `<span class="log-agent">${log.agent_name}</span> a assigné <span class="log-item">${log.item_name}</span>`;
         } else if (log.action_type === 'RETURN') {
             icon = '◄'; colorClass = 'log-in';
+            // Le nom affiché ici sera celui qui a cliqué sur le bouton (donc l'admin si forcé)
             text = `<span class="log-agent">${log.agent_name}</span> a rendu <span class="log-item">${log.item_name}</span>`;
         } else if (log.action_type === 'NEW_STOCK') {
             icon = '+'; colorClass = 'log-new';
@@ -223,7 +239,10 @@ async function addNewItem() {
     });
 
     if (res.ok) {
-        closeModal();
+        // Fermer modal (fonction définie dans logistics.html, on suppose qu'elle est globale ou on la redéfinit ici pour sécurité)
+        if(window.closeModal) window.closeModal();
+        else document.getElementById('modal-overlay').style.display = 'none';
+
         fetchLogisticsData();
     } else {
         alert("Erreur ajout (Droits insuffisants ?)");
