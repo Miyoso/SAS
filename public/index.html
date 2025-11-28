@@ -9,6 +9,60 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Libre+Barcode+128+Text&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style-mo.css">
     <style>
+        /* --- DA TACTIQUE --- */
+        body {
+            background-color: #020406; /* Fond sombre unifié */
+            overflow: hidden; /* Évite les barres de défilement parasites */
+        }
+
+        .tactical-grid {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -10;
+            pointer-events: none;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
+        }
+
+        .vignette {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 50%, #000 100%);
+            z-index: -5; pointer-events: none;
+        }
+
+        .radar-scan {
+            position: fixed; top: 0; left: 0; width: 100%; height: 5px;
+            background: rgba(0, 255, 157, 0.3);
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+            animation: scanScreen 8s linear infinite;
+            z-index: -4; opacity: 0.3; pointer-events: none;
+        }
+        @keyframes scanScreen { 0% {top: -10%;} 100% {top: 110%;} }
+
+        .hud-side {
+            position: fixed; top: 100px; bottom: 50px; width: 60px;
+            display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+            z-index: 0; pointer-events: none;
+            color: #334455; font-size: 0.6rem; letter-spacing: 1px;
+            border-left: 1px dashed rgba(255,255,255,0.05);
+            border-right: 1px dashed rgba(255,255,255,0.05);
+        }
+        .hud-left { left: 20px; border-left: none; }
+        .hud-right { right: 20px; border-right: none; }
+
+        .hud-marker {
+            writing-mode: vertical-rl; text-orientation: mixed;
+            transform: rotate(180deg);
+            opacity: 0.6;
+        }
+        .hud-ruler {
+            height: 100px; width: 4px;
+            background: repeating-linear-gradient(to bottom, #334455 0, #334455 1px, transparent 2px, transparent 10px);
+        }
+
+        /* --- STYLES EXISTANTS --- */
         .view-section {
             display: flex; flex: 1; overflow: hidden;
             transition: opacity 0.5s ease;
@@ -33,17 +87,17 @@
             display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px;
         }
         .module-card {
-            background: rgba(15, 20, 25, 0.6); 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
+            background: rgba(15, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 20px;
-            position: relative; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            position: relative; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             text-decoration: none;
             display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;
             clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
             backdrop-filter: blur(5px);
         }
         .module-card:hover {
-            transform: translateY(-5px) scale(1.02); 
+            transform: translateY(-5px) scale(1.02);
             background: rgba(20, 30, 40, 0.8);
             border-color: rgba(255,255,255,0.4);
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -57,18 +111,22 @@
         .module-card:hover .module-icon { transform: scale(1.1); color: #fff; text-shadow: 0 0 15px currentColor; }
         .module-name { font-family: var(--font-code); font-weight: 800; color: #fff; font-size: 1.1rem; letter-spacing: 1px; }
         .module-status { font-size: 0.65rem; color: #667788; margin-top: 8px; letter-spacing: 1px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+
         .status-online { border-top: 2px solid var(--primary); }
         .status-online::before { background: var(--primary); opacity: 0.5; }
         .status-online:hover::before { opacity: 1; box-shadow: 0 0 10px var(--primary); }
         .status-online .module-icon { color: var(--primary); }
+
         .status-restricted { border-top: 2px solid var(--warning); }
         .status-restricted::before { background: var(--warning); opacity: 0.5; }
         .status-restricted:hover::before { opacity: 1; box-shadow: 0 0 10px var(--warning); }
         .status-restricted .module-icon { color: var(--warning); }
+
         .status-danger { border-top: 2px solid var(--danger); }
         .status-danger::before { background: var(--danger); opacity: 0.5; }
         .status-danger:hover::before { opacity: 1; box-shadow: 0 0 10px var(--danger); }
         .status-danger .module-icon { color: var(--danger); }
+
         .sidebar-section {
             flex: 1; padding: 0; background: rgba(0,0,0,0.2);
             display: flex; flex-direction: column;
@@ -76,7 +134,7 @@
             min-width: 300px;
         }
         .mini-profile {
-            padding: 30px 20px; 
+            padding: 30px 20px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
             background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
             display: flex; align-items: center; gap: 20px;
@@ -111,9 +169,9 @@
         }
         .sidebar-header::before { content: ''; width: 6px; height: 6px; background: currentColor; }
         .log-container { padding: 20px; font-family: var(--font-code); font-size: 0.75rem; overflow-y: auto; flex:1; }
-        .log-entry { 
-            margin-bottom: 8px; padding-left: 12px; border-left: 2px solid rgba(255,255,255,0.1); 
-            color: #667788; transition: 0.2s; 
+        .log-entry {
+            margin-bottom: 8px; padding-left: 12px; border-left: 2px solid rgba(255,255,255,0.1);
+            color: #667788; transition: 0.2s;
         }
         .log-entry:hover { border-left-color: var(--secondary); color: #ccc; padding-left: 18px; background: linear-gradient(90deg, rgba(255,255,255,0.02), transparent); }
         .log-time { color: var(--dim); margin-right: 8px; font-size: 0.7rem; }
@@ -128,11 +186,11 @@
             transition: 0.3s; z-index: 50;
         }
         .back-button:hover { background: var(--danger); color: #000; box-shadow: 0 0 15px var(--danger); }
-        .terminal-console { 
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 40vh; 
-            background: rgba(5, 8, 10, 0.95); 
-            border-top: 2px solid var(--primary); 
-            display: flex; flex-direction: column; z-index: 2000; 
+        .terminal-console {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 40vh;
+            background: rgba(5, 8, 10, 0.95);
+            border-top: 2px solid var(--primary);
+            display: flex; flex-direction: column; z-index: 2000;
             transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
             backdrop-filter: blur(10px);
         }
@@ -149,12 +207,11 @@
         .prompt { color: var(--primary); font-weight: bold; font-family: var(--font-code); text-shadow: 0 0 5px var(--primary); }
         .cmd-input { background: transparent; border: none; outline: none; color: #fff; font-family: var(--font-code); font-size: 1rem; width: 100%; caret-color: var(--primary); }
         .term-hint {
-            position: fixed; bottom: 10px; right: 20px; font-size: 0.7rem; 
+            position: fixed; bottom: 10px; right: 20px; font-size: 0.7rem;
             color: var(--dim); z-index: 100; opacity: 0.5; letter-spacing: 1px;
             font-family: var(--font-code);
         }
 
-        /* --- STYLES DU BOUTON CONNECT --- */
         .btn-connect {
             background: rgba(0, 255, 157, 0.05);
             border: 1px solid var(--primary);
@@ -178,10 +235,24 @@
     </style>
 </head>
 
-
 <body>
-    <div class="crt-overlay"></div>
+    <div class="tactical-grid"></div>
+    <div class="vignette"></div>
+    <div class="radar-scan"></div>
+
+    <div class="hud-side hud-left">
+        <div class="hud-ruler"></div>
+        <div class="hud-marker">SYSTEM.ROOT</div>
+        <div class="hud-ruler"></div>
+    </div>
+    <div class="hud-side hud-right">
+        <div class="hud-ruler"></div>
+        <div class="hud-marker">SECURE.CONN</div>
+        <div class="hud-ruler"></div>
+    </div>
+
     <div class="term-hint">PRESS [ F9 ] TO TOGGLE TERMINAL</div>
+
     <div class="terminal-wrapper">
         <div class="terminal">
             <div class="header-strip">
@@ -192,7 +263,7 @@
                 <div class="meta-data">
                     <span id="conn-status" style="color:var(--primary)">CONNECTED</span> // PING: 12ms<br>
                     SYS.VER.4.0.2 // <span class="blink">MONITORING</span><br>
-                    
+
                     <button class="btn-connect" onclick="toggleTerminal()">> CONNEXION TERMINAL</button>
                 </div>
             </div>
@@ -260,16 +331,14 @@
                                 <div class="module-status"><span style="color:var(--primary)">●</span> PLANNING </div>
                             </div>
                         </div>
-
-
                     </div>
                 </div>
                 <div id="sidebar-placeholder"></div>
-                </div>
             </div>
             <div id="profile-view" class="view-section hidden profile-view-container"></div>
         </div>
     </div>
+
     <div id="terminal-console" class="terminal-console">
         <div id="terminal-history" class="terminal-history">
             <div class="term-line term-info">SAS Mainframe [Version 4.0.2]</div>
@@ -282,6 +351,7 @@
             <input type="text" id="cmd-input" class="cmd-input" placeholder="Enter command..." autocomplete="off">
         </div>
     </div>
+
     <script src="js/script.js"></script>
     <script>
         function accessModule(url, requiredLevel) {
@@ -293,16 +363,13 @@
             }
         }
 
-        // FONCTION POUR LE BOUTON DE CONNEXION
         function toggleTerminal() {
             const term = document.getElementById('terminal-console');
             const input = document.getElementById('cmd-input');
             const history = document.getElementById('terminal-history');
 
-            // Ajoute ou enlève la classe qui fait monter le terminal
             term.classList.toggle('open');
-            
-            // Si le terminal est ouvert, on focus le champ texte et on scroll en bas
+
             if(term.classList.contains('open')) {
                 setTimeout(() => input.focus(), 100);
                 if(history) history.scrollTop = history.scrollHeight;
@@ -310,6 +377,5 @@
         }
     </script>
 </body>
-
 <script src="js/immersion.js"></script>
 </html>
