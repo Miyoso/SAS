@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS - OPS BOARD</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style-mo.css">
+    <style>
+        .kanban-board {
+            display: flex; gap: 20px; height: calc(100vh - 140px); overflow-x: auto; padding: 10px;
+        }
+        .kanban-col {
+            flex: 1; min-width: 300px;
+            background: rgba(10, 15, 20, 0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex; flex-direction: column;
+        }
+        .col-header {
+            padding: 15px; font-family: 'Share Tech Mono'; font-weight: bold; font-size: 1.1rem;
+            border-bottom: 2px solid; text-transform: uppercase; letter-spacing: 2px;
+        }
+        .col-pending { border-color: var(--warning); color: var(--warning); }
+        .col-active { border-color: var(--danger); color: var(--danger); }
+        .col-completed { border-color: var(--primary); color: var(--primary); }
+
+        .col-body { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+
+        .mission-card {
+            background: rgba(20, 25, 30, 0.9); border: 1px solid rgba(255,255,255,0.1);
+            padding: 15px; position: relative; transition: 0.2s; cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+        .mission-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); border-color: #fff; }
+
+        .m-title { font-family: 'JetBrains Mono'; font-weight: bold; color: #fff; margin-bottom: 5px; }
+        .m-meta { font-size: 0.75rem; color: #888; display: flex; justify-content: space-between; }
+        .m-roster { margin-top: 10px; font-size: 0.7rem; color: var(--secondary); }
+
+        /* Modal specific styling */
+        .modal-details { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; height: 100%; }
+        .detail-section { background: rgba(0,0,0,0.3); padding: 15px; border: 1px solid #333; }
+        .section-h { color: var(--primary); border-bottom: 1px solid #444; margin-bottom: 10px; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <div class="crt-overlay"></div>
+    <div class="terminal-wrapper">
+        <main class="terminal" style="max-width: 100%; height: 95vh;">
+
+            <header class="header-strip">
+                <div>
+                    <h1>OPS :: <span style="color:var(--danger)">BOARD</span></h1>
+                    <div style="color: var(--dim); font-size: 0.9rem; letter-spacing: 3px;">TACTICAL COMMAND CENTER</div>
+                </div>
+                <div class="meta-data">
+                    <button onclick="openCreateModal()" class="btn-profile-access" style="background:var(--primary); color:#000; border:none; font-weight:bold;">+ CRÉER MISSION</button>
+                    <a href="index.html" class="btn-profile-access" style="margin-left:10px;">RETOUR</a>
+                </div>
+            </header>
+
+            <div class="kanban-board">
+                <div class="kanban-col">
+                    <div class="col-header col-pending">PLANIFICATION</div>
+                    <div class="col-body" id="col-pending"></div>
+                </div>
+
+                <div class="kanban-col">
+                    <div class="col-header col-active">EN COURS (ACTIVE)</div>
+                    <div class="col-body" id="col-active"></div>
+                </div>
+
+                <div class="kanban-col">
+                    <div class="col-header col-completed">DÉBRIEFING</div>
+                    <div class="col-body" id="col-completed"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="create-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h2 class="modal-title">NOUVELLE OPÉRATION</h2>
+            <form id="create-form">
+                <div class="form-group"><label>NOM DE CODE</label><input type="text" id="m-title" required></div>
+                <div class="form-group"><label>LIEU</label><input type="text" id="m-loc" required></div>
+                <div class="form-group"><label>DÉBUT OPÉRATION</label><input type="datetime-local" id="m-time" required></div>
+                <div class="form-group"><label>BRIEFING</label><textarea id="m-desc" class="form-textarea" style="height:100px; width:100%; background:#111; color:#fff; border:1px solid #444;"></textarea></div>
+                <div class="modal-actions">
+                    <button type="button" onclick="closeModals()" class="btn-cancel">ANNULER</button>
+                    <button type="submit" class="btn-confirm">LANCER</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="detail-modal" class="modal-overlay hidden">
+        <div class="modal-box" style="width: 800px; height: 600px;">
+            <div style="display:flex; justify-content:space-between;">
+                <h2 class="modal-title" id="d-title">OPERATION NAME</h2>
+                <div id="d-status"></div>
+            </div>
+
+            <div class="modal-details">
+                <div style="display:flex; flex-direction:column; gap:15px;">
+                    <div class="detail-section">
+                        <div class="section-h">BRIEFING</div>
+                        <p id="d-desc" style="font-size:0.9rem; color:#ccc; line-height:1.4;"></p>
+                        <div style="margin-top:10px; font-size:0.8rem; color:#888;">LOC: <span id="d-loc" style="color:#fff;"></span></div>
+                    </div>
+
+                    <div class="detail-section" style="flex:1;">
+                        <div class="section-h">EFFECTIFS (ROSTER)</div>
+                        <div id="d-roster-list" style="margin-bottom:10px;"></div>
+                        <div style="display:flex; gap:5px;">
+                            <input type="text" id="add-agent-input" placeholder="Nom Agent" style="background:#111; border:1px solid #444; color:#fff; padding:5px; flex:1;">
+                            <button onclick="addAgentToMission()" class="btn-profile-access">+ AJOUTER</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="section-h">LOGISTIQUE (LOADOUT)</div>
+                    <div id="d-loadout-list" style="margin-bottom:10px; font-size:0.8rem; color:#aaa;"></div>
+                    <select id="equip-select" style="width:100%; background:#111; border:1px solid #444; color:#fff; padding:5px; margin-bottom:5px;">
+                        <option>Chargement...</option>
+                    </select>
+                    <button onclick="addGearToMission()" class="btn-profile-access" style="width:100%;">+ RÉQUISITIONNER</button>
+
+                    <div style="margin-top: 50px; border-top: 1px dashed #444; padding-top: 20px;">
+                        <div class="section-h">COMMANDEMENT</div>
+                        <button onclick="moveMission('PENDING')" class="btn-cancel" style="width:100%; margin-bottom:5px;">EN ATTENTE</button>
+                        <button onclick="moveMission('ACTIVE')" class="btn-cancel" style="width:100%; border-color:var(--danger); color:var(--danger); margin-bottom:5px;">LANCER (ACTIVE)</button>
+                        <button onclick="moveMission('COMPLETED')" class="btn-cancel" style="width:100%; border-color:var(--primary); color:var(--primary);">TERMINER</button>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:#fff; cursor:pointer;">✖</button>
+        </div>
+    </div>
+
+    <script>
+        // Logique Javascript intégrée pour simplifier
+        let currentMissionId = null;
+        const token = localStorage.getItem('sas_token');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMissions();
+            loadAvailableGear(); // Charger le matos pour le dropdown
+        });
+
+        async function loadMissions() {
+            const res = await fetch('/api/missions', { headers: { 'Authorization': `Bearer ${token}` } });
+            const missions = await res.json();
+
+            // Vider les colonnes
+            ['pending', 'active', 'completed'].forEach(s => document.getElementById(`col-${s}`).innerHTML = '');
+
+            missions.forEach(m => {
+                const card = document.createElement('div');
+                card.className = 'mission-card';
+                // Bordure gauche selon statut
+                if(m.status === 'PENDING') card.style.borderLeftColor = 'var(--warning)';
+                if(m.status === 'ACTIVE') card.style.borderLeftColor = 'var(--danger)';
+                if(m.status === 'COMPLETED') card.style.borderLeftColor = 'var(--primary)';
+
+                const date = new Date(m.start_time).toLocaleDateString();
+                const rosterCount = m.roster.length;
+
+                card.innerHTML = `
+                    <div class="m-title">${m.title}</div>
+                    <div class="m-meta">
+                        <span>${m.location}</span>
+                        <span>${date}</span>
+                    </div>
+                    <div class="m-roster">👥 ${rosterCount} AGENTS // 📦 ${m.loadout.length} ITEMS</div>
+                `;
+                card.onclick = () => openDetailModal(m);
+
+                const colId = `col-${m.status.toLowerCase()}`;
+                const col = document.getElementById(colId);
+                if(col) col.appendChild(card);
+            });
+        }
+
+        async function loadAvailableGear() {
+            // Récupérer tout le matos dispo (ceux qui n'ont pas de mission_id ou assigned_to)
+            // Pour simplifier, on utilise l'API equipment existante
+            const res = await fetch('/api/equipment', { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            const select = document.getElementById('equip-select');
+            select.innerHTML = '<option value="">-- CHOISIR MATÉRIEL --</option>';
+
+            // Filtrer seulement le matos disponible
+            const available = data.inventory.filter(i => !i.assigned_to && !i.mission_id);
+
+            available.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = `${item.item_name} [${item.serial_number}]`;
+                select.appendChild(opt);
+            });
+        }
+
+        // --- GESTION MODALS ---
+        function openCreateModal() { document.getElementById('create-modal').classList.remove('hidden'); }
+        function closeModals() {
+            document.querySelectorAll('.modal-overlay').forEach(el => el.classList.add('hidden'));
+            currentMissionId = null;
+        }
+
+        function openDetailModal(mission) {
+            currentMissionId = mission.id;
+            document.getElementById('d-title').textContent = mission.title;
+            document.getElementById('d-desc').textContent = mission.description;
+            document.getElementById('d-loc').textContent = mission.location;
+
+            // Roster HTML
+            const rosterContainer = document.getElementById('d-roster-list');
+            rosterContainer.innerHTML = mission.roster.map(agent =>
+                `<div style="padding:5px; background:rgba(255,255,255,0.05); margin-bottom:2px;">👤 ${agent}</div>`
+            ).join('');
+
+            // Loadout HTML
+            const loadoutContainer = document.getElementById('d-loadout-list');
+            loadoutContainer.innerHTML = mission.loadout.map(item =>
+                `<div style="display:flex; justify-content:space-between;"><span>${item.item_name}</span><span style="font-family:monospace">${item.serial_number}</span></div>`
+            ).join('');
+
+            document.getElementById('detail-modal').classList.remove('hidden');
+        }
+
+        // --- ACTIONS ---
+        document.getElementById('create-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                action: 'create',
+                title: document.getElementById('m-title').value,
+                description: document.getElementById('m-desc').value,
+                location: document.getElementById('m-loc').value,
+                start_time: document.getElementById('m-time').value
+            };
+            await fetch('/api/missions', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+            closeModals();
+            loadMissions();
+        });
+
+        async function moveMission(status) {
+            if(!currentMissionId) return;
+            await fetch('/api/missions', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ action: 'move', id: currentMissionId, status: status })
+            });
+            closeModals();
+            loadMissions();
+        }
+
+        async function addAgentToMission() {
+            const agentName = document.getElementById('add-agent-input').value;
+            if(!agentName) return;
+            await fetch('/api/missions', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, agent: agentName })
+            });
+            // Recharger les données pour mettre à jour la vue (un peu brut mais efficace)
+            refreshDetails();
+        }
+
+        async function addGearToMission() {
+            const gearId = document.getElementById('equip-select').value;
+            if(!gearId) return;
+            await fetch('/api/missions', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, equipment_id: gearId })
+            });
+            refreshDetails();
+            loadAvailableGear(); // Rafraîchir la liste déroulante
+        }
+
+        async function refreshDetails() {
+            const res = await fetch('/api/missions', { headers: { 'Authorization': `Bearer ${token}` } });
+            const missions = await res.json();
+            const mission = missions.find(m => m.id === currentMissionId);
+            if(mission) openDetailModal(mission);
+        }
+
+    </script>
+</body>
+</html>
