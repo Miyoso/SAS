@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style-mo.css">
     <style>
-        /* --- CORRECTIF AFFICHAGE MODALES --- */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -27,7 +26,6 @@
             pointer-events: none;
         }
 
-        /* --- LAYOUT GLOBAL --- */
         body {
             display: flex; flex-direction: column; height: 100vh; overflow: hidden;
             background-color: #05080a;
@@ -40,7 +38,6 @@
             height: 100%; box-sizing: border-box;
         }
 
-        /* BARRE D'OUTILS */
         .ops-toolbar {
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
@@ -49,7 +46,6 @@
         .toolbar-stats { display: flex; gap: 30px; font-family: 'Share Tech Mono'; color: #8899aa; font-size: 0.9rem; }
         .stat-item b { color: #fff; margin-left: 5px; }
 
-        /* GRILLE KANBAN */
         .kanban-grid {
             flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
             overflow: hidden;
@@ -80,7 +76,6 @@
         .col-body::-webkit-scrollbar { width: 4px; }
         .col-body::-webkit-scrollbar-thumb { background: #333; }
 
-        /* CARTES MISSION */
         .mission-card {
             background: #161b22; border: 1px solid #30363d;
             padding: 12px 15px; cursor: grab; position: relative;
@@ -109,7 +104,6 @@
         }
         .badge-gear { background: rgba(210, 153, 34, 0.15); color: #d29922; border-color: rgba(210, 153, 34, 0.4); }
 
-        /* MODALES */
         .modal-box {
             background: #0b0e11;
             border: 1px solid var(--dim);
@@ -276,14 +270,46 @@
     <script>
         let currentMissionId = null;
         let draggedCard = null;
+        let allAgents = []; // Variable globale pour stocker tous les agents
         const token = localStorage.getItem('sas_token');
 
         document.addEventListener('DOMContentLoaded', () => {
             loadMissions();
             loadAvailableGear();
-            loadAgentsList(); // CHARGEMENT DES AGENTS AU DÉMARRAGE
+            loadAgentsList();
             setupDragAndDrop();
         });
+
+        async function loadAgentsList() {
+            try {
+                const res = await fetch('/api/users', { headers: { 'Authorization': `Bearer ${token}` } });
+                if(res.ok) {
+                    allAgents = await res.json();
+                }
+            } catch(e) { console.error("Erreur chargement agents", e); }
+        }
+
+        function updateAgentSelect(currentRoster) {
+            const select = document.getElementById('add-agent-select');
+            select.innerHTML = '<option value="">-- SÉLECTIONNER AGENT --</option>';
+
+            // On ne garde que les agents qui ne sont PAS dans le roster actuel
+            const availableAgents = allAgents.filter(agent => !currentRoster.includes(agent));
+
+            if (availableAgents.length === 0) {
+                const opt = document.createElement('option');
+                opt.textContent = "(AUCUN AGENT DISPO)";
+                opt.disabled = true;
+                select.appendChild(opt);
+            } else {
+                availableAgents.forEach(agent => {
+                    const opt = document.createElement('option');
+                    opt.value = agent;
+                    opt.textContent = agent.toUpperCase();
+                    select.appendChild(opt);
+                });
+            }
+        }
 
         async function loadMissions() {
             try {
@@ -369,24 +395,6 @@
             draggedCard = null;
         }
 
-        // NOUVELLE FONCTION : CHARGER LA LISTE DES AGENTS
-        async function loadAgentsList() {
-            try {
-                const res = await fetch('/api/users', { headers: { 'Authorization': `Bearer ${token}` } });
-                if(res.ok) {
-                    const agents = await res.json();
-                    const select = document.getElementById('add-agent-select');
-                    select.innerHTML = '<option value="">-- SÉLECTIONNER AGENT --</option>';
-                    agents.forEach(agent => {
-                        const opt = document.createElement('option');
-                        opt.value = agent;
-                        opt.textContent = agent.toUpperCase();
-                        select.appendChild(opt);
-                    });
-                }
-            } catch(e) { console.error("Erreur chargement agents", e); }
-        }
-
         async function loadAvailableGear() {
             const res = await fetch('/api/equipment', { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
@@ -417,6 +425,9 @@
             document.getElementById('d-desc').textContent = mission.description || "Aucun renseignement.";
             document.getElementById('d-loc').textContent = mission.location;
             document.getElementById('roster-count').innerText = mission.roster.length;
+
+            // Mise à jour de la liste d'agents en excluant ceux déjà présents
+            updateAgentSelect(mission.roster);
 
             const rosterContainer = document.getElementById('d-roster-list');
             rosterContainer.innerHTML = mission.roster.map(agent =>
@@ -457,7 +468,6 @@
         }
 
         async function addAgentToMission() {
-            // RÉCUPÉRER LA VALEUR DU SELECT
             const select = document.getElementById('add-agent-select');
             const agentName = select.value;
 
@@ -465,7 +475,7 @@
 
             await fetch('/api/missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, agent: agentName }) });
             refreshDetails();
-            select.value = ""; // Réinitialiser
+            select.value = "";
         }
 
         async function addGearToMission() {
