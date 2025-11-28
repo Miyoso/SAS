@@ -12,13 +12,11 @@
         }
         .kanban-col {
             flex: 1; min-width: 300px;
-            background: rgba(10, 15, 20, 0.5);
-            border: 1px solid rgba(255,255,255,0.1);
             display: flex; flex-direction: column;
         }
         .col-header {
-            padding: 15px; font-family: 'Share Tech Mono'; font-weight: bold; font-size: 1.1rem;
-            border-bottom: 2px solid; text-transform: uppercase; letter-spacing: 2px;
+            padding: 15px; font-family: 'Share Tech Mono'; font-weight: bold;
+            border-bottom: 2px solid; text-transform: uppercase;
         }
         .col-pending { border-color: var(--warning); color: var(--warning); }
         .col-active { border-color: var(--danger); color: var(--danger); }
@@ -26,18 +24,6 @@
 
         .col-body { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
 
-        .mission-card {
-            background: rgba(20, 25, 30, 0.9); border: 1px solid rgba(255,255,255,0.1);
-            padding: 15px; position: relative; transition: 0.2s; cursor: pointer;
-            border-left: 3px solid transparent;
-        }
-        .mission-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); border-color: #fff; }
-
-        .m-title { font-family: 'JetBrains Mono'; font-weight: bold; color: #fff; margin-bottom: 5px; }
-        .m-meta { font-size: 0.75rem; color: #888; display: flex; justify-content: space-between; }
-        .m-roster { margin-top: 10px; font-size: 0.7rem; color: var(--secondary); }
-
-        /* Modal specific styling */
         .modal-details { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; height: 100%; }
         .detail-section { background: rgba(0,0,0,0.3); padding: 15px; border: 1px solid #333; }
         .section-h { color: var(--primary); border-bottom: 1px solid #444; margin-bottom: 10px; font-size: 0.8rem; }
@@ -60,19 +46,19 @@
             </header>
 
             <div class="kanban-board">
-                <div class="kanban-col">
-                    <div class="col-header col-pending">PLANIFICATION</div>
-                    <div class="col-body" id="col-pending"></div>
+                <div class="kanban-col" id="col-pending">
+                    <div class="col-header col-pending">PLANIFICATION <span class="count-badge" id="count-pending">0</span></div>
+                    <div class="col-body" id="body-pending"></div>
                 </div>
 
-                <div class="kanban-col">
-                    <div class="col-header col-active">EN COURS (ACTIVE)</div>
-                    <div class="col-body" id="col-active"></div>
+                <div class="kanban-col" id="col-active">
+                    <div class="col-header col-active">EN COURS (ACTIVE) <span class="count-badge" id="count-active">0</span></div>
+                    <div class="col-body" id="body-active"></div>
                 </div>
 
-                <div class="kanban-col">
-                    <div class="col-header col-completed">DÉBRIEFING</div>
-                    <div class="col-body" id="col-completed"></div>
+                <div class="kanban-col" id="col-completed">
+                    <div class="col-header col-completed">DÉBRIEFING <span class="count-badge" id="count-completed">0</span></div>
+                    <div class="col-body" id="body-completed"></div>
                 </div>
             </div>
 
@@ -86,7 +72,7 @@
                 <div class="form-group"><label>NOM DE CODE</label><input type="text" id="m-title" required></div>
                 <div class="form-group"><label>LIEU</label><input type="text" id="m-loc" required></div>
                 <div class="form-group"><label>DÉBUT OPÉRATION</label><input type="datetime-local" id="m-time" required></div>
-                <div class="form-group"><label>BRIEFING</label><textarea id="m-desc" class="form-textarea" style="height:100px; width:100%; background:#111; color:#fff; border:1px solid #444;"></textarea></div>
+                <div class="form-group"><label>BRIEFING</label><textarea id="m-desc" class="form-textarea" style="height:100px;"></textarea></div>
                 <div class="modal-actions">
                     <button type="button" onclick="closeModals()" class="btn-cancel">ANNULER</button>
                     <button type="submit" class="btn-confirm">LANCER</button>
@@ -114,7 +100,7 @@
                         <div class="section-h">EFFECTIFS (ROSTER)</div>
                         <div id="d-roster-list" style="margin-bottom:10px;"></div>
                         <div style="display:flex; gap:5px;">
-                            <input type="text" id="add-agent-input" placeholder="Nom Agent" style="background:#111; border:1px solid #444; color:#fff; padding:5px; flex:1;">
+                            <input type="text" id="add-agent-input" placeholder="Nom Agent">
                             <button onclick="addAgentToMission()" class="btn-profile-access">+ AJOUTER</button>
                         </div>
                     </div>
@@ -123,7 +109,7 @@
                 <div class="detail-section">
                     <div class="section-h">LOGISTIQUE (LOADOUT)</div>
                     <div id="d-loadout-list" style="margin-bottom:10px; font-size:0.8rem; color:#aaa;"></div>
-                    <select id="equip-select" style="width:100%; background:#111; border:1px solid #444; color:#fff; padding:5px; margin-bottom:5px;">
+                    <select id="equip-select" style="margin-bottom:5px;">
                         <option>Chargement...</option>
                     </select>
                     <button onclick="addGearToMission()" class="btn-profile-access" style="width:100%;">+ RÉQUISITIONNER</button>
@@ -142,60 +128,128 @@
     </div>
 
     <script>
-        // Logique Javascript intégrée pour simplifier
         let currentMissionId = null;
+        let draggedCard = null;
         const token = localStorage.getItem('sas_token');
 
         document.addEventListener('DOMContentLoaded', () => {
             loadMissions();
-            loadAvailableGear(); // Charger le matos pour le dropdown
+            loadAvailableGear();
+            setupDragAndDrop();
         });
 
         async function loadMissions() {
             const res = await fetch('/api/missions', { headers: { 'Authorization': `Bearer ${token}` } });
             const missions = await res.json();
 
-            // Vider les colonnes
-            ['pending', 'active', 'completed'].forEach(s => document.getElementById(`col-${s}`).innerHTML = '');
+            ['pending', 'active', 'completed'].forEach(s => document.getElementById(`body-${s}`).innerHTML = '');
 
             missions.forEach(m => {
                 const card = document.createElement('div');
                 card.className = 'mission-card';
-                // Bordure gauche selon statut
-                if(m.status === 'PENDING') card.style.borderLeftColor = 'var(--warning)';
-                if(m.status === 'ACTIVE') card.style.borderLeftColor = 'var(--danger)';
-                if(m.status === 'COMPLETED') card.style.borderLeftColor = 'var(--primary)';
+                card.setAttribute('draggable', 'true');
+                card.dataset.id = m.id;
+
+                let borderCol = 'var(--warning)';
+                if(m.status === 'ACTIVE') borderCol = 'var(--danger)';
+                if(m.status === 'COMPLETED') borderCol = 'var(--primary)';
+                card.style.borderLeftColor = borderCol;
 
                 const date = new Date(m.start_time).toLocaleDateString();
-                const rosterCount = m.roster.length;
 
                 card.innerHTML = `
-                    <div class="m-title">${m.title}</div>
-                    <div class="m-meta">
-                        <span>${m.location}</span>
-                        <span>${date}</span>
+                    <div style="display:flex; justify-content:space-between;">
+                        <div class="m-title">${m.title}</div>
+                        <div style="color:${borderCol}; font-size:0.7rem;">●</div>
                     </div>
-                    <div class="m-roster">👥 ${rosterCount} AGENTS // 📦 ${m.loadout.length} ITEMS</div>
+                    <div class="m-meta">
+                        <span>📍 ${m.location}</span>
+                        <span>📅 ${date}</span>
+                    </div>
+                    <div class="m-roster">
+                        <span style="opacity:0.7">EFFECTIF:</span>
+                        <b>${m.roster.length}</b> AGENTS
+                    </div>
                 `;
-                card.onclick = () => openDetailModal(m);
 
-                const colId = `col-${m.status.toLowerCase()}`;
+                card.onclick = () => openDetailModal(m);
+                card.addEventListener('dragstart', dragStart);
+                card.addEventListener('dragend', dragEnd);
+
+                const colId = `body-${m.status.toLowerCase()}`;
                 const col = document.getElementById(colId);
                 if(col) col.appendChild(card);
             });
+
+            updateCounts();
+        }
+
+        function setupDragAndDrop() {
+            document.querySelectorAll('.col-body').forEach(col => {
+                col.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    col.style.background = 'rgba(255,255,255,0.05)';
+                });
+
+                col.addEventListener('dragleave', e => {
+                    col.style.background = 'transparent';
+                });
+
+                col.addEventListener('drop', async e => {
+                    e.preventDefault();
+                    col.style.background = 'transparent';
+
+                    if (draggedCard) {
+                        col.appendChild(draggedCard);
+
+                        let newStatus = 'PENDING';
+                        if (col.id === 'body-active') newStatus = 'ACTIVE';
+                        if (col.id === 'body-completed') newStatus = 'COMPLETED';
+
+                        if(newStatus === 'PENDING') draggedCard.style.borderLeftColor = 'var(--warning)';
+                        if(newStatus === 'ACTIVE') draggedCard.style.borderLeftColor = 'var(--danger)';
+                        if(newStatus === 'COMPLETED') draggedCard.style.borderLeftColor = 'var(--primary)';
+
+                        const missionId = draggedCard.dataset.id;
+                        try {
+                            await fetch('/api/missions', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                body: JSON.stringify({ action: 'move', id: missionId, status: newStatus })
+                            });
+                            if(window.SAS_IMMERSION) window.SAS_IMMERSION.playSFX('click');
+                            updateCounts();
+                        } catch (err) {
+                            console.error(err);
+                        }
+                    }
+                });
+            });
+        }
+
+        function dragStart(e) {
+            draggedCard = this;
+            setTimeout(() => this.style.opacity = '0.4', 0);
+            e.dataTransfer.setData('text/plain', this.dataset.id);
+        }
+
+        function dragEnd() {
+            draggedCard.style.opacity = '1';
+            draggedCard = null;
+        }
+
+        function updateCounts() {
+            document.getElementById('count-pending').textContent = document.getElementById('body-pending').children.length;
+            document.getElementById('count-active').textContent = document.getElementById('body-active').children.length;
+            document.getElementById('count-completed').textContent = document.getElementById('body-completed').children.length;
         }
 
         async function loadAvailableGear() {
-            // Récupérer tout le matos dispo (ceux qui n'ont pas de mission_id ou assigned_to)
-            // Pour simplifier, on utilise l'API equipment existante
             const res = await fetch('/api/equipment', { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
             const select = document.getElementById('equip-select');
             select.innerHTML = '<option value="">-- CHOISIR MATÉRIEL --</option>';
-
-            // Filtrer seulement le matos disponible
             const available = data.inventory.filter(i => !i.assigned_to && !i.mission_id);
-
             available.forEach(item => {
                 const opt = document.createElement('option');
                 opt.value = item.id;
@@ -204,7 +258,6 @@
             });
         }
 
-        // --- GESTION MODALS ---
         function openCreateModal() { document.getElementById('create-modal').classList.remove('hidden'); }
         function closeModals() {
             document.querySelectorAll('.modal-overlay').forEach(el => el.classList.add('hidden'));
@@ -217,13 +270,11 @@
             document.getElementById('d-desc').textContent = mission.description;
             document.getElementById('d-loc').textContent = mission.location;
 
-            // Roster HTML
             const rosterContainer = document.getElementById('d-roster-list');
             rosterContainer.innerHTML = mission.roster.map(agent =>
                 `<div style="padding:5px; background:rgba(255,255,255,0.05); margin-bottom:2px;">👤 ${agent}</div>`
             ).join('');
 
-            // Loadout HTML
             const loadoutContainer = document.getElementById('d-loadout-list');
             loadoutContainer.innerHTML = mission.loadout.map(item =>
                 `<div style="display:flex; justify-content:space-between;"><span>${item.item_name}</span><span style="font-family:monospace">${item.serial_number}</span></div>`
@@ -232,7 +283,6 @@
             document.getElementById('detail-modal').classList.remove('hidden');
         }
 
-        // --- ACTIONS ---
         document.getElementById('create-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = {
@@ -267,7 +317,6 @@
                 method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, agent: agentName })
             });
-            // Recharger les données pour mettre à jour la vue (un peu brut mais efficace)
             refreshDetails();
         }
 
@@ -279,7 +328,7 @@
                 body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, equipment_id: gearId })
             });
             refreshDetails();
-            loadAvailableGear(); // Rafraîchir la liste déroulante
+            loadAvailableGear();
         }
 
         async function refreshDetails() {
@@ -288,7 +337,6 @@
             const mission = missions.find(m => m.id === currentMissionId);
             if(mission) openDetailModal(mission);
         }
-
     </script>
 </body>
 </html>
