@@ -2,146 +2,250 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS - OPS BOARD</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <title>SAS - TACTICAL OPS</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style-mo.css">
+    <style>
+        /* --- LAYOUT GLOBAL REORGANISÉ --- */
+        body {
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+            background-color: #05080a; /* Fond plus profond */
+        }
+
+        .ops-container {
+            flex: 1; display: flex; flex-direction: column;
+            padding: 20px 40px; gap: 20px;
+        }
+
+        /* BARRE D'OUTILS (NOUVEAU) */
+        .ops-toolbar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+            padding: 15px 25px; backdrop-filter: blur(5px);
+        }
+        .toolbar-stats { display: flex; gap: 30px; font-family: 'Share Tech Mono'; color: #8899aa; font-size: 0.9rem; }
+        .stat-item b { color: #fff; margin-left: 5px; }
+
+        /* GRILLE KANBAN (REORGANISÉE) */
+        .kanban-grid {
+            flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+            overflow: hidden; /* Empêche le scroll global */
+        }
+
+        .kanban-col {
+            display: flex; flex-direction: column;
+            background: rgba(13, 17, 23, 0.7);
+            border: 1px solid rgba(255,255,255,0.05);
+            /* Ligne de couleur supérieure */
+            border-top: 4px solid #444;
+        }
+
+        /* Couleurs spécifiques par colonne */
+        .col-pending { border-top-color: var(--warning); }
+        .col-active { border-top-color: var(--danger); background: linear-gradient(180deg, rgba(255,51,51,0.05) 0%, rgba(13,17,23,0.7) 30%); }
+        .col-completed { border-top-color: var(--primary); }
+
+        .col-header {
+            padding: 15px 20px; background: rgba(0,0,0,0.4);
+            font-family: 'Share Tech Mono'; font-size: 1rem; letter-spacing: 2px;
+            display: flex; justify-content: space-between; color: #ccc;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .col-body {
+            flex: 1; padding: 15px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        /* Scrollbar custom */
+        .col-body::-webkit-scrollbar { width: 4px; }
+        .col-body::-webkit-scrollbar-thumb { background: #333; }
+
+        /* CARTES MISSION (REDESIGN) */
+        .mission-card {
+            background: #161b22; border: 1px solid #30363d;
+            padding: 12px 15px; cursor: grab; position: relative;
+            transition: all 0.2s;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .mission-card:hover {
+            border-color: var(--primary); transform: translateX(4px); background: #1c2128;
+            box-shadow: -4px 0 0 var(--primary); /* Marqueur visuel gauche */
+        }
+
+        .mc-header { display: flex; justify-content: space-between; align-items: center; }
+        .mc-title { font-family: 'JetBrains Mono'; font-weight: bold; color: #e6edf3; font-size: 0.95rem; }
+        .mc-icon { font-size: 0.7rem; color: #555; }
+
+        .mc-meta {
+            display: flex; justify-content: space-between; font-size: 0.75rem; color: #8b949e;
+            font-family: 'Share Tech Mono';
+        }
+
+        .mc-badges { display: flex; gap: 5px; margin-top: 5px; }
+        .badge {
+            background: rgba(56, 139, 253, 0.15); color: #58a6ff;
+            padding: 2px 6px; border-radius: 4px; font-size: 0.7rem;
+            border: 1px solid rgba(56, 139, 253, 0.4);
+        }
+        .badge-gear { background: rgba(210, 153, 34, 0.15); color: #d29922; border-color: rgba(210, 153, 34, 0.4); }
+
+        /* MODALS (REDESIGN) */
+        .modal-layout {
+            display: grid; grid-template-columns: 280px 1fr; gap: 0; /* Sidebar gauche + Contenu droite */
+            height: 100%;
+        }
+        /* Si on veut une modal large standard */
+        .modal-wide { width: 900px; height: 700px; padding: 0; display: flex; flex-direction: column; }
+
+        .modal-top {
+            padding: 15px 25px; border-bottom: 1px solid #333; background: rgba(0,0,0,0.3);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-main { flex: 1; display: grid; grid-template-columns: 2fr 1fr; overflow: hidden; }
+
+        .modal-col-left { padding: 25px; overflow-y: auto; border-right: 1px solid #333; }
+        .modal-col-right { padding: 25px; background: rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 20px; }
+
+        .detail-group { margin-bottom: 25px; }
+        .detail-label { color: var(--secondary); font-size: 0.75rem; margin-bottom: 8px; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+        .detail-value { font-family: 'JetBrains Mono'; font-size: 0.9rem; line-height: 1.5; color: #d0d7de; }
+
+        .btn-full { width: 100%; margin-bottom: 10px; text-align: center; }
+    </style>
 </head>
 <body>
     <div class="crt-overlay"></div>
-    <div class="terminal-wrapper">
-        <main class="terminal" style="max-width: 100%; height: 95vh; padding: 0;">
 
-            <header class="header-strip" style="margin: 20px 30px;">
-                <div>
-                    <h1>OPS :: <span style="color:var(--danger)">BOARD</span></h1>
-                    <div style="color: var(--dim); font-size: 0.9rem; letter-spacing: 3px;">TACTICAL COMMAND CENTER</div>
-                </div>
-                <div class="meta-data" style="display:flex; gap:10px;">
-                    <button onclick="openCreateModal()" class="btn-tactical">
-                        + NOUVELLE OP
-                    </button>
-                    <a href="index.html" class="btn-tactical secondary" style="text-decoration:none; padding-top:12px;">
-                        RETOUR
-                    </a>
-                </div>
-            </header>
+    <div class="ops-container">
 
-            <div class="kanban-board">
-                <div class="kanban-col">
-                    <div class="col-header col-pending">
-                        <span>/// PLANIFICATION</span>
-                        <span class="count-badge" id="count-pending">0</span>
-                    </div>
-                    <div class="col-body" id="body-pending">
-                    </div>
-                </div>
+        <header class="header-strip" style="padding: 0; border: none; margin-bottom: 0;">
+            <div>
+                <h1 style="font-size: 2rem;">OPS :: <span style="color:var(--danger)">CENTER</span></h1>
+            </div>
+            <div style="display:flex; gap:15px;">
+                <a href="index.html" class="btn-tactical secondary" style="text-decoration:none; padding-top:12px;">RETOUR</a>
+            </div>
+        </header>
 
-                <div class="kanban-col">
-                    <div class="col-header col-active">
-                        <span class="blink">● EN COURS</span>
-                        <span class="count-badge" id="count-active">0</span>
-                    </div>
-                    <div class="col-body" id="body-active"></div>
-                </div>
+        <div class="ops-toolbar">
+            <div class="toolbar-stats">
+                <span class="stat-item">MISSIONS ACTIVES: <b id="stat-active" style="color:var(--danger)">0</b></span>
+                <span class="stat-item">EN ATTENTE: <b id="stat-pending" style="color:var(--warning)">0</b></span>
+                <span class="stat-item">TERMINÉES: <b id="stat-completed" style="color:var(--primary)">0</b></span>
+            </div>
+            <button onclick="openCreateModal()" class="btn-tactical">
+                [ + ] INITIALISER MISSION
+            </button>
+        </div>
 
-                <div class="kanban-col">
-                    <div class="col-header col-completed">
-                        <span>✓ TERMINÉ</span>
-                        <span class="count-badge" id="count-completed">0</span>
-                    </div>
-                    <div class="col-body" id="body-completed"></div>
+        <div class="kanban-grid">
+
+            <div class="kanban-col col-pending">
+                <div class="col-header">
+                    <span>/// PLANIFICATION</span>
                 </div>
+                <div class="col-body" id="body-pending"></div>
             </div>
 
-        </main>
+            <div class="kanban-col col-active">
+                <div class="col-header">
+                    <span class="blink" style="color:var(--danger)">● OPÉRATIONS EN COURS</span>
+                </div>
+                <div class="col-body" id="body-active"></div>
+            </div>
+
+            <div class="kanban-col col-completed">
+                <div class="col-header">
+                    <span style="color:var(--primary)">✓ DÉBRIEFING</span>
+                </div>
+                <div class="col-body" id="body-completed"></div>
+            </div>
+
+        </div>
     </div>
 
     <div id="create-modal" class="modal-overlay hidden">
-        <div class="modal-box">
-            <div class="modal-header-strip">
-                <span class="modal-title">INITIALISATION MISSION</span>
+        <div class="modal-box" style="width: 600px;">
+            <div class="modal-top">
+                <span class="modal-title">NOUVEL ORDRE DE MISSION</span>
                 <button onclick="closeModals()" style="background:none; border:none; color:#666; cursor:pointer;">✖</button>
             </div>
-
-            <form id="create-form" class="modal-content-pad">
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+            <form id="create-form" style="padding: 25px;">
+                <div class="form-group">
+                    <label>NOM DE CODE OPÉRATION</label>
+                    <input type="text" id="m-title" class="form-input" placeholder="EX: SHADOW FALL" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="form-group">
-                        <label>NOM DE CODE</label>
-                        <input type="text" id="m-title" class="form-input" placeholder="EX: OPÉRATION BLACKOUT" required>
+                        <label>SECTEUR / LIEU</label>
+                        <input type="text" id="m-loc" class="form-input" required>
                     </div>
                     <div class="form-group">
-                        <label>DÉBUT (HEURE H)</label>
+                        <label>HEURE DE DÉPART</label>
                         <input type="datetime-local" id="m-time" class="form-input" required>
                     </div>
                 </div>
-
                 <div class="form-group">
-                    <label>LOCALISATION / SECTEUR</label>
-                    <input type="text" id="m-loc" class="form-input" placeholder="EX: ZONE INDUSTRIELLE, LS" required>
+                    <label>OBJECTIFS & BRIEFING</label>
+                    <textarea id="m-desc" class="form-textarea" style="height:100px;"></textarea>
                 </div>
-
-                <div class="form-group">
-                    <label>BRIEFING TACTIQUE</label>
-                    <textarea id="m-desc" class="form-input" style="height:120px; resize:none;" placeholder="Détails de la mission..."></textarea>
-                </div>
-
-                <div style="display:flex; justify-content:flex-end; gap:15px; margin-top:20px;">
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
                     <button type="button" onclick="closeModals()" class="btn-tactical secondary">ANNULER</button>
-                    <button type="submit" class="btn-tactical">VALIDER L'ORDRE</button>
+                    <button type="submit" class="btn-tactical">CONFIRMER</button>
                 </div>
             </form>
         </div>
     </div>
 
     <div id="detail-modal" class="modal-overlay hidden">
-        <div class="modal-box" style="height: 80vh;">
-            <div class="modal-header-strip">
-                <span class="modal-title" id="d-title">OPERATION DETAIL</span>
-                <div id="d-status-badge" class="count-badge" style="color:var(--primary); border-color:var(--primary);">STATUS</div>
+        <div class="modal-box modal-wide">
+            <div class="modal-top">
+                <span class="modal-title" id="d-title">OPERATION ALPHA</span>
+                <button onclick="closeModals()" style="background:none; border:none; color:#666; cursor:pointer;">✖</button>
             </div>
 
-            <div class="modal-content-pad" style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; height: 100%; overflow: hidden;">
-
-                <div style="display:flex; flex-direction:column; overflow-y:auto; padding-right:10px;">
-                    <div style="margin-bottom:30px;">
-                        <div style="color:var(--secondary); font-size:0.8rem; margin-bottom:10px; border-bottom:1px solid #333;">>> RAPPORT DE SITUATION</div>
-                        <p id="d-desc" style="font-family:'JetBrains Mono'; font-size:0.9rem; line-height:1.6; color:#ccc;"></p>
-                        <div style="margin-top:15px; color:#888; font-size:0.8rem;">📍 SECTEUR : <span id="d-loc" style="color:#fff;"></span></div>
+            <div class="modal-main">
+                <div class="modal-col-left">
+                    <div class="detail-group">
+                        <div class="detail-label">SITUATION</div>
+                        <div id="d-desc" class="detail-value" style="white-space: pre-wrap;"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">LOCALISATION</div>
+                        <div id="d-loc" class="detail-value" style="color:var(--secondary)"></div>
                     </div>
 
-                    <div style="flex:1;">
-                        <div style="color:var(--secondary); font-size:0.8rem; margin-bottom:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between;">
-                            <span>>> EFFECTIFS ASSIGNÉS</span>
+                    <div class="detail-group" style="margin-top:40px;">
+                        <div class="detail-label" style="display:flex; justify-content:space-between;">
+                            <span>ROSTER (AGENTS)</span>
+                            <span id="roster-count">0</span>
                         </div>
+                        <div id="d-roster-list" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
 
-                        <div id="d-roster-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:10px; margin-bottom:15px;">
-                        </div>
-
-                        <div style="display:flex; gap:10px; background:rgba(255,255,255,0.02); padding:10px; border:1px solid #333;">
-                            <input type="text" id="add-agent-input" class="form-input" placeholder="Ajouter Agent..." style="padding:8px; font-size:0.8rem;">
-                            <button onclick="addAgentToMission()" class="btn-tactical secondary" style="padding:5px 15px;">+</button>
+                        <div style="display:flex; gap:10px; margin-top:15px;">
+                            <input type="text" id="add-agent-input" class="form-input" placeholder="Ajouter Agent..." style="padding:6px;">
+                            <button onclick="addAgentToMission()" class="btn-tactical secondary" style="padding:6px 12px;">+</button>
                         </div>
                     </div>
                 </div>
 
-                <div style="background:rgba(0,0,0,0.3); padding:20px; border-left:1px solid #333; display:flex; flex-direction:column;">
+                <div class="modal-col-right">
 
-                    <div style="flex:1; margin-bottom:20px;">
-                        <div style="color:var(--warning); font-size:0.8rem; margin-bottom:15px;">>> MATÉRIEL REQUIS</div>
-                        <div id="d-loadout-list" style="font-size:0.8rem; color:#aaa; margin-bottom:15px; max-height:200px; overflow-y:auto;"></div>
+                    <div style="flex:1;">
+                        <div class="detail-label" style="color:var(--warning)">LOGISTIQUE</div>
+                        <div id="d-loadout-list" style="max-height:200px; overflow-y:auto; font-size:0.8rem; color:#aaa; margin-bottom:10px;"></div>
 
-                        <select id="equip-select" class="form-input" style="font-size:0.8rem; padding:8px; margin-bottom:10px;">
+                        <select id="equip-select" class="form-input" style="font-size:0.8rem; padding:8px; margin-bottom:8px;">
                             <option>Chargement...</option>
                         </select>
-                        <button onclick="addGearToMission()" class="btn-tactical secondary" style="width:100%; font-size:0.8rem;">RÉQUISITIONNER</button>
+                        <button onclick="addGearToMission()" class="btn-tactical secondary btn-full" style="font-size:0.8rem;">RÉQUISITIONNER</button>
                     </div>
 
                     <div style="border-top:1px dashed #444; padding-top:20px;">
-                        <div style="color:#666; font-size:0.7rem; margin-bottom:10px; text-align:center;">PANNEAU DE COMMANDE</div>
-                        <button onclick="moveMission('PENDING')" class="btn-tactical secondary" style="width:100%; margin-bottom:8px;">REMETTRE EN ATTENTE</button>
-                        <button onclick="moveMission('ACTIVE')" class="btn-tactical danger" style="width:100%; margin-bottom:8px;">LANCER MISSION</button>
-                        <button onclick="moveMission('COMPLETED')" class="btn-tactical" style="width:100%;">CLÔTURER</button>
+                        <div class="detail-label" style="text-align:center; border:none; margin-bottom:15px;">COMMANDEMENT</div>
+                        <button onclick="moveMission('PENDING')" class="btn-tactical secondary btn-full">EN ATTENTE</button>
+                        <button onclick="moveMission('ACTIVE')" class="btn-tactical danger btn-full">LANCER MISSION</button>
+                        <button onclick="moveMission('COMPLETED')" class="btn-tactical btn-full" style="border-color:var(--primary); color:var(--primary)">TERMINER</button>
                     </div>
 
                 </div>
@@ -173,22 +277,20 @@
                     card.setAttribute('draggable', 'true');
                     card.dataset.id = m.id;
 
-                    let borderCol = 'var(--warning)';
-                    if(m.status === 'ACTIVE') borderCol = 'var(--danger)';
-                    if(m.status === 'COMPLETED') borderCol = 'var(--primary)';
-                    card.style.borderLeftColor = borderCol;
-
                     const date = new Date(m.start_time).toLocaleDateString('fr-FR', {day: '2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
 
                     card.innerHTML = `
-                        <div class="m-title" style="color:${m.status === 'ACTIVE' ? 'var(--danger)' : '#fff'}">${m.title}</div>
-                        <div class="m-meta">
+                        <div class="mc-header">
+                            <span class="mc-title">${m.title}</span>
+                            <span class="mc-icon">●</span>
+                        </div>
+                        <div class="mc-meta">
                             <span>📍 ${m.location}</span>
                             <span>🕒 ${date}</span>
                         </div>
-                        <div style="margin-top:10px; display:flex; gap:5px;">
-                            <span class="m-roster-badge">👤 ${m.roster.length}</span>
-                            <span class="m-roster-badge" style="color:#ccc">📦 ${m.loadout.length}</span>
+                        <div class="mc-badges">
+                            <div class="badge">👤 ${m.roster.length}</div>
+                            <div class="badge badge-gear">📦 ${m.loadout.length}</div>
                         </div>
                     `;
 
@@ -201,8 +303,14 @@
                     if(col) col.appendChild(card);
                 });
 
-                updateCounts();
+                updateStats();
             } catch(e) { console.error(e); }
+        }
+
+        function updateStats() {
+            document.getElementById('stat-pending').innerText = document.getElementById('body-pending').children.length;
+            document.getElementById('stat-active').innerText = document.getElementById('body-active').children.length;
+            document.getElementById('stat-completed').innerText = document.getElementById('body-completed').children.length;
         }
 
         function setupDragAndDrop() {
@@ -218,17 +326,13 @@
                         if (col.id === 'body-active') newStatus = 'ACTIVE';
                         if (col.id === 'body-completed') newStatus = 'COMPLETED';
 
-                        if(newStatus === 'PENDING') draggedCard.style.borderLeftColor = 'var(--warning)';
-                        if(newStatus === 'ACTIVE') draggedCard.style.borderLeftColor = 'var(--danger)';
-                        if(newStatus === 'COMPLETED') draggedCard.style.borderLeftColor = 'var(--primary)';
-
                         const missionId = draggedCard.dataset.id;
                         await fetch('/api/missions', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                             body: JSON.stringify({ action: 'move', id: missionId, status: newStatus })
                         });
-                        updateCounts();
+                        updateStats();
                     }
                 });
             });
@@ -243,22 +347,17 @@
             this.style.opacity = '1';
             draggedCard = null;
         }
-        function updateCounts() {
-            document.getElementById('count-pending').textContent = document.getElementById('body-pending').children.length;
-            document.getElementById('count-active').textContent = document.getElementById('body-active').children.length;
-            document.getElementById('count-completed').textContent = document.getElementById('body-completed').children.length;
-        }
 
         async function loadAvailableGear() {
             const res = await fetch('/api/equipment', { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
             const select = document.getElementById('equip-select');
-            select.innerHTML = '<option value="">-- SÉLECTIONNER MATÉRIEL --</option>';
+            select.innerHTML = '<option value="">-- CHOISIR MATÉRIEL --</option>';
             const available = data.inventory.filter(i => !i.assigned_to && !i.mission_id);
             available.forEach(item => {
                 const opt = document.createElement('option');
                 opt.value = item.id;
-                opt.textContent = `[${item.category}] ${item.item_name} (${item.serial_number})`;
+                opt.textContent = `${item.item_name} [${item.serial_number}]`;
                 select.appendChild(opt);
             });
         }
@@ -269,21 +368,22 @@
         function openDetailModal(mission) {
             currentMissionId = mission.id;
             document.getElementById('d-title').textContent = mission.title;
-            document.getElementById('d-desc').textContent = mission.description || "Aucun briefing disponible.";
+            document.getElementById('d-desc').textContent = mission.description || "Aucun renseignement.";
             document.getElementById('d-loc').textContent = mission.location;
+            document.getElementById('roster-count').innerText = mission.roster.length;
 
             const rosterContainer = document.getElementById('d-roster-list');
             rosterContainer.innerHTML = mission.roster.map(agent =>
-                `<div style="background:#222; border:1px solid #444; padding:5px; border-radius:4px; font-size:0.8rem; text-align:center; color:#fff;">${agent.toUpperCase()}</div>`
+                `<div style="background:#161b22; padding:4px 8px; border:1px solid #30363d; border-radius:4px; font-size:0.8rem; color:#e6edf3;">${agent.toUpperCase()}</div>`
             ).join('');
 
             const loadoutContainer = document.getElementById('d-loadout-list');
-            if(mission.loadout.length === 0) loadoutContainer.innerHTML = "<div style='font-style:italic;'>Aucun matériel assigné.</div>";
+            if(mission.loadout.length === 0) loadoutContainer.innerHTML = "<div style='font-style:italic; opacity:0.5;'>Aucun équipement.</div>";
             else {
                 loadoutContainer.innerHTML = mission.loadout.map(item =>
-                    `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #333; padding:5px 0;">
+                    `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #333; padding:4px 0;">
                         <span>${item.item_name}</span>
-                        <span style="font-family:monospace; color:var(--primary);">${item.serial_number}</span>
+                        <span style="font-family:monospace; color:var(--warning);">${item.serial_number}</span>
                     </div>`
                 ).join('');
             }
