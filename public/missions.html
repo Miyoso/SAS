@@ -13,7 +13,7 @@
             top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(8px);
-            z-index: 10000; /* Au-dessus de tout */
+            z-index: 10000;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -21,7 +21,6 @@
             transition: opacity 0.2s ease;
         }
 
-        /* Classe utilitaire pour cacher les éléments */
         .hidden {
             display: none !important;
             opacity: 0;
@@ -110,7 +109,7 @@
         }
         .badge-gear { background: rgba(210, 153, 34, 0.15); color: #d29922; border-color: rgba(210, 153, 34, 0.4); }
 
-        /* STYLES MODALES INTERNES */
+        /* MODALES */
         .modal-box {
             background: #0b0e11;
             border: 1px solid var(--dim);
@@ -162,7 +161,6 @@
         </div>
 
         <div class="kanban-grid">
-
             <div class="kanban-col col-pending">
                 <div class="col-header">
                     <span>/// PLANIFICATION</span>
@@ -183,7 +181,6 @@
                 </div>
                 <div class="col-body" id="body-completed"></div>
             </div>
-
         </div>
     </div>
 
@@ -246,14 +243,15 @@
                         <div id="d-roster-list" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
 
                         <div style="display:flex; gap:10px; margin-top:15px;">
-                            <input type="text" id="add-agent-input" class="form-input" placeholder="Ajouter Agent..." style="padding:6px;">
+                            <select id="add-agent-select" class="form-input" style="padding:6px; font-size:0.8rem;">
+                                <option value="">-- SÉLECTIONNER AGENT --</option>
+                            </select>
                             <button onclick="addAgentToMission()" class="btn-tactical secondary" style="padding:6px 12px;">+</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-col-right">
-
                     <div style="flex:1;">
                         <div class="detail-label" style="color:var(--warning)">LOGISTIQUE</div>
                         <div id="d-loadout-list" style="max-height:200px; overflow-y:auto; font-size:0.8rem; color:#aaa; margin-bottom:10px;"></div>
@@ -270,7 +268,6 @@
                         <button onclick="moveMission('ACTIVE')" class="btn-tactical danger btn-full">LANCER MISSION</button>
                         <button onclick="moveMission('COMPLETED')" class="btn-tactical btn-full" style="border-color:var(--primary); color:var(--primary)">TERMINER</button>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -284,6 +281,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadMissions();
             loadAvailableGear();
+            loadAgentsList(); // CHARGEMENT DES AGENTS AU DÉMARRAGE
             setupDragAndDrop();
         });
 
@@ -371,6 +369,24 @@
             draggedCard = null;
         }
 
+        // NOUVELLE FONCTION : CHARGER LA LISTE DES AGENTS
+        async function loadAgentsList() {
+            try {
+                const res = await fetch('/api/users', { headers: { 'Authorization': `Bearer ${token}` } });
+                if(res.ok) {
+                    const agents = await res.json();
+                    const select = document.getElementById('add-agent-select');
+                    select.innerHTML = '<option value="">-- SÉLECTIONNER AGENT --</option>';
+                    agents.forEach(agent => {
+                        const opt = document.createElement('option');
+                        opt.value = agent;
+                        opt.textContent = agent.toUpperCase();
+                        select.appendChild(opt);
+                    });
+                }
+            } catch(e) { console.error("Erreur chargement agents", e); }
+        }
+
         async function loadAvailableGear() {
             const res = await fetch('/api/equipment', { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
@@ -380,12 +396,11 @@
             available.forEach(item => {
                 const opt = document.createElement('option');
                 opt.value = item.id;
-                opt.textContent = `${item.item_name} [${item.serial_number}]`;
+                opt.textContent = `[${item.category}] ${item.item_name} (${item.serial_number})`;
                 select.appendChild(opt);
             });
         }
 
-        // --- GESTION DES MODALES ---
         function openCreateModal() {
             const modal = document.getElementById('create-modal');
             modal.classList.remove('hidden');
@@ -442,11 +457,15 @@
         }
 
         async function addAgentToMission() {
-            const agentName = document.getElementById('add-agent-input').value;
+            // RÉCUPÉRER LA VALEUR DU SELECT
+            const select = document.getElementById('add-agent-select');
+            const agentName = select.value;
+
             if(!agentName) return;
+
             await fetch('/api/missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, agent: agentName }) });
             refreshDetails();
-            document.getElementById('add-agent-input').value = '';
+            select.value = ""; // Réinitialiser
         }
 
         async function addGearToMission() {
