@@ -127,24 +127,25 @@ body::before {
 @keyframes terminalEntry { to { opacity: 1; transform: scale(1); } }
 
 .terminal {
-    background: var(--panel-bg);
-    border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: var(--glass);
-    box-shadow: 0 20px 80px rgba(0,0,0,0.9), 0 0 0 1px rgba(0, 255, 157, 0.05);
+    background: transparent; /* Fond transparent */
+    /* On garde un padding pour l'espacement si nécessaire */
     padding: 2.5rem;
     position: relative;
-    display: flex; flex-direction: column; gap: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
     overflow: hidden;
+    /* On enlève les bordures et ombres */
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
 }
-/* Décoration coins terminal */
-.terminal::before {
-    content: ""; position: absolute; top: 0; left: 0; width: 20px; height: 20px;
-    border-top: 2px solid var(--primary); border-left: 2px solid var(--primary);
+
+/* Masquer les coins si vous le souhaitez */
+.terminal::before, .terminal::after {
+    display: none;
 }
-.terminal::after {
-    content: ""; position: absolute; bottom: 0; right: 0; width: 20px; height: 20px;
-    border-bottom: 2px solid var(--primary); border-right: 2px solid var(--primary);
-}
+
 
 /* EN-TÊTE */
 .header-strip {
