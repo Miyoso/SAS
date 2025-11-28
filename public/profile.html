@@ -121,44 +121,44 @@
             <section class="intel-grid">
                 
                 <div class="panel">
-    <div class="panel-header">
-        <span class="panel-title">BIO_METRICS</span>
-        <span style="color:var(--danger); font-size:0.7rem;" class="blink">LIVE_FEED</span>
-    </div>
+                    <div class="panel-header">
+                        <span class="panel-title">BIO_METRICS</span>
+                        <span style="color:var(--danger); font-size:0.7rem;" class="blink">LIVE_FEED</span>
+                    </div>
 
-    <div class="biometric-row">
-        <div class="ecg-wrapper">
-            <canvas id="ecg-canvas"></canvas>
-            <div class="ecg-overlay"></div>
-        </div>
-        <div class="bpm-readout">
-            <span class="label">HR_BPM</span>
-            <span id="bpm-value" style="font-size: 1.5rem; color: var(--primary); font-weight: bold;">--</span>
-        </div>
-    </div>
+                    <div class="biometric-row">
+                        <div class="ecg-wrapper">
+                            <canvas id="ecg-canvas"></canvas>
+                            <div class="ecg-overlay"></div>
+                        </div>
+                        <div class="bpm-readout">
+                            <span class="label">HR_BPM</span>
+                            <span id="bpm-value" style="font-size: 1.5rem; color: var(--primary); font-weight: bold;">--</span>
+                        </div>
+                    </div>
 
-    <div class="separator-dashed"></div>
+                    <div class="separator-dashed"></div>
 
-    <div class="psy-section">
-        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-            <span class="label">CORTISOL_LEVEL (STRESS)</span>
-            <span id="stress-pct" style="color: var(--secondary)">0%</span>
-        </div>
+                    <div class="psy-section">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                            <span class="label">CORTISOL_LEVEL (STRESS)</span>
+                            <span id="stress-pct" style="color: var(--secondary)">0%</span>
+                        </div>
 
-        <div class="progress-track">
-            <div id="stress-bar" class="progress-fill-psy"></div>
-        </div>
+                        <div class="progress-track">
+                            <div id="stress-bar" class="progress-fill-psy"></div>
+                        </div>
 
-        <div class="psy-status-text" id="psy-status-text">
-            NEURO-STABLE
-        </div>
+                        <div class="psy-status-text" id="psy-status-text">
+                            NEURO-STABLE
+                        </div>
 
-        <div class="psy-controls">
-            <button onclick="adjustStress(-10)" class="btn-psy">[- CALM]</button>
-            <button onclick="adjustStress(10)" class="btn-psy">[+ STRESS]</button>
-        </div>
-    </div>
-</div>
+                        <div class="psy-controls">
+                            <button onclick="adjustStress(-10)" class="btn-psy">[- CALM]</button>
+                            <button onclick="adjustStress(10)" class="btn-psy">[+ STRESS]</button>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="panel">
                     <div class="panel-header">
@@ -175,15 +175,15 @@
                         <span class="panel-title">SYSTÈME</span>
                         <span style="color:var(--secondary); font-size:0.7rem;">ACCESS_LOG</span>
                     </div>
-                    
+
                     <div class="log-entry">
-                         <span style="color: var(--primary)">[+] 
+                         <span style="color: var(--primary)">[+]
                              <span>CONNEXION SÉCURISÉE ÉTABLIE</span>
                          </span>
                     </div>
-                    
+
                     <div class="log-entry">
-                         <span style="color: var(--primary)">[+] 
+                         <span style="color: var(--primary)">[+]
                              <span>AUTHENTIFICATION BIOMÉTRIQUE : OK</span>
                          </span>
                     </div>
@@ -212,26 +212,37 @@
 
             if (sessionData) {
                 const { username, rank, created_at, id } = sessionData;
-                
+
+                // Remplissage des infos disponibles
                 document.getElementById('header-username').textContent = username.toUpperCase();
                 document.getElementById('card-username').textContent = username.toUpperCase();
-                
+
                 const rankDisplay = `LVL-${rank}`;
                 document.getElementById('card-rank-code').textContent = rankDisplay;
                 document.getElementById('card-rank-badge').textContent = rank >= 5 ? 'COMMAND' : (rank >= 3 ? 'OFFICER' : 'OPERATOR');
-                
+
+                // --- CORRECTION : Suppression des éléments qui causaient l'erreur ---
+                // Les IDs 'info-date' et 'info-id' n'existent pas dans le HTML,
+                // donc on ne tente pas de les modifier.
+                /*
                 const joinDate = created_at ? new Date(created_at).toLocaleDateString('fr-FR') : 'UNKNOWN';
-                document.getElementById('info-date').textContent = joinDate;
+                if(document.getElementById('info-date')) {
+                    document.getElementById('info-date').textContent = joinDate;
+                }
 
                 const displayId = id ? `SAS-${id.toString().padStart(4, '0')}` : 'SAS-GHOST';
                 const idElement = document.getElementById('info-id');
-                idElement.setAttribute('data-real', displayId);
-                idElement.setAttribute('data-scramble', 'ENCRYPTED');
-                idElement.textContent = displayId;
+                if(idElement) {
+                    idElement.setAttribute('data-real', displayId);
+                    idElement.setAttribute('data-scramble', 'ENCRYPTED');
+                    idElement.textContent = displayId;
+                }
+                */
 
                 document.getElementById('session-id').textContent = '0x' + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
             }
 
+            // Animation de la carte
             const card = document.getElementById('card');
             const cardContainer = document.querySelector('.id-card-container');
 
@@ -241,7 +252,7 @@
                 const y = e.clientY - rect.top;
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
-                const rotateX = ((y - centerY) / centerY) * -10; 
+                const rotateX = ((y - centerY) / centerY) * -10;
                 const rotateY = ((x - centerX) / centerX) * 10;
                 card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
             });
@@ -249,6 +260,7 @@
                 card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
             });
 
+            // Effet Redacted
             const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             document.querySelectorAll('.redacted').forEach(element => {
                 element.onmouseover = event => {
@@ -269,152 +281,130 @@
 
         /* --- SYSTÈME BIOMÉTRIQUE --- */
 
-// 1. GESTION DU STRESS (Sauvegardé dans le navigateur)
-function initPsychometrics() {
-    // Récupérer le niveau de stress (0 à 100)
-    let currentStress = parseInt(localStorage.getItem('sas_stress_level')) || 0;
-    updateStressUI(currentStress);
-}
+        // 1. GESTION DU STRESS
+        function initPsychometrics() {
+            let currentStress = parseInt(localStorage.getItem('sas_stress_level')) || 0;
+            updateStressUI(currentStress);
+        }
 
-function adjustStress(amount) {
-    let currentStress = parseInt(localStorage.getItem('sas_stress_level')) || 0;
-    currentStress += amount;
+        function adjustStress(amount) {
+            let currentStress = parseInt(localStorage.getItem('sas_stress_level')) || 0;
+            currentStress += amount;
+            if (currentStress < 0) currentStress = 0;
+            if (currentStress > 100) currentStress = 100;
+            localStorage.setItem('sas_stress_level', currentStress);
+            updateStressUI(currentStress);
+        }
 
-    // Bornes 0 - 100
-    if (currentStress < 0) currentStress = 0;
-    if (currentStress > 100) currentStress = 100;
+        function updateStressUI(level) {
+            const bar = document.getElementById('stress-bar');
+            const pct = document.getElementById('stress-pct');
+            const txt = document.getElementById('psy-status-text');
+            const bpmDisplay = document.getElementById('bpm-value');
 
-    localStorage.setItem('sas_stress_level', currentStress);
-    updateStressUI(currentStress);
-}
+            bar.style.width = level + '%';
+            pct.textContent = level + '%';
 
-function updateStressUI(level) {
-    const bar = document.getElementById('stress-bar');
-    const pct = document.getElementById('stress-pct');
-    const txt = document.getElementById('psy-status-text');
-    const bpmDisplay = document.getElementById('bpm-value'); // Lier le BPM au stress !
+            if (level < 30) {
+                bar.style.backgroundColor = '#00ff9d';
+                bar.style.boxShadow = '0 0 10px #00ff9d';
+                txt.textContent = "NEURO-STABLE";
+                txt.style.color = '#00ff9d';
+                targetBPM = 60 + (level / 2);
+            } else if (level < 70) {
+                bar.style.backgroundColor = '#eebb00';
+                bar.style.boxShadow = '0 0 10px #eebb00';
+                txt.textContent = "STRESS ÉLEVÉ - VIGILANCE";
+                txt.style.color = '#eebb00';
+                targetBPM = 90 + ((level - 30));
+            } else {
+                bar.style.backgroundColor = '#ff3333';
+                bar.style.boxShadow = '0 0 15px #ff3333';
+                txt.textContent = "CRITIQUE // TRAUMA IMMINENT";
+                txt.style.color = '#ff3333';
+                txt.classList.add('blink');
+                targetBPM = 130 + ((level - 70) * 1.5);
+            }
+        }
 
-    // Mise à jour largeur
-    bar.style.width = level + '%';
-    pct.textContent = level + '%';
+        // 2. ANIMATION ECG
+        let ctx, canvas;
+        let xPos = 0;
+        let targetBPM = 65;
+        let lastFrameTime = 0;
 
-    // Logique de couleur et de statut
-    if (level < 30) {
-        bar.style.backgroundColor = '#00ff9d'; // Vert
-        bar.style.boxShadow = '0 0 10px #00ff9d';
-        txt.textContent = "NEURO-STABLE";
-        txt.style.color = '#00ff9d';
-        targetBPM = 60 + (level / 2); // BPM calme
-    } else if (level < 70) {
-        bar.style.backgroundColor = '#eebb00'; // Jaune
-        bar.style.boxShadow = '0 0 10px #eebb00';
-        txt.textContent = "STRESS ÉLEVÉ - VIGILANCE";
-        txt.style.color = '#eebb00';
-        targetBPM = 90 + ((level - 30)); // BPM élevé
-    } else {
-        bar.style.backgroundColor = '#ff3333'; // Rouge
-        bar.style.boxShadow = '0 0 15px #ff3333';
-        txt.textContent = "CRITIQUE // TRAUMA IMMINENT";
-        txt.style.color = '#ff3333';
-        txt.classList.add('blink');
-        targetBPM = 130 + ((level - 70) * 1.5); // Tachycardie
-    }
-}
+        function initECG() {
+            canvas = document.getElementById('ecg-canvas');
+            if(!canvas) return;
 
-// 2. ANIMATION ECG (CANVAS)
-let ctx, canvas;
-let xPos = 0;
-let targetBPM = 65; // BPM par défaut
-let lastFrameTime = 0;
+            ctx = canvas.getContext('2d');
+            const wrapper = canvas.parentElement;
+            canvas.width = wrapper.clientWidth;
+            canvas.height = wrapper.clientHeight;
 
-function initECG() {
-    canvas = document.getElementById('ecg-canvas');
-    if(!canvas) return;
+            requestAnimationFrame(drawECG);
 
-    ctx = canvas.getContext('2d');
+            setInterval(() => {
+                const noise = Math.floor(Math.random() * 6) - 3;
+                const finalBPM = Math.floor(targetBPM + noise);
+                const el = document.getElementById('bpm-value');
+                if(el) el.textContent = finalBPM;
+            }, 2000);
+        }
 
-    // Adapter la taille au CSS
-    const wrapper = canvas.parentElement;
-    canvas.width = wrapper.clientWidth;
-    canvas.height = wrapper.clientHeight;
+        function drawECG(timestamp) {
+            if (!lastFrameTime) lastFrameTime = timestamp;
+            const delta = timestamp - lastFrameTime;
+            const speed = (canvas.width * (targetBPM / 60)) / 100;
 
-    // Lancer la boucle
-    requestAnimationFrame(drawECG);
+            let color = '#00ff9d';
+            if(targetBPM > 100) color = '#eebb00';
+            if(targetBPM > 140) color = '#ff3333';
 
-    // Mettre à jour le chiffre BPM de façon un peu aléatoire autour de la cible
-    setInterval(() => {
-        const noise = Math.floor(Math.random() * 6) - 3; // +/- 3
-        const finalBPM = Math.floor(targetBPM + noise);
-        const el = document.getElementById('bpm-value');
-        if(el) el.textContent = finalBPM;
-    }, 2000);
-}
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = color;
 
-function drawECG(timestamp) {
-    if (!lastFrameTime) lastFrameTime = timestamp;
-    const delta = timestamp - lastFrameTime;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Vitesse de défilement liée au BPM (plus vite si stressé)
-    const speed = (canvas.width * (targetBPM / 60)) / 100;
+            ctx.beginPath();
+            ctx.moveTo(xPos, canvas.height / 2);
 
-    // Couleur de la ligne
-    let color = '#00ff9d';
-    if(targetBPM > 100) color = '#eebb00';
-    if(targetBPM > 140) color = '#ff3333';
+            xPos += speed;
 
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.shadowBlur = 5;
-    ctx.shadowColor = color;
+            let y = canvas.height / 2;
+            const cycle = 100;
+            const phase = xPos % cycle;
 
-    // Effacement progressif (Traînée)
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (phase > 10 && phase < 15) y -= 5;
+            else if (phase > 20 && phase < 25) y += 5;
+            else if (phase > 25 && phase < 35) y -= 25;
+            else if (phase > 35 && phase < 40) y += 10;
+            else if (phase > 50 && phase < 60) y -= 8;
 
-    ctx.beginPath();
-    ctx.moveTo(xPos, canvas.height / 2);
+            y += (Math.random() * 2 - 1);
 
-    // Avancer
-    xPos += speed;
+            ctx.lineTo(xPos, y);
+            ctx.stroke();
 
-    // Générer le tracé (Simuler PQRST)
-    // On utilise un modulo sur la largeur pour créer les pics au bon moment
-    let y = canvas.height / 2;
+            if (xPos >= canvas.width) {
+                xPos = 0;
+                ctx.clearRect(0,0, canvas.width, canvas.height);
+                ctx.beginPath();
+            }
 
-    // Fréquence des battements simulée par position
-    // Un cycle complet de battement tous les X pixels
-    const cycle = 100; // pixels
-    const phase = xPos % cycle;
+            lastFrameTime = timestamp;
+            requestAnimationFrame(drawECG);
+        }
 
-    if (phase > 10 && phase < 15) y -= 5; // P wave
-    else if (phase > 20 && phase < 25) y += 5; // Q
-    else if (phase > 25 && phase < 35) y -= 25; // R (Gros Pic)
-    else if (phase > 35 && phase < 40) y += 10; // S
-    else if (phase > 50 && phase < 60) y -= 8; // T wave
-
-    // Ajouter un peu de bruit
-    y += (Math.random() * 2 - 1);
-
-    ctx.lineTo(xPos, y);
-    ctx.stroke();
-
-    // Reset loop
-    if (xPos >= canvas.width) {
-        xPos = 0;
-        ctx.clearRect(0,0, canvas.width, canvas.height); // Nettoyage propre au retour
-        ctx.beginPath();
-    }
-
-    lastFrameTime = timestamp;
-    requestAnimationFrame(drawECG);
-}
-
-// Initialisation
-document.addEventListener('DOMContentLoaded', () => {
-    initPsychometrics();
-    initECG();
-});
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            initPsychometrics();
+            initECG();
+        });
 
         function logout() {
             document.body.style.transition = "opacity 0.5s";

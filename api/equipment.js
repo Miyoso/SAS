@@ -9,7 +9,7 @@ const pool = new Pool({
 export default async function handler(req, res) {
   const user = verifyToken(req);
 
-  // Sécurité de base : on refuse tout accès non authentifié (sauf lecture si souhaité, ici on bloque tout pour être sûr)
+  // Sécurité de base
   if (!user) {
     return res.status(401).json({ error: 'Accès non autorisé' });
   }
@@ -18,6 +18,21 @@ export default async function handler(req, res) {
 
   if (method === 'GET') {
     try {
+      // --- MODIFICATION POUR LE PROFIL ---
+      // Si un paramètre 'assigned_to' est présent dans l'URL
+      if (req.query.assigned_to) {
+        const { assigned_to } = req.query;
+        // On récupère uniquement le matériel de cet agent spécifique
+        const result = await pool.query(
+            'SELECT * FROM equipment WHERE assigned_to = $1 ORDER BY item_name',
+            [assigned_to]
+        );
+        // IMPORTANT : On renvoie directement le tableau (result.rows)
+        // Cela permet à profile-equipment.js de faire .map() sans erreur.
+        return res.status(200).json(result.rows);
+      }
+
+      // --- COMPORTEMENT PAR DÉFAUT (Page Logistique) ---
       const inventory = await pool.query('SELECT * FROM equipment ORDER BY category, item_name');
       const logs = await pool.query('SELECT * FROM logistics_logs ORDER BY timestamp DESC LIMIT 50');
 
@@ -32,7 +47,7 @@ export default async function handler(req, res) {
   }
 
   else if (method === 'POST') {
-    // Seul le niveau 3+ peut ajouter du matériel (optionnel, mais cohérent)
+    // Seul le niveau 3+ peut ajouter du matériel
     if (parseInt(user.rank) < 3) {
       return res.status(403).json({ error: 'Niveau 3 requis pour ajouter du stock.' });
     }
@@ -63,7 +78,7 @@ export default async function handler(req, res) {
       const item = itemResult.rows[0];
 
       if (action === 'TAKE') {
-        // VÉRIFICATION DU RANG ICI
+        // VÉRIFICATION DU RANG
         if (parseInt(user.rank) < 3) {
           return res.status(403).json({ error: 'Permission refusée : Niveau 3 requis pour assigner.' });
         }
@@ -78,8 +93,6 @@ export default async function handler(req, res) {
         );
       }
       else if (action === 'RETURN') {
-        // Le retour peut rester accessible ou être restreint selon vos besoins.
-        // Ici, on laisse la possibilité de rendre le matériel.
         await pool.query(
             "UPDATE equipment SET assigned_to = NULL, status = 'AVAILABLE', last_updated = NOW() WHERE id = $1",
             [id]
