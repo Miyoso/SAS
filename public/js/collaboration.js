@@ -11,9 +11,10 @@ const SAS_COLLAB = {
 
     init: function(username, color) {
         // 1. Connexion à Pusher
-        this.pusher = new Pusher('TA_CLE_PUBLIQUE_PUSHER', {
-            cluster: 'eu', // ou ton cluster
-            authEndpoint: '/api/pusher-auth', // Notre API Vercel
+        this.pusher = new Pusher('51d51cc5bfc1c8ee90d4', {
+            cluster: 'eu',
+            // MODIFICATION : Point d'entrée consolidé pour l'auth Pusher
+            authEndpoint: '/api/comms?type=pusher-auth',
             auth: {
                 params: {
                     username: username,

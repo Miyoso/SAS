@@ -1,12 +1,13 @@
 /* public/js/immersion.js */
 
 const SAS_IMMERSION = {
-    // Configuration des sons (utilise des URLs valides ou tes propres fichiers)
     sounds: {
-        click: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'), // Bruit mécanique sec
-        hover: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'), // Bip léger
-
-        alert: new Audio('https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3') // Alarme (pour le mode rouge)
+        click: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'),
+        hover: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
+        alert: new Audio('https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3'),
+        // AJOUT : Définition de l'ambiance (nécessaire pour éviter le crash)
+        // Remplacez l'URL par votre fichier son d'ambiance si vous en avez un
+        ambience: new Audio('https://assets.mixkit.co/active_storage/sfx/123/123-preview.mp3')
     },
 
     settings: {
@@ -18,24 +19,21 @@ const SAS_IMMERSION = {
         this.setupAudio();
         this.setupTheme();
         this.attachUIListeners();
-        this.createControls(); // Ajoute les boutons à l'écran
+        this.createControls();
     },
 
     setupAudio: function() {
         // Config Ambience
-        this.sounds.ambience.loop = true;
-        this.sounds.ambience.volume = 0.15; // Assez bas pour pas gêner
+        if (this.sounds.ambience) {
+            this.sounds.ambience.loop = true;
+            this.sounds.ambience.volume = 0.15;
 
-        // Config SFX
-        this.sounds.hover.volume = 0.1;
-        this.sounds.click.volume = 0.3;
-
-        // Démarrer l'ambiance au premier clic (les navigateurs bloquent l'autoplay)
-        document.body.addEventListener('click', () => {
-            if (!this.settings.muted && this.sounds.ambience.paused) {
-                this.sounds.ambience.play().catch(e => console.log("Audio autoplay bloqué"));
-            }
-        }, { once: true });
+            document.body.addEventListener('click', () => {
+                if (!this.settings.muted && this.sounds.ambience.paused) {
+                    this.sounds.ambience.play().catch(e => console.log("Audio autoplay bloqué"));
+                }
+            }, { once: true });
+        }
     },
 
     toggleMute: function() {
@@ -43,24 +41,23 @@ const SAS_IMMERSION = {
         localStorage.setItem('sas_muted', this.settings.muted);
 
         if (this.settings.muted) {
-            this.sounds.ambience.pause();
+            if(this.sounds.ambience) this.sounds.ambience.pause();
         } else {
-            this.sounds.ambience.play();
+            if(this.sounds.ambience) this.sounds.ambience.play();
         }
         this.updateButtonState();
     },
 
     playSFX: function(type) {
         if (this.settings.muted) return;
-
-        // Rembobiner pour jouer rapidement si on spam
         const sound = this.sounds[type];
-        sound.currentTime = 0;
-        sound.play().catch(() => {});
+        if (sound) {
+            sound.currentTime = 0;
+            sound.play().catch(() => {});
+        }
     },
 
     setupTheme: function() {
-        // Appliquer le thème sauvegardé
         document.body.classList.remove('theme-amber', 'theme-red');
         if (this.settings.theme !== 'default') {
             document.body.classList.add(`theme-${this.settings.theme}`);
@@ -68,7 +65,6 @@ const SAS_IMMERSION = {
     },
 
     toggleTheme: function(mode) {
-        // Mode: 'default', 'amber', 'red'
         this.settings.theme = mode;
         localStorage.setItem('sas_theme', mode);
 
@@ -76,13 +72,10 @@ const SAS_IMMERSION = {
         if (mode !== 'default') {
             document.body.classList.add(`theme-${mode}`);
         }
-
-        // Petit effet sonore spécial changement de mode
         this.playSFX('click');
     },
 
     attachUIListeners: function() {
-        // Attacher les sons à TOUS les boutons et liens actuels et futurs
         document.addEventListener('mouseover', (e) => {
             if (e.target.matches('button, a, .tool-btn, input, select')) {
                 this.playSFX('hover');
@@ -97,7 +90,6 @@ const SAS_IMMERSION = {
     },
 
     createControls: function() {
-        // Création dynamique du widget de contrôle en bas à gauche
         const div = document.createElement('div');
         div.id = 'sas-immersion-controls';
         div.innerHTML = `
@@ -112,7 +104,6 @@ const SAS_IMMERSION = {
         `;
         document.body.appendChild(div);
 
-        // Style rapide injecté en JS pour pas toucher au CSS si tu veux
         const style = document.createElement('style');
         style.textContent = `
             #sas-immersion-controls {
@@ -136,7 +127,6 @@ const SAS_IMMERSION = {
         `;
         document.head.appendChild(style);
 
-        // Logique bouton Mute
         document.getElementById('btn-mute').onclick = () => this.toggleMute();
         this.updateButtonState();
     },
@@ -147,5 +137,4 @@ const SAS_IMMERSION = {
     }
 };
 
-// Lancer le script au chargement
 document.addEventListener('DOMContentLoaded', () => SAS_IMMERSION.init());

@@ -114,217 +114,217 @@
     </style>
 </head>
 <body>
-    <div class="crt-overlay"></div>
-    <div style="padding: 20px 30px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); display:flex; justify-content:space-between; align-items:center;">
-        <div style="display:flex; align-items:center; gap:15px;">
-            <img src="assets/logo-sas.png" style="height:40px;">
-            <div>
-                <h1 style="font-size:1.2rem; margin:0; color:#fff;">REPORT <span style="color:var(--primary)">GENERATOR</span></h1>
-                <div style="font-size:0.7rem; color:#666;">SAN ANDREAS SECURITY // INTERNAL TOOL</div>
-            </div>
-        </div>
-        <a href="index.html" class="btn-profile-access" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:5px 15px; text-decoration:none; font-family:'Share Tech Mono';">< RETOUR DASHBOARD</a>
-    </div>
-    <div class="report-wrapper">
-        <div class="input-panel">
-            <div class="section-title">1. INFO MISSION</div>
-            <div class="form-group">
-                <label class="form-label">NOM DE L'OPÉRATION</label>
-                <input type="text" id="inp-opname" class="form-input" placeholder="EX: OPÉRATION BLACKOUT" oninput="updatePreview()">
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div class="form-group">
-                    <label class="form-label">TYPE DE MISSION</label>
-                    <select id="inp-type" class="form-select" onchange="updatePreview()">
-                        <option value="PATROUILLE">PATROUILLE</option>
-                        <option value="INTERVENTION">INTERVENTION ARMÉE</option>
-                        <option value="RECONNAISSANCE">RECONNAISSANCE</option>
-                        <option value="PROTECTION VIP">PROTECTION VIP</option>
-                        <option value="ENTRAINEMENT">ENTRAINEMENT</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">RÉSULTAT</label>
-                    <select id="inp-status" class="form-select" onchange="updatePreview()">
-                        <option value="SUCCÈS">SUCCÈS</option>
-                        <option value="ÉCHEC">ÉCHEC</option>
-                        <option value="EN COURS">EN COURS</option>
-                        <option value="CLASSIFIÉ">CLASSIFIÉ</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">LIEU / SECTEUR</label>
-                <input type="text" id="inp-loc" class="form-input" placeholder="Ex: Los Santos, Zone Industrielle" oninput="updatePreview()">
-            </div>
-            <div class="section-title" style="margin-top:20px;">2. PERSONNEL</div>
-            <div class="form-group">
-                <label class="form-label">CHEF D'UNITÉ (LEAD)</label>
-                <input type="text" id="inp-lead" class="form-input" value="" oninput="updatePreview()">
-            </div>
-            <div class="form-group">
-                <label class="form-label">AGENTS IMPLIQUÉS</label>
-                <input type="text" id="inp-agents" class="form-input" placeholder="Ex: Blitz, Roxanne, Adam..." oninput="updatePreview()">
-            </div>
-            <div class="section-title" style="margin-top:20px;">3. RAPPORT DÉTAILLÉ</div>
-            <div class="form-group">
-                <label class="form-label">DÉROULEMENT DES FAITS</label>
-                <textarea id="inp-content" class="form-textarea" placeholder="Décrivez chronologiquement les événements..." oninput="updatePreview()"></textarea>
-            </div>
-            <div class="form-group">
-                <label class="form-label">PREUVES (URL / TEXTE)</label>
-                <input type="text" id="inp-proof" class="form-input" placeholder="Lien photo, bodycam..." oninput="updatePreview()">
-            </div>
-            <div class="actions">
-                <button class="btn-gen" onclick="downloadPDF()">📄 TÉLÉCHARGER PDF</button>
-                <button class="btn-gen" style="border-color:#5865F2; color:#5865F2; background:rgba(88, 101, 242, 0.1);" onclick="sendToDiscordAPI()">📡 TRANSMISSION (DISCORD)</button>
-                <button class="btn-copy" onclick="copyToClipboard()">📋 COPIER (DISCORD)</button>
-            </div>
-        </div>
-        <div class="preview-container">
-            <div class="preview-panel" id="print-area">
-                <img src="assets/logo-sas.png" class="watermark">
-                <div id="stamp-overlay" class="stamp stamp-open">SUCCÈS</div>
-                <div class="report-content">
-                    <div class="report-header">
-                        <img src="assets/logo-sas.png" class="header-logo">
-                        <div class="header-text">
-                            <div class="header-title">RAPPORT D'INTERVENTION</div>
-                            <div class="header-sub">SAN ANDREAS SECURITY // INTERNAL USE ONLY</div>
-                        </div>
-                    </div>
-                    <div class="report-meta-grid">
-                        <div class="meta-item">
-                            <strong>OPÉRATION</strong>
-                            <span id="out-opname">...</span>
-                        </div>
-                        <div class="meta-item">
-                            <strong>DATE & HEURE</strong>
-                            <span id="out-date">...</span>
-                        </div>
-                        <div class="meta-item">
-                            <strong>OFFICIER EN CHARGE</strong>
-                            <span id="out-lead">...</span>
-                        </div>
-                        <div class="meta-item">
-                            <strong>TYPE</strong>
-                            <span id="out-type">PATROUILLE</span>
-                        </div>
-                        <div class="meta-item">
-                            <strong>LIEU</strong>
-                            <span id="out-loc">...</span>
-                        </div>
-                        <div class="meta-item">
-                            <strong>EFFECTIFS</strong>
-                            <span id="out-agents">...</span>
-                        </div>
-                    </div>
-                    <div style="margin-top: 30px;">
-                        <div style="border-bottom: 2px solid #000; padding-bottom: 5px; font-weight: bold; font-size:16px;">
-                            I. RAPPORT DE SITUATION
-                        </div>
-                        <div class="report-body" id="out-content" style="margin-top:10px;">
-                            [En attente de saisie...]
-                        </div>
-                    </div>
-                    <div style="margin-top: 20px;">
-                        <div style="border-bottom: 2px solid #000; padding-bottom: 5px; font-weight: bold; font-size:16px;">
-                            II. PIÈCES JOINTES & PREUVES
-                        </div>
-                        <div id="out-proof" style="margin-top:10px; font-style:italic; color:#444;">
-                            Aucune.
-                        </div>
-                    </div>
-                    <div class="report-footer">
-                        <div style="font-size:12px; line-height:1.4;">
-                            REF DOSSIER: SAS-<span id="out-ref">000</span><br>
-                            GÉNÉRÉ LE: <span id="out-gen-date">...</span><br>
-                            <span style="font-weight:bold;">CERTIFIÉ CONFORME</span>
-                        </div>
-                        <div style="text-align:center;">
-                            <div class="signature-box"></div>
-                            <div style="font-size:10px; text-transform:uppercase;">SIGNATURE DE L'OFFICIER</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="crt-overlay"></div>
+<div style="padding: 20px 30px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); display:flex; justify-content:space-between; align-items:center;">
+    <div style="display:flex; align-items:center; gap:15px;">
+        <img src="/assets/logo-sas.png" style="height:40px;">
+        <div>
+            <h1 style="font-size:1.2rem; margin:0; color:#fff;">REPORT <span style="color:var(--primary)">GENERATOR</span></h1>
+            <div style="font-size:0.7rem; color:#666;">SAN ANDREAS SECURITY // INTERNAL TOOL</div>
         </div>
     </div>
+    <a href="index.html" class="btn-profile-access" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:5px 15px; text-decoration:none; font-family:'Share Tech Mono';">< RETOUR DASHBOARD</a>
+</div>
+<div class="report-wrapper">
+    <div class="input-panel">
+        <div class="section-title">1. INFO MISSION</div>
+        <div class="form-group">
+            <label class="form-label">NOM DE L'OPÉRATION</label>
+            <input type="text" id="inp-opname" class="form-input" placeholder="EX: OPÉRATION BLACKOUT" oninput="updatePreview()">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+                <label class="form-label">TYPE DE MISSION</label>
+                <select id="inp-type" class="form-select" onchange="updatePreview()">
+                    <option value="PATROUILLE">PATROUILLE</option>
+                    <option value="INTERVENTION">INTERVENTION ARMÉE</option>
+                    <option value="RECONNAISSANCE">RECONNAISSANCE</option>
+                    <option value="PROTECTION VIP">PROTECTION VIP</option>
+                    <option value="ENTRAINEMENT">ENTRAINEMENT</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">RÉSULTAT</label>
+                <select id="inp-status" class="form-select" onchange="updatePreview()">
+                    <option value="SUCCÈS">SUCCÈS</option>
+                    <option value="ÉCHEC">ÉCHEC</option>
+                    <option value="EN COURS">EN COURS</option>
+                    <option value="CLASSIFIÉ">CLASSIFIÉ</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">LIEU / SECTEUR</label>
+            <input type="text" id="inp-loc" class="form-input" placeholder="Ex: Los Santos, Zone Industrielle" oninput="updatePreview()">
+        </div>
+        <div class="section-title" style="margin-top:20px;">2. PERSONNEL</div>
+        <div class="form-group">
+            <label class="form-label">CHEF D'UNITÉ (LEAD)</label>
+            <input type="text" id="inp-lead" class="form-input" value="" oninput="updatePreview()">
+        </div>
+        <div class="form-group">
+            <label class="form-label">AGENTS IMPLIQUÉS</label>
+            <input type="text" id="inp-agents" class="form-input" placeholder="Ex: Blitz, Roxanne, Adam..." oninput="updatePreview()">
+        </div>
+        <div class="section-title" style="margin-top:20px;">3. RAPPORT DÉTAILLÉ</div>
+        <div class="form-group">
+            <label class="form-label">DÉROULEMENT DES FAITS</label>
+            <textarea id="inp-content" class="form-textarea" placeholder="Décrivez chronologiquement les événements..." oninput="updatePreview()"></textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label">PREUVES (URL / TEXTE)</label>
+            <input type="text" id="inp-proof" class="form-input" placeholder="Lien photo, bodycam..." oninput="updatePreview()">
+        </div>
+        <div class="actions">
+            <button class="btn-gen" onclick="downloadPDF()">📄 TÉLÉCHARGER PDF</button>
+            <button class="btn-gen" style="border-color:#5865F2; color:#5865F2; background:rgba(88, 101, 242, 0.1);" onclick="sendToDiscordAPI()">📡 TRANSMISSION (DISCORD)</button>
+            <button class="btn-copy" onclick="copyToClipboard()">📋 COPIER (DISCORD)</button>
+        </div>
+    </div>
+    <div class="preview-container">
+        <div class="preview-panel" id="print-area">
+            <img src="/assets/logo-sas.png" class="watermark">
+            <div id="stamp-overlay" class="stamp stamp-open">SUCCÈS</div>
+            <div class="report-content">
+                <div class="report-header">
+                    <img src="/assets/logo-sas.png" class="header-logo">
+                    <div class="header-text">
+                        <div class="header-title">RAPPORT D'INTERVENTION</div>
+                        <div class="header-sub">SAN ANDREAS SECURITY // INTERNAL USE ONLY</div>
+                    </div>
+                </div>
+                <div class="report-meta-grid">
+                    <div class="meta-item">
+                        <strong>OPÉRATION</strong>
+                        <span id="out-opname">...</span>
+                    </div>
+                    <div class="meta-item">
+                        <strong>DATE & HEURE</strong>
+                        <span id="out-date">...</span>
+                    </div>
+                    <div class="meta-item">
+                        <strong>OFFICIER EN CHARGE</strong>
+                        <span id="out-lead">...</span>
+                    </div>
+                    <div class="meta-item">
+                        <strong>TYPE</strong>
+                        <span id="out-type">PATROUILLE</span>
+                    </div>
+                    <div class="meta-item">
+                        <strong>LIEU</strong>
+                        <span id="out-loc">...</span>
+                    </div>
+                    <div class="meta-item">
+                        <strong>EFFECTIFS</strong>
+                        <span id="out-agents">...</span>
+                    </div>
+                </div>
+                <div style="margin-top: 30px;">
+                    <div style="border-bottom: 2px solid #000; padding-bottom: 5px; font-weight: bold; font-size:16px;">
+                        I. RAPPORT DE SITUATION
+                    </div>
+                    <div class="report-body" id="out-content" style="margin-top:10px;">
+                        [En attente de saisie...]
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <div style="border-bottom: 2px solid #000; padding-bottom: 5px; font-weight: bold; font-size:16px;">
+                        II. PIÈCES JOINTES & PREUVES
+                    </div>
+                    <div id="out-proof" style="margin-top:10px; font-style:italic; color:#444;">
+                        Aucune.
+                    </div>
+                </div>
+                <div class="report-footer">
+                    <div style="font-size:12px; line-height:1.4;">
+                        REF DOSSIER: SAS-<span id="out-ref">000</span><br>
+                        GÉNÉRÉ LE: <span id="out-gen-date">...</span><br>
+                        <span style="font-weight:bold;">CERTIFIÉ CONFORME</span>
+                    </div>
+                    <div style="text-align:center;">
+                        <div class="signature-box"></div>
+                        <div style="font-size:10px; text-transform:uppercase;">SIGNATURE DE L'OFFICIER</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div id="sidebar-placeholder"></div>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const session = JSON.parse(localStorage.getItem('sas_session'));
-            if(session) {
-                document.getElementById('inp-lead').value = session.username.toUpperCase();
-            }
-            const now = new Date();
-            document.getElementById('out-date').innerText = now.toLocaleString('fr-FR');
-            document.getElementById('out-gen-date').innerText = now.toLocaleDateString('fr-FR');
-            document.getElementById('out-ref').innerText = Math.floor(Math.random() * 90000) + 10000;
-            updatePreview();
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const session = JSON.parse(localStorage.getItem('sas_session'));
+        if(session) {
+            document.getElementById('inp-lead').value = session.username.toUpperCase();
+        }
+        const now = new Date();
+        document.getElementById('out-date').innerText = now.toLocaleString('fr-FR');
+        document.getElementById('out-gen-date').innerText = now.toLocaleDateString('fr-FR');
+        document.getElementById('out-ref').innerText = Math.floor(Math.random() * 90000) + 10000;
+        updatePreview();
+    });
+
+    function updatePreview() {
+        const opname = document.getElementById('inp-opname').value || 'SANS NOM';
+        const type = document.getElementById('inp-type').value;
+        const status = document.getElementById('inp-status').value;
+        const loc = document.getElementById('inp-loc').value || 'N/A';
+        const lead = document.getElementById('inp-lead').value || 'N/A';
+        const agents = document.getElementById('inp-agents').value || 'N/A';
+        const content = document.getElementById('inp-content').value || '[Rapport vide]';
+        const proof = document.getElementById('inp-proof').value || 'N/A';
+
+        document.getElementById('out-opname').innerText = opname.toUpperCase();
+        document.getElementById('out-type').innerText = type;
+        document.getElementById('out-loc').innerText = loc.toUpperCase();
+        document.getElementById('out-lead').innerText = lead.toUpperCase();
+        document.getElementById('out-agents').innerText = agents;
+        document.getElementById('out-content').innerText = content;
+        document.getElementById('out-proof').innerText = proof;
+
+        const stamp = document.getElementById('stamp-overlay');
+        stamp.innerText = status;
+
+        stamp.className = 'stamp';
+        if(status === 'SUCCÈS') {
+            stamp.classList.add('stamp-open');
+        } else if (status === 'ÉCHEC' || status === 'CLASSIFIÉ') {
+            stamp.classList.add('stamp-closed');
+        } else {
+            stamp.style.color = '#555'; stamp.style.borderColor = '#555';
+        }
+    }
+
+    function downloadPDF() {
+        const element = document.getElementById('print-area');
+        const ref = document.getElementById('out-ref').innerText;
+        window.scrollTo(0, 0);
+        const opt = {
+            margin:       0,
+            filename:     `RAPPORT_SAS_${ref}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save().catch(err => {
+            console.error("Erreur PDF:", err);
+            alert("Erreur lors de la génération du PDF.");
         });
+    }
 
-        function updatePreview() {
-            const opname = document.getElementById('inp-opname').value || 'SANS NOM';
-            const type = document.getElementById('inp-type').value;
-            const status = document.getElementById('inp-status').value;
-            const loc = document.getElementById('inp-loc').value || 'N/A';
-            const lead = document.getElementById('inp-lead').value || 'N/A';
-            const agents = document.getElementById('inp-agents').value || 'N/A';
-            const content = document.getElementById('inp-content').value || '[Rapport vide]';
-            const proof = document.getElementById('inp-proof').value || 'N/A';
+    function copyToClipboard() {
+        const opname = document.getElementById('inp-opname').value.toUpperCase();
+        const type = document.getElementById('inp-type').value;
+        const status = document.getElementById('inp-status').value;
+        const date = document.getElementById('out-date').innerText;
+        const lead = document.getElementById('inp-lead').value;
+        const agents = document.getElementById('inp-agents').value;
+        const content = document.getElementById('inp-content').value;
+        const proof = document.getElementById('inp-proof').value;
 
-            document.getElementById('out-opname').innerText = opname.toUpperCase();
-            document.getElementById('out-type').innerText = type;
-            document.getElementById('out-loc').innerText = loc.toUpperCase();
-            document.getElementById('out-lead').innerText = lead.toUpperCase();
-            document.getElementById('out-agents').innerText = agents;
-            document.getElementById('out-content').innerText = content;
-            document.getElementById('out-proof').innerText = proof;
-
-            const stamp = document.getElementById('stamp-overlay');
-            stamp.innerText = status;
-            
-            stamp.className = 'stamp';
-            if(status === 'SUCCÈS') {
-                stamp.classList.add('stamp-open');
-            } else if (status === 'ÉCHEC' || status === 'CLASSIFIÉ') {
-                stamp.classList.add('stamp-closed');
-            } else {
-                stamp.style.color = '#555'; stamp.style.borderColor = '#555';
-            }
-        }
-
-        function downloadPDF() {
-            const element = document.getElementById('print-area');
-            const ref = document.getElementById('out-ref').innerText;
-            window.scrollTo(0, 0);
-            const opt = {
-                margin:       0,
-                filename:     `RAPPORT_SAS_${ref}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(element).save().catch(err => {
-                console.error("Erreur PDF:", err);
-                alert("Erreur lors de la génération du PDF.");
-            });
-        }
-
-        function copyToClipboard() {
-            const opname = document.getElementById('inp-opname').value.toUpperCase();
-            const type = document.getElementById('inp-type').value;
-            const status = document.getElementById('inp-status').value;
-            const date = document.getElementById('out-date').innerText;
-            const lead = document.getElementById('inp-lead').value;
-            const agents = document.getElementById('inp-agents').value;
-            const content = document.getElementById('inp-content').value;
-            const proof = document.getElementById('inp-proof').value;
-
-            const markdown = `
+        const markdown = `
 \`\`\`fix
 DOSSIER MISSION : ${opname}
 \`\`\`
@@ -342,81 +342,81 @@ ${proof}
 
 *SAS SYSTEM V.4.0.2*
             `;
-            navigator.clipboard.writeText(markdown).then(() => {
-                alert("FORMAT DISCORD COPIÉ !");
-            });
-        }
+        navigator.clipboard.writeText(markdown).then(() => {
+            alert("FORMAT DISCORD COPIÉ !");
+        });
+    }
 
-        async function sendToDiscordAPI() {
-            const btn = event.target;
-            const originalText = btn.innerText;
-            
-         
-            btn.innerText = "GÉNÉRATION & ENVOI...";
-            btn.style.opacity = "0.7";
-            btn.disabled = true;
+    async function sendToDiscordAPI() {
+        const btn = event.target;
+        const originalText = btn.innerText;
 
-  
-            const ref = document.getElementById('out-ref').innerText;
-            const opname = document.getElementById('inp-opname').value.toUpperCase() || 'SANS NOM';
-            
-          
-            const element = document.getElementById('print-area');
-            window.scrollTo(0, 0); 
-            
-            const opt = {
-                margin: 0,
-                filename: `RAPPORT_SAS_${ref}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+
+        btn.innerText = "GÉNÉRATION & ENVOI...";
+        btn.style.opacity = "0.7";
+        btn.disabled = true;
+
+
+        const ref = document.getElementById('out-ref').innerText;
+        const opname = document.getElementById('inp-opname').value.toUpperCase() || 'SANS NOM';
+
+
+        const element = document.getElementById('print-area');
+        window.scrollTo(0, 0);
+
+        const opt = {
+            margin: 0,
+            filename: `RAPPORT_SAS_${ref}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        try {
+
+            const pdfDataUri = await html2pdf().set(opt).from(element).output('datauristring');
+            const pdfBase64 = pdfDataUri.split(',')[1];
+
+            const data = {
+                opname: opname,
+                type: document.getElementById('inp-type').value,
+                status: document.getElementById('inp-status').value,
+                date: document.getElementById('out-date').innerText,
+                lead: document.getElementById('inp-lead').value,
+                agents: document.getElementById('inp-agents').value,
+                content: document.getElementById('inp-content').value || 'Rien à signaler.',
+                proof: document.getElementById('inp-proof').value || 'Aucune.',
+                ref: ref,
+                // Ajout du fichier
+                fileData: pdfBase64,
+                fileName: `RAPPORT_SAS_${ref}.pdf`
             };
 
-            try {
-               
-                const pdfDataUri = await html2pdf().set(opt).from(element).output('datauristring');
-                const pdfBase64 = pdfDataUri.split(',')[1]; 
 
-                const data = {
-                    opname: opname,
-                    type: document.getElementById('inp-type').value,
-                    status: document.getElementById('inp-status').value,
-                    date: document.getElementById('out-date').innerText,
-                    lead: document.getElementById('inp-lead').value,
-                    agents: document.getElementById('inp-agents').value,
-                    content: document.getElementById('inp-content').value || 'Rien à signaler.',
-                    proof: document.getElementById('inp-proof').value || 'Aucune.',
-                    ref: ref,
-                    // Ajout du fichier
-                    fileData: pdfBase64,
-                    fileName: `RAPPORT_SAS_${ref}.pdf`
-                };
+            const response = await fetch('/api/send-discord', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
 
-               
-                const response = await fetch('/api/send-discord', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                if (response.ok) {
-                    alert("✅ DOSSIER PDF TRANSMIS AU QG AVEC SUCCÈS.");
-                } else {
-                    const errText = await response.text();
-                    console.error("Erreur API:", errText);
-                    alert("❌ ERREUR DE TRANSMISSION. (Fichier trop lourd ?)");
-                }
-
-            } catch (error) {
-                console.error(error);
-                alert("❌ ERREUR LORS DE LA GÉNÉRATION OU DE L'ENVOI.");
+            if (response.ok) {
+                alert("✅ DOSSIER PDF TRANSMIS AU QG AVEC SUCCÈS.");
+            } else {
+                const errText = await response.text();
+                console.error("Erreur API:", errText);
+                alert("❌ ERREUR DE TRANSMISSION. (Fichier trop lourd ?)");
             }
 
-            
-            btn.innerText = originalText;
-            btn.style.opacity = "1";
-            btn.disabled = false;
+        } catch (error) {
+            console.error(error);
+            alert("❌ ERREUR LORS DE LA GÉNÉRATION OU DE L'ENVOI.");
         }
-    </script>
+
+
+        btn.innerText = originalText;
+        btn.style.opacity = "1";
+        btn.disabled = false;
+    }
+</script>
 </body>
 </html>

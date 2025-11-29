@@ -1,3 +1,5 @@
+/* public/js/profile-equipment.js */
+
 document.addEventListener('DOMContentLoaded', loadMyEquipment);
 
 async function loadMyEquipment() {
@@ -8,14 +10,15 @@ async function loadMyEquipment() {
     try {
         payload = JSON.parse(atob(token.split('.')[1]));
     } catch (e) { return; }
-    
+
     const myUsername = payload.username;
 
     try {
-        const res = await fetch(`/api/equipment?assigned_to=${encodeURIComponent(myUsername)}`, {
+        // MODIFICATION : Appel à /api/game?entity=equipment
+        const res = await fetch(`/api/game?entity=equipment&assigned_to=${encodeURIComponent(myUsername)}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (res.ok) {
             const items = await res.json();
             renderMyEquipment(items);
@@ -25,15 +28,15 @@ async function loadMyEquipment() {
 
 function renderMyEquipment(items) {
     const container = document.getElementById('my-equipment-list');
-    if (!container) return; 
-    
+    if (!container) return;
+
     if (items.length === 0) {
         container.innerHTML = '<div style="color:rgba(255,255,255,0.4); font-style:italic; font-size:0.8rem; padding:10px;">> AUCUNE DOTATION ENREGISTRÉE</div>';
         return;
     }
 
     container.innerHTML = items.map(item => {
-        let icon = '📦'; 
+        let icon = '📦';
         if(item.category === 'ARME') icon = '🔫';
         if(item.category === 'RADIO') icon = '📻';
         if(item.category === 'TENUE') icon = '👕';

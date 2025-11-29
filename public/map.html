@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAS - TACTICAL MAP V2</title>
-    
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    
+
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style-mo.css">
 
@@ -52,7 +52,7 @@
             color: #fff; font-family: 'JetBrains Mono'; border-radius: 0;
         }
         .leaflet-popup-tip { background: var(--primary); }
-        
+
         .modal {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #0f1215; border: 1px solid var(--primary); padding: 20px;
@@ -67,244 +67,247 @@
 </head>
 <body>
 
-    <div id="map"></div>
+<div id="map"></div>
 
-    <div class="ui-layer">
-        
-        <div style="position:absolute; top:20px; left:20px; pointer-events:auto;">
-            <h1 style="margin:0; font-size:1.5rem; text-shadow:0 0 10px var(--primary);">TACTICAL MAP <span style="font-size:0.8rem; color:#666;">// LIVE</span></h1>
-            <a href="index.html" style="color:var(--primary); font-size:0.8rem; text-decoration:none;">< RETOUR</a>
-        </div>
+<div class="ui-layer">
 
-        <div class="sidebar">
-            <div style="color:var(--primary); border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:5px;">OUTILS</div>
-            
-            <div class="tool-btn active" onclick="selectTool('nav')">✋ NAVIGATION</div>
-            <div class="tool-btn" onclick="selectTool('marker')">📍 MARQUEUR</div>
-            <div class="tool-btn" onclick="selectTool('line')">➖ LIGNE (Trajet)</div>
-            <div class="tool-btn" onclick="selectTool('polygon')">⬢ ZONE (Polygone)</div>
-            
-            <div style="font-size:0.7rem; color:#666; margin-top:10px;">
-                * Cliquez pour placer les points.
-            </div>
-        </div>
-
-        <div id="finish-container">
-            <button class="finish-btn" onclick="finishDrawing()">✅ TERMINER LE TRACÉ</button>
-        </div>
-
-        <div id="infoModal" class="modal">
-            <h3 style="color:var(--primary); margin-top:0;">DÉTAILS</h3>
-            <input type="text" id="descInput" class="input-field" placeholder="Description (ex: Ennemis)" autocomplete="off">
-            
-            <select id="levelInput" class="input-field">
-                <option value="low">MENACE FAIBLE (Vert)</option>
-                <option value="mid">MENACE MOYENNE (Jaune)</option>
-                <option value="high">MENACE CRITIQUE (Rouge)</option>
-            </select>
-
-            <button onclick="saveShape()" class="tool-btn" style="width:100%; justify-content:center; border-color:var(--primary);">CONFIRMER</button>
-            <button onclick="cancelShape()" class="tool-btn" style="width:100%; justify-content:center; margin-top:5px;">ANNULER</button>
-        </div>
-
+    <div style="position:absolute; top:20px; left:20px; pointer-events:auto;">
+        <h1 style="margin:0; font-size:1.5rem; text-shadow:0 0 10px var(--primary);">TACTICAL MAP <span style="font-size:0.8rem; color:#666;">// LIVE</span></h1>
+        <a href="index.html" style="color:var(--primary); font-size:0.8rem; text-decoration:none;">< RETOUR</a>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <div class="sidebar">
+        <div style="color:var(--primary); border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:5px;">OUTILS</div>
 
-    <script>
-        const mapWidth = 8192; 
-        const mapHeight = 8192;
-        const mapUrl = 'assets/carte.jpg';
+        <div class="tool-btn active" onclick="selectTool('nav')">✋ NAVIGATION</div>
+        <div class="tool-btn" onclick="selectTool('marker')">📍 MARQUEUR</div>
+        <div class="tool-btn" onclick="selectTool('line')">➖ LIGNE (Trajet)</div>
+        <div class="tool-btn" onclick="selectTool('polygon')">⬢ ZONE (Polygone)</div>
 
-        let map;
-        let currentTool = 'nav';
-        let tempShape = null; 
-        let tempPoints = [];
-        let drawnItems = [];
+        <div style="font-size:0.7rem; color:#666; margin-top:10px;">
+            * Cliquez pour placer les points.
+        </div>
+    </div>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initMap();
-            loadData();
-            setInterval(loadData, 4000);
+    <div id="finish-container">
+        <button class="finish-btn" onclick="finishDrawing()">✅ TERMINER LE TRACÉ</button>
+    </div>
+
+    <div id="infoModal" class="modal">
+        <h3 style="color:var(--primary); margin-top:0;">DÉTAILS</h3>
+        <input type="text" id="descInput" class="input-field" placeholder="Description (ex: Ennemis)" autocomplete="off">
+
+        <select id="levelInput" class="input-field">
+            <option value="low">MENACE FAIBLE (Vert)</option>
+            <option value="mid">MENACE MOYENNE (Jaune)</option>
+            <option value="high">MENACE CRITIQUE (Rouge)</option>
+        </select>
+
+        <button onclick="saveShape()" class="tool-btn" style="width:100%; justify-content:center; border-color:var(--primary);">CONFIRMER</button>
+        <button onclick="cancelShape()" class="tool-btn" style="width:100%; justify-content:center; margin-top:5px;">ANNULER</button>
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+    const mapWidth = 8192;
+    const mapHeight = 8192;
+    const mapUrl = 'assets/carte.jpg';
+
+    let map;
+    let currentTool = 'nav';
+    let tempShape = null;
+    let tempPoints = [];
+    let drawnItems = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initMap();
+        loadData();
+        setInterval(loadData, 4000);
+    });
+
+    function initMap() {
+        map = L.map('map', {
+            crs: L.CRS.Simple,
+            minZoom: -2,
+            maxZoom: 2,
+            zoomControl: false,
+            doubleClickZoom: false
         });
 
-        function initMap() {
-            map = L.map('map', {
-                crs: L.CRS.Simple, 
-                minZoom: -2,
-                maxZoom: 2,
-                zoomControl: false,
-                doubleClickZoom: false 
+        const bounds = [[0, 0], [mapHeight, mapWidth]];
+        L.imageOverlay(mapUrl, bounds).addTo(map);
+        map.fitBounds(bounds);
+
+        map.on('click', onMapClick);
+    }
+
+    // --- LOGIQUE DESSIN ---
+    function selectTool(tool) {
+        currentTool = tool;
+        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+        if(event) event.currentTarget.classList.add('active'); // Petite sécurité si appelé sans click direct
+
+        document.getElementById('map').style.cursor = (tool === 'nav') ? 'grab' : 'crosshair';
+
+        // Si on change d'outil, on annule le dessin en cours
+        resetDrawing();
+    }
+
+    function onMapClick(e) {
+        if (currentTool === 'nav') return;
+
+        // 1. MARQUEUR : On ouvre direct
+        if (currentTool === 'marker') {
+            openModal('marker', [e.latlng]);
+        }
+
+        // 2. LIGNE / ZONE : On ajoute des points
+        else if (currentTool === 'line' || currentTool === 'polygon') {
+            tempPoints.push(e.latlng);
+            drawTempShape();
+
+            // AFFICHER LE BOUTON "TERMINER" DÈS QU'ON A 1 POINT
+            if (tempPoints.length > 0) {
+                document.getElementById('finish-container').style.display = 'block';
+            }
+        }
+    }
+
+    // Fonction appelée par le bouton vert "TERMINER LE TRACÉ"
+    function finishDrawing() {
+        if (tempPoints.length < 2) {
+            alert("Il faut au moins 2 points pour créer une forme !");
+            return;
+        }
+        openModal(currentTool, tempPoints);
+    }
+
+    function drawTempShape() {
+        if (tempShape) map.removeLayer(tempShape);
+
+        if (currentTool === 'line') {
+            tempShape = L.polyline(tempPoints, {color: '#fff', dashArray: '5, 5'}).addTo(map);
+        } else if (currentTool === 'polygon') {
+            tempShape = L.polygon(tempPoints, {color: '#fff', dashArray: '5, 5'}).addTo(map);
+        }
+    }
+
+    function resetDrawing() {
+        if (tempShape) map.removeLayer(tempShape);
+        tempShape = null;
+        tempPoints = [];
+        document.getElementById('finish-container').style.display = 'none';
+    }
+
+    // --- MODAL & SAUVEGARDE ---
+    let pendingSave = null;
+
+    function openModal(type, latlngs) {
+        pendingSave = { type, latlngs };
+        document.getElementById('infoModal').style.display = 'block';
+        document.getElementById('descInput').focus();
+        // On cache le bouton terminer car on est dans le modal
+        document.getElementById('finish-container').style.display = 'none';
+    }
+
+    function cancelShape() {
+        document.getElementById('infoModal').style.display = 'none';
+        resetDrawing();
+        pendingSave = null;
+    }
+
+    async function saveShape() {
+        if(!pendingSave) return;
+
+        const desc = document.getElementById('descInput').value || 'Zone';
+        const level = document.getElementById('levelInput').value;
+        const session = JSON.parse(localStorage.getItem('sas_session'));
+        const author = session ? session.username : 'Inconnu';
+
+        const payload = {
+            type: pendingSave.type,
+            data: {
+                latlngs: pendingSave.latlngs,
+                desc: desc,
+                level: level,
+                author: author
+            }
+        };
+
+        try {
+            // MODIFICATION : Appel à /api/game?entity=markers
+            await fetch('/api/game?entity=markers', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
             });
-
-            const bounds = [[0, 0], [mapHeight, mapWidth]];
-            L.imageOverlay(mapUrl, bounds).addTo(map);
-            map.fitBounds(bounds);
-
-            map.on('click', onMapClick);
+            cancelShape();
+            loadData();
+        } catch(e) {
+            alert("Erreur Sauvegarde");
         }
+    }
 
-        // --- LOGIQUE DESSIN ---
-        function selectTool(tool) {
-            currentTool = tool;
-            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-            if(event) event.currentTarget.classList.add('active'); // Petite sécurité si appelé sans click direct
+    // --- CHARGEMENT ---
+    async function loadData() {
+        try {
+            // MODIFICATION : Appel à /api/game?entity=markers
+            const res = await fetch('/api/game?entity=markers');
+            if(!res.ok) return;
+            const items = await res.json();
 
-            document.getElementById('map').style.cursor = (tool === 'nav') ? 'grab' : 'crosshair';
-            
-            // Si on change d'outil, on annule le dessin en cours
-            resetDrawing();
-        }
+            drawnItems.forEach(layer => map.removeLayer(layer));
+            drawnItems = [];
 
-        function onMapClick(e) {
-            if (currentTool === 'nav') return;
+            items.forEach(item => {
+                const { latlngs, desc, level, author } = item.data;
+                let layer;
+                let color = '#00ff9d';
+                if(level === 'mid') color = '#eebb00';
+                if(level === 'high') color = '#ff3333';
 
-            // 1. MARQUEUR : On ouvre direct
-            if (currentTool === 'marker') {
-                openModal('marker', [e.latlng]);
-            }
-            
-            // 2. LIGNE / ZONE : On ajoute des points
-            else if (currentTool === 'line' || currentTool === 'polygon') {
-                tempPoints.push(e.latlng);
-                drawTempShape();
-                
-                // AFFICHER LE BOUTON "TERMINER" DÈS QU'ON A 1 POINT
-                if (tempPoints.length > 0) {
-                    document.getElementById('finish-container').style.display = 'block';
+                if (item.type === 'marker') {
+                    const pos = Array.isArray(latlngs) ? latlngs[0] : latlngs;
+                    const iconHtml = `<div style="width:12px; height:12px; background:${color}; border-radius:50%; box-shadow:0 0 10px ${color}; border:2px solid white;"></div>`;
+                    const customIcon = L.divIcon({ className: 'custom-pin', html: iconHtml, iconSize: [16, 16], iconAnchor: [8, 8] });
+                    layer = L.marker(pos, {icon: customIcon});
                 }
-            }
-        }
-
-        // Fonction appelée par le bouton vert "TERMINER LE TRACÉ"
-        function finishDrawing() {
-            if (tempPoints.length < 2) {
-                alert("Il faut au moins 2 points pour créer une forme !");
-                return;
-            }
-            openModal(currentTool, tempPoints);
-        }
-
-        function drawTempShape() {
-            if (tempShape) map.removeLayer(tempShape);
-
-            if (currentTool === 'line') {
-                tempShape = L.polyline(tempPoints, {color: '#fff', dashArray: '5, 5'}).addTo(map);
-            } else if (currentTool === 'polygon') {
-                tempShape = L.polygon(tempPoints, {color: '#fff', dashArray: '5, 5'}).addTo(map);
-            }
-        }
-
-        function resetDrawing() {
-            if (tempShape) map.removeLayer(tempShape);
-            tempShape = null;
-            tempPoints = [];
-            document.getElementById('finish-container').style.display = 'none';
-        }
-
-        // --- MODAL & SAUVEGARDE ---
-        let pendingSave = null;
-
-        function openModal(type, latlngs) {
-            pendingSave = { type, latlngs };
-            document.getElementById('infoModal').style.display = 'block';
-            document.getElementById('descInput').focus();
-            // On cache le bouton terminer car on est dans le modal
-            document.getElementById('finish-container').style.display = 'none';
-        }
-
-        function cancelShape() {
-            document.getElementById('infoModal').style.display = 'none';
-            resetDrawing();
-            pendingSave = null;
-        }
-
-        async function saveShape() {
-            if(!pendingSave) return;
-
-            const desc = document.getElementById('descInput').value || 'Zone';
-            const level = document.getElementById('levelInput').value;
-            const session = JSON.parse(localStorage.getItem('sas_session'));
-            const author = session ? session.username : 'Inconnu';
-
-            const payload = {
-                type: pendingSave.type,
-                data: {
-                    latlngs: pendingSave.latlngs,
-                    desc: desc,
-                    level: level,
-                    author: author
+                else if (item.type === 'line') {
+                    layer = L.polyline(latlngs, {color: color, weight: 3});
                 }
-            };
+                else if (item.type === 'polygon') {
+                    layer = L.polygon(latlngs, {color: color, fillColor: color, fillOpacity: 0.2});
+                }
 
-            try {
-                await fetch('/api/markers', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(payload)
-                });
-                cancelShape();
-                loadData();
-            } catch(e) {
-                alert("Erreur Sauvegarde");
-            }
-        }
-
-        // --- CHARGEMENT ---
-        async function loadData() {
-            try {
-                const res = await fetch('/api/markers');
-                if(!res.ok) return;
-                const items = await res.json();
-
-                drawnItems.forEach(layer => map.removeLayer(layer));
-                drawnItems = [];
-
-                items.forEach(item => {
-                    const { latlngs, desc, level, author } = item.data;
-                    let layer;
-                    let color = '#00ff9d'; 
-                    if(level === 'mid') color = '#eebb00';
-                    if(level === 'high') color = '#ff3333';
-
-                    if (item.type === 'marker') {
-                        const pos = Array.isArray(latlngs) ? latlngs[0] : latlngs;
-                        const iconHtml = `<div style="width:12px; height:12px; background:${color}; border-radius:50%; box-shadow:0 0 10px ${color}; border:2px solid white;"></div>`;
-                        const customIcon = L.divIcon({ className: 'custom-pin', html: iconHtml, iconSize: [16, 16], iconAnchor: [8, 8] });
-                        layer = L.marker(pos, {icon: customIcon});
-                    } 
-                    else if (item.type === 'line') {
-                        layer = L.polyline(latlngs, {color: color, weight: 3});
-                    } 
-                    else if (item.type === 'polygon') {
-                        layer = L.polygon(latlngs, {color: color, fillColor: color, fillOpacity: 0.2});
-                    }
-
-                    if(layer) {
-                        const popupContent = `
+                if(layer) {
+                    const popupContent = `
                             <strong style="color:${color}">${desc}</strong><br>
                             <span style="font-size:0.8em; color:#aaa;">PAR: ${author}</span><br>
                             <button onclick="deleteItem(${item.id})" style="background:transparent; border:1px solid red; color:red; font-size:0.7em; margin-top:5px; cursor:pointer;">SUPPRIMER</button>
                         `;
-                        layer.bindPopup(popupContent);
-                        layer.addTo(map);
-                        drawnItems.push(layer);
-                    }
-                });
-            } catch(e) { console.error(e); }
-        }
+                    layer.bindPopup(popupContent);
+                    layer.addTo(map);
+                    drawnItems.push(layer);
+                }
+            });
+        } catch(e) { console.error(e); }
+    }
 
-        window.deleteItem = async function(id) {
-            if(confirm("Supprimer cet élément ?")) {
-                await fetch('/api/markers', {
-                    method: 'DELETE',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({id})
-                });
-                map.closePopup();
-                loadData();
-            }
+    window.deleteItem = async function(id) {
+        if(confirm("Supprimer cet élément ?")) {
+            // MODIFICATION : Appel à /api/game?entity=markers
+            await fetch('/api/game?entity=markers', {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({id})
+            });
+            map.closePopup();
+            loadData();
         }
-    </script>
+    }
+</script>
 </body>
 </html>

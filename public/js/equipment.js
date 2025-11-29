@@ -32,7 +32,8 @@ let availableAgents = []; // Liste des agents pour le dropdown
 async function loadUsersIfAuthorized() {
     if (parseInt(session.rank) >= 3) {
         try {
-            const res = await fetch('/api/users', {
+            // MODIFICATION : Appel à /api/game?entity=users
+            const res = await fetch('/api/game?entity=users', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -47,7 +48,8 @@ async function loadUsersIfAuthorized() {
 async function fetchLogisticsData() {
     try {
         // On s'assure que le token est bien envoyé
-        const response = await fetch('/api/equipment', {
+        // MODIFICATION : Appel à /api/game?entity=equipment
+        const response = await fetch('/api/game?entity=equipment', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -192,7 +194,8 @@ async function handleItemAction(id, action, agentName = null) {
     const targetAgent = agentName || session.username;
 
     try {
-        const res = await fetch('/api/equipment', {
+        // MODIFICATION : Appel à /api/game?entity=equipment
+        const res = await fetch('/api/game?entity=equipment', {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -229,7 +232,8 @@ async function addNewItem() {
     const sn = document.getElementById('serial_number').value;
     const loc = document.getElementById('storage_location').value;
 
-    const res = await fetch('/api/equipment', {
+    // MODIFICATION : Appel à /api/game?entity=equipment
+    const res = await fetch('/api/game?entity=equipment', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

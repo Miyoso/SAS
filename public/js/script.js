@@ -135,7 +135,8 @@ async function processCommand(cmd) {
         addToHistory("VERIFYING CREDENTIALS...", 'info');
 
         try {
-            const response = await fetch('/api/login', {
+            // MODIFICATION : Appel à /api/auth?action=login
+            const response = await fetch('/api/auth?action=login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -168,7 +169,8 @@ async function processCommand(cmd) {
         addToHistory("CREATING NEW IDENTITY...", 'info');
 
         try {
-            const response = await fetch('/api/signup', {
+            // MODIFICATION : Appel à /api/auth?action=signup
+            const response = await fetch('/api/auth?action=signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -228,7 +230,8 @@ async function restoreSession() {
 
     if (token) {
         try {
-            const response = await fetch('/api/me', {
+            // MODIFICATION : Appel à /api/auth?action=me
+            const response = await fetch('/api/auth?action=me', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 

@@ -1,3 +1,5 @@
+/* public/js/investigation.js */
+
 let activeItem = null;
 let isPanning = false;
 
@@ -89,7 +91,8 @@ async function loadBoardData() {
     }
 
     try {
-        const res = await fetch('/api/investigation', {
+        // MODIFICATION : Appel API consolidé
+        const res = await fetch('/api/game?entity=investigation', {
             method: 'GET',
             headers: getAuthHeaders()
         });
@@ -238,7 +241,8 @@ async function itemDragEnd() {
         const y = parseInt(activeItem.style.top);
 
         try {
-            await fetch('/api/investigation', {
+            // MODIFICATION : Appel API consolidé
+            await fetch('/api/game?entity=investigation', {
                 method: 'PUT',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ id, x, y })
@@ -291,7 +295,8 @@ async function createLink(fromId, toId) {
     drawLines();
 
     try {
-        const res = await fetch('/api/investigation', {
+        // MODIFICATION : Appel API consolidé
+        const res = await fetch('/api/game?entity=investigation', {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({
@@ -375,7 +380,8 @@ window.confirmCreateNode = async function() {
     };
 
     try {
-        const res = await fetch('/api/investigation', {
+        // MODIFICATION : Appel API consolidé
+        const res = await fetch('/api/game?entity=investigation', {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify(payload)
@@ -397,7 +403,8 @@ window.deleteNode = async function(id, event) {
     event.stopPropagation();
     if(confirm("SUPPRIMER DÉFINITIVEMENT CE DOSSIER ?")) {
         try {
-            const res = await fetch('/api/investigation', {
+            // MODIFICATION : Appel API consolidé
+            const res = await fetch('/api/game?entity=investigation', {
                 method: 'DELETE',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ id })
