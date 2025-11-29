@@ -16,7 +16,7 @@
             font-family: 'Share Tech Mono', monospace;
         }
 
-        /* Effet d'écran CRT (Lignes de balayage) */
+
         .scanlines {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(
@@ -31,7 +31,7 @@
             pointer-events: none;
         }
 
-        /* Effet de scintillement global */
+
         .terminal-wrapper {
             position: relative;
             filter: sepia(100%) hue-rotate(-50deg) saturate(300%) contrast(1.2);
@@ -39,14 +39,14 @@
             animation: flicker 0.15s infinite;
         }
 
-        /* Typographie Glitchy */
+
         h1, span, div, .card-value {
             font-family: 'Rubik Glitch', cursive !important;
             color: #ff3333 !important;
             text-shadow: 2px 0 #000, -1px 0 rgba(255,0,0,0.5);
         }
 
-        /* La carte d'identité corrompue */
+
         .hero-section img {
             filter: grayscale(100%) contrast(200%);
             opacity: 0.6;
@@ -54,7 +54,7 @@
             border: 1px solid red;
         }
 
-        /* Boite d'alerte plus sombre et tech */
+
         .alert-box {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(10, 0, 0, 0.95);
@@ -70,7 +70,7 @@
             animation: pulseAlert 2s infinite;
         }
 
-        /* Texte Matrix en arrière plan */
+
         .matrix-rain {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1; opacity: 0.3;
@@ -128,7 +128,7 @@
 </div>
 
 <script>
-    // Script Matrix "pluie de code" plus propre
+
     const body = document.body;
 
     setInterval(() => {
@@ -143,17 +143,17 @@
         div.style.opacity = Math.random();
         div.style.transition = `top ${Math.random() * 2 + 1}s linear`;
 
-        // Contenu binaire ou hex
+
         div.innerText = Math.random() > 0.5 ? '0' : '1';
 
         body.appendChild(div);
 
-        // Animation de chute
+
         requestAnimationFrame(() => {
             div.style.top = '110vh';
         });
 
-        // Nettoyage
+    
         setTimeout(() => div.remove(), 3000);
     }, 50);
 </script>
