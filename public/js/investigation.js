@@ -22,48 +22,7 @@ function getAuthHeaders() {
 document.addEventListener('DOMContentLoaded', () => {
     loadBoardData();
     setupPanning();
-    setTimeout(initRealtimeListeners, 1000);
 });
-
-function initRealtimeListeners() {
-    if (typeof SAS_COLLAB === 'undefined' || !SAS_COLLAB.channel) {
-        setTimeout(initRealtimeListeners, 1000);
-        return;
-    }
-
-    const channel = SAS_COLLAB.channel;
-
-    channel.bind('node-created', (node) => {
-        renderNode(node);
-    });
-
-    channel.bind('node-moved', (data) => {
-        const el = document.getElementById(`node-${data.id}`);
-        if (el) {
-            el.style.transition = "left 0.2s, top 0.2s";
-            el.style.left = data.x + 'px';
-            el.style.top = data.y + 'px';
-
-            setTimeout(() => { el.style.transition = ""; }, 200);
-
-            requestAnimationFrame(drawLines);
-        }
-    });
-
-    channel.bind('node-deleted', (data) => {
-        const el = document.getElementById(`node-${data.id}`);
-        if (el) {
-            el.remove();
-            linksData = linksData.filter(l => l.from_id != data.id && l.to_id != data.id);
-            drawLines();
-        }
-    });
-
-    channel.bind('link-created', (link) => {
-        linksData.push(link);
-        drawLines();
-    });
-}
 
 async function loadBoardData() {
     const world = document.getElementById('board-world');
@@ -85,6 +44,7 @@ async function loadBoardData() {
         });
 
         if (res.status === 401) {
+            alert("SESSION EXPIRÉE. VEUILLEZ VOUS RECONNECTER.");
             window.location.href = '/index.html';
             return;
         }
@@ -97,7 +57,7 @@ async function loadBoardData() {
             data.nodes.forEach(node => renderNode(node));
             requestAnimationFrame(drawLines);
         }
-    } catch (err) {}
+    } catch (err) { console.error("Erreur chargement:", err); }
 }
 
 function renderNode(node) {
@@ -223,13 +183,11 @@ async function itemDragEnd() {
         const x = parseInt(activeItem.style.left);
         const y = parseInt(activeItem.style.top);
 
-        const socketId = SAS_COLLAB.pusher ? SAS_COLLAB.pusher.connection.socket_id : null;
-
         try {
             await fetch('/api/investigation', {
                 method: 'PUT',
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ id, x, y, socket_id: socketId })
+                body: JSON.stringify({ id, x, y })
             });
         } catch(e) {}
 
@@ -276,8 +234,6 @@ async function createLink(fromId, toId) {
     linksData.push({ from_id: parseInt(fromId), to_id: parseInt(toId), color: currentLinkColor });
     drawLines();
 
-    const socketId = SAS_COLLAB.pusher ? SAS_COLLAB.pusher.connection.socket_id : null;
-
     await fetch('/api/investigation', {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -285,8 +241,7 @@ async function createLink(fromId, toId) {
             action: 'create_link',
             from_id: fromId,
             to_id: toId,
-            color: currentLinkColor,
-            socket_id: socketId
+            color: currentLinkColor
         })
     });
 }
@@ -339,8 +294,6 @@ window.confirmCreateNode = async function() {
     const centerX = (window.innerWidth / 2) - panX - 90;
     const centerY = (window.innerHeight / 2) - panY - 100;
 
-    const socketId = SAS_COLLAB.pusher ? SAS_COLLAB.pusher.connection.socket_id : null;
-
     const payload = {
         action: 'create_node',
         type: currentModalType,
@@ -348,8 +301,7 @@ window.confirmCreateNode = async function() {
         sub_label: sub ? sub.toUpperCase() : '',
         image_url: img,
         x: Math.floor(centerX),
-        y: Math.floor(centerY),
-        socket_id: socketId
+        y: Math.floor(centerY)
     };
 
     const res = await fetch('/api/investigation', {
@@ -368,12 +320,10 @@ window.confirmCreateNode = async function() {
 window.deleteNode = async function(id, event) {
     event.stopPropagation();
     if(confirm("Supprimer ce dossier ?")) {
-        const socketId = SAS_COLLAB.pusher ? SAS_COLLAB.pusher.connection.socket_id : null;
-
         await fetch('/api/investigation', {
             method: 'DELETE',
             headers: getAuthHeaders(),
-            body: JSON.stringify({ id, socket_id: socketId })
+            body: JSON.stringify({ id })
         });
         document.getElementById(`node-${id}`).remove();
         linksData = linksData.filter(l => l.from_id !== id && l.to_id !== id);
