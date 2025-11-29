@@ -3,7 +3,7 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const WEBHOOK_URL = process.env.ALERTE;
+    const WEBHOOK_URL = "https://discord.com/api/webhooks/1444432428088164463/HSFu7L9ibnGbwvpHGzxoBojT8_jwhOJJa59Dw7lp-6PTsdngKm0BNmZlfP-6a0-UP3bK";
 
     if (!WEBHOOK_URL) {
         return res.status(500).json({ error: 'Configuration Webhook manquante (Variable ALERTE)' });
