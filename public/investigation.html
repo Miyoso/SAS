@@ -7,91 +7,96 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style-mo.css">
     <link rel="stylesheet" href="css/investigation.css">
+
     <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
-    <script src="js/script.js"></script>
-    <script src="js/investigation.js"></script>
+
 </head>
 <body>
 
-    <div class="crt-overlay"></div>
-    <div class="tactical-grid"></div>
+<div class="crt-overlay"></div>
+<div class="tactical-grid"></div>
 
-    <div id="board-viewport">
-        <div id="board-world">
-            <svg id="connections-layer"></svg>
-        </div>
+<div id="board-viewport">
+    <div id="board-world">
+        <svg id="connections-layer"></svg>
     </div>
+</div>
 
-    <div class="hud-overlay">
-        <h1>INVESTIGATION <span style="color:var(--danger)">BOARD</span></h1>
-        
-        <div class="tools">
-            <button onclick="createNode('target')">+ CIBLE</button>
-            <button onclick="createNode('evidence')">+ PREUVE</button>
-            <button onclick="createNode('location')">+ LIEU</button>
-            
-            <div class="separator"></div>
+<div class="hud-overlay">
+    <h1>INVESTIGATION <span style="color:var(--danger)">BOARD</span></h1>
 
-            <div class="color-picker-group">
-                <div class="color-dot active" style="background:#ff3333;" onclick="setLinkColor('#ff3333', this)"></div>
-                <div class="color-dot" style="background:#00ff9d;" onclick="setLinkColor('#00ff9d', this)"></div>
-                <div class="color-dot" style="background:#00f3ff;" onclick="setLinkColor('#00f3ff', this)"></div>
-                <div class="color-dot" style="background:#eebb00;" onclick="setLinkColor('#eebb00', this)"></div>
-                <div class="color-dot" style="background:#ffffff;" onclick="setLinkColor('#ffffff', this)"></div>
-            </div>
+    <div class="tools">
+        <button onclick="createNode('target')">+ CIBLE</button>
+        <button onclick="createNode('evidence')">+ PREUVE</button>
+        <button onclick="createNode('location')">+ LIEU</button>
 
-            <button onclick="toggleLinkMode()" id="btn-link">🔗 LIER</button>
+        <div class="separator"></div>
+
+        <div class="color-picker-group">
+            <div class="color-dot active" style="background:#ff3333;" onclick="setLinkColor('#ff3333', this)"></div>
+            <div class="color-dot" style="background:#00ff9d;" onclick="setLinkColor('#00ff9d', this)"></div>
+            <div class="color-dot" style="background:#00f3ff;" onclick="setLinkColor('#00f3ff', this)"></div>
+            <div class="color-dot" style="background:#eebb00;" onclick="setLinkColor('#eebb00', this)"></div>
+            <div class="color-dot" style="background:#ffffff;" onclick="setLinkColor('#ffffff', this)"></div>
         </div>
+
+        <button onclick="toggleLinkMode()" id="btn-link">🔗 LIER</button>
     </div>
+</div>
 
-    <div id="creation-modal" class="modal-overlay hidden">
-        <div class="modal-box">
-            <h2 class="modal-title">NOUVEAU DOSSIER</h2>
-            
-            <div class="form-group">
-                <label>TYPE</label>
-                <div class="type-selector">
-                    <button class="type-btn active" onclick="setModalType('target')" id="btn-type-target">CIBLE</button>
-                    <button class="type-btn" onclick="setModalType('evidence')" id="btn-type-evidence">PREUVE</button>
-                    <button class="type-btn" onclick="setModalType('location')" id="btn-type-location">LIEU</button>
-                </div>
-            </div>
+<div id="creation-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <h2 class="modal-title">NOUVEAU DOSSIER</h2>
 
-            <div class="form-group">
-                <label>NOM</label>
-                <input type="text" id="inp-label" placeholder="Nom du dossier...">
-            </div>
-
-            <div class="form-group">
-                <label>SOUS-TITRE</label>
-                <input type="text" id="inp-sub" placeholder="Info complémentaire...">
-            </div>
-
-            <div class="form-group">
-                <label>IMAGE (URL)</label>
-                <input type="text" id="inp-img" placeholder="https://i.goopics.net/...">
-                <small style="color:#666; font-size:0.7rem;">Laisser vide pour image par défaut.</small>
-            </div>
-
-            <div class="modal-actions">
-                <button onclick="closeModal()" class="btn-cancel">ANNULER</button>
-                <button onclick="confirmCreateNode()" class="btn-confirm">CONFIRMER</button>
+        <div class="form-group">
+            <label>TYPE</label>
+            <div class="type-selector">
+                <button class="type-btn active" onclick="setModalType('target')" id="btn-type-target">CIBLE</button>
+                <button class="type-btn" onclick="setModalType('evidence')" id="btn-type-evidence">PREUVE</button>
+                <button class="type-btn" onclick="setModalType('location')" id="btn-type-location">LIEU</button>
             </div>
         </div>
+
+        <div class="form-group">
+            <label>NOM</label>
+            <input type="text" id="inp-label" placeholder="Nom du dossier...">
+        </div>
+
+        <div class="form-group">
+            <label>SOUS-TITRE</label>
+            <input type="text" id="inp-sub" placeholder="Info complémentaire...">
+        </div>
+
+        <div class="form-group">
+            <label>IMAGE (URL)</label>
+            <input type="text" id="inp-img" placeholder="https://i.goopics.net/...">
+            <small style="color:#666; font-size:0.7rem;">Laisser vide pour image par défaut.</small>
+        </div>
+
+        <div class="modal-actions">
+            <button onclick="closeModal()" class="btn-cancel">ANNULER</button>
+            <button onclick="confirmCreateNode()" class="btn-confirm">CONFIRMER</button>
+        </div>
     </div>
+</div>
 
-    <div id="sidebar-placeholder"></div>
+<div id="sidebar-placeholder"></div>
 
-    <script src="js/script.js"></script>
-    <script src="js/investigation.js"></script>
+<script src="js/script.js"></script>
+<script src="js/investigation.js"></script>
+
+<script src="js/collaboration.js"></script>
 
 <script>
     // Lancement au démarrage
-    // Récupérer le nom de session ou mettre un défaut
     const session = JSON.parse(localStorage.getItem('sas_session')) || { username: 'GHOST' };
 
-    // Initialiser la collab
-    SAS_COLLAB.init(session.username, '#00ff9d');
+    // Vérification pour éviter les erreurs si le script collab n'est pas chargé
+    if (typeof SAS_COLLAB !== 'undefined') {
+        SAS_COLLAB.init(session.username, '#00ff9d');
+    } else {
+        console.warn("SAS_COLLAB non chargé");
+    }
 </script>
 </body>
 </html>
