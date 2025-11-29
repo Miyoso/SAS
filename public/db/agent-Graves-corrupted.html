@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FATAL ERROR :: 0x000000</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@800&family=Rubik+Glitch&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style-mo.css">
+
+    <style>
+        body {
+            background-color: #000;
+            overflow: hidden;
+            animation: shake 0.1s infinite;
+        }
+
+        /* Effet de glitch global */
+        .terminal-wrapper {
+            filter: contrast(200%) hue-rotate(90deg) invert(1) saturate(500%);
+            transform: skewX(-5deg);
+        }
+
+        h1, span, div, .card-value {
+            font-family: 'Rubik Glitch', cursive !important;
+            color: red !important;
+            text-shadow: 2px 0 #fff, -2px 0 #000;
+        }
+
+        .hero-section img {
+            filter: invert(1);
+            animation: glitch-anim 0.2s infinite;
+        }
+
+        .alert-box {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: red; color: black; font-size: 3rem; padding: 20px;
+            border: 5px solid white; z-index: 10000;
+            text-align: center; font-family: 'Rubik Glitch', monospace;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        @keyframes glitch-anim {
+            0% { clip-path: inset(10% 0 80% 0); transform: translate(-5px, 5px); }
+            50% { clip-path: inset(80% 0 10% 0); transform: translate(5px, -5px); }
+            100% { clip-path: inset(10% 0 80% 0); transform: translate(5px, -5px); }
+        }
+    </style>
+</head>
+<body>
+<div class="alert-box">
+    SYSTEM FAILURE<br>
+    EYES ARE WATCHING<br>
+    <span style="font-size: 1rem;">DELETING SYSTEM32...</span>
+</div>
+
+<div class="terminal-wrapper">
+    <main class="terminal">
+        <header class="header-strip">
+            <h1>CORRUPTED :: <span>ERROR</span></h1>
+        </header>
+        <section class="hero-section">
+            <div class="id-card">
+                <div class="card-body">
+                    <div class="photo-box"><img src="/assets/Graves.jpg"></div>
+                    <div class="agent-info">
+                        <div class="card-value">N0_D4T4</div>
+                        <div class="card-value">ERROR 404</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="intel-grid">
+            <div class="panel">
+                <div class="log-entry">DATA LOSS...</div>
+                <div class="log-entry">SEGMENTATION FAULT</div>
+                <div class="log-entry">YOU SHOULD NOT BE HERE</div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    // Script pour faire défiler du texte aléatoire partout (Matrix style mais cassé)
+    setInterval(() => {
+        const div = document.createElement('div');
+        div.style.position = 'fixed';
+        div.style.left = Math.random() * 100 + 'vw';
+        div.style.top = Math.random() * 100 + 'vh';
+        div.style.color = Math.random() > 0.5 ? 'red' : 'white';
+        div.style.fontFamily = 'Courier New';
+        div.style.zIndex = '50';
+        div.style.fontSize = Math.random() * 30 + 'px';
+        div.innerText = Math.random().toString(36).substring(7);
+        document.body.appendChild(div);
+        setTimeout(() => div.remove(), 200);
+    }, 20);
+</script>
+</body>
+</html>

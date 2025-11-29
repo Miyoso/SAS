@@ -8,315 +8,295 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Share+Tech+Mono&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
-    
+
     <link rel="stylesheet" href="/css/style-mo.css">
 
     <style>
-        /* Style HUD spécifique pour cette page si style-mo.css n'est pas modifié */
-        .user-hud {
-            position: fixed;
-            top: 20px;
-            right: 30px;
-            background: rgba(10, 15, 20, 0.9);
-            border: 1px solid #445566;
-            border-left: 3px solid #00ff9d;
-            padding: 8px 15px;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 0.85rem;
-            color: #fff;
-            z-index: 10000;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            backdrop-filter: blur(5px);
+        /* Style du piège vidéo (Plein écran, noir, au dessus de tout) */
+        #security-trap {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: black; z-index: 99999;
+            display: none; /* Caché par défaut */
+            justify-content: center; align-items: center; flex-direction: column;
         }
-        .hud-label { color: #445566; font-size: 0.7rem; letter-spacing: 1px; }
+        #trap-video {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        /* HUD User */
+        .user-hud {
+            position: fixed; top: 20px; right: 30px;
+            background: rgba(10, 15, 20, 0.9); border: 1px solid #445566; border-left: 3px solid #00ff9d;
+            padding: 8px 15px; font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; color: #fff;
+            z-index: 10000; display: flex; gap: 10px; align-items: center; backdrop-filter: blur(5px);
+        }
         .hud-value { color: #00ff9d; font-weight: bold; text-transform: uppercase; }
-        .hud-rank { color: #00f3ff; }
     </style>
+
+    <script>
+        // --- LOGIQUE DE SÉCURITÉ IMMÉDIATE ---
+        document.addEventListener("DOMContentLoaded", () => {
+            const sessionRaw = localStorage.getItem('sas_session');
+            let isAuthorized = false;
+
+            if (sessionRaw) {
+                const user = JSON.parse(sessionRaw);
+                // Liste des utilisateurs autorisés
+                const allowedUsers = ['Graves', 'oui'];
+
+                if (allowedUsers.includes(user.username)) {
+                    isAuthorized = true;
+                }
+            }
+
+            if (!isAuthorized) {
+                triggerSecurityTrap();
+            } else {
+                // Si autorisé, on affiche le HUD normal et on lance les animations
+                const hud = document.getElementById('user-hud');
+                const user = JSON.parse(sessionRaw);
+                if(hud) {
+                    document.getElementById('hud-username').textContent = user.username;
+                    document.getElementById('hud-rank').textContent = 'LVL ' + user.rank;
+                    hud.style.display = 'flex';
+                }
+                initPageAnimations();
+            }
+        });
+
+        function triggerSecurityTrap() {
+            // 1. Cacher le contenu normal pour éviter tout spoil
+            document.querySelector('.terminal-wrapper').style.display = 'none';
+            document.getElementById('boot-screen').style.display = 'none';
+
+            // 2. Afficher le piège
+            const trap = document.getElementById('security-trap');
+            const video = document.getElementById('trap-video');
+            trap.style.display = 'flex';
+
+            // 3. Lancer la vidéo "I_SeE_yOu.mp4"
+            // Le navigateur peut bloquer l'autoplay s'il n'y a pas eu d'interaction avant,
+            // mais comme l'utilisateur vient de cliquer pour arriver ici, ça devrait passer.
+            video.play().catch(e => {
+                console.log("Autoplay bloqué, fallback texte rouge.");
+                trap.innerHTML = "<h1 style='color:red; font-size:5rem; text-align:center; font-family:monospace;'>I SEE YOU<br>RUN.</h1>";
+            });
+
+            // 4. Rediriger vers la page corrompue
+            // La vidéo dure 5 secondes d'après ton screenshot, donc on redirige à 4.5s
+            setTimeout(() => {
+                window.location.href = 'agent-Graves-corrupted.html';
+            }, 4800);
+        }
+    </script>
 </head>
 <body>
 
+<div id="security-trap">
+    <video id="trap-video" src="/assets/I_SeE_yOu.mp4"></video>
+</div>
 
-    <div id="user-hud" class="user-hud" style="display: none;">
-        <div><span class="hud-label">AGENT:</span> <span id="hud-username" class="hud-value">...</span></div>
-        <div style="color:#445566">|</div>
-        <div><span class="hud-label">CLEARANCE:</span> <span id="hud-rank" class="hud-value hud-rank">...</span></div>
-    </div>
+<div id="user-hud" class="user-hud" style="display: none;">
+    <div><span class="hud-label">AGENT:</span> <span id="hud-username" class="hud-value">...</span></div>
+    <div style="color:#445566">|</div>
+    <div><span class="hud-label">CLEARANCE:</span> <span id="hud-rank" class="hud-value hud-rank">...</span></div>
+</div>
 
-    <div id="boot-screen">
-        <div class="boot-text">ESTABLISHING SECURE CONNECTION...</div>
-        <div class="progress-bar"><div class="progress-fill"></div></div>
-        <div style="margin-top: 10px; font-size: 0.8rem; color: #555;">ENCRYPTION: AES-256 // BYPASSING PROXY</div>
-    </div>
+<div id="boot-screen">
+    <div class="boot-text">ESTABLISHING SECURE CONNECTION...</div>
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+    <div style="margin-top: 10px; font-size: 0.8rem; color: #555;">ENCRYPTION: AES-256 // BYPASSING PROXY</div>
+</div>
 
-    <div class="terminal-wrapper">
-        <main class="terminal">
-            
-            <header class="header-strip">
-                <div>
-                    <h1>DOSSIER :: <span>GRAVES</span></h1>
-                    <div style="color: var(--primary); font-size: 0.9rem; letter-spacing: 3px;">SHADOW COMPANY // ARCHIVES</div>
-                </div>
-                <div class="meta-data">
-                    <div>SRC: LAS ALMAS DATA CENTER</div>
-                    <div>REQ ID: <span class="blink">_X99-ALPHA</span></div>
-                </div>
-            </header>
+<div class="terminal-wrapper">
+    <main class="terminal">
 
-            <section class="hero-section">
-                <div class="id-card-container">
-                    <div class="id-card" id="card">
-                        <div class="holo-overlay"></div>
-                        
-                        <div class="card-header">
-                            <div class="card-logo-text">SHADOW CO.</div>
-                            <div class="security-level">ACTIVATE</div>
+        <header class="header-strip">
+            <div>
+                <h1>DOSSIER :: <span>GRAVES</span></h1>
+                <div style="color: var(--primary); font-size: 0.9rem; letter-spacing: 3px;">SHADOW COMPANY // ARCHIVES</div>
+            </div>
+            <div class="meta-data">
+                <div>SRC: LAS ALMAS DATA CENTER</div>
+                <div>REQ ID: <span class="blink">_X99-ALPHA</span></div>
+            </div>
+        </header>
+
+        <section class="hero-section">
+            <div class="id-card-container">
+                <div class="id-card" id="card">
+                    <div class="holo-overlay"></div>
+
+                    <div class="card-header">
+                        <div class="card-logo-text">SHADOW CO.</div>
+                        <div class="security-level">ACTIVATE</div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="photo-box">
+                            <img src="/assets/Graves.jpg" alt="Agent">
                         </div>
-            
-                        <div class="card-body">
-                            <div class="photo-box">
-                                <img src="/assets/Graves.jpg" alt="Agent">
-                                </div>
-                            <div class="agent-info">
-                                <div class="card-label">ID</div>
-                                <div class="card-value">GRAVES</div>
-                                
-                                <div class="card-label">SIGN</div>
-                                <div class="card-value text-danger">SHADOW 0-1</div>
+                        <div class="agent-info">
+                            <div class="card-label">ID</div>
+                            <div class="card-value">GRAVES</div>
 
-                                <div class="card-label">CLEARANCE ID</div>
-                                <div class="card-code">LVL-5-X99</div>
-                            </div>
-                        </div>
-            
-                        <div class="card-footer">
-                            <div class="barcode" style="font-family: 'Libre Barcode 128 Text', cursive;">726309452</div>
-                            <div class="chip"></div>
+                            <div class="card-label">SIGN</div>
+                            <div class="card-value text-danger">SHADOW 0-1</div>
+
+                            <div class="card-label">CLEARANCE ID</div>
+                            <div class="card-code">LVL-5-X99</div>
                         </div>
                     </div>
-                </div>
-            </section>
 
-            <section class="intel-grid">
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">BIO_METRICS</span>
-                        <div class="audio-viz">
-                            <div class="bar" style="animation-delay:0s"></div>
-                            <div class="bar" style="animation-delay:0.1s"></div>
-                            <div class="bar" style="animation-delay:0.2s"></div>
-                            <div class="bar" style="animation-delay:0.3s"></div>
-                        </div>
-                    </div>
-                    <div class="log-entry">
-                        <span class="label">AFFILIATION:</span><br>
-                        <span class="text-danger">SHADOW COMPANY</span>
-                    </div>
-                    <div class="log-entry">
-                        <span class="label">LAST KNOWN LOC:</span><br>
-                        <span class="redacted" data-real="UNKNOWN" data-scramble="0x985L0"></span>
-                    </div>
-                    <div class="log-entry">
-                        <span class="label">STATUS:</span><br>
-                        <span class="text-warning">PRESUMED ALIVE</span>
+                    <div class="card-footer">
+                        <div class="barcode" style="font-family: 'Libre Barcode 128 Text', cursive;">726309452</div>
+                        <div class="chip"></div>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">ÉVALUATION</span>
-                        <span style="color:var(--secondary); font-size:0.7rem;">PROFIL_PSY</span>
+        <section class="intel-grid">
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">BIO_METRICS</span>
+                    <div class="audio-viz">
+                        <div class="bar" style="animation-delay:0s"></div>
+                        <div class="bar" style="animation-delay:0.1s"></div>
+                        <div class="bar" style="animation-delay:0.2s"></div>
+                        <div class="bar" style="animation-delay:0.3s"></div>
                     </div>
-                    
-                    <div class="log-entry">
-                         <span style="color: var(--primary)">[+] 
-                             <span class="redacted" style="color:var(--primary)" data-real="ERR_" data-scramble="UNKNOWN"></span>
+                </div>
+                <div class="log-entry">
+                    <span class="label">AFFILIATION:</span><br>
+                    <span class="text-danger">SHADOW COMPANY</span>
+                </div>
+                <div class="log-entry">
+                    <span class="label">LAST KNOWN LOC:</span><br>
+                    <span class="redacted" data-real="UNKNOWN" data-scramble="0x985L0"></span>
+                </div>
+                <div class="log-entry">
+                    <span class="label">STATUS:</span><br>
+                    <span class="text-warning">PRESUMED ALIVE</span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">ÉVALUATION</span>
+                    <span style="color:var(--secondary); font-size:0.7rem;">PROFIL_PSY</span>
+                </div>
+
+                <div class="log-entry">
+                         <span style="color: var(--primary)">[+]
+                             <span class="redacted" style="color:var(--primary)" data-real="LEADERSHIP ABSOLU" data-scramble="UNKNOWN"></span>
                          </span>
-                    </div>
-                    
-                    <div class="log-entry">
-                         <span style="color: var(--primary)">[+] 
-                             <span class="redacted" style="color:var(--primary)" data-real="SYS_" data-scramble="UNKNOWN"></span>
-                         </span>
-                    </div>
-
-                    <div class="log-entry">
-                         <span style="color: var(--danger)">[-] 
-                             <span class="redacted" style="color:var(--danger)" data-real="0xNULL_PTR" data-scramble="UNKNOWN"></span>
-                         </span>
-                    </div>
-
-                    <div class="log-entry">
-                         <span style="color: var(--danger)">[-] 
-                             <span class="redacted" style="color:var(--danger)" data-real="0xBAD_ACCESS" data-scramble="UNKNOWN"></span>
-                         </span>
-                    </div>
-
-                    <div style="margin-top: 15px; font-size: 0.75rem; color: #666; border-top: 1px dashed #444; padding-top: 10px;">
-                        // NOTE:BUFFER_OVERRUN_DETECTED.
-                    </div>
                 </div>
 
-            </section>
-
-            <section class="logs-section">
-                <div class="panel" style="border-top: 2px solid var(--primary);">
-                    <div class="panel-header">
-                        <span class="panel-title">HISTORIQUE OPÉRATIONNEL [CRYPTÉ]</span>
-                        <span style="font-family: var(--font-code); font-size: 0.7rem;">LVL-5 ONLY</span>
-                    </div>
-                    
-                    <table class="ops-table">
-                        <thead>
-                            <tr>
-                                <th width="15%">DATE // REF</th>
-                                <th width="30%">OPÉRATION</th>
-                                <th width="25%">LOC</th>
-                                <th width="20%">OBJECTIF</th>
-                                <th width="10%">STATUT</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>2022-07</td>
-                                <td>DARK WATER</td>
-                                <td><span class="redacted" data-real="24.5N-91.2W" data-scramble="UNKNOWN"></span></td>
-                                <td><span class="redacted" data-real="H-ZYANI" data-scramble="UNKNOWN"></span></td>
-                                <td><span class="status-badge st-success">SUCCÈS</span></td>
-                            </tr>
-                            <tr>
-                                <td>2022-10</td>
-                                <td>
-                                    <span class="redacted" data-real="BETRAYAL" data-scramble="ALONE"></span>
-                                </td>
-                                <td><span class="redacted" data-real="MX-LAS-AL" data-scramble="UNKNOWN"></span></td>
-                                <td><span class="redacted" data-real="TF-141" data-scramble="UNKNOWN"></span></td>
-                                <td><span class="status-badge st-success">SUCCÈS</span></td>
-                            </tr>
-                            <tr>
-                                <td>2023-08</td>
-                                <td>OBSERVATORY</td>
-                                <td><span class="redacted" data-real="URZ-ZAYA" data-scramble="UNKNOWN"></span></td>
-                                <td><span class="redacted" data-real="KONNI-GRP" data-scramble="UNKNOWN"></span></td>
-                                <td><span class="status-badge st-success">SUCCÈS</span></td>
-                            </tr>
-                            <tr>
-                                <td><span style="color:var(--dim)">----</span></td>
-                                <td>
-                                    <span class="redacted text-danger" data-real="SIEGE" data-scramble="OP-KINGFISH"></span>
-                                </td>
-                                <td><span class="redacted" data-real="0x991A-B" data-scramble="UNKNOWN"></span></td>
-                                <td><span class="redacted" data-real="V.MAKAROV" data-scramble="UNKNOWN"></span></td>
-                                <td><span class="status-badge st-success">SUCCÈS</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="log-entry">
+                         <span style="color: var(--primary)">[+]
+                             <span class="redacted" style="color:var(--primary)" data-real="TACTICIEN" data-scramble="UNKNOWN"></span>
+                         </span>
                 </div>
-            </section>
 
-            <footer class="footer">
-                <div>SECURE TERMINAL V.4.0.2</div>
-                <div>
-                    <a href="/database.html" class="text-danger" style="text-decoration: none;">[ TERMINATE SESSION ]</a>
+                <div class="log-entry">
+                         <span style="color: var(--danger)">[-]
+                             <span class="redacted" style="color:var(--danger)" data-real="MEGALOMANIA" data-scramble="UNKNOWN"></span>
+                         </span>
                 </div>
-            </footer>
+            </div>
+        </section>
 
-        </main>
-    </div>
+        <section class="logs-section">
+            <div class="panel" style="border-top: 2px solid var(--primary);">
+                <div class="panel-header">
+                    <span class="panel-title">HISTORIQUE OPÉRATIONNEL [CRYPTÉ]</span>
+                    <span style="font-family: var(--font-code); font-size: 0.7rem;">LVL-5 ONLY</span>
+                </div>
+                <table class="ops-table">
+                    <thead>
+                    <tr>
+                        <th width="15%">DATE // REF</th>
+                        <th width="30%">OPÉRATION</th>
+                        <th width="25%">LOC</th>
+                        <th width="10%">STATUT</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>2022-07</td>
+                        <td>DARK WATER</td>
+                        <td><span class="redacted" data-real="24.5N-91.2W" data-scramble="UNKNOWN"></span></td>
+                        <td><span class="status-badge st-success">SUCCÈS</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-    <div id="sidebar-placeholder"></div>
+        <footer class="footer">
+            <div>SECURE TERMINAL V.4.0.2</div>
+            <div>
+                <a href="/database.html" class="text-danger" style="text-decoration: none;">[ TERMINATE SESSION ]</a>
+            </div>
+        </footer>
+    </main>
+</div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            
-           
-            const sessionRaw = localStorage.getItem('sas_session');
-            if (sessionRaw) {
-                const currentUser = JSON.parse(sessionRaw);
-                const hud = document.getElementById('user-hud');
-                if(hud) {
-                    document.getElementById('hud-username').textContent = currentUser.username;
-                    document.getElementById('hud-rank').textContent = 'LVL ' + currentUser.rank;
-                    hud.style.display = 'flex';
-                }
-            } else {
-                
-            }
-
-       
-            const bootScreen = document.getElementById('boot-screen');
-            const bootText = document.querySelector('.boot-text');
-            
+<script>
+    function initPageAnimations() {
+        // Boot Screen
+        const bootScreen = document.getElementById('boot-screen');
+        const bootText = document.querySelector('.boot-text');
+        if(bootScreen) {
             setTimeout(() => { bootText.textContent = "AUTHENTICATING USER..."; }, 1000);
             setTimeout(() => { bootText.textContent = "DECRYPTING FILES..."; }, 2000);
             setTimeout(() => {
                 bootScreen.style.opacity = '0';
                 setTimeout(() => bootScreen.remove(), 1000);
             }, 2500);
+        }
 
-      
-            const card = document.getElementById('card');
-            const cardContainer = document.querySelector('.id-card-container');
-
-            if(cardContainer && card) {
-                cardContainer.addEventListener('mousemove', (e) => {
-                    const rect = cardContainer.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    
-                    const centerX = rect.width / 2;
-                    const centerY = rect.height / 2;
-                    
-                    const rotateX = ((y - centerY) / centerY) * -10; 
-                    const rotateY = ((x - centerX) / centerX) * 10;
-
-                    card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-                });
-
-                cardContainer.addEventListener('mouseleave', () => {
-                    card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
-                });
-            }
-
-        
-            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
-            
-            document.querySelectorAll('.redacted').forEach(element => {
-                element.textContent = element.getAttribute('data-scramble');
-                
-                element.onmouseover = event => {
-                    let iterations = 0;
-                    const targetText = event.target.getAttribute('data-real');
-                    
-                    if(!targetText) return;
-
-                    const interval = setInterval(() => {
-                        event.target.textContent = targetText
-                            .split("")
-                            .map((letter, index) => {
-                                if(index < iterations) {
-                                    return targetText[index];
-                                }
-                                return letters[Math.floor(Math.random() * 43)]
-                            })
-                            .join("");
-                        
-                        if(iterations >= targetText.length){ 
-                            clearInterval(interval);
-                        }
-                        
-                        iterations += 1 / 2;
-                    }, 30);
-                }
-
-                element.onmouseleave = event => {
-                   element.textContent = element.getAttribute('data-scramble');
-                }
+        // 3D Card
+        const card = document.getElementById('card');
+        const cardContainer = document.querySelector('.id-card-container');
+        if(cardContainer && card) {
+            cardContainer.addEventListener('mousemove', (e) => {
+                const rect = cardContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -10;
+                const rotateY = ((x - centerX) / centerX) * 10;
+                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
             });
+            cardContainer.addEventListener('mouseleave', () => {
+                card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
+            });
+        }
 
+        // Text Scramble
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
+        document.querySelectorAll('.redacted').forEach(element => {
+            element.textContent = element.getAttribute('data-scramble');
+            element.onmouseover = event => {
+                let iterations = 0;
+                const targetText = event.target.getAttribute('data-real');
+                if(!targetText) return;
+                const interval = setInterval(() => {
+                    event.target.textContent = targetText.split("").map((letter, index) => {
+                        if(index < iterations) return targetText[index];
+                        return letters[Math.floor(Math.random() * 43)]
+                    }).join("");
+                    if(iterations >= targetText.length) clearInterval(interval);
+                    iterations += 1 / 2;
+                }, 30);
+            }
+            element.onmouseleave = event => {
+                element.textContent = element.getAttribute('data-scramble');
+            }
         });
-    </script>
+    }
+</script>
 </body>
 </html>
