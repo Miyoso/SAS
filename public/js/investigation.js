@@ -6,14 +6,14 @@ let dragOffsetX, dragOffsetY;
 let panX = 0, panY = 0;
 let startPanX, startPanY;
 
-let linksData = []; 
-let isLinking = false; 
+let linksData = [];
+let isLinking = false;
 let linkStartId = null;
 let currentLinkColor = '#ff3333';
 
 function getAuthHeaders() {
     const token = localStorage.getItem('sas_token');
-    return { 
+    return {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
     };
@@ -22,14 +22,55 @@ function getAuthHeaders() {
 document.addEventListener('DOMContentLoaded', () => {
     loadBoardData();
     setupPanning();
+    setTimeout(initRealtimeListeners, 1000);
 });
+
+function initRealtimeListeners() {
+    if (typeof SAS_COLLAB === 'undefined' || !SAS_COLLAB.channel) {
+        setTimeout(initRealtimeListeners, 1000);
+        return;
+    }
+
+    const channel = SAS_COLLAB.channel;
+
+    channel.bind('node-created', (node) => {
+        renderNode(node);
+    });
+
+    channel.bind('node-moved', (data) => {
+        const el = document.getElementById(`node-${data.id}`);
+        if (el) {
+            el.style.transition = "left 0.2s, top 0.2s";
+            el.style.left = data.x + 'px';
+            el.style.top = data.y + 'px';
+
+            setTimeout(() => { el.style.transition = ""; }, 200);
+
+            requestAnimationFrame(drawLines);
+        }
+    });
+
+    channel.bind('node-deleted', (data) => {
+        const el = document.getElementById(`node-${data.id}`);
+        if (el) {
+            el.remove();
+            linksData = linksData.filter(l => l.from_id != data.id && l.to_id != data.id);
+            drawLines();
+        }
+    });
+
+    channel.bind('link-created', (link) => {
+        linksData.push(link);
+        drawLines();
+    });
+}
 
 async function loadBoardData() {
     const world = document.getElementById('board-world');
-    
+
     const existingItems = document.querySelectorAll('.board-item');
     existingItems.forEach(e => e.remove());
-    
+
     let svg = document.getElementById('connections-layer');
     if (!svg) {
         svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -44,26 +85,25 @@ async function loadBoardData() {
         });
 
         if (res.status === 401) {
-            alert("SESSION EXPIRÉE. VEUILLEZ VOUS RECONNECTER.");
             window.location.href = '/index.html';
             return;
         }
-        
+
         const data = await res.json();
-        
-        linksData = data.links || []; 
+
+        linksData = data.links || [];
 
         if (data.nodes) {
             data.nodes.forEach(node => renderNode(node));
             requestAnimationFrame(drawLines);
         }
-    } catch (err) { console.error("Erreur chargement:", err); }
+    } catch (err) {}
 }
 
 function renderNode(node) {
     const world = document.getElementById('board-world');
     const el = document.createElement('div');
-    
+
     el.classList.add('board-item');
     el.id = `node-${node.id}`;
     el.setAttribute('data-db-id', node.id);
@@ -96,7 +136,7 @@ function renderNode(node) {
     `;
 
     el.addEventListener("mousedown", handleNodeClick);
-    
+
     world.appendChild(el);
 }
 
@@ -154,7 +194,7 @@ function handleNodeClick(e) {
 
     e.stopPropagation();
     activeItem = e.currentTarget;
-    
+
     const rect = activeItem.getBoundingClientRect();
     dragOffsetX = e.clientX - rect.left;
     dragOffsetY = e.clientY - rect.top;
@@ -166,13 +206,13 @@ function handleNodeClick(e) {
 function itemDrag(e) {
     if (activeItem) {
         e.preventDefault();
-        
+
         const newX = e.clientX - panX - dragOffsetX;
         const newY = e.clientY - panY - dragOffsetY;
 
         activeItem.style.left = newX + 'px';
         activeItem.style.top = newY + 'px';
-        
+
         requestAnimationFrame(drawLines);
     }
 }
@@ -183,11 +223,13 @@ async function itemDragEnd() {
         const x = parseInt(activeItem.style.left);
         const y = parseInt(activeItem.style.top);
 
+        const socketId = SAS_COLLAB.pusher ? SAS_COLLAB.pusher.connection.socket_id : null;
+
         try {
             await fetch('/api/investigation', {
                 method: 'PUT',
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ id, x, y })
+                body: JSON.stringify({ id, x, y, socket_id: socketId })
             });
         } catch(e) {}
 
@@ -223,7 +265,7 @@ function resetLinkMode() {
     linkStartId = null;
     document.getElementById('board-viewport').classList.remove('linking-mode');
     document.querySelectorAll('.selected-link').forEach(el => el.classList.remove('selected-link'));
-    
+
     const btn = document.getElementById('btn-link');
     btn.style.background = '';
     btn.style.color = '';
@@ -234,22 +276,25 @@ async function createLink(fromId, toId) {
     linksData.push({ from_id: parseInt(fromId), to_id: parseInt(toId), color: currentLinkColor });
     drawLines();
 
+    const socketId = SAS_COLLAB.pusher ? SAS_COLLAB.pusher.connection.socket_id : null;
+
     await fetch('/api/investigation', {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ 
-            action: 'create_link', 
-            from_id: fromId, 
-            to_id: toId, 
-            color: currentLinkColor 
+        body: JSON.stringify({
+            action: 'create_link',
+            from_id: fromId,
+            to_id: toId,
+            color: currentLinkColor,
+            socket_id: socketId
         })
     });
 }
 
 function drawLines() {
     const svg = document.getElementById('connections-layer');
-    svg.innerHTML = ''; 
-    
+    svg.innerHTML = '';
+
     linksData.forEach(link => {
         const el1 = document.getElementById(`node-${link.from_id}`);
         const el2 = document.getElementById(`node-${link.to_id}`);
@@ -263,10 +308,10 @@ function drawLines() {
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             line.setAttribute('x1', x1); line.setAttribute('y1', y1);
             line.setAttribute('x2', x2); line.setAttribute('y2', y2);
-            
+
             line.classList.add('connection-line');
-            line.style.stroke = link.color || '#ff3333'; 
-            
+            line.style.stroke = link.color || '#ff3333';
+
             svg.appendChild(line);
         }
     });
@@ -294,6 +339,8 @@ window.confirmCreateNode = async function() {
     const centerX = (window.innerWidth / 2) - panX - 90;
     const centerY = (window.innerHeight / 2) - panY - 100;
 
+    const socketId = SAS_COLLAB.pusher ? SAS_COLLAB.pusher.connection.socket_id : null;
+
     const payload = {
         action: 'create_node',
         type: currentModalType,
@@ -301,7 +348,8 @@ window.confirmCreateNode = async function() {
         sub_label: sub ? sub.toUpperCase() : '',
         image_url: img,
         x: Math.floor(centerX),
-        y: Math.floor(centerY)
+        y: Math.floor(centerY),
+        socket_id: socketId
     };
 
     const res = await fetch('/api/investigation', {
@@ -320,10 +368,12 @@ window.confirmCreateNode = async function() {
 window.deleteNode = async function(id, event) {
     event.stopPropagation();
     if(confirm("Supprimer ce dossier ?")) {
+        const socketId = SAS_COLLAB.pusher ? SAS_COLLAB.pusher.connection.socket_id : null;
+
         await fetch('/api/investigation', {
             method: 'DELETE',
             headers: getAuthHeaders(),
-            body: JSON.stringify({ id })
+            body: JSON.stringify({ id, socket_id: socketId })
         });
         document.getElementById(`node-${id}`).remove();
         linksData = linksData.filter(l => l.from_id !== id && l.to_id !== id);
