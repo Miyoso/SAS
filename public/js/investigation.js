@@ -22,7 +22,56 @@ function getAuthHeaders() {
 document.addEventListener('DOMContentLoaded', () => {
     loadBoardData();
     setupPanning();
+    initRealtimeBoard();
 });
+
+function initRealtimeBoard() {
+    const pusher = new Pusher('TA_CLE_PUBLIQUE_PUSHER', {
+        cluster: 'eu'
+    });
+
+    const channel = pusher.subscribe('investigation-board');
+
+    channel.bind('node-created', (node) => {
+        if (!document.getElementById(`node-${node.id}`)) {
+            renderNode(node);
+        }
+    });
+
+    channel.bind('node-moved', (data) => {
+        if (activeItem && activeItem.getAttribute('data-db-id') == data.id) {
+            return;
+        }
+
+        const el = document.getElementById(`node-${data.id}`);
+        if (el) {
+            el.style.transition = "left 0.3s, top 0.3s";
+            el.style.left = data.x + 'px';
+            el.style.top = data.y + 'px';
+
+            setTimeout(() => { el.style.transition = ""; }, 300);
+
+            requestAnimationFrame(drawLines);
+        }
+    });
+
+    channel.bind('node-deleted', (data) => {
+        const el = document.getElementById(`node-${data.id}`);
+        if (el) {
+            el.remove();
+            linksData = linksData.filter(l => l.from_id != data.id && l.to_id != data.id);
+            drawLines();
+        }
+    });
+
+    channel.bind('link-created', (link) => {
+        const exists = linksData.find(l => l.from_id == link.from_id && l.to_id == link.to_id);
+        if (!exists) {
+            linksData.push(link);
+            drawLines();
+        }
+    });
+}
 
 async function loadBoardData() {
     const world = document.getElementById('board-world');
