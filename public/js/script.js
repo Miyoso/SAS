@@ -14,18 +14,19 @@ let currentUser = null;
 
 function switchView(viewName) {
     if (viewName === 'profile') {
-        dashboardView.classList.add('hidden');
-        profileView.classList.remove('hidden');
+        if(dashboardView) dashboardView.classList.add('hidden');
+        if(profileView) profileView.classList.remove('hidden');
     } else {
-        profileView.classList.add('hidden');
-        dashboardView.classList.remove('hidden');
+        if(profileView) profileView.classList.add('hidden');
+        if(dashboardView) dashboardView.classList.remove('hidden');
     }
 }
 window.switchView = switchView;
 
 document.addEventListener('keydown', function(event) {
-    if (event.key === 'F9') {
-        event.preventDefault(); 
+    // On vérifie si le terminal existe sur cette page avant de l'ouvrir
+    if (event.key === 'F9' && terminal && input) {
+        event.preventDefault();
         terminal.classList.toggle('open');
         if (terminal.classList.contains('open')) {
             setTimeout(() => input.focus(), 100);
@@ -36,19 +37,23 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-input.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        const command = input.value.trim();
-        if (command !== "") {
-            addToHistory(command, 'user');
-            processCommand(command);
-            input.value = "";
-            scrollToBottom();
+// CORRECTION : On vérifie que 'input' existe avant d'ajouter l'écouteur
+if (input) {
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            const command = input.value.trim();
+            if (command !== "") {
+                addToHistory(command, 'user');
+                processCommand(command);
+                input.value = "";
+                scrollToBottom();
+            }
         }
-    }
-});
+    });
+}
 
 function addToHistory(text, type) {
+    if (!historyDiv) return; // Sécurité si pas d'historique
     const line = document.createElement('div');
     line.classList.add('term-line');
     if(type === 'user') line.classList.add('term-user');
@@ -59,7 +64,9 @@ function addToHistory(text, type) {
 }
 
 function scrollToBottom() {
-    historyDiv.scrollTop = historyDiv.scrollHeight;
+    if (historyDiv) {
+        historyDiv.scrollTop = historyDiv.scrollHeight;
+    }
 }
 
 function unlockInterface(agent) {
@@ -77,9 +84,9 @@ function unlockInterface(agent) {
 
     if(pUsername) pUsername.textContent = agent.username.toUpperCase();
     if(pRank) pRank.textContent = agent.rank;
-    
+
     localStorage.setItem('userSecurityLevel', agent.rank);
-    
+
     if(connStatus) {
         connStatus.textContent = "CONNECTED";
         connStatus.style.color = "var(--primary)";
@@ -92,7 +99,7 @@ function logout() {
     localStorage.removeItem('sas_session');
     localStorage.removeItem('userSecurityLevel');
     localStorage.removeItem('sas_token');
-    
+
     switchView('dashboard');
 
     const sidebarGuest = document.getElementById('sidebar-guest');
@@ -122,7 +129,7 @@ async function processCommand(cmd) {
             addToHistory("USAGE: /login [username] [password]", 'error');
             return;
         }
-        
+
         const username = args[0];
         const password = args[1];
         addToHistory("VERIFYING CREDENTIALS...", 'info');
@@ -175,7 +182,7 @@ async function processCommand(cmd) {
         } catch (err) {
             addToHistory("FATAL ERROR: Connection failed.", 'error');
         }
-        return; 
+        return;
     }
 
     if (command === '/help') {
@@ -184,9 +191,9 @@ async function processCommand(cmd) {
         addToHistory("  /register [user] [pass]", 'system');
         addToHistory("  /clear", 'system');
         addToHistory("  /logout", 'system');
-    } 
+    }
     else if (command === '/clear') {
-        historyDiv.innerHTML = "";
+        if(historyDiv) historyDiv.innerHTML = "";
         addToHistory("Console cleared.", 'info');
     }
     else if (command === '/logout') {
@@ -199,14 +206,14 @@ async function processCommand(cmd) {
 
 async function loadComponents() {
     const placeholder = document.getElementById('sidebar-placeholder');
-    
+
     if (placeholder) {
         try {
             const response = await fetch('/components/sidebar.html');
             if (response.ok) {
                 const html = await response.text();
                 placeholder.innerHTML = html;
-                restoreSession(); 
+                restoreSession();
             }
         } catch (error) {
             console.error("Erreur chargement sidebar:", error);
@@ -221,7 +228,6 @@ async function restoreSession() {
 
     if (token) {
         try {
-            // On demande au serveur : "Qui suis-je et quel est mon rang actuel ?"
             const response = await fetch('/api/me', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -229,15 +235,10 @@ async function restoreSession() {
             if (response.ok) {
                 const data = await response.json();
                 currentUser = data.agent;
-
-                // On met à jour le cache local avec les nouvelles données de la BDD
                 localStorage.setItem('sas_session', JSON.stringify(currentUser));
-
-                // On déverrouille l'interface avec le NOUVEAU rang
                 unlockInterface(currentUser);
                 addToHistory(`SESSION VERIFIED. RANK UPDATED: ${currentUser.rank}`, 'info');
             } else {
-                // Si le token n'est plus valide ou erreur, on déconnecte
                 logout();
             }
         } catch (e) {
