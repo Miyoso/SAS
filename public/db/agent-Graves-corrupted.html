@@ -4,99 +4,158 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FATAL ERROR :: 0x000000</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@800&family=Rubik+Glitch&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@800&family=Rubik+Glitch&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style-mo.css">
 
     <style>
         body {
-            background-color: #000;
+            background-color: #050505;
+            color: #cc0000;
             overflow: hidden;
-            animation: shake 0.1s infinite;
+            margin: 0;
+            font-family: 'Share Tech Mono', monospace;
         }
 
+        /* Effet d'écran CRT (Lignes de balayage) */
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(
+                    to bottom,
+                    rgba(255,255,255,0),
+                    rgba(255,255,255,0) 50%,
+                    rgba(0,0,0,0.4) 50%,
+                    rgba(0,0,0,0.4)
+            );
+            background-size: 100% 4px;
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        /* Effet de scintillement global */
         .terminal-wrapper {
-            filter: contrast(200%) hue-rotate(90deg) invert(1) saturate(500%);
-            transform: skewX(-5deg);
+            position: relative;
+            filter: sepia(100%) hue-rotate(-50deg) saturate(300%) contrast(1.2);
+            opacity: 0.8;
+            animation: flicker 0.15s infinite;
         }
 
+        /* Typographie Glitchy */
         h1, span, div, .card-value {
             font-family: 'Rubik Glitch', cursive !important;
-            color: red !important;
-            text-shadow: 2px 0 #fff, -2px 0 #000;
+            color: #ff3333 !important;
+            text-shadow: 2px 0 #000, -1px 0 rgba(255,0,0,0.5);
         }
 
+        /* La carte d'identité corrompue */
         .hero-section img {
-            filter: invert(1);
-            animation: glitch-anim 0.2s infinite;
+            filter: grayscale(100%) contrast(200%);
+            opacity: 0.6;
+            mix-blend-mode: luminosity;
+            border: 1px solid red;
         }
 
+        /* Boite d'alerte plus sombre et tech */
         .alert-box {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: red; color: black; font-size: 3rem; padding: 20px;
-            border: 5px solid white; z-index: 10000;
-            text-align: center; font-family: 'Rubik Glitch', monospace;
+            background: rgba(10, 0, 0, 0.95);
+            color: #ff0000;
+            font-size: 2rem;
+            padding: 40px;
+            border: 2px solid #ff0000;
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.2), inset 0 0 20px rgba(255, 0, 0, 0.2);
+            z-index: 10000;
+            text-align: center;
+            font-family: 'Rubik Glitch', monospace;
+            letter-spacing: 2px;
+            animation: pulseAlert 2s infinite;
         }
 
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        /* Texte Matrix en arrière plan */
+        .matrix-rain {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; opacity: 0.3;
         }
 
-        @keyframes glitch-anim {
-            0% { clip-path: inset(10% 0 80% 0); transform: translate(-5px, 5px); }
-            50% { clip-path: inset(80% 0 10% 0); transform: translate(5px, -5px); }
-            100% { clip-path: inset(10% 0 80% 0); transform: translate(5px, -5px); }
+        @keyframes flicker {
+            0% { opacity: 0.8; transform: translateX(0); }
+            5% { opacity: 0.7; transform: translateX(1px); }
+            10% { opacity: 0.8; transform: translateX(-1px); }
+            15% { opacity: 0.2; transform: translateX(0); } /* Gros flash noir */
+            20% { opacity: 0.8; }
+            100% { opacity: 0.8; }
+        }
+
+        @keyframes pulseAlert {
+            0% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.2); text-shadow: 0 0 5px red; }
+            50% { box-shadow: 0 0 50px rgba(255, 0, 0, 0.6); text-shadow: 0 0 20px red; }
+            100% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.2); text-shadow: 0 0 5px red; }
         }
     </style>
 </head>
 <body>
+<div class="scanlines"></div>
+
 <div class="alert-box">
-    SYSTEM FAILURE<br>
-    EYES ARE WATCHING<br>
-    <span style="font-size: 1rem;">DELETING SYSTEM32...</span>
+    CRITICAL FAILURE<br>
+    <span style="font-size: 1.5rem; color: #fff;">UNAUTHORIZED ACCESS DETECTED</span><br>
+    <span style="font-size: 1rem; color: #555; font-family: 'Share Tech Mono';">IP LOGGED // SYSTEM PURGE INITIATED...</span>
 </div>
 
 <div class="terminal-wrapper">
     <main class="terminal">
-        <header class="header-strip">
-            <h1>CORRUPTED :: <span>ERROR</span></h1>
+        <header class="header-strip" style="border-bottom: 2px solid #500;">
+            <h1>SYSTEM :: <span>HALTED</span></h1>
         </header>
         <section class="hero-section">
-            <div class="id-card">
+            <div class="id-card" style="border: 1px solid #500; background: #050000;">
                 <div class="card-body">
                     <div class="photo-box"><img src="/assets/Graves.jpg"></div>
                     <div class="agent-info">
-                        <div class="card-value">N0_D4T4</div>
-                        <div class="card-value">ERROR 404</div>
+                        <div class="card-value">UNKNOWN</div>
+                        <div class="card-value">FILE CORRUPTED</div>
                     </div>
                 </div>
             </div>
         </section>
         <section class="intel-grid">
-            <div class="panel">
-                <div class="log-entry">DATA LOSS...</div>
+            <div class="panel" style="border: 1px solid #500;">
+                <div class="log-entry">MEMORY DUMP... 0x5F4A</div>
                 <div class="log-entry">SEGMENTATION FAULT</div>
-                <div class="log-entry">YOU SHOULD NOT BE HERE</div>
+                <div class="log-entry">THEY ARE WATCHING YOU</div>
             </div>
         </section>
     </main>
 </div>
 
 <script>
+    // Script Matrix "pluie de code" plus propre
+    const body = document.body;
+
     setInterval(() => {
         const div = document.createElement('div');
         div.style.position = 'fixed';
-        div.style.left = Math.random() * 100 + 'vw';
-        div.style.top = Math.random() * 100 + 'vh';
-        div.style.color = Math.random() > 0.5 ? 'red' : 'white';
-        div.style.fontFamily = 'Courier New';
-        div.style.zIndex = '50';
-        div.style.fontSize = Math.random() * 30 + 'px';
-        div.innerText = Math.random().toString(36).substring(7);
-        document.body.appendChild(div);
-        setTimeout(() => div.remove(), 200);
-    }, 20);
+        div.style.left = Math.floor(Math.random() * 98) + 'vw';
+        div.style.top = '-50px'; // Commence hors écran
+        div.style.color = Math.random() > 0.9 ? '#fff' : '#ff0000'; // Majoritairement rouge
+        div.style.fontFamily = 'Share Tech Mono';
+        div.style.zIndex = '-1';
+        div.style.fontSize = (Math.random() * 20 + 10) + 'px';
+        div.style.opacity = Math.random();
+        div.style.transition = `top ${Math.random() * 2 + 1}s linear`;
+
+        // Contenu binaire ou hex
+        div.innerText = Math.random() > 0.5 ? '0' : '1';
+
+        body.appendChild(div);
+
+        // Animation de chute
+        requestAnimationFrame(() => {
+            div.style.top = '110vh';
+        });
+
+        // Nettoyage
+        setTimeout(() => div.remove(), 3000);
+    }, 50);
 </script>
 </body>
 </html>
