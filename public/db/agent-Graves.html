@@ -59,31 +59,27 @@
         });
 
         function triggerSecurityTrap() {
-            // 1. Masquer l'interface
             const wrapper = document.querySelector('.terminal-wrapper');
             const bootScreen = document.getElementById('boot-screen');
             if(wrapper) wrapper.style.display = 'none';
             if(bootScreen) bootScreen.style.display = 'none';
 
-            // 2. Afficher le piège
             const trap = document.getElementById('security-trap');
             const video = document.getElementById('trap-video');
             trap.style.display = 'flex';
 
-            // 3. ENVOYER L'ALERTE DISCORD (Nouvelle partie)
             const sessionRaw = localStorage.getItem('sas_session');
             const intrus = sessionRaw ? JSON.parse(sessionRaw).username : "VISITEUR NON CONNECTÉ";
 
-            fetch('/api/security-alert', {
+            fetch('/api/comms?type=alert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     user: intrus,
                     userAgent: navigator.userAgent
                 })
-            }).catch(e => console.error("Echec envoi alerte:", e));
+            }).catch(e => console.error(e));
 
-            // 4. Lancer la vidéo avec fallback silencieux
             var promise = video.play();
 
             if (promise !== undefined) {
@@ -95,7 +91,6 @@
                 });
             }
 
-            // 5. Redirection
             setTimeout(() => {
                 window.location.href = '/db/agent-Graves-corrupted.html';
             }, 4500);
