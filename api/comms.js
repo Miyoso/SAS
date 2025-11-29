@@ -34,17 +34,25 @@ export default async function handler(req, res) {
         const WEBHOOK = process.env.ALERTE;
         if (!WEBHOOK) return res.status(500).json({ error: 'Config manquante' });
 
-        const { user, userAgent } = req.body;
+        const { user } = req.body; // On ne récupère plus userAgent
+
+        // Création de la date et l'heure actuelle en format français
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const timeStr = now.toLocaleTimeString('fr-FR');
+
         const embed = {
             title: "🚨 INTRUSION DÉTECTÉE",
             description: "Piège vidéo déclenché sur le dossier GRAVES.",
             color: 15158332, // Rouge
             fields: [
                 { name: "Utilisateur", value: user || "Inconnu", inline: true },
-                { name: "Device", value: userAgent || "Inconnu", inline: false }
+                // Remplacement ici :
+                { name: "Date", value: dateStr, inline: true },
+                { name: "Heure", value: timeStr, inline: true }
             ],
             footer: { text: "SAS SECURITY SYSTEM" },
-            timestamp: new Date().toISOString()
+            timestamp: now.toISOString()
         };
 
         try {
