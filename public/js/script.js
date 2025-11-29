@@ -216,17 +216,32 @@ async function loadComponents() {
     }
 }
 
-function restoreSession() {
-    const savedSession = localStorage.getItem('sas_session');
-    if (savedSession) {
+async function restoreSession() {
+    const token = localStorage.getItem('sas_token');
+
+    if (token) {
         try {
-            const user = JSON.parse(savedSession);
-            currentUser = user;
-            unlockInterface(user);
-            addToHistory(`SESSION RESTORED FOR AGENT ${user.username}.`, 'info');
+            // On demande au serveur : "Qui suis-je et quel est mon rang actuel ?"
+            const response = await fetch('/api/me', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                currentUser = data.agent;
+
+                // On met à jour le cache local avec les nouvelles données de la BDD
+                localStorage.setItem('sas_session', JSON.stringify(currentUser));
+
+                // On déverrouille l'interface avec le NOUVEAU rang
+                unlockInterface(currentUser);
+                addToHistory(`SESSION VERIFIED. RANK UPDATED: ${currentUser.rank}`, 'info');
+            } else {
+                // Si le token n'est plus valide ou erreur, on déconnecte
+                logout();
+            }
         } catch (e) {
-            localStorage.removeItem('sas_session');
-            localStorage.removeItem('sas_token');
+            console.error("Erreur de vérification session", e);
         }
     }
 }
