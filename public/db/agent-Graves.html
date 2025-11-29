@@ -12,17 +12,15 @@
     <link rel="stylesheet" href="/css/style-mo.css">
 
     <style>
-        /* Style du piège vidéo (Plein écran, noir, au dessus de tout) */
         #security-trap {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: black; z-index: 99999;
-            display: none; /* Caché par défaut */
+            display: none;
             justify-content: center; align-items: center; flex-direction: column;
         }
         #trap-video {
             width: 100%; height: 100%; object-fit: cover;
         }
-        /* HUD User */
         .user-hud {
             position: fixed; top: 20px; right: 30px;
             background: rgba(10, 15, 20, 0.9); border: 1px solid #445566; border-left: 3px solid #00ff9d;
@@ -33,14 +31,12 @@
     </style>
 
     <script>
-        // --- LOGIQUE DE SÉCURITÉ IMMÉDIATE ---
         document.addEventListener("DOMContentLoaded", () => {
             const sessionRaw = localStorage.getItem('sas_session');
             let isAuthorized = false;
 
             if (sessionRaw) {
                 const user = JSON.parse(sessionRaw);
-                // Liste des utilisateurs autorisés
                 const allowedUsers = ['Graves', 'oui'];
 
                 if (allowedUsers.includes(user.username)) {
@@ -51,7 +47,6 @@
             if (!isAuthorized) {
                 triggerSecurityTrap();
             } else {
-                // Si autorisé, on affiche le HUD normal et on lance les animations
                 const hud = document.getElementById('user-hud');
                 const user = JSON.parse(sessionRaw);
                 if(hud) {
@@ -64,35 +59,36 @@
         });
 
         function triggerSecurityTrap() {
-            // 1. Cacher le contenu normal pour éviter tout spoil
-            document.querySelector('.terminal-wrapper').style.display = 'none';
-            document.getElementById('boot-screen').style.display = 'none';
+            const wrapper = document.querySelector('.terminal-wrapper');
+            const bootScreen = document.getElementById('boot-screen');
+            if(wrapper) wrapper.style.display = 'none';
+            if(bootScreen) bootScreen.style.display = 'none';
 
-            // 2. Afficher le piège
             const trap = document.getElementById('security-trap');
             const video = document.getElementById('trap-video');
             trap.style.display = 'flex';
 
-            // 3. Lancer la vidéo "I_SeE_yOu.mp4"
-            // Le navigateur peut bloquer l'autoplay s'il n'y a pas eu d'interaction avant,
-            // mais comme l'utilisateur vient de cliquer pour arriver ici, ça devrait passer.
-            video.play().catch(e => {
-                console.log("Autoplay bloqué, fallback texte rouge.");
-                trap.innerHTML = "<h1 style='color:red; font-size:5rem; text-align:center; font-family:monospace;'>I SEE YOU<br>RUN.</h1>";
-            });
+            var promise = video.play();
 
-            // 4. Rediriger vers la page corrompue
-            // La vidéo dure 5 secondes d'après ton screenshot, donc on redirige à 4.5s
+            if (promise !== undefined) {
+                promise.catch(error => {
+                    video.muted = true;
+                    video.play().catch(e => {
+                        trap.innerHTML = "<h1 style='color:red; font-size:5rem; text-align:center; font-family:monospace; text-shadow: 0 0 10px red;'>I SEE YOU<br>RUN.</h1>";
+                    });
+                });
+            }
+
             setTimeout(() => {
-                window.location.href = 'agent-Graves-corrupted.html';
-            }, 4800);
+                window.location.href = '/db/agent-Graves-corrupted.html';
+            }, 4500);
         }
     </script>
 </head>
 <body>
 
 <div id="security-trap">
-    <video id="trap-video" src="/assets/I_SeE_yOu.mp4"></video>
+    <video id="trap-video" src="/assets/I_SeE_yOu.mp4" playsinline></video>
 </div>
 
 <div id="user-hud" class="user-hud" style="display: none;">
@@ -244,7 +240,6 @@
 
 <script>
     function initPageAnimations() {
-        // Boot Screen
         const bootScreen = document.getElementById('boot-screen');
         const bootText = document.querySelector('.boot-text');
         if(bootScreen) {
@@ -256,7 +251,6 @@
             }, 2500);
         }
 
-        // 3D Card
         const card = document.getElementById('card');
         const cardContainer = document.querySelector('.id-card-container');
         if(cardContainer && card) {
@@ -275,7 +269,6 @@
             });
         }
 
-        // Text Scramble
         const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
         document.querySelectorAll('.redacted').forEach(element => {
             element.textContent = element.getAttribute('data-scramble');
