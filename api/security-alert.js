@@ -3,7 +3,6 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // Utilisation de la variable "ALERTE" comme demandé
     const WEBHOOK_URL = process.env.ALERTE;
 
     if (!WEBHOOK_URL) {
@@ -12,17 +11,14 @@ export default async function handler(req, res) {
 
     const { user, userAgent } = req.body;
 
-    // Récupération de l'IP (fonctionne sur Vercel/Node)
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'IP Masquée';
-
-    // Construction du message Discord (Embed Rouge)
+    // Construction du message Discord (Sans l'IP)
     const embed = {
         title: "🚨 INTRUSION DÉTECTÉE : DOSSIER GRAVES",
         description: "Le protocole de sécurité (Piège Vidéo) a été déclenché.",
         color: 15158332, // Rouge
         fields: [
             { name: "Utilisateur", value: user || "Non identifié", inline: true },
-            { name: "Adresse IP", value: ip, inline: true },
+            // Champ IP supprimé
             { name: "Navigateur / Device", value: userAgent || "Inconnu", inline: false }
         ],
         footer: { text: "SAS SECURITY SYSTEM // AUTO-TRAP" },
