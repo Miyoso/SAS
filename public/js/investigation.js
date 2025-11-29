@@ -22,11 +22,13 @@ function getAuthHeaders() {
 document.addEventListener('DOMContentLoaded', () => {
     loadBoardData();
     setupPanning();
-    initRealtimeBoard();
+    if (typeof Pusher !== 'undefined') {
+        initRealtimeBoard();
+    }
 });
 
 function initRealtimeBoard() {
-    const pusher = new Pusher('TA_CLE_PUBLIQUE_PUSHER', {
+    const pusher = new Pusher('51d51cc5bfc1c8ee90d4', {
         cluster: 'eu'
     });
 
@@ -93,10 +95,11 @@ async function loadBoardData() {
         });
 
         if (res.status === 401) {
-            alert("SESSION EXPIRÉE. VEUILLEZ VOUS RECONNECTER.");
             window.location.href = '/index.html';
             return;
         }
+
+        if (!res.ok) throw new Error("Erreur serveur");
 
         const data = await res.json();
 
@@ -106,7 +109,9 @@ async function loadBoardData() {
             data.nodes.forEach(node => renderNode(node));
             requestAnimationFrame(drawLines);
         }
-    } catch (err) { console.error("Erreur chargement:", err); }
+    } catch (err) {
+        console.error(err);
+    }
 }
 
 function renderNode(node) {
@@ -125,11 +130,11 @@ function renderNode(node) {
 
     if (node.type === 'target') {
         if (!img) img = 'assets/Adam.jpg';
-        contentHtml = `<img src="${img}" draggable="false">`;
+        contentHtml = `<img src="${img}" draggable="false" onerror="this.src='assets/Adam.jpg'">`;
         pinColor = 'pin-red';
     } else if (node.type === 'evidence') {
         pinColor = 'pin-yellow';
-        contentHtml = img ? `<img src="${img}" draggable="false">` : `<div class="evidence-content" style="padding:20px; color:#aaa; font-size:0.8rem;">DOC CLASSÉ</div>`;
+        contentHtml = img ? `<img src="${img}" draggable="false">` : `<div class="evidence-content" style="padding:20px; color:#aaa; font-size:0.8rem; text-align:center;">PREUVE<br>NUMÉRIQUE</div>`;
     } else {
         pinColor = 'pin-blue';
         if (!img) img = 'assets/carte.jpg';
@@ -238,7 +243,9 @@ async function itemDragEnd() {
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ id, x, y })
             });
-        } catch(e) {}
+        } catch(e) {
+            console.error(e);
+        }
 
         document.removeEventListener("mouseup", itemDragEnd);
         document.removeEventListener("mousemove", itemDrag);
@@ -283,16 +290,23 @@ async function createLink(fromId, toId) {
     linksData.push({ from_id: parseInt(fromId), to_id: parseInt(toId), color: currentLinkColor });
     drawLines();
 
-    await fetch('/api/investigation', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-            action: 'create_link',
-            from_id: fromId,
-            to_id: toId,
-            color: currentLinkColor
-        })
-    });
+    try {
+        const res = await fetch('/api/investigation', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+                action: 'create_link',
+                from_id: fromId,
+                to_id: toId,
+                color: currentLinkColor
+            })
+        });
+
+        if(!res.ok) throw new Error("Erreur serveur");
+
+    } catch(e) {
+        alert("Impossible de créer le lien");
+    }
 }
 
 function drawLines() {
@@ -324,17 +338,24 @@ function drawLines() {
 let currentModalType = 'target';
 window.createNode = function(type) {
     document.getElementById('creation-modal').classList.remove('hidden');
+
     document.getElementById('inp-label').value = '';
     document.getElementById('inp-sub').value = '';
     document.getElementById('inp-img').value = '';
+
     setModalType(type);
 }
-window.closeModal = function() { document.getElementById('creation-modal').classList.add('hidden'); }
+
+window.closeModal = function() {
+    document.getElementById('creation-modal').classList.add('hidden');
+}
+
 window.setModalType = function(type) {
     currentModalType = type;
     document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(`btn-type-${type}`).classList.add('active');
 }
+
 window.confirmCreateNode = async function() {
     const label = document.getElementById('inp-label').value || 'INCONNU';
     const sub = document.getElementById('inp-sub').value;
@@ -353,29 +374,44 @@ window.confirmCreateNode = async function() {
         y: Math.floor(centerY)
     };
 
-    const res = await fetch('/api/investigation', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(payload)
-    });
+    try {
+        const res = await fetch('/api/investigation', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(payload)
+        });
 
-    if (res.ok) {
-        const newNode = await res.json();
-        renderNode(newNode);
-        closeModal();
+        if (res.ok) {
+            const newNode = await res.json();
+            renderNode(newNode);
+            closeModal();
+        } else {
+            alert("Erreur lors de la création.");
+        }
+    } catch(e) {
+        alert("Erreur réseau.");
     }
 }
 
 window.deleteNode = async function(id, event) {
     event.stopPropagation();
-    if(confirm("Supprimer ce dossier ?")) {
-        await fetch('/api/investigation', {
-            method: 'DELETE',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ id })
-        });
-        document.getElementById(`node-${id}`).remove();
-        linksData = linksData.filter(l => l.from_id !== id && l.to_id !== id);
-        drawLines();
+    if(confirm("SUPPRIMER DÉFINITIVEMENT CE DOSSIER ?")) {
+        try {
+            const res = await fetch('/api/investigation', {
+                method: 'DELETE',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id })
+            });
+
+            if(res.ok) {
+                document.getElementById(`node-${id}`).remove();
+                linksData = linksData.filter(l => l.from_id !== id && l.to_id !== id);
+                drawLines();
+            } else {
+                alert("Erreur lors de la suppression.");
+            }
+        } catch(e) {
+            alert("Erreur réseau.");
+        }
     }
 }
