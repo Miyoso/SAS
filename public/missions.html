@@ -376,7 +376,7 @@
                     if (col.id === 'body-completed') newStatus = 'COMPLETED';
 
                     const missionId = draggedCard.dataset.id;
-                    // MODIFICATION : Appel à /api/game?entity=missions
+
                     await fetch('/api/game?entity=missions', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -399,7 +399,7 @@
     }
 
     async function loadAvailableGear() {
-        // MODIFICATION : Appel à /api/game?entity=equipment
+
         const res = await fetch('/api/game?entity=equipment', { headers: { 'Authorization': `Bearer ${token}` } });
         const data = await res.json();
         const select = document.getElementById('equip-select');
@@ -430,7 +430,7 @@
         document.getElementById('d-loc').textContent = mission.location;
         document.getElementById('roster-count').innerText = mission.roster.length;
 
-        // Mise à jour de la liste d'agents en excluant ceux déjà présents
+
         updateAgentSelect(mission.roster);
 
         const rosterContainer = document.getElementById('d-roster-list');
@@ -461,14 +461,14 @@
             location: document.getElementById('m-loc').value,
             start_time: document.getElementById('m-time').value
         };
-        // MODIFICATION : Appel à /api/game?entity=missions
+
         await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
         closeModals(); loadMissions();
     });
 
     async function moveMission(status) {
         if(!currentMissionId) return;
-        // MODIFICATION : Appel à /api/game?entity=missions
+
         await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'move', id: currentMissionId, status: status }) });
         closeModals(); loadMissions();
     }
@@ -479,7 +479,7 @@
 
         if(!agentName) return;
 
-        // MODIFICATION : Appel à /api/game?entity=missions
+
         await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, agent: agentName }) });
         refreshDetails();
         select.value = "";
@@ -488,13 +488,13 @@
     async function addGearToMission() {
         const gearId = document.getElementById('equip-select').value;
         if(!gearId) return;
-        // MODIFICATION : Appel à /api/game?entity=missions
+
         await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, equipment_id: gearId }) });
         refreshDetails(); loadAvailableGear();
     }
 
     async function refreshDetails() {
-        // MODIFICATION : Appel à /api/game?entity=missions
+
         const res = await fetch('/api/game?entity=missions', { headers: { 'Authorization': `Bearer ${token}` } });
         const missions = await res.json();
         const mission = missions.find(m => m.id === currentMissionId);

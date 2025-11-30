@@ -144,7 +144,7 @@
         map.on('click', onMapClick);
     }
 
-    // --- LOGIQUE DESSIN ---
+
     function selectTool(tool) {
         currentTool = tool;
         document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
@@ -152,31 +152,31 @@
 
         document.getElementById('map').style.cursor = (tool === 'nav') ? 'grab' : 'crosshair';
 
-        // Si on change d'outil, on annule le dessin en cours
+
         resetDrawing();
     }
 
     function onMapClick(e) {
         if (currentTool === 'nav') return;
 
-        // 1. MARQUEUR : On ouvre direct
+
         if (currentTool === 'marker') {
             openModal('marker', [e.latlng]);
         }
 
-        // 2. LIGNE / ZONE : On ajoute des points
+
         else if (currentTool === 'line' || currentTool === 'polygon') {
             tempPoints.push(e.latlng);
             drawTempShape();
 
-            // AFFICHER LE BOUTON "TERMINER" DÈS QU'ON A 1 POINT
+
             if (tempPoints.length > 0) {
                 document.getElementById('finish-container').style.display = 'block';
             }
         }
     }
 
-    // Fonction appelée par le bouton vert "TERMINER LE TRACÉ"
+
     function finishDrawing() {
         if (tempPoints.length < 2) {
             alert("Il faut au moins 2 points pour créer une forme !");
@@ -202,14 +202,14 @@
         document.getElementById('finish-container').style.display = 'none';
     }
 
-    // --- MODAL & SAUVEGARDE ---
+
     let pendingSave = null;
 
     function openModal(type, latlngs) {
         pendingSave = { type, latlngs };
         document.getElementById('infoModal').style.display = 'block';
         document.getElementById('descInput').focus();
-        // On cache le bouton terminer car on est dans le modal
+
         document.getElementById('finish-container').style.display = 'none';
     }
 
@@ -238,7 +238,7 @@
         };
 
         try {
-            // MODIFICATION : Appel à /api/game?entity=markers
+
             await fetch('/api/game?entity=markers', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -251,10 +251,10 @@
         }
     }
 
-    // --- CHARGEMENT ---
+
     async function loadData() {
         try {
-            // MODIFICATION : Appel à /api/game?entity=markers
+
             const res = await fetch('/api/game?entity=markers');
             if(!res.ok) return;
             const items = await res.json();
@@ -298,7 +298,7 @@
 
     window.deleteItem = async function(id) {
         if(confirm("Supprimer cet élément ?")) {
-            // MODIFICATION : Appel à /api/game?entity=markers
+
             await fetch('/api/game?entity=markers', {
                 method: 'DELETE',
                 headers: {'Content-Type': 'application/json'},

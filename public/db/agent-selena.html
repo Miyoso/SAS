@@ -228,7 +228,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
-            // 1. BOOT SCREEN (Plus lent et "administratif")
+
             const bootScreen = document.getElementById('boot-screen');
             const bootText = document.querySelector('.boot-text');
             
@@ -239,7 +239,7 @@
                 setTimeout(() => bootScreen.remove(), 1000);
             }, 2500);
 
-            // 2. 3D CARD EFFECT
+
             const card = document.getElementById('card');
             const cardContainer = document.querySelector('.id-card-container');
 
@@ -257,7 +257,7 @@
                 card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
             });
 
-            // 3. HACKER TEXT DECRYPTION
+
             const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
             document.querySelectorAll('.redacted').forEach(element => {
                 element.textContent = element.getAttribute('data-scramble');

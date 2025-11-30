@@ -88,10 +88,10 @@
 <script src="js/collaboration.js"></script>
 
 <script>
-    // Lancement au démarrage
+
     const session = JSON.parse(localStorage.getItem('sas_session')) || { username: 'GHOST' };
 
-    // Vérification pour éviter les erreurs si le script collab n'est pas chargé
+
     if (typeof SAS_COLLAB !== 'undefined') {
         SAS_COLLAB.init(session.username, '#00ff9d');
     } else {

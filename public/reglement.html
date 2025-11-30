@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="css/style-mo.css">
 
     <style>
-        /* Styles spécifiques pour la lecture de document */
+
         .doc-container {
             flex: 1;
             overflow-y: auto;
@@ -21,13 +21,13 @@
             position: relative;
         }
 
-        /* Barre de défilement stylisée */
+
         .doc-container::-webkit-scrollbar { width: 8px; }
         .doc-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
         .doc-container::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 4px; }
         .doc-container::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-        /* Blocs d'articles */
+
         .article-block {
             margin-bottom: 30px;
             border-left: 2px solid var(--dim);
@@ -45,7 +45,7 @@
             display: flex; align-items: center; gap: 10px;
         }
         
-        /* Variantes de couleurs par thème */
+
         .theme-general { border-left-color: var(--primary); }
         .theme-general .article-title { color: var(--primary); }
 
@@ -55,7 +55,7 @@
         .theme-warning { border-left-color: var(--warning); }
         .theme-warning .article-title { color: var(--warning); }
 
-        /* Règles individuelles */
+
         .rule-item {
             margin-bottom: 12px;
             line-height: 1.6;
@@ -71,7 +71,7 @@
             list-style-type: square;
         }
 
-        /* Boite d'alerte en haut */
+
         .alert-box {
             border: 1px solid var(--danger);
             background: rgba(255, 51, 51, 0.1);
