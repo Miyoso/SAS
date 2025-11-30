@@ -60,9 +60,67 @@
         }
         .btn-warn:hover { background: var(--warning); color: #000; }
 
+        /* --- STYLES MODALE CORRIGÉS --- */
+        .modal-overlay {
+            position: fixed; /* Fixe par rapport à la fenêtre */
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.85); /* Fond sombre semi-transparent */
+            backdrop-filter: blur(5px); /* Flou d'arrière-plan */
+            z-index: 10000; /* Très haut pour être au-dessus de tout */
+            display: flex; /* Utilise Flexbox pour centrer */
+            justify-content: center; /* Centre horizontalement */
+            align-items: center; /* Centre verticalement */
+        }
 
-        .modal-box { border-color: var(--danger) !important; }
-        .modal-title { color: var(--danger) !important; }
+        .hidden { display: none !important; }
+
+        .modal-box {
+            background: #0b0e11;
+            border: 2px solid var(--danger); /* Bordure rouge pour l'admin */
+            box-shadow: 0 0 50px rgba(255, 51, 51, 0.2); /* Ombre rouge */
+            width: 500px; /* Largeur fixe */
+            max-width: 90%;
+            display: flex; flex-direction: column;
+            position: relative; /* Pour le positionnement interne */
+        }
+
+        .modal-top {
+            padding: 15px 25px;
+            border-bottom: 1px solid #333;
+            background: rgba(255, 51, 51, 0.1); /* Fond rouge très léger pour l'en-tête */
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .modal-title {
+            font-family: 'Share Tech Mono';
+            color: var(--danger) !important;
+            letter-spacing: 2px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        /* Formulaire dans la modale */
+        .form-group { margin-bottom: 15px; }
+        .form-group label {
+            display: block; color: var(--secondary); font-size: 0.7rem; margin-bottom: 5px;
+            font-family: 'Share Tech Mono';
+        }
+        .form-input, .form-textarea {
+            width: 100%; background: #080a0c; border: 1px solid #444; color: #fff;
+            padding: 10px; font-family: 'JetBrains Mono'; outline: none;
+        }
+        .form-input:focus, .form-textarea:focus { border-color: var(--danger); }
+
+        .btn-tactical {
+            background: transparent; border: 1px solid var(--primary); color: var(--primary);
+            padding: 10px 20px; font-family: 'Share Tech Mono'; cursor: pointer;
+            text-transform: uppercase; transition: 0.2s;
+        }
+        .btn-tactical.danger { border-color: var(--danger); color: var(--danger); }
+        .btn-tactical.danger:hover { background: var(--danger); color: #000; }
+        .btn-tactical.secondary { border-color: #666; color: #888; }
+        .btn-tactical.secondary:hover { border-color: #fff; color: #fff; }
+
     </style>
 </head>
 <body>
@@ -116,21 +174,21 @@
     <div class="modal-box">
         <div class="modal-top">
             <span class="modal-title">PROCÉDURE DISCIPLINAIRE</span>
-            <button onclick="closeWarnModal()" style="background:none; border:none; color:#666; cursor:pointer;">✖</button>
+            <button onclick="closeWarnModal()" style="background:none; border:none; color:#666; cursor:pointer; font-size: 1.2rem;">✖</button>
         </div>
         <form id="warn-form" style="padding: 25px;">
             <input type="hidden" id="warn-agent-id">
             <div class="form-group">
                 <label>AGENT CIBLE</label>
-                <input type="text" id="warn-agent-name" class="form-input" disabled style="opacity: 0.7;">
+                <input type="text" id="warn-agent-name" class="form-input" disabled style="opacity: 0.7; border-color: #333;">
             </div>
             <div class="form-group">
                 <label>MOTIF DE L'AVERTISSEMENT</label>
-                <textarea id="warn-reason" class="form-textarea" style="width:100%; height:100px; background:rgba(0,0,0,0.3); border:1px solid #444; color:#fff; padding:10px; font-family:'JetBrains Mono';" placeholder="Ex: Insubordination lors de l'OP Blackout..."></textarea>
+                <textarea id="warn-reason" class="form-textarea" style="height:100px;" placeholder="Ex: Insubordination lors de l'OP Blackout..."></textarea>
             </div>
             <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                <button type="button" onclick="closeWarnModal()" class="btn-tactical secondary" style="border:1px solid #666; color:#888; padding:10px;">ANNULER</button>
-                <button type="submit" class="btn-tactical danger" style="border:1px solid var(--danger); color:var(--danger); background:rgba(255,0,0,0.1); padding:10px;">CONFIRMER SANCTION</button>
+                <button type="button" onclick="closeWarnModal()" class="btn-tactical secondary">ANNULER</button>
+                <button type="submit" class="btn-tactical danger">CONFIRMER SANCTION</button>
             </div>
         </form>
     </div>
@@ -231,11 +289,18 @@
         document.getElementById('warn-agent-id').value = id;
         document.getElementById('warn-agent-name').value = username.toUpperCase();
         document.getElementById('warn-reason').value = '';
-        document.getElementById('warn-modal').classList.remove('hidden');
+
+        // On s'assure que la classe hidden est bien retirée
+        const modal = document.getElementById('warn-modal');
+        modal.classList.remove('hidden');
+        // Force le style flex si le CSS a du mal à prendre le dessus
+        modal.style.display = 'flex';
     }
 
     function closeWarnModal() {
-        document.getElementById('warn-modal').classList.add('hidden');
+        const modal = document.getElementById('warn-modal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none'; // Sécurité supplémentaire
     }
 
     document.getElementById('warn-form').addEventListener('submit', async (e) => {
