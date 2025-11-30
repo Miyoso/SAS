@@ -17,8 +17,8 @@
         .tactical-grid {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-image:
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+                    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
             background-size: 40px 40px;
             z-index: -10;
             pointer-events: none;
@@ -185,17 +185,17 @@
         }
 
         .terminal {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-}
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+        }
 
 
-.terminal::before,
-.terminal::after {
-    display: none !important;
-}
+        .terminal::before,
+        .terminal::after {
+            display: none !important;
+        }
         .back-button:hover { background: var(--danger); color: #000; box-shadow: 0 0 15px var(--danger); }
         .terminal-console {
             position: fixed; bottom: 0; left: 0; width: 100%; height: 40vh;
@@ -265,8 +265,8 @@
 
         body.theme-holographic .tactical-grid {
             background-image:
-                linear-gradient(rgba(0, 229, 255, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 229, 255, 0.1) 1px, transparent 1px) !important;
+                    linear-gradient(rgba(0, 229, 255, 0.1) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0, 229, 255, 0.1) 1px, transparent 1px) !important;
             opacity: 0.5;
         }
 
@@ -283,10 +283,10 @@
             border-radius: 4px;
 
             clip-path: polygon(
-                20px 0, calc(100% - 20px) 0,
-                100% 20px, 100% calc(100% - 20px),
-                calc(100% - 20px) 100%, 20px 100%,
-                0 calc(100% - 20px), 0 20px
+                    20px 0, calc(100% - 20px) 0,
+                    100% 20px, 100% calc(100% - 20px),
+                    calc(100% - 20px) 100%, 20px 100%,
+                    0 calc(100% - 20px), 0 20px
             );
             padding: 20px;
         }
@@ -351,148 +351,158 @@
 </head>
 
 <body class="theme-holographic">
-    <div class="tactical-grid"></div>
-    <div class="vignette"></div>
-    <div class="radar-scan"></div>
+<div class="tactical-grid"></div>
+<div class="vignette"></div>
+<div class="radar-scan"></div>
 
-    <div class="hud-side hud-left">
-        <div class="hud-ruler"></div>
-        <div class="hud-marker">SYSTEM.ROOT</div>
-        <div class="hud-ruler"></div>
-    </div>
-    <div class="hud-side hud-right">
-        <div class="hud-ruler"></div>
-        <div class="hud-marker">SECURE.CONN</div>
-        <div class="hud-ruler"></div>
-    </div>
+<div class="hud-side hud-left">
+    <div class="hud-ruler"></div>
+    <div class="hud-marker">SYSTEM.ROOT</div>
+    <div class="hud-ruler"></div>
+</div>
+<div class="hud-side hud-right">
+    <div class="hud-ruler"></div>
+    <div class="hud-marker">SECURE.CONN</div>
+    <div class="hud-ruler"></div>
+</div>
 
-    <div class="term-hint">PRESS [ F9 ] TO TOGGLE TERMINAL</div>
+<div class="term-hint">PRESS [ F9 ] TO TOGGLE TERMINAL</div>
 
-    <div class="terminal-wrapper">
-        <div class="terminal">
-            <div class="header-strip">
-                <div>
-                    <h1>SAS <span style="text-shadow: 0 0 10px var(--danger);">MAINFRAME</span></h1>
-                    <div style="font-size: 0.8rem; color: #667788; letter-spacing: 2px; margin-top: 5px;">SECURE ACCESS SYSTEM // RESTRICTED AREA</div>
-                </div>
-                <div class="meta-data">
-                    <span id="conn-status" style="color:var(--primary)">CONNECTED</span> // PING: 12ms<br>
-                    SYS.VER.4.0.2 // <span class="blink">MONITORING</span><br>
-
-                    <button class="btn-connect" onclick="toggleTerminal()">> CONNEXION TERMINAL</button>
-                </div>
+<div class="terminal-wrapper">
+    <div class="terminal">
+        <div class="header-strip">
+            <div>
+                <h1>SAS <span style="text-shadow: 0 0 10px var(--danger);">MAINFRAME</span></h1>
+                <div style="font-size: 0.8rem; color: #667788; letter-spacing: 2px; margin-top: 5px;">SECURE ACCESS SYSTEM // RESTRICTED AREA</div>
             </div>
-            <div id="dashboard-view" class="view-section dashboard-container">
-                <div class="modules-section">
-                    <div class="category-title">ACCRÉDITATION NIVEAU 1 [GÉNÉRAL]</div>
-                    <div class="grid-modules">
-                        <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('database.html', 1)">
-                            <div class="module-icon">👥</div>
-                            <div>
-                                <div class="module-name">BASE AGENTS</div>
-                                <div class="module-status"><span style="color:var(--primary)">●</span> SYSTEM ONLINE</div>
-                            </div>
-                        </div>
-                        <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('reglement.html', 1)">
-                            <div class="module-icon">📜</div>
-                            <div>
-                                <div class="module-name">RÈGLEMENT</div>
-                                <div class="module-status"><span style="color:var(--primary)">●</span> READ ONLY</div>
-                            </div>
-                        </div>
-                        <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('map.html', 1)">
-                            <div class="module-icon">🗺️</div>
-                            <div>
-                                <div class="module-name">CARTOGRAPHIE</div>
-                                <div class="module-status"><span style="color:var(--primary)">●</span> LIVE FEED</div>
-                            </div>
-                        </div>
-                        <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('report.html', 1)">
-                            <div class="module-icon">📝</div>
-                            <div>
-                                <div class="module-name">GÉNÉRATEUR RAPPORT</div>
-                                <div class="module-status"><span style="color:var(--primary)">●</span> AUTO-GEN</div>
-                            </div>
+            <div class="meta-data">
+                <span id="conn-status" style="color:var(--primary)">CONNECTED</span> // PING: 12ms<br>
+                SYS.VER.4.0.2 // <span class="blink">MONITORING</span><br>
+
+                <button class="btn-connect" onclick="toggleTerminal()">> CONNEXION TERMINAL</button>
+            </div>
+        </div>
+        <div id="dashboard-view" class="view-section dashboard-container">
+            <div class="modules-section">
+
+                <div class="category-title">ACCRÉDITATION NIVEAU 1 [GÉNÉRAL]</div>
+                <div class="grid-modules">
+                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('database.html', 1)">
+                        <div class="module-icon">👥</div>
+                        <div>
+                            <div class="module-name">BASE AGENTS</div>
+                            <div class="module-status"><span style="color:var(--primary)">●</span> SYSTEM ONLINE</div>
                         </div>
                     </div>
-                    <div class="category-title">ACCRÉDITATION NIVEAU 2 [CONFIDENTIEL]</div>
-                    <div class="grid-modules">
-                        <a href="/investigation.html" class="module-card status-restricted">
-                            <div class="module-icon">🔍</div>
-                            <div>
-                                <div class="module-name">INVESTIGATION</div>
-                                <div class="module-status"><span style="color:var(--warning)">●</span> RESTRICTED ACCESS</div>
-                            </div>
-
-
-                        </a>
-                        <a href="#" class="module-card status-danger">
-                            <div class="module-icon">🎯</div>
-                            <div>
-                                <div class="module-name">VIP TARGETS</div>
-                                <div class="module-status"><span style="color:var(--danger)">●</span> HIGH PRIORITY</div>
-                            </div>
-                        </a>
-                        <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('logistics.html', 1)">
-                            <div class="module-icon">📝</div>
-                            <div>
-                                <div class="module-name">LOGISTIQUE</div>
-                                <div class="module-status"><span style="color:var(--primary)">●</span> STOCK </div>
-                            </div>
+                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('reglement.html', 1)">
+                        <div class="module-icon">📜</div>
+                        <div>
+                            <div class="module-name">RÈGLEMENT</div>
+                            <div class="module-status"><span style="color:var(--primary)">●</span> READ ONLY</div>
                         </div>
-
-                        <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('missions.html', 1)">
-                            <div class="module-icon">📝</div>
-                            <div>
-                                <div class="module-name">MISSIONS</div>
-                                <div class="module-status"><span style="color:var(--primary)">●</span> PLANNING </div>
-                            </div>
+                    </div>
+                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('map.html', 1)">
+                        <div class="module-icon">🗺️</div>
+                        <div>
+                            <div class="module-name">CARTOGRAPHIE</div>
+                            <div class="module-status"><span style="color:var(--primary)">●</span> LIVE FEED</div>
+                        </div>
+                    </div>
+                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('report.html', 1)">
+                        <div class="module-icon">📝</div>
+                        <div>
+                            <div class="module-name">GÉNÉRATEUR RAPPORT</div>
+                            <div class="module-status"><span style="color:var(--primary)">●</span> AUTO-GEN</div>
                         </div>
                     </div>
                 </div>
-                <div id="sidebar-placeholder"></div>
+
+                <div class="category-title">ACCRÉDITATION NIVEAU 2 [CONFIDENTIEL]</div>
+                <div class="grid-modules">
+                    <a href="/investigation.html" class="module-card status-restricted">
+                        <div class="module-icon">🔍</div>
+                        <div>
+                            <div class="module-name">INVESTIGATION</div>
+                            <div class="module-status"><span style="color:var(--warning)">●</span> RESTRICTED ACCESS</div>
+                        </div>
+                    </a>
+                    <a href="#" class="module-card status-danger">
+                        <div class="module-icon">🎯</div>
+                        <div>
+                            <div class="module-name">VIP TARGETS</div>
+                            <div class="module-status"><span style="color:var(--danger)">●</span> HIGH PRIORITY</div>
+                        </div>
+                    </a>
+                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('logistics.html', 1)">
+                        <div class="module-icon">📝</div>
+                        <div>
+                            <div class="module-name">LOGISTIQUE</div>
+                            <div class="module-status"><span style="color:var(--primary)">●</span> STOCK </div>
+                        </div>
+                    </div>
+                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('missions.html', 1)">
+                        <div class="module-icon">📝</div>
+                        <div>
+                            <div class="module-name">MISSIONS</div>
+                            <div class="module-status"><span style="color:var(--primary)">●</span> PLANNING </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="category-title">ACCRÉDITATION NIVEAU 10 [ÉTAT-MAJOR]</div>
+                <div class="grid-modules">
+                    <div class="module-card status-danger" style="cursor: pointer;" onclick="accessModule('admin.html', 10)">
+                        <div class="module-icon">⚖️</div>
+                        <div>
+                            <div class="module-name">ADMINISTRATION</div>
+                            <div class="module-status"><span style="color:var(--danger)">●</span> CLASSIFIED</div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <div id="profile-view" class="view-section hidden profile-view-container"></div>
+            <div id="sidebar-placeholder"></div>
         </div>
+        <div id="profile-view" class="view-section hidden profile-view-container"></div>
     </div>
+</div>
 
-    <div id="terminal-console" class="terminal-console">
-        <div id="terminal-history" class="terminal-history">
-            <div class="term-line term-info">SAS Mainframe [Version 4.0.2]</div>
-            <div class="term-line term-info">(c) SAS 2025. All rights reserved.</div>
-            <div class="term-line">System ready. Type '/help' for a list of commands.</div>
-            <br>
-        </div>
-        <div class="terminal-input-area">
-            <span class="prompt">root@sas-mainframe:~#</span>
-            <input type="text" id="cmd-input" class="cmd-input" placeholder="Enter command..." autocomplete="off">
-        </div>
+<div id="terminal-console" class="terminal-console">
+    <div id="terminal-history" class="terminal-history">
+        <div class="term-line term-info">SAS Mainframe [Version 4.0.2]</div>
+        <div class="term-line term-info">(c) SAS 2025. All rights reserved.</div>
+        <div class="term-line">System ready. Type '/help' for a list of commands.</div>
+        <br>
     </div>
+    <div class="terminal-input-area">
+        <span class="prompt">root@sas-mainframe:~#</span>
+        <input type="text" id="cmd-input" class="cmd-input" placeholder="Enter command..." autocomplete="off">
+    </div>
+</div>
 
-    <script src="js/script.js"></script>
-    <script>
-        function accessModule(url, requiredLevel) {
-            const currentLevel = parseInt(localStorage.getItem('userSecurityLevel') || 0);
-            if (currentLevel >= requiredLevel) {
-                window.location.href = url;
-            } else {
-                alert("⛔ ACCÈS REFUSÉ : ACCRÉDITATION INSUFFISANTE");
-            }
+<script src="js/script.js"></script>
+<script>
+    function accessModule(url, requiredLevel) {
+        const currentLevel = parseInt(localStorage.getItem('userSecurityLevel') || 0);
+        if (currentLevel >= requiredLevel) {
+            window.location.href = url;
+        } else {
+            alert("⛔ ACCÈS REFUSÉ : ACCRÉDITATION INSUFFISANTE");
         }
+    }
 
-        function toggleTerminal() {
-            const term = document.getElementById('terminal-console');
-            const input = document.getElementById('cmd-input');
-            const history = document.getElementById('terminal-history');
+    function toggleTerminal() {
+        const term = document.getElementById('terminal-console');
+        const input = document.getElementById('cmd-input');
+        const history = document.getElementById('terminal-history');
 
-            term.classList.toggle('open');
+        term.classList.toggle('open');
 
-            if(term.classList.contains('open')) {
-                setTimeout(() => input.focus(), 100);
-                if(history) history.scrollTop = history.scrollHeight;
-            }
+        if(term.classList.contains('open')) {
+            setTimeout(() => input.focus(), 100);
+            if(history) history.scrollTop = history.scrollHeight;
         }
-    </script>
+    }
+</script>
 </body>
-
 </html>
