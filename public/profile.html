@@ -146,8 +146,8 @@
                     </div>
 
                     <div class="card-body">
-                        <div class="photo-box" style="border-color: var(--secondary);">
-                            <div class="default-avatar">👤</div>
+                        <div class="photo-box" style="border-color: var(--secondary); overflow:hidden;">
+                            <div class="default-avatar" id="user-avatar-container">👤</div>
                         </div>
                         <div class="agent-info">
                             <div class="card-label">NOM DE CODE</div>
@@ -298,11 +298,29 @@
 
 <script src="js/profile-equipment.js"></script>
 <script>
+    // Liste des avatars disponibles dans le dossier /assets/
+    const avatarMap = {
+        'adam': 'Adam.jpg',
+        'blake': 'Blake.png',
+        'blitz': 'Blitz.png',
+        'dust': 'Dust.png',
+        'wei': 'Dust.png', // Alias
+        'graves': 'Graves.jpg',
+        'jackal': 'Jackal.jpg',
+        'ji': 'Jackal.jpg', // Alias
+        'javier': 'Javier.jpg',
+        'lexa': 'Lexa.png',
+        'selena': 'Lexa.png', // Alias
+        'lovelace': 'LoveLace.jpg',
+        'nyx': 'LoveLace.jpg', // Alias
+        'roxanne': 'Roxanne.jpg'
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
         const sessionData = JSON.parse(localStorage.getItem('sas_session'));
 
         if (sessionData) {
-            const { username, rank, created_at, id } = sessionData;
+            const { username, rank } = sessionData;
 
             document.getElementById('header-username').textContent = username.toUpperCase();
             document.getElementById('card-username').textContent = username.toUpperCase();
@@ -313,10 +331,17 @@
 
             document.getElementById('session-id').textContent = '0x' + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
 
+            // --- INJECTION DE LA PHOTO ---
+            const lowerName = username.toLowerCase();
+            if (avatarMap[lowerName]) {
+                const photoContainer = document.querySelector('.photo-box');
+                photoContainer.innerHTML = `<img src="assets/${avatarMap[lowerName]}" alt="${username}" style="width:100%; height:100%; object-fit:cover; filter: grayscale(1) contrast(1.2);">`;
+            }
+
             loadMyMissions(username);
         }
 
-        // Animation Carte
+        // Animation Carte 3D
         const card = document.getElementById('card');
         const cardContainer = document.querySelector('.id-card-container');
         cardContainer.addEventListener('mousemove', (e) => {
@@ -333,7 +358,6 @@
             card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
         });
 
-        // Initialiser les effets
         initPsychometrics();
         initECG();
     });
@@ -342,7 +366,6 @@
     async function loadMyMissions(username) {
         const container = document.getElementById('my-missions-list');
         try {
-            // MODIFICATION ICI : Appel de la nouvelle API consolidée
             const res = await fetch(`/api/game?entity=missions&agent=${username}`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('sas_token')}` }
             });
@@ -400,7 +423,6 @@
         }
 
         try {
-            // MODIFICATION ICI : Appel de la nouvelle API consolidée
             const res = await fetch('/api/auth?action=change-password', {
                 method: 'POST',
                 headers: {
