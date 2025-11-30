@@ -9,17 +9,23 @@ export default async function handler(req, res) {
     const user = verifyToken(req);
     if (req.query.entity !== 'markers' && !user) return res.status(401).json({ error: 'Accès refusé' });
 
-    const { entity } = req.query; // ex: /api/game?entity=missions
+    const { entity } = req.query;
     const method = req.method;
 
     try {
-        // --- USERS ---
         if (entity === 'users' && method === 'GET') {
             const result = await pool.query('SELECT username FROM agents ORDER BY username ASC');
             return res.status(200).json(result.rows.map(r => r.username));
         }
 
-        // --- MARKERS (Carte) ---
+        if (entity === 'my_warnings' && method === 'GET') {
+            const result = await pool.query(
+                'SELECT reason, created_at FROM warnings WHERE agent_id = $1 ORDER BY created_at DESC',
+                [user.userId]
+            );
+            return res.status(200).json(result.rows);
+        }
+
         if (entity === 'markers') {
             if (method === 'GET') {
                 const result = await pool.query('SELECT * FROM map_objects ORDER BY created_at ASC');
@@ -36,7 +42,6 @@ export default async function handler(req, res) {
             }
         }
 
-        // --- MISSIONS ---
         if (entity === 'missions') {
             if (method === 'GET') {
                 let q = 'SELECT * FROM missions ORDER BY start_time ASC';
@@ -46,7 +51,6 @@ export default async function handler(req, res) {
                     p = [req.query.agent];
                 }
                 const missions = await pool.query(q, p);
-                // Enrichissement
                 const enriched = await Promise.all(missions.rows.map(async (m) => {
                     const roster = await pool.query('SELECT agent_name FROM mission_roster WHERE mission_id = $1', [m.id]);
                     const loadout = await pool.query('SELECT item_name, serial_number FROM equipment WHERE mission_id = $1', [m.id]);
@@ -72,7 +76,6 @@ export default async function handler(req, res) {
             }
         }
 
-        // --- EQUIPMENT ---
         if (entity === 'equipment') {
             if (method === 'GET') {
                 if (req.query.assigned_to) {
@@ -83,7 +86,7 @@ export default async function handler(req, res) {
                 const logs = await pool.query('SELECT * FROM logistics_logs ORDER BY timestamp DESC LIMIT 50');
                 return res.status(200).json({ inventory: inv.rows, logs: logs.rows });
             }
-            if (method === 'POST') { // Ajout
+            if (method === 'POST') {
                 if (parseInt(user.rank) < 3) return res.status(403).json({ error: 'Non autorisé' });
                 await pool.query('INSERT INTO equipment (item_name, category, serial_number, storage_location, status) VALUES ($1, $2, $3, $4, $5)',
                     [req.body.name, req.body.category, req.body.serial_number, req.body.storage_location, 'AVAILABLE']);
@@ -91,7 +94,7 @@ export default async function handler(req, res) {
                     [req.body.name, req.body.serial_number, 'NEW_STOCK', user.username]);
                 return res.status(200).json({ success: true });
             }
-            if (method === 'PATCH') { // Assigner / Rendre
+            if (method === 'PATCH') {
                 const { id, action, agent } = req.body;
                 const item = (await pool.query('SELECT * FROM equipment WHERE id=$1', [id])).rows[0];
                 if (action === 'TAKE') {
@@ -106,7 +109,6 @@ export default async function handler(req, res) {
             }
         }
 
-        // --- INVESTIGATION (Tableau) ---
         if (entity === 'investigation') {
             if (method === 'GET') {
                 const nodes = await pool.query('SELECT * FROM investigation_nodes');

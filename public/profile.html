@@ -75,16 +75,15 @@
             font-size: 3rem; color: #333;
         }
 
-        #my-equipment-list::-webkit-scrollbar, #my-missions-list::-webkit-scrollbar {
+        #my-equipment-list::-webkit-scrollbar, #my-missions-list::-webkit-scrollbar, #warnings-list::-webkit-scrollbar {
             width: 5px;
         }
-        #my-equipment-list::-webkit-scrollbar-track, #my-missions-list::-webkit-scrollbar-track {
+        #my-equipment-list::-webkit-scrollbar-track, #my-missions-list::-webkit-scrollbar-track, #warnings-list::-webkit-scrollbar-track {
             background: rgba(0,0,0,0.3);
         }
-        #my-equipment-list::-webkit-scrollbar-thumb, #my-missions-list::-webkit-scrollbar-thumb {
+        #my-equipment-list::-webkit-scrollbar-thumb, #my-missions-list::-webkit-scrollbar-thumb, #warnings-list::-webkit-scrollbar-thumb {
             background: var(--primary);
         }
-
 
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -231,6 +230,17 @@
                 </div>
             </div>
 
+            <div class="panel" id="warn-panel" style="border-color: var(--dim);">
+                <div class="panel-header">
+                    <span class="panel-title">DISCIPLINE & SANCTIONS</span>
+                    <span id="warn-status-badge" style="font-size:0.7rem; padding: 2px 6px; border: 1px solid var(--primary); color: var(--primary);">CLEAR</span>
+                </div>
+
+                <div id="warnings-list" style="max-height: 150px; overflow-y: auto; padding-right: 5px; font-family: 'JetBrains Mono'; font-size: 0.8rem;">
+                    <div class="blink" style="color: #555;">VÉRIFICATION DU CASIER...</div>
+                </div>
+            </div>
+
             <div class="panel">
                 <div class="panel-header">
                     <span class="panel-title">SYSTÈME</span>
@@ -339,6 +349,7 @@
             }
 
             loadMyMissions(username);
+            loadMyWarnings();
         }
 
 
@@ -400,6 +411,61 @@
             }).join('');
 
         } catch(e) { console.error(e); }
+    }
+
+    async function loadMyWarnings() {
+        const container = document.getElementById('warnings-list');
+        const badge = document.getElementById('warn-status-badge');
+        const panel = document.getElementById('warn-panel');
+
+        try {
+            const res = await fetch('/api/game?entity=my_warnings', {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('sas_token')}` }
+            });
+
+            if (!res.ok) return;
+
+            const warnings = await res.json();
+            const count = warnings.length;
+
+            if (count === 0) {
+                badge.textContent = "SERVICE EXEMPLAIRE";
+                badge.style.color = "var(--primary)";
+                badge.style.borderColor = "var(--primary)";
+                panel.style.borderColor = "var(--dim)";
+                container.innerHTML = '<div style="color:#445566; font-style:italic; padding:10px;">> AUCUNE INFRACTION SIGNALÉE.</div>';
+            } else if (count < 3) {
+                badge.textContent = `ATTENTION (${count}/3)`;
+                badge.style.color = "var(--warning)";
+                badge.style.borderColor = "var(--warning)";
+                panel.style.borderColor = "var(--warning)";
+            } else {
+                badge.textContent = `CRITIQUE (${count}/3)`;
+                badge.style.color = "var(--danger)";
+                badge.style.borderColor = "var(--danger)";
+                badge.classList.add('blink');
+                panel.style.borderColor = "var(--danger)";
+                panel.style.boxShadow = "0 0 20px rgba(255, 51, 51, 0.1)";
+            }
+
+            if (count > 0) {
+                container.innerHTML = warnings.map(w => {
+                    const date = new Date(w.created_at).toLocaleDateString('fr-FR');
+                    return `
+                        <div style="background: rgba(255, 255, 255, 0.03); padding: 8px; margin-bottom: 6px; border-left: 2px solid var(--danger);">
+                            <div style="color: var(--danger); font-weight: bold; font-size: 0.75rem; margin-bottom: 2px;">
+                                [ INFRACTION SIGNALÉE LE ${date} ]
+                            </div>
+                            <div style="color: #ccc;">${w.reason}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+        } catch (e) {
+            console.error("Erreur chargement warns", e);
+            container.innerHTML = '<div style="color:var(--danger)">ERREUR DE CONNEXION AU SERVEUR CENTRAL</div>';
+        }
     }
 
 
