@@ -9,7 +9,7 @@
     <style>
         .med-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
             gap: 20px;
             padding: 20px;
             overflow-y: auto;
@@ -17,42 +17,118 @@
         }
 
         .patient-card {
-            background: rgba(10, 15, 20, 0.8);
+            background: rgba(10, 15, 20, 0.9);
             border: 1px solid var(--dim);
             border-top: 3px solid var(--secondary);
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .patient-card.critical { border-top-color: var(--danger); box-shadow: 0 0 20px rgba(255,51,51,0.15); }
+        .patient-card:hover { transform: translateY(-3px); background: rgba(15,20,25,0.95); border-color: var(--primary); }
+
+        .p-header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.03);
+            padding: 10px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .p-name { font-family: 'Share Tech Mono'; font-size: 1.1rem; color: #fff; font-weight: bold; letter-spacing: 1px; }
+        .p-rank { font-size: 0.7rem; color: var(--dim); border: 1px solid var(--dim); padding: 1px 5px; border-radius: 3px;}
+
+        .card-body {
+            display: flex;
             padding: 15px;
-            display: flex; flex-direction: column; gap: 10px;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .viz-container {
+            width: 100px;
+            height: 180px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .details-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .details-container::-webkit-scrollbar { width: 4px; }
+        .details-container::-webkit-scrollbar-thumb { background: var(--dim); }
+
+        .injury-badge {
+            background: rgba(0,0,0,0.4);
+            border-left: 2px solid;
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .inj-head { color: #fff; font-weight: bold; margin-bottom: 2px; display: flex; justify-content: space-between; }
+        .inj-desc { color: #888; font-style: italic; font-family: 'JetBrains Mono'; font-size: 0.7rem; }
+
+        .sev-critical { border-color: var(--danger); }
+        .sev-critical .inj-head { color: var(--danger); }
+
+        .sev-moderate { border-color: var(--warning); }
+        .sev-moderate .inj-head { color: var(--warning); }
+
+        .sev-light { border-color: var(--primary); }
+        .sev-light .inj-head { color: var(--primary); }
+
+        .viz-part {
+            fill: rgba(0, 255, 157, 0.05);
+            stroke: var(--dim);
+            stroke-width: 1;
             transition: 0.3s;
         }
-        .patient-card.critical { border-top-color: var(--danger); box-shadow: 0 0 15px rgba(255,51,51,0.1); }
-        .patient-card:hover { transform: translateY(-3px); background: rgba(20,25,30,0.9); }
 
-        .p-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
-        .p-name { font-family: 'Share Tech Mono'; font-size: 1.2rem; color: #fff; font-weight: bold; }
-        .p-rank { font-size: 0.7rem; color: var(--dim); }
-
-        .injury-item {
-            background: rgba(0,0,0,0.3);
-            padding: 8px;
-            border-left: 2px solid #555;
-            font-size: 0.85rem;
-            display: flex; justify-content: space-between; align-items: center;
+        .viz-part.injured {
+            fill: rgba(255, 51, 51, 0.5);
+            stroke: var(--danger);
+            filter: drop-shadow(0 0 5px var(--danger));
+            animation: pulseAlert 2s infinite;
         }
-        .inj-sev-critical { border-left-color: var(--danger); color: #ffaaaa; }
-        .inj-sev-moderate { border-left-color: var(--warning); color: #ffeeaa; }
-        .inj-sev-light { border-left-color: var(--primary); color: #ccffdd; }
+
+        @keyframes pulseAlert { 0% {opacity: 0.7;} 50% {opacity: 1;} 100% {opacity: 0.7;} }
+
+        .card-actions {
+            padding: 10px 15px;
+            border-top: 1px dashed rgba(255,255,255,0.1);
+            text-align: right;
+            background: rgba(0,0,0,0.2);
+        }
 
         .btn-heal {
-            background: transparent; border: 1px solid var(--primary); color: var(--primary);
-            padding: 4px 8px; font-size: 0.7rem; cursor: pointer; font-family: 'Share Tech Mono';
+            background: rgba(0, 255, 157, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-family: 'Share Tech Mono';
+            text-transform: uppercase;
+            letter-spacing: 1px;
             transition: 0.2s;
         }
-        .btn-heal:hover { background: var(--primary); color: #000; }
+        .btn-heal:hover { background: var(--primary); color: #000; box-shadow: 0 0 10px var(--primary); }
 
         .no-patients {
-            width: 100%; text-align: center; margin-top: 50px;
+            grid-column: 1 / -1;
+            text-align: center; margin-top: 50px;
             color: var(--primary); font-family: 'Share Tech Mono'; font-size: 1.5rem;
             text-shadow: 0 0 10px var(--primary);
+            opacity: 0.7;
         }
     </style>
 </head>
@@ -64,8 +140,8 @@
     <main class="terminal">
         <header class="header-strip">
             <div>
-                <h1>MEDICAL :: <span style="color: var(--danger);">INFIRMARY</span></h1>
-                <div style="color: var(--dim); font-size: 0.9rem; letter-spacing: 3px;">SHADOW COMPANY // TRIAGE</div>
+                <h1>MEDICAL :: <span style="color: var(--danger);">OVERWATCH</span></h1>
+                <div style="color: var(--dim); font-size: 0.9rem; letter-spacing: 3px;">SHADOW COMPANY // LIVE STATUS</div>
             </div>
             <div class="meta-data">
                 <div>SYSTEM: <span style="color: var(--primary)">ONLINE</span></div>
@@ -74,12 +150,12 @@
         </header>
 
         <div id="med-dashboard" class="med-grid">
-            <div class="blink" style="padding:20px; color:#666;">CHARGEMENT DES DONNÉES BIO-METRIQUES...</div>
+            <div class="blink" style="padding:20px; color:#666;">ACQUISITION DES SIGNAUX VITAUX...</div>
         </div>
 
         <footer class="footer">
-            <div>MED-SYS V.1.0</div>
-            <div style="color: var(--warning);">⚠ SEULS LES OFFICIERS PEUVENT VALIDER LES SOINS</div>
+            <div>MED-SYS V.2.1 // BIOMETRICS LINKED</div>
+            <div style="color: var(--warning);">⚠ VALIDATION OFFICIER REQUISE POUR SORTIE MÉDICALE</div>
         </footer>
     </main>
 </div>
@@ -104,7 +180,7 @@
             container.innerHTML = '';
 
             if (injuries.length === 0) {
-                container.innerHTML = '<div class="no-patients">AUCUN BLESSÉ À DÉPLORER.<br><span style="font-size:0.8rem; color:#666;">Les effectifs sont opérationnels à 100%.</span></div>';
+                container.innerHTML = '<div class="no-patients">STATUS: TOUS LES AGENTS OPÉRATIONNELS.<br><span style="font-size:0.8rem; color:#666;">AUCUNE ALERTE MÉDICALE EN COURS.</span></div>';
                 return;
             }
 
@@ -121,36 +197,55 @@
 
             for (const [username, data] of Object.entries(grouped)) {
                 const isCritical = data.injuries.some(i => i.severity === 'critical');
+                const injuredParts = data.injuries.map(i => i.body_part);
 
-                let cardHtml = `
+                const getPartClass = (part) => injuredParts.includes(part) ? 'viz-part injured' : 'viz-part';
+
+                let injuriesHtml = '';
+                data.injuries.forEach(inj => {
+                    const sevClass = `sev-${inj.severity}`;
+                    const partName = formatBodyPart(inj.body_part);
+                    injuriesHtml += `
+                        <div class="injury-badge ${sevClass}">
+                            <div class="inj-head">
+                                <span>${partName}</span>
+                                <span style="font-size:0.6rem; opacity:0.8;">[${inj.severity.toUpperCase().substring(0,3)}]</span>
+                            </div>
+                            <div class="inj-desc">${inj.description}</div>
+                        </div>
+                    `;
+                });
+
+                const healBtn = (parseInt(session.rank) >= 3)
+                    ? `<button onclick="healAll('${username}', ${JSON.stringify(data.injuries.map(i => i.id))})" class="btn-heal">TRAITEMENT COMPLET</button>`
+                    : `<span style="font-size:0.6rem; color:#444;">ACCÈS SOINS: RESTREINT</span>`;
+
+                const cardHtml = `
                     <div class="patient-card ${isCritical ? 'critical' : ''}">
                         <div class="p-header">
                             <span class="p-name">${username.toUpperCase()}</span>
                             <span class="p-rank">LVL ${data.rank}</span>
                         </div>
-                        <div style="display:flex; flex-direction:column; gap:5px;">
-                `;
-
-                data.injuries.forEach(inj => {
-                    const sevClass = `inj-sev-${inj.severity}`;
-                    const partName = formatBodyPart(inj.body_part);
-
-                    const healBtn = (parseInt(session.rank) >= 3)
-                        ? `<button onclick="healInjury(${inj.id})" class="btn-heal">SOIGNER</button>`
-                        : `<span style="font-size:0.6rem; color:#444;">VERROUILLÉ</span>`;
-
-                    cardHtml += `
-                        <div class="injury-item ${sevClass}">
-                            <div>
-                                <div style="font-weight:bold;">${partName}</div>
-                                <div style="color:#aaa; font-style:italic;">"${inj.description}"</div>
+                        <div class="card-body">
+                            <div class="viz-container">
+                                <svg viewBox="0 0 100 200" style="height: 100%; width: 100%;">
+                                    <circle class="${getPartClass('head')}" cx="50" cy="20" r="12" />
+                                    <path class="${getPartClass('torso')}" d="M35 35 L65 35 L60 90 L40 90 Z" />
+                                    <rect class="${getPartClass('left_arm')}" x="15" y="38" width="15" height="60" rx="5" />
+                                    <rect class="${getPartClass('right_arm')}" x="70" y="38" width="15" height="60" rx="5" />
+                                    <rect class="${getPartClass('left_leg')}" x="30" y="95" width="18" height="80" rx="5" />
+                                    <rect class="${getPartClass('right_leg')}" x="52" y="95" width="18" height="80" rx="5" />
+                                </svg>
                             </div>
+                            <div class="details-container">
+                                ${injuriesHtml}
+                            </div>
+                        </div>
+                        <div class="card-actions">
                             ${healBtn}
                         </div>
-                    `;
-                });
-
-                cardHtml += `</div></div>`;
+                    </div>
+                `;
                 container.innerHTML += cardHtml;
             }
 
@@ -160,27 +255,23 @@
         }
     }
 
-    async function healInjury(id) {
-        if(!confirm("Confirmer le traitement complet de cette blessure ?")) return;
+    async function healAll(username, ids) {
+        if(!confirm(`Confirmer le traitement complet pour l'agent ${username} ?\nCela clôturera ${ids.length} dossier(s).`)) return;
 
         try {
-            const res = await fetch('/api/medical', {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ injury_id: id })
-            });
-
-            if (res.ok) {
-                loadAllInjuries();
-            } else {
-                const err = await res.json();
-                alert("ERREUR: " + (err.error || "Droits insuffisants"));
+            for (const id of ids) {
+                await fetch('/api/medical', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ injury_id: id })
+                });
             }
+            loadAllInjuries();
         } catch(e) {
-            alert("Erreur réseau");
+            alert("Erreur réseau lors du traitement.");
         }
     }
 
