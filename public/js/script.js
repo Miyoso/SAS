@@ -12,6 +12,24 @@ const promptSpan = document.querySelector('.prompt');
 
 let currentUser = null;
 
+// --- MAP DES AVATARS (Pour la sidebar) ---
+const avatarMap = {
+    'adam': 'Adam.jpg',
+    'blake': 'Blake.png',
+    'blitz': 'Blitz.png',
+    'dust': 'Dust.png',
+    'wei': 'Dust.png', // Alias
+    'graves': 'Graves.jpg',
+    'jackal': 'Jackal.jpg',
+    'ji': 'Jackal.jpg', // Alias
+    'javier': 'Javier.jpg',
+    'lexa': 'Lexa.png',
+    'selena': 'Lexa.png', // Alias
+    'lovelace': 'LoveLace.jpg',
+    'nyx': 'LoveLace.jpg', // Alias
+    'roxanne': 'Roxanne.jpg'
+};
+
 function switchView(viewName) {
     if (viewName === 'profile') {
         if(dashboardView) dashboardView.classList.add('hidden');
@@ -24,7 +42,6 @@ function switchView(viewName) {
 window.switchView = switchView;
 
 document.addEventListener('keydown', function(event) {
-    // On vérifie si le terminal existe sur cette page avant de l'ouvrir
     if (event.key === 'F9' && terminal && input) {
         event.preventDefault();
         terminal.classList.toggle('open');
@@ -37,7 +54,6 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-// CORRECTION : On vérifie que 'input' existe avant d'ajouter l'écouteur
 if (input) {
     input.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
@@ -53,7 +69,7 @@ if (input) {
 }
 
 function addToHistory(text, type) {
-    if (!historyDiv) return; // Sécurité si pas d'historique
+    if (!historyDiv) return;
     const line = document.createElement('div');
     line.classList.add('term-line');
     if(type === 'user') line.classList.add('term-user');
@@ -74,12 +90,29 @@ function unlockInterface(agent) {
     const sidebarLogged = document.getElementById('sidebar-logged');
     const miniUsername = document.getElementById('mini-username');
     const miniRank = document.getElementById('mini-rank');
+    const miniAvatar = document.querySelector('#sidebar-logged .mini-avatar');
 
     if (sidebarGuest && sidebarLogged) {
         sidebarGuest.classList.add('hidden');
         sidebarLogged.classList.remove('hidden');
+
         if(miniUsername) miniUsername.textContent = agent.username.toUpperCase();
         if(miniRank) miniRank.textContent = agent.rank;
+
+        // --- INJECTION DE L'IMAGE DANS LA SIDEBAR ---
+        if (miniAvatar) {
+            const lowerName = agent.username.toLowerCase();
+            // On vérifie si l'utilisateur a une image associée
+            if (avatarMap[lowerName]) {
+                miniAvatar.innerHTML = `<img src="assets/${avatarMap[lowerName]}" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+                // On retire la bordure par défaut pour faire plus propre si c'est une image ronde
+                miniAvatar.style.border = "2px solid var(--primary)";
+                miniAvatar.style.background = "transparent";
+            } else {
+                // Retour à l'avatar par défaut
+                miniAvatar.innerHTML = "👤";
+            }
+        }
     }
 
     if(pUsername) pUsername.textContent = agent.username.toUpperCase();
@@ -135,7 +168,6 @@ async function processCommand(cmd) {
         addToHistory("VERIFYING CREDENTIALS...", 'info');
 
         try {
-            // MODIFICATION : Appel à /api/auth?action=login
             const response = await fetch('/api/auth?action=login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -169,7 +201,6 @@ async function processCommand(cmd) {
         addToHistory("CREATING NEW IDENTITY...", 'info');
 
         try {
-            // MODIFICATION : Appel à /api/auth?action=signup
             const response = await fetch('/api/auth?action=signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -230,7 +261,6 @@ async function restoreSession() {
 
     if (token) {
         try {
-            // MODIFICATION : Appel à /api/auth?action=me
             const response = await fetch('/api/auth?action=me', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
