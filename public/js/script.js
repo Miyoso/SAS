@@ -12,21 +12,21 @@ const promptSpan = document.querySelector('.prompt');
 
 let currentUser = null;
 
-// --- MAP DES AVATARS (Pour la sidebar) ---
+
 const avatarMap = {
     'adam': 'Adam.jpg',
     'blake': 'Blake.png',
     'blitz': 'Blitz.png',
     'dust': 'Dust.png',
-    'wei': 'Dust.png', // Alias
+    'wei': 'Dust.png',
     'graves': 'Graves.jpg',
     'jackal': 'Jackal.jpg',
-    'ji': 'Jackal.jpg', // Alias
+    'ji': 'Jackal.jpg',
     'javier': 'Javier.jpg',
     'lexa': 'Lexa.png',
-    'selena': 'Lexa.png', // Alias
+    'selena': 'Lexa.png',
     'lovelace': 'LoveLace.jpg',
-    'nyx': 'LoveLace.jpg', // Alias
+    'nyx': 'LoveLace.jpg',
     'roxanne': 'Roxanne.jpg'
 };
 
@@ -99,17 +99,17 @@ function unlockInterface(agent) {
         if(miniUsername) miniUsername.textContent = agent.username.toUpperCase();
         if(miniRank) miniRank.textContent = agent.rank;
 
-        // --- INJECTION DE L'IMAGE DANS LA SIDEBAR ---
+
         if (miniAvatar) {
             const lowerName = agent.username.toLowerCase();
-            // On vérifie si l'utilisateur a une image associée
+
             if (avatarMap[lowerName]) {
                 miniAvatar.innerHTML = `<img src="assets/${avatarMap[lowerName]}" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
-                // On retire la bordure par défaut pour faire plus propre si c'est une image ronde
+
                 miniAvatar.style.border = "2px solid var(--primary)";
                 miniAvatar.style.background = "transparent";
             } else {
-                // Retour à l'avatar par défaut
+
                 miniAvatar.innerHTML = "👤";
             }
         }

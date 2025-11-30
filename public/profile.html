@@ -298,21 +298,21 @@
 
 <script src="js/profile-equipment.js"></script>
 <script>
-    // Liste des avatars disponibles dans le dossier /assets/
+
     const avatarMap = {
         'adam': 'Adam.jpg',
         'blake': 'Blake.png',
         'blitz': 'Blitz.png',
         'dust': 'Dust.png',
-        'wei': 'Dust.png', // Alias
+        'wei': 'Dust.png',
         'graves': 'Graves.jpg',
         'jackal': 'Jackal.jpg',
-        'ji': 'Jackal.jpg', // Alias
+        'ji': 'Jackal.jpg',
         'javier': 'Javier.jpg',
         'lexa': 'Lexa.png',
-        'selena': 'Lexa.png', // Alias
+        'selena': 'Lexa.png',
         'lovelace': 'LoveLace.jpg',
-        'nyx': 'LoveLace.jpg', // Alias
+        'nyx': 'LoveLace.jpg',
         'roxanne': 'Roxanne.jpg'
     };
 
@@ -331,7 +331,7 @@
 
             document.getElementById('session-id').textContent = '0x' + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
 
-            // --- INJECTION DE LA PHOTO ---
+
             const lowerName = username.toLowerCase();
             if (avatarMap[lowerName]) {
                 const photoContainer = document.querySelector('.photo-box');
@@ -341,7 +341,7 @@
             loadMyMissions(username);
         }
 
-        // Animation Carte 3D
+
         const card = document.getElementById('card');
         const cardContainer = document.querySelector('.id-card-container');
         cardContainer.addEventListener('mousemove', (e) => {
@@ -362,7 +362,7 @@
         initECG();
     });
 
-    // --- GESTION MISSIONS ---
+
     async function loadMyMissions(username) {
         const container = document.getElementById('my-missions-list');
         try {
@@ -402,7 +402,7 @@
         } catch(e) { console.error(e); }
     }
 
-    // --- GESTION MOT DE PASSE ---
+
     function openPasswordModal() {
         document.getElementById('password-modal').classList.remove('hidden');
     }
