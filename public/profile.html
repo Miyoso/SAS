@@ -1,575 +1,157 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS - User Profile [CLASSIFIED]</title>
+<div class="panel">
+    <div class="panel-header">
+        <span class="panel-title">STATUS PHYSIQUE</span>
+        <span style="color:var(--danger); font-size:0.7rem;" class="blink" id="med-alert-status">SCANNING...</span>
+    </div>
 
-    <script>
-        const session = localStorage.getItem('sas_session');
-        if (!session) {
-            window.location.href = 'index.html';
-        }
-    </script>
+    <div style="display: flex; gap: 20px; align-items: center; justify-content: center;">
+        <div style="position: relative; height: 250px; width: 150px;">
+            <svg viewBox="0 0 100 200" style="height: 100%; width: 100%; filter: drop-shadow(0 0 5px var(--primary));">
+                <style>
+                    .body-part { fill: rgba(0, 255, 157, 0.1); stroke: var(--primary); stroke-width: 1; cursor: pointer; transition: 0.3s; }
+                    .body-part:hover { fill: rgba(0, 255, 157, 0.3); }
+                    .body-part.injured { fill: rgba(255, 51, 51, 0.6); stroke: var(--danger); animation: pulseInjure 2s infinite; }
+                    @keyframes pulseInjure { 0% {opacity: 0.6;} 50% {opacity: 1;} 100% {opacity: 0.6;} }
+                </style>
 
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style-mo.css">
-
-    <style>
-        body {
-            justify-content: flex-start;
-            padding-top: 50px;
-        }
-
-        .terminal-wrapper {
-            opacity: 0;
-            animation: slideIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .btn-logout {
-            background: transparent;
-            border: 1px solid var(--danger);
-            color: var(--danger);
-            padding: 10px 20px;
-            font-family: 'Share Tech Mono';
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: 0.3s;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .btn-logout:hover {
-            background: rgba(255, 51, 51, 0.1);
-            box-shadow: 0 0 15px rgba(255, 51, 51, 0.3);
-            text-shadow: 0 0 5px var(--danger);
-        }
-
-        .btn-security {
-            background: transparent;
-            border: 1px solid var(--warning);
-            color: var(--warning);
-            padding: 10px 20px;
-            font-family: 'Share Tech Mono';
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: 0.3s;
-            margin-right: 10px;
-        }
-        .btn-security:hover {
-            background: rgba(238, 187, 0, 0.1);
-            box-shadow: 0 0 15px rgba(238, 187, 0, 0.3);
-            text-shadow: 0 0 5px var(--warning);
-        }
-
-        .default-avatar {
-            width: 100%; height: 100%;
-            background: #111;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 3rem; color: #333;
-        }
-
-        #my-equipment-list::-webkit-scrollbar, #my-missions-list::-webkit-scrollbar, #warnings-list::-webkit-scrollbar {
-            width: 5px;
-        }
-        #my-equipment-list::-webkit-scrollbar-track, #my-missions-list::-webkit-scrollbar-track, #warnings-list::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.3);
-        }
-        #my-equipment-list::-webkit-scrollbar-thumb, #my-missions-list::-webkit-scrollbar-thumb, #warnings-list::-webkit-scrollbar-thumb {
-            background: var(--primary);
-        }
-
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
-            z-index: 10000; display: flex; justify-content: center; align-items: center;
-        }
-        .hidden { display: none !important; }
-        .modal-box {
-            background: #0b0e11; border: 1px solid var(--warning);
-            box-shadow: 0 0 50px rgba(238, 187, 0, 0.1);
-            width: 400px; padding: 0;
-        }
-        .modal-top {
-            padding: 15px 25px; border-bottom: 1px solid #333; background: rgba(0,0,0,0.3);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .modal-title { font-family: 'Share Tech Mono'; color: var(--warning); letter-spacing: 2px; }
-        .form-input {
-            width: 100%; background: rgba(255,255,255,0.05); border: 1px solid #444;
-            color: #fff; padding: 10px; margin-top: 5px; font-family: 'JetBrains Mono';
-        }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { color: #888; font-size: 0.7rem; letter-spacing: 1px; }
-
-        .btn-confirm {
-            background: var(--warning); color: #000; border: none; padding: 10px 20px;
-            font-family: 'Share Tech Mono'; font-weight: bold; cursor: pointer;
-        }
-        .btn-cancel {
-            background: transparent; border: 1px solid #666; color: #888; padding: 10px 20px;
-            font-family: 'Share Tech Mono'; cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-
-<div class="terminal-wrapper">
-    <main class="terminal">
-
-        <header class="header-strip">
-            <div>
-                <h1>DOSSIER :: <span id="header-username">UNKNOWN</span></h1>
-                <div style="color: var(--primary); font-size: 0.9rem; letter-spacing: 3px;">SHADOW COMPANY // PERSONNEL</div>
-            </div>
-            <div class="meta-data">
-                <div>STATUS: <span style="color: var(--primary)">ONLINE</span></div>
-                <div>SESSION ID: <span class="blink" id="session-id">...</span></div>
-            </div>
-        </header>
-
-        <section class="hero-section">
-            <div class="id-card-container">
-                <div class="id-card" id="card">
-                    <div class="holo-overlay"></div>
-
-                    <div class="card-header">
-                        <div class="card-logo-text">SHADOW CO.</div>
-                        <div class="security-level" id="card-rank-badge" style="background: var(--primary); color: #000;">OPERATOR</div>
-                    </div>
-
-                    <div class="card-body">
-                        <div class="photo-box" style="border-color: var(--secondary); overflow:hidden;">
-                            <div class="default-avatar" id="user-avatar-container">👤</div>
-                        </div>
-                        <div class="agent-info">
-                            <div class="card-label">NOM DE CODE</div>
-                            <div class="card-value" id="card-username">...</div>
-
-                            <div class="card-label">UNITÉ</div>
-                            <div class="card-value" style="color: var(--secondary);">FIELD OPS</div>
-
-                            <div class="card-label">ACCRÉDITATION</div>
-                            <div class="card-code" id="card-rank-code">LVL-?-UNDEF</div>
-                        </div>
-                    </div>
-
-                    <div class="card-footer">
-                        <div class="barcode" style="font-family: 'Libre Barcode 128 Text', cursive;">1100101010</div>
-                        <div class="chip"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="intel-grid">
-
-            <div class="panel">
-                <div class="panel-header">
-                    <span class="panel-title">BIO_METRICS</span>
-                    <span style="color:var(--danger); font-size:0.7rem;" class="blink">LIVE_FEED</span>
-                </div>
-
-                <div class="biometric-row">
-                    <div class="ecg-wrapper">
-                        <canvas id="ecg-canvas"></canvas>
-                        <div class="ecg-overlay"></div>
-                    </div>
-                    <div class="bpm-readout">
-                        <span class="label">HR_BPM</span>
-                        <span id="bpm-value" style="font-size: 1.5rem; color: var(--primary); font-weight: bold;">--</span>
-                    </div>
-                </div>
-
-                <div class="separator-dashed"></div>
-
-                <div class="psy-section">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                        <span class="label">CORTISOL_LEVEL (STRESS)</span>
-                        <span id="stress-pct" style="color: var(--secondary)">0%</span>
-                    </div>
-
-                    <div class="progress-track">
-                        <div id="stress-bar" class="progress-fill-psy"></div>
-                    </div>
-
-                    <div class="psy-status-text" id="psy-status-text">
-                        NEURO-STABLE
-                    </div>
-
-                    <div class="psy-controls">
-                        <button onclick="adjustStress(-10)" class="btn-psy">[- CALM]</button>
-                        <button onclick="adjustStress(10)" class="btn-psy">[+ STRESS]</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <span class="panel-title">DOTATION</span>
-                    <span style="color:var(--secondary); font-size:0.7rem;">GEAR_ASSIGNED</span>
-                </div>
-                <div id="my-equipment-list" style="max-height: 200px; overflow-y: auto; padding-right: 5px;">
-                    <div class="blink" style="color: #555;">CHARGEMENT INVENTAIRE...</div>
-                </div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <span class="panel-title" style="color: var(--warning)">MISSIONS ASSIGNÉES</span>
-                    <span style="color:var(--warning); font-size:0.7rem;">ORDERS</span>
-                </div>
-                <div id="my-missions-list" style="max-height: 200px; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 8px;">
-                    <div class="blink" style="color: #555;">RÉCUPÉRATION DES ORDRES...</div>
-                </div>
-            </div>
-
-            <div class="panel" id="warn-panel" style="border-color: var(--dim);">
-                <div class="panel-header">
-                    <span class="panel-title">DISCIPLINE & SANCTIONS</span>
-                    <span id="warn-status-badge" style="font-size:0.7rem; padding: 2px 6px; border: 1px solid var(--primary); color: var(--primary);">CLEAR</span>
-                </div>
-
-                <div id="warnings-list" style="max-height: 150px; overflow-y: auto; padding-right: 5px; font-family: 'JetBrains Mono'; font-size: 0.8rem;">
-                    <div class="blink" style="color: #555;">VÉRIFICATION DU CASIER...</div>
-                </div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <span class="panel-title">SYSTÈME</span>
-                    <span style="color:var(--secondary); font-size:0.7rem;">ACCESS_LOG</span>
-                </div>
-
-                <div class="log-entry">
-                         <span style="color: var(--primary)">[+]
-                             <span>CONNEXION SÉCURISÉE ÉTABLIE</span>
-                         </span>
-                </div>
-
-                <div class="log-entry">
-                         <span style="color: var(--primary)">[+]
-                             <span>AUTHENTIFICATION BIOMÉTRIQUE : OK</span>
-                         </span>
-                </div>
-
-                <div style="margin-top: 25px; border-top: 1px dashed #444; padding-top: 15px; display:flex; justify-content:center;">
-                    <button onclick="openPasswordModal()" class="btn-security">[ SÉCURITÉ ]</button>
-                    <button onclick="logout()" class="btn-logout">[ TERMINATE SESSION ]</button>
-                </div>
-            </div>
-
-        </section>
-
-        <footer class="footer">
-            <div>SECURE TERMINAL V.4.0.2</div>
-            <div>
-                <a href="database.html" style="color: var(--secondary); text-decoration: none;">[ ACCÉDER À LA BASE DE DONNÉES ]</a>
-            </div>
-        </footer>
-
-    </main>
-</div>
-
-<div id="password-modal" class="modal-overlay hidden">
-    <div class="modal-box">
-        <div class="modal-top">
-            <span class="modal-title">CHANGEMENT MOT DE PASSE</span>
-            <button onclick="closePasswordModal()" style="background:none; border:none; color:#666; cursor:pointer;">✖</button>
+                <circle id="part-head" class="body-part" cx="50" cy="20" r="12" onclick="openInjuryModal('head')"/>
+                <path id="part-torso" class="body-part" d="M35 35 L65 35 L60 90 L40 90 Z" onclick="openInjuryModal('torso')"/>
+                <rect id="part-left_arm" class="body-part" x="15" y="38" width="15" height="60" rx="5" onclick="openInjuryModal('left_arm')"/>
+                <rect id="part-right_arm" class="body-part" x="70" y="38" width="15" height="60" rx="5" onclick="openInjuryModal('right_arm')"/>
+                <rect id="part-left_leg" class="body-part" x="30" y="95" width="18" height="80" rx="5" onclick="openInjuryModal('left_leg')"/>
+                <rect id="part-right_leg" class="body-part" x="52" y="95" width="18" height="80" rx="5" onclick="openInjuryModal('right_leg')"/>
+            </svg>
         </div>
 
-        <form id="password-form" style="padding: 25px;">
-            <div class="form-group">
-                <label>ANCIEN MOT DE PASSE</label>
-                <input type="password" id="pwd-old" class="form-input" required>
-            </div>
-            <div class="form-group">
-                <label>NOUVEAU MOT DE PASSE</label>
-                <input type="password" id="pwd-new" class="form-input" required>
-            </div>
-            <div class="form-group">
-                <label>CONFIRMATION</label>
-                <input type="password" id="pwd-confirm" class="form-input" required>
-            </div>
+        <div id="injury-list-display" style="flex: 1; font-size: 0.8rem; max-height: 200px; overflow-y: auto; font-family: 'JetBrains Mono';">
+            <div style="color:#555; font-style:italic;">Aucune blessure détectée.</div>
+        </div>
+    </div>
+</div>
 
-            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                <button type="button" onclick="closePasswordModal()" class="btn-cancel">ANNULER</button>
-                <button type="submit" class="btn-confirm">VALIDER</button>
+<div id="injury-modal" class="modal-overlay hidden">
+    <div class="modal-box" style="width: 400px; border-color: var(--danger);">
+        <div class="modal-top" style="background: rgba(255,51,51,0.1);">
+            <span class="modal-title" style="color: var(--danger);">SIGNALEMENT BLESSURE</span>
+            <button onclick="closeInjuryModal()" style="background:none; border:none; color:#666; cursor:pointer;">✖</button>
+        </div>
+        <form id="injury-form" style="padding: 20px;">
+            <input type="hidden" id="inj-part">
+            <div class="form-group">
+                <label>ZONE CORPORELLE</label>
+                <input type="text" id="inj-part-display" class="form-input" disabled style="color:var(--primary); font-weight:bold;">
+            </div>
+            <div class="form-group">
+                <label>GRAVITÉ</label>
+                <select id="inj-severity" class="form-input">
+                    <option value="light">LÉGÈRE (Egratignure, Bleu)</option>
+                    <option value="moderate">MODÉRÉE (Entorse, Coupure)</option>
+                    <option value="critical">CRITIQUE (Balle, Fracture)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>DESCRIPTION</label>
+                <textarea id="inj-desc" class="form-textarea" style="height:80px;" placeholder="Ex: Impact de balle 9mm..."></textarea>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" onclick="closeInjuryModal()" class="btn-cancel">ANNULER</button>
+                <button type="submit" class="btn-confirm" style="background:var(--danger); color:#fff;">SIGNALER</button>
             </div>
         </form>
     </div>
 </div>
 
-<script src="js/profile-equipment.js"></script>
 <script>
+    document.addEventListener('DOMContentLoaded', loadMyInjuries);
 
-    const avatarMap = {
-        'adam': 'Adam.jpg',
-        'blake': 'Blake.png',
-        'blitz': 'Blitz.png',
-        'dust': 'Dust.png',
-        'wei': 'Dust.png',
-        'graves': 'Graves.jpg',
-        'jackal': 'Jackal.jpg',
-        'ji': 'Jackal.jpg',
-        'javier': 'Javier.jpg',
-        'lexa': 'Lexa.png',
-        'selena': 'Lexa.png',
-        'lovelace': 'LoveLace.jpg',
-        'nyx': 'LoveLace.jpg',
-        'roxanne': 'Roxanne.jpg'
-    };
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const sessionData = JSON.parse(localStorage.getItem('sas_session'));
-
-        if (sessionData) {
-            const { username, rank } = sessionData;
-
-            document.getElementById('header-username').textContent = username.toUpperCase();
-            document.getElementById('card-username').textContent = username.toUpperCase();
-
-            const rankDisplay = `LVL-${rank}`;
-            document.getElementById('card-rank-code').textContent = rankDisplay;
-            document.getElementById('card-rank-badge').textContent = rank >= 5 ? 'COMMAND' : (rank >= 3 ? 'OFFICER' : 'OPERATOR');
-
-            document.getElementById('session-id').textContent = '0x' + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
-
-
-            const lowerName = username.toLowerCase();
-            if (avatarMap[lowerName]) {
-                const photoContainer = document.querySelector('.photo-box');
-                photoContainer.innerHTML = `<img src="assets/${avatarMap[lowerName]}" alt="${username}" style="width:100%; height:100%; object-fit:cover; filter: grayscale(1) contrast(1.2);">`;
-            }
-
-            loadMyMissions(username);
-            loadMyWarnings();
-        }
-
-
-        const card = document.getElementById('card');
-        const cardContainer = document.querySelector('.id-card-container');
-        cardContainer.addEventListener('mousemove', (e) => {
-            const rect = cardContainer.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            const rotateX = ((y - centerY) / centerY) * -10;
-            const rotateY = ((x - centerX) / centerX) * 10;
-            card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-        });
-        cardContainer.addEventListener('mouseleave', () => {
-            card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
-        });
-
-        initPsychometrics();
-        initECG();
-    });
-
-
-    async function loadMyMissions(username) {
-        const container = document.getElementById('my-missions-list');
-        try {
-            const res = await fetch(`/api/game?entity=missions&agent=${username}`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('sas_token')}` }
-            });
-            const missions = await res.json();
-
-            if(missions.length === 0) {
-                container.innerHTML = '<div style="color:rgba(255,255,255,0.4); font-style:italic; font-size:0.8rem; padding:10px;">> AUCUN ORDRE EN ATTENTE</div>';
-                return;
-            }
-
-            container.innerHTML = missions.map(m => {
-                let borderCol = 'var(--warning)';
-                let statusText = 'PLANIFIÉE';
-
-                if(m.status === 'ACTIVE') { borderCol = 'var(--danger)'; statusText = 'EN COURS'; }
-                if(m.status === 'COMPLETED') { borderCol = 'var(--primary)'; statusText = 'TERMINÉE'; }
-
-                const date = new Date(m.start_time).toLocaleDateString('fr-FR');
-
-                return `
-                        <div style="background: rgba(255,255,255,0.03); border-left: 3px solid ${borderCol}; padding: 10px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                                <span style="font-weight:bold; color:#fff; font-family:'Share Tech Mono';">${m.title}</span>
-                                <span style="font-size:0.65rem; color:${borderCol}; border:1px solid ${borderCol}; padding:1px 4px; border-radius:3px;">${statusText}</span>
-                            </div>
-                            <div style="font-size:0.75rem; color:#888; font-family:'JetBrains Mono'; display:flex; justify-content:space-between;">
-                                <span>📍 ${m.location}</span>
-                                <span>📅 ${date}</span>
-                            </div>
-                        </div>
-                    `;
-            }).join('');
-
-        } catch(e) { console.error(e); }
+    function openInjuryModal(part) {
+        const partNames = {
+            'head': 'TÊTE / CRÂNE',
+            'torso': 'TORSE / ORGANES',
+            'left_arm': 'BRAS GAUCHE',
+            'right_arm': 'BRAS DROIT',
+            'left_leg': 'JAMBE GAUCHE',
+            'right_leg': 'JAMBE DROITE'
+        };
+        document.getElementById('inj-part').value = part;
+        document.getElementById('inj-part-display').value = partNames[part];
+        document.getElementById('injury-modal').classList.remove('hidden');
     }
 
-    async function loadMyWarnings() {
-        const container = document.getElementById('warnings-list');
-        const badge = document.getElementById('warn-status-badge');
-        const panel = document.getElementById('warn-panel');
-
-        try {
-            const res = await fetch('/api/game?entity=my_warnings', {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('sas_token')}` }
-            });
-
-            if (!res.ok) return;
-
-            const warnings = await res.json();
-            const count = warnings.length;
-
-            if (count === 0) {
-                badge.textContent = "SERVICE EXEMPLAIRE";
-                badge.style.color = "var(--primary)";
-                badge.style.borderColor = "var(--primary)";
-                panel.style.borderColor = "var(--dim)";
-                container.innerHTML = '<div style="color:#445566; font-style:italic; padding:10px;">> AUCUNE INFRACTION SIGNALÉE.</div>';
-            } else if (count < 3) {
-                badge.textContent = `ATTENTION (${count}/3)`;
-                badge.style.color = "var(--warning)";
-                badge.style.borderColor = "var(--warning)";
-                panel.style.borderColor = "var(--warning)";
-            } else {
-                badge.textContent = `CRITIQUE (${count}/3)`;
-                badge.style.color = "var(--danger)";
-                badge.style.borderColor = "var(--danger)";
-                badge.classList.add('blink');
-                panel.style.borderColor = "var(--danger)";
-                panel.style.boxShadow = "0 0 20px rgba(255, 51, 51, 0.1)";
-            }
-
-            if (count > 0) {
-                container.innerHTML = warnings.map(w => {
-                    const date = new Date(w.created_at).toLocaleDateString('fr-FR');
-                    return `
-                        <div style="background: rgba(255, 255, 255, 0.03); padding: 8px; margin-bottom: 6px; border-left: 2px solid var(--danger);">
-                            <div style="color: var(--danger); font-weight: bold; font-size: 0.75rem; margin-bottom: 2px;">
-                                [ INFRACTION SIGNALÉE LE ${date} ]
-                            </div>
-                            <div style="color: #ccc;">${w.reason}</div>
-                        </div>
-                    `;
-                }).join('');
-            }
-
-        } catch (e) {
-            console.error("Erreur chargement warns", e);
-            container.innerHTML = '<div style="color:var(--danger)">ERREUR DE CONNEXION AU SERVEUR CENTRAL</div>';
-        }
+    function closeInjuryModal() {
+        document.getElementById('injury-modal').classList.add('hidden');
+        document.getElementById('injury-form').reset();
     }
 
-
-    function openPasswordModal() {
-        document.getElementById('password-modal').classList.remove('hidden');
-    }
-    function closePasswordModal() {
-        document.getElementById('password-modal').classList.add('hidden');
-        document.getElementById('password-form').reset();
-    }
-
-    document.getElementById('password-form').addEventListener('submit', async (e) => {
+    document.getElementById('injury-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const oldPwd = document.getElementById('pwd-old').value;
-        const newPwd = document.getElementById('pwd-new').value;
-        const confirmPwd = document.getElementById('pwd-confirm').value;
+        const session = JSON.parse(localStorage.getItem('sas_session'));
 
-        if (newPwd !== confirmPwd) {
-            alert("❌ LES MOTS DE PASSE NE CORRESPONDENT PAS");
-            return;
-        }
+        const payload = {
+            agent_id: session.id,
+            body_part: document.getElementById('inj-part').value,
+            severity: document.getElementById('inj-severity').value,
+            description: document.getElementById('inj-desc').value
+        };
 
         try {
-            const res = await fetch('/api/auth?action=change-password', {
+            const res = await fetch('/api/medical', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('sas_token')}`
                 },
-                body: JSON.stringify({ oldPassword: oldPwd, newPassword: newPwd })
+                body: JSON.stringify(payload)
             });
 
-            const data = await res.json();
-
-            if (res.ok) {
-                alert("✅ MOT DE PASSE MIS À JOUR AVEC SUCCÈS");
-                closePasswordModal();
+            if(res.ok) {
+                closeInjuryModal();
+                loadMyInjuries();
             } else {
-                alert("❌ ERREUR: " + data.error);
+                alert("Erreur lors du signalement.");
             }
-        } catch (err) {
-            alert("❌ ERREUR DE CONNEXION");
-        }
+        } catch(e) { console.error(e); }
     });
 
+    async function loadMyInjuries() {
+        const session = JSON.parse(localStorage.getItem('sas_session'));
+        const svgParts = document.querySelectorAll('.body-part');
+        svgParts.forEach(p => p.classList.remove('injured'));
 
-    function initPsychometrics() {
-        let currentStress = parseInt(localStorage.getItem('sas_stress_level')) || 0;
-        updateStressUI(currentStress);
-    }
-    function adjustStress(amount) {
-        let currentStress = parseInt(localStorage.getItem('sas_stress_level')) || 0;
-        currentStress += amount;
-        if (currentStress < 0) currentStress = 0;
-        if (currentStress > 100) currentStress = 100;
-        localStorage.setItem('sas_stress_level', currentStress);
-        updateStressUI(currentStress);
-    }
-    function updateStressUI(level) {
-        const bar = document.getElementById('stress-bar');
-        const pct = document.getElementById('stress-pct');
-        const txt = document.getElementById('psy-status-text');
-        bar.style.width = level + '%';
-        pct.textContent = level + '%';
-        if (level < 30) { bar.style.backgroundColor = '#00ff9d'; txt.textContent = "NEURO-STABLE"; txt.style.color = '#00ff9d'; targetBPM = 60 + (level / 2); }
-        else if (level < 70) { bar.style.backgroundColor = '#eebb00'; txt.textContent = "STRESS ÉLEVÉ"; txt.style.color = '#eebb00'; targetBPM = 90 + ((level - 30)); }
-        else { bar.style.backgroundColor = '#ff3333'; txt.textContent = "CRITIQUE"; txt.style.color = '#ff3333'; targetBPM = 130 + ((level - 70) * 1.5); }
-    }
+        try {
+            const res = await fetch(`/api/medical?agent_id=${session.id}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('sas_token')}` }
+            });
+            const injuries = await res.json();
 
-    let ctx, canvas, xPos = 0, targetBPM = 65, lastFrameTime = 0;
-    function initECG() {
-        canvas = document.getElementById('ecg-canvas');
-        if(!canvas) return;
-        ctx = canvas.getContext('2d');
-        canvas.width = canvas.parentElement.clientWidth;
-        canvas.height = canvas.parentElement.clientHeight;
-        requestAnimationFrame(drawECG);
-        setInterval(() => {
-            const noise = Math.floor(Math.random() * 6) - 3;
-            document.getElementById('bpm-value').textContent = Math.floor(targetBPM + noise);
-        }, 2000);
-    }
-    function drawECG(timestamp) {
-        if (!lastFrameTime) lastFrameTime = timestamp;
-        const delta = timestamp - lastFrameTime;
-        const speed = (canvas.width * (targetBPM / 60)) / 100;
-        ctx.strokeStyle = targetBPM > 100 ? (targetBPM > 140 ? '#ff3333' : '#eebb00') : '#00ff9d';
-        ctx.lineWidth = 2; ctx.shadowBlur = 5; ctx.shadowColor = ctx.strokeStyle;
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.beginPath(); ctx.moveTo(xPos, canvas.height / 2);
-        xPos += speed;
-        let y = canvas.height / 2;
-        const phase = xPos % 100;
-        if (phase > 10 && phase < 15) y -= 5; else if (phase > 20 && phase < 25) y += 5; else if (phase > 25 && phase < 35) y -= 25; else if (phase > 35 && phase < 40) y += 10; else if (phase > 50 && phase < 60) y -= 8;
-        y += (Math.random() * 2 - 1);
-        ctx.lineTo(xPos, y); ctx.stroke();
-        if (xPos >= canvas.width) { xPos = 0; ctx.clearRect(0,0, canvas.width, canvas.height); ctx.beginPath(); }
-        lastFrameTime = timestamp; requestAnimationFrame(drawECG);
-    }
+            const listContainer = document.getElementById('injury-list-display');
+            const alertStatus = document.getElementById('med-alert-status');
 
-    function logout() {
-        document.body.style.transition = "opacity 0.5s"; document.body.style.opacity = "0";
-        setTimeout(() => { localStorage.removeItem('sas_session'); localStorage.removeItem('userSecurityLevel'); localStorage.removeItem('sas_token'); window.location.href = 'index.html'; }, 500);
+            if (injuries.length === 0) {
+                listContainer.innerHTML = '<div style="color:#555; font-style:italic;">> SYSTÈMES VITAUX NOMINAUX.</div>';
+                alertStatus.textContent = "OK";
+                alertStatus.style.color = "var(--primary)";
+                return;
+            }
+
+            alertStatus.textContent = "ATTENTION REQUISE";
+            alertStatus.style.color = "var(--danger)";
+            listContainer.innerHTML = '';
+
+            injuries.forEach(inj => {
+                const partEl = document.getElementById(`part-${inj.body_part}`);
+                if(partEl) partEl.classList.add('injured');
+
+                let severityColor = inj.severity === 'critical' ? '#ff3333' : (inj.severity === 'moderate' ? '#eebb00' : '#ccc');
+
+                listContainer.innerHTML += `
+                <div style="border-left: 2px solid ${severityColor}; padding-left: 8px; margin-bottom: 8px;">
+                    <div style="color:${severityColor}; font-weight:bold;">${inj.body_part.toUpperCase().replace('_', ' ')}</div>
+                    <div style="color:#aaa;">${inj.description}</div>
+                </div>
+            `;
+            });
+
+        } catch(e) { console.error("Erreur chargement médical", e); }
     }
 </script>
-</body>
-</html>

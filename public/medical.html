@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS - MEDICAL CENTER</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style-mo.css">
+    <style>
+        .med-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            overflow-y: auto;
+            height: calc(100vh - 140px);
+        }
+
+        .patient-card {
+            background: rgba(10, 15, 20, 0.8);
+            border: 1px solid var(--dim);
+            border-top: 3px solid var(--secondary);
+            padding: 15px;
+            display: flex; flex-direction: column; gap: 10px;
+            transition: 0.3s;
+        }
+        .patient-card.critical { border-top-color: var(--danger); box-shadow: 0 0 15px rgba(255,51,51,0.1); }
+        .patient-card:hover { transform: translateY(-3px); background: rgba(20,25,30,0.9); }
+
+        .p-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+        .p-name { font-family: 'Share Tech Mono'; font-size: 1.2rem; color: #fff; font-weight: bold; }
+        .p-rank { font-size: 0.7rem; color: var(--dim); }
+
+        .injury-item {
+            background: rgba(0,0,0,0.3);
+            padding: 8px;
+            border-left: 2px solid #555;
+            font-size: 0.85rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .inj-sev-critical { border-left-color: var(--danger); color: #ffaaaa; }
+        .inj-sev-moderate { border-left-color: var(--warning); color: #ffeeaa; }
+        .inj-sev-light { border-left-color: var(--primary); color: #ccffdd; }
+
+        .btn-heal {
+            background: transparent; border: 1px solid var(--primary); color: var(--primary);
+            padding: 4px 8px; font-size: 0.7rem; cursor: pointer; font-family: 'Share Tech Mono';
+            transition: 0.2s;
+        }
+        .btn-heal:hover { background: var(--primary); color: #000; }
+
+        .no-patients {
+            width: 100%; text-align: center; margin-top: 50px;
+            color: var(--primary); font-family: 'Share Tech Mono'; font-size: 1.5rem;
+            text-shadow: 0 0 10px var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<div class="crt-overlay"></div>
+
+<div class="terminal-wrapper">
+    <main class="terminal">
+        <header class="header-strip">
+            <div>
+                <h1>MEDICAL :: <span style="color: var(--danger);">INFIRMARY</span></h1>
+                <div style="color: var(--dim); font-size: 0.9rem; letter-spacing: 3px;">SHADOW COMPANY // TRIAGE</div>
+            </div>
+            <div class="meta-data">
+                <div>SYSTEM: <span style="color: var(--primary)">ONLINE</span></div>
+                <a href="index.html" style="color: var(--secondary); text-decoration: none;">[ RETOUR DASHBOARD ]</a>
+            </div>
+        </header>
+
+        <div id="med-dashboard" class="med-grid">
+            <div class="blink" style="padding:20px; color:#666;">CHARGEMENT DES DONNÉES BIO-METRIQUES...</div>
+        </div>
+
+        <footer class="footer">
+            <div>MED-SYS V.1.0</div>
+            <div style="color: var(--warning);">⚠ SEULS LES OFFICIERS PEUVENT VALIDER LES SOINS</div>
+        </footer>
+    </main>
+</div>
+
+<script>
+    const token = localStorage.getItem('sas_token');
+    const session = JSON.parse(localStorage.getItem('sas_session'));
+
+    document.addEventListener('DOMContentLoaded', loadAllInjuries);
+
+    async function loadAllInjuries() {
+        const container = document.getElementById('med-dashboard');
+
+        try {
+            const res = await fetch('/api/medical', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if(!res.ok) throw new Error("Erreur API");
+
+            const injuries = await res.json();
+            container.innerHTML = '';
+
+            if (injuries.length === 0) {
+                container.innerHTML = '<div class="no-patients">AUCUN BLESSÉ À DÉPLORER.<br><span style="font-size:0.8rem; color:#666;">Les effectifs sont opérationnels à 100%.</span></div>';
+                return;
+            }
+
+            const grouped = {};
+            injuries.forEach(inj => {
+                if (!grouped[inj.username]) {
+                    grouped[inj.username] = {
+                        rank: inj.rank,
+                        injuries: []
+                    };
+                }
+                grouped[inj.username].injuries.push(inj);
+            });
+
+            for (const [username, data] of Object.entries(grouped)) {
+                const isCritical = data.injuries.some(i => i.severity === 'critical');
+
+                let cardHtml = `
+                    <div class="patient-card ${isCritical ? 'critical' : ''}">
+                        <div class="p-header">
+                            <span class="p-name">${username.toUpperCase()}</span>
+                            <span class="p-rank">LVL ${data.rank}</span>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:5px;">
+                `;
+
+                data.injuries.forEach(inj => {
+                    const sevClass = `inj-sev-${inj.severity}`;
+                    const partName = formatBodyPart(inj.body_part);
+
+                    const healBtn = (parseInt(session.rank) >= 3)
+                        ? `<button onclick="healInjury(${inj.id})" class="btn-heal">SOIGNER</button>`
+                        : `<span style="font-size:0.6rem; color:#444;">VERROUILLÉ</span>`;
+
+                    cardHtml += `
+                        <div class="injury-item ${sevClass}">
+                            <div>
+                                <div style="font-weight:bold;">${partName}</div>
+                                <div style="color:#aaa; font-style:italic;">"${inj.description}"</div>
+                            </div>
+                            ${healBtn}
+                        </div>
+                    `;
+                });
+
+                cardHtml += `</div></div>`;
+                container.innerHTML += cardHtml;
+            }
+
+        } catch (e) {
+            console.error(e);
+            container.innerHTML = '<div style="color:red; padding:20px;">ERREUR DE CONNEXION AU SERVEUR MÉDICAL.</div>';
+        }
+    }
+
+    async function healInjury(id) {
+        if(!confirm("Confirmer le traitement complet de cette blessure ?")) return;
+
+        try {
+            const res = await fetch('/api/medical', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ injury_id: id })
+            });
+
+            if (res.ok) {
+                loadAllInjuries();
+            } else {
+                const err = await res.json();
+                alert("ERREUR: " + (err.error || "Droits insuffisants"));
+            }
+        } catch(e) {
+            alert("Erreur réseau");
+        }
+    }
+
+    function formatBodyPart(part) {
+        const map = {
+            'head': 'TÊTE', 'torso': 'TORSE',
+            'left_arm': 'BRAS G.', 'right_arm': 'BRAS D.',
+            'left_leg': 'JAMBE G.', 'right_leg': 'JAMBE D.'
+        };
+        return map[part] || part.toUpperCase();
+    }
+</script>
+</body>
+</html>
+</html>
