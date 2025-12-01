@@ -3,512 +3,407 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS MAINFRAME // SYSTEM</title>
+    <title>SAS MAINFRAME // SHADOW NET</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Libre+Barcode+128+Text&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style-mo.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
     <style>
-        body {
-            background-color: #020406;
-            overflow-x: hidden;
+        /* =========================================
+           1. CSS SHADOW NET (Design Sombre & Grille)
+           ========================================= */
+        :root {
+            --bg-color: #050505;
+            --card-bg: #0F1115;
+            --text-main: #b8c2cc;
+
+            --cyan: #00F3FF;
+            --amber: #FFD700;
+            --red: #FF3333;
+
+            --dim-grid: rgba(255, 255, 255, 0.03);
+
+            --font-ui: 'Share Tech Mono', monospace;
+            --font-data: 'Roboto Mono', monospace;
         }
 
-        .tactical-grid {
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            height: 100vh;
+            overflow: hidden;
+            text-transform: uppercase;
+            font-size: 16px;
+        }
+
+        /* --- ARRIÈRE-PLAN --- */
+        .bg-grid {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-image:
-                    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            z-index: -10;
-            pointer-events: none;
-            mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
+                    linear-gradient(var(--dim-grid) 1px, transparent 1px),
+                    linear-gradient(90deg, var(--dim-grid) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -2; pointer-events: none;
         }
-
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15), rgba(0,0,0,0.15) 1px, transparent 1px, transparent 2px);
+            pointer-events: none; z-index: 999; opacity: 0.6;
+        }
         .vignette {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, transparent 50%, #000 100%);
-            z-index: -5; pointer-events: none;
+            background: radial-gradient(circle, transparent 60%, rgba(0,0,0,0.9) 100%);
+            z-index: 998; pointer-events: none;
         }
 
-        .radar-scan {
-            position: fixed; top: 0; left: 0; width: 100%; height: 5px;
-            background: rgba(0, 255, 157, 0.3);
-            box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
-            animation: scanScreen 8s linear infinite;
-            z-index: -4; opacity: 0.3; pointer-events: none;
-        }
-        @keyframes scanScreen { 0% {top: -10%;} 100% {top: 110%;} }
-
-        .hud-side {
-            position: fixed; top: 100px; bottom: 50px; width: 60px;
-            display: flex; flex-direction: column; justify-content: space-between; align-items: center;
-            z-index: 0; pointer-events: none;
-            color: #334455; font-size: 0.6rem; letter-spacing: 1px;
-            border-left: 1px dashed rgba(255,255,255,0.05);
-            border-right: 1px dashed rgba(255,255,255,0.05);
-        }
-        .hud-left { left: 20px; border-left: none; }
-        .hud-right { right: 20px; border-right: none; }
-
-        .hud-marker {
-            writing-mode: vertical-rl; text-orientation: mixed;
-            transform: rotate(180deg);
-            opacity: 0.6;
-        }
-        .hud-ruler {
-            height: 100px; width: 4px;
-            background: repeating-linear-gradient(to bottom, #334455 0, #334455 1px, transparent 2px, transparent 10px);
+        /* --- LAYOUT --- */
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            grid-template-rows: 70px 1fr;
+            height: 100vh; width: 100vw;
         }
 
-        .view-section {
-            display: flex; flex: 1; overflow: hidden;
-            transition: opacity 0.5s ease;
-            position: relative;
+        /* --- HEADER --- */
+        .header {
+            grid-column: 1 / -1;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 30px; border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(5, 5, 5, 0.95); backdrop-filter: blur(5px); z-index: 10;
         }
-        .hidden { display: none !important; }
-        .modules-section {
-            flex: 3; padding: 30px; overflow-y: auto;
-            border-right: 1px solid rgba(255,255,255,0.05);
-            mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
-        }
-        .modules-section::-webkit-scrollbar { width: 6px; }
-        .modules-section::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 3px; }
-        .category-title {
-            color: var(--secondary); font-size: 0.8rem; margin-top: 25px; margin-bottom: 20px;
-            display: flex; align-items: center; letter-spacing: 3px; font-weight: bold;
-            text-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
-        }
-        .category-title::before { content: '>'; margin-right: 10px; color: var(--danger); }
-        .category-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--dim), transparent); margin-left: 15px; opacity: 0.5; }
-        .grid-modules {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px;
-        }
-        .module-card {
-            background: rgba(15, 20, 25, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            position: relative; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            text-decoration: none;
-            display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;
-            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
-            backdrop-filter: blur(5px);
-        }
-        .module-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            background: rgba(20, 30, 40, 0.8);
-            border-color: rgba(255,255,255,0.4);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 10;
-        }
-        .module-card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
-            transition: 0.3s;
-        }
-        .module-icon { font-size: 2rem; margin-bottom: 15px; color: #ccc; transition: 0.3s; }
-        .module-card:hover .module-icon { transform: scale(1.1); color: #fff; text-shadow: 0 0 15px currentColor; }
-        .module-name { font-family: var(--font-code); font-weight: 800; color: #fff; font-size: 1.1rem; letter-spacing: 1px; }
-        .module-status { font-size: 0.65rem; color: #667788; margin-top: 8px; letter-spacing: 1px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
-
-        .status-online { border-top: 2px solid var(--primary); }
-        .status-online::before { background: var(--primary); opacity: 0.5; }
-        .status-online:hover::before { opacity: 1; box-shadow: 0 0 10px var(--primary); }
-        .status-online .module-icon { color: var(--primary); }
-
-        .status-restricted { border-top: 2px solid var(--warning); }
-        .status-restricted::before { background: var(--warning); opacity: 0.5; }
-        .status-restricted:hover::before { opacity: 1; box-shadow: 0 0 10px var(--warning); }
-        .status-restricted .module-icon { color: var(--warning); }
-
-        .status-danger { border-top: 2px solid var(--danger); }
-        .status-danger::before { background: var(--danger); opacity: 0.5; }
-        .status-danger:hover::before { opacity: 1; box-shadow: 0 0 10px var(--danger); }
-        .status-danger .module-icon { color: var(--danger); }
-
-        .sidebar-section {
-            flex: 1; padding: 0; background: rgba(0,0,0,0.2);
-            display: flex; flex-direction: column;
-            border-left: 1px solid rgba(255,255,255,0.1);
-            min-width: 300px;
-        }
-        .mini-profile {
-            padding: 30px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
-            display: flex; align-items: center; gap: 20px;
-        }
-        .mini-avatar {
-            width: 60px; height: 60px; border: 2px solid rgba(255,255,255,0.2);
-            display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
-            background: #000; box-shadow: 0 0 15px rgba(0,0,0,0.5);
-            position: relative;
-        }
-        .mini-avatar::after {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-            background: var(--primary); animation: scanAvatar 2s infinite linear;
-            opacity: 0.7; box-shadow: 0 0 5px var(--primary);
-        }
-        @keyframes scanAvatar { 0% {top:0} 100% {top:100%} }
-        .mini-details { flex: 1; }
-        .mini-name { color: #fff; font-weight: 800; font-family: var(--font-code); font-size: 1.1rem; letter-spacing: 1px; }
-        .mini-rank { color: var(--secondary); font-size: 0.75rem; letter-spacing: 2px; margin-top: 2px; }
-        .btn-profile-access {
-            background: transparent; border: 1px solid var(--dim); color: var(--dim);
-            padding: 6px 12px; font-size: 0.65rem; cursor: pointer; font-family: var(--font-ui);
-            transition: 0.2s; text-decoration: none; display: inline-block; margin-top: 10px;
-            text-transform: uppercase; letter-spacing: 1px;
-        }
-        .btn-profile-access:hover { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 157, 0.05); }
-        .sidebar-header {
-            padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05);
-            background: rgba(0,0,0,0.3);
-            font-weight: bold; color: #8899aa; letter-spacing: 2px; font-size: 0.7rem;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .sidebar-header::before { content: ''; width: 6px; height: 6px; background: currentColor; }
-        .log-container { padding: 20px; font-family: var(--font-code); font-size: 0.75rem; overflow-y: auto; flex:1; }
-        .log-entry {
-            margin-bottom: 8px; padding-left: 12px; border-left: 2px solid rgba(255,255,255,0.1);
-            color: #667788; transition: 0.2s;
-        }
-        .log-entry:hover { border-left-color: var(--secondary); color: #ccc; padding-left: 18px; background: linear-gradient(90deg, rgba(255,255,255,0.02), transparent); }
-        .log-time { color: var(--dim); margin-right: 8px; font-size: 0.7rem; }
-        .profile-view-container {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100%; width: 100%; position: relative;
-        }
-        .back-button {
-            position: absolute; top: 20px; left: 20px;
-            background: transparent; border: 1px solid var(--danger); color: var(--danger);
-            padding: 10px 20px; cursor: pointer; font-family: var(--font-code);
-            transition: 0.3s; z-index: 50;
+        .brand { font-size: 1.5rem; letter-spacing: 4px; color: #fff; font-weight: bold; display: flex; gap: 15px; }
+        .logo-glitch { animation: glitch 3s infinite; }
+        .header-stats { display: flex; gap: 20px; font-size: 0.8rem; color: var(--cyan); font-family: var(--font-data); }
+        .ping-dot {
+            display: inline-block; width: 8px; height: 8px; background: var(--cyan); border-radius: 50%;
+            margin-right: 5px; box-shadow: 0 0 10px var(--cyan); animation: pulse 2s infinite;
         }
 
-        .terminal {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            backdrop-filter: none !important;
+        /* --- CONTENU PRINCIPAL --- */
+        .main-content {
+            grid-column: 1 / 2; padding: 40px; overflow-y: auto; position: relative;
+        }
+        .main-content::-webkit-scrollbar { width: 8px; }
+        .main-content::-webkit-scrollbar-thumb { background: #333; border: 1px solid #555; }
+        .main-content::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+
+        .section-title {
+            font-size: 1.2rem; color: var(--amber); margin: 40px 0 20px 0;
+            padding-bottom: 10px; border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+            letter-spacing: 2px; display: flex; align-items: center;
+        }
+        .section-title::before { content: '//'; margin-right: 10px; color: var(--cyan); font-weight: bold; }
+        .section-title:first-child { margin-top: 0; }
+
+        .card-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
         }
 
+        /* --- CARTES MODULES --- */
+        .nav-card {
+            position: relative; background-color: var(--card-bg); height: 120px;
+            padding: 20px; display: flex; align-items: center; gap: 20px;
+            text-decoration: none; transition: all 0.2s ease; cursor: pointer;
+            border-left: 4px solid var(--border-color, #555);
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+        }
+        .border-cyan { --border-color: var(--cyan); }
+        .border-amber { --border-color: var(--amber); }
+        .border-red   { --border-color: var(--red); }
 
-        .terminal::before,
-        .terminal::after {
-            display: none !important;
+        .nav-card:hover {
+            transform: translateX(5px); background-color: #161920;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
-        .back-button:hover { background: var(--danger); color: #000; box-shadow: 0 0 15px var(--danger); }
-        .terminal-console {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 40vh;
-            background: rgba(5, 8, 10, 0.95);
-            border-top: 2px solid var(--primary);
-            display: flex; flex-direction: column; z-index: 2000;
-            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-            backdrop-filter: blur(10px);
-        }
-        .terminal-console.open { transform: translateY(0); }
-        .terminal-history {
-            flex: 1; overflow-y: auto; padding: 20px 40px;
-            font-family: var(--font-code); font-size: 0.9rem; color: #aaa;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .terminal-input-area {
-            display: flex; align-items: center; gap: 15px; padding: 20px 40px;
-            background: rgba(0,0,0,0.3);
-        }
-        .prompt { color: var(--primary); font-weight: bold; font-family: var(--font-code); text-shadow: 0 0 5px var(--primary); }
-        .cmd-input { background: transparent; border: none; outline: none; color: #fff; font-family: var(--font-code); font-size: 1rem; width: 100%; caret-color: var(--primary); }
-        .term-hint {
-            position: fixed; bottom: 10px; right: 20px; font-size: 0.7rem;
-            color: var(--dim); z-index: 100; opacity: 0.5; letter-spacing: 1px;
-            font-family: var(--font-code);
-        }
+        .nav-card:hover .card-icon { color: #fff; text-shadow: 0 0 10px var(--border-color); }
+        .card-icon { font-size: 2rem; color: #445566; width: 50px; text-align: center; transition: color 0.3s; }
+        .card-info { display: flex; flex-direction: column; }
+        .card-title { color: #fff; font-size: 1.1rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px; }
+        .card-status { font-size: 0.7rem; color: #667788; font-family: var(--font-data); display: flex; align-items: center; gap: 6px; }
+        .status-light { width: 6px; height: 6px; background: currentColor; border-radius: 50%; box-shadow: 0 0 5px currentColor; }
 
-        .btn-connect {
-            background: rgba(0, 255, 157, 0.05);
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            font-family: 'Share Tech Mono', monospace;
-            padding: 5px 15px;
-            cursor: pointer;
-            margin-top: 5px;
-            font-size: 0.75rem;
-            letter-spacing: 1px;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            box-shadow: 0 0 5px rgba(0, 255, 157, 0.1);
+        /* --- SIDEBAR --- */
+        .sidebar {
+            grid-column: 2 / 3; background: rgba(0,0,0,0.4); border-left: 1px solid rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; padding: 30px; z-index: 5;
         }
-        .btn-connect:hover {
-            background: var(--primary);
-            color: #000;
-            box-shadow: 0 0 15px var(--primary);
-            font-weight: bold;
+        .profile-block {
+            display: flex; flex-direction: column; align-items: center; padding-bottom: 30px;
+            border-bottom: 1px dashed rgba(255,255,255,0.15); margin-bottom: 30px;
         }
-
-        body.theme-holographic {
-            --holo-blue-neon: #00e5ff;
-            --holo-blue-mid: #00a8e8;
-            --holo-dark-bg: #050a14;
-            --holo-glass: rgba(0, 229, 255, 0.08);
-            --holo-border-glow: 0 0 20px rgba(0, 229, 255, 0.6), inset 0 0 20px rgba(0, 229, 255, 0.2);
-
-            --primary: var(--holo-blue-neon) !important;
-            --secondary: #ffffff !important;
-            --dim: #5a7d9a !important;
-            --danger: #ff3366 !important;
-
-            background-color: var(--holo-dark-bg) !important;
-            background-image: url('assets/image_19cc3b.jpg') !important;
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+        .avatar-frame {
+            width: 100px; height: 100px; border: 2px solid var(--cyan); position: relative;
+            margin-bottom: 15px; display: flex; align-items: center; justify-content: center; background: #000;
         }
+        .avatar-frame img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+        .avatar-frame::after { content: ''; position: absolute; bottom: -5px; right: -5px; width: 10px; height: 10px; border-bottom: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
+        .avatar-frame::before { content: ''; position: absolute; top: -5px; left: -5px; width: 10px; height: 10px; border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
+        .profile-name { font-size: 1.2rem; color: #fff; font-weight: bold; }
+        .profile-clearance { color: var(--cyan); font-size: 0.8rem; margin-top: 5px; font-family: var(--font-data); }
 
-        body.theme-holographic .tactical-grid {
-            background-image:
-                    linear-gradient(rgba(0, 229, 255, 0.1) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(0, 229, 255, 0.1) 1px, transparent 1px) !important;
-            opacity: 0.5;
+        .side-nav { list-style: none; display: flex; flex-direction: column; gap: 15px; }
+        .side-nav li a {
+            color: #667788; text-decoration: none; font-size: 0.9rem; letter-spacing: 2px; transition: all 0.3s; display: block; cursor: pointer;
+        }
+        .side-nav li a:hover { color: var(--cyan); padding-left: 5px; }
+        .side-nav li a::before { content: '['; margin-right: 10px; color: transparent; transition: 0.3s; }
+        .side-nav li a::after { content: ']'; margin-left: 10px; color: transparent; transition: 0.3s; }
+        .side-nav li a:hover::before, .side-nav li a:hover::after { color: var(--cyan); }
+        .side-nav li a.logout { color: var(--red); margin-top: 30px; }
+
+        /* --- TERMINAL OVERLAY --- */
+        #terminal-overlay {
+            display: none; position: fixed; bottom: 0; left: 0; right: 0; height: 40vh;
+            background: rgba(5, 8, 10, 0.98); border-top: 2px solid var(--cyan); z-index: 2000;
+            padding: 20px; font-family: var(--font-data); color: #ccc; overflow-y: auto;
+        }
+        #terminal-overlay.open { display: flex; flex-direction: column; }
+        .term-line { margin-bottom: 5px; }
+        .cmd-input-area { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
+        .prompt { color: var(--cyan); font-weight: bold; }
+        #cmd-input { background: transparent; border: none; color: #fff; width: 100%; outline: none; font-family: inherit; font-size: 1rem; }
+
+        /* --- ANIMATIONS --- */
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes glitch {
+            0%, 100% { text-shadow: 2px 0 0 rgba(255,0,0,0.5), -2px 0 0 rgba(0,255,255,0.5); }
+            50% { text-shadow: -2px 0 0 rgba(255,0,0,0.5), 2px 0 0 rgba(0,255,255,0.5); }
         }
 
-        body.theme-holographic .radar-scan {
-            background: rgba(0, 229, 255, 0.3) !important;
-            box-shadow: 0 0 25px rgba(0, 229, 255, 0.8) !important;
-        }
-
-        body.theme-holographic .terminal {
-            background: rgba(10, 15, 25, 0.75) !important;
-            backdrop-filter: blur(15px) !important;
-            border: 3px solid var(--holo-blue-neon) !important;
-            box-shadow: var(--holo-border-glow), 0 20px 40px rgba(0,0,0,0.5) !important;
-            border-radius: 4px;
-
-            clip-path: polygon(
-                    20px 0, calc(100% - 20px) 0,
-                    100% 20px, 100% calc(100% - 20px),
-                    calc(100% - 20px) 100%, 20px 100%,
-                    0 calc(100% - 20px), 0 20px
-            );
-            padding: 20px;
-        }
-
-        body.theme-holographic .header-strip {
-            background: linear-gradient(90deg, var(--holo-glass), transparent) !important;
-            border-bottom: 2px solid var(--holo-blue-neon) !important;
-        }
-
-        body.theme-holographic h1 {
-            text-shadow: 0 0 15px var(--holo-blue-neon) !important;
-            font-weight: 800;
-            letter-spacing: 4px;
-        }
-
-        body.theme-holographic .module-card {
-            background: linear-gradient(135deg, rgba(0, 229, 255, 0.1), rgba(0, 10, 20, 0.4)) !important;
-            border: 1px solid rgba(0, 229, 255, 0.4) !important;
-            backdrop-filter: blur(5px);
-            box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.05);
-        }
-
-        body.theme-holographic .module-card:hover {
-            background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 20, 40, 0.6)) !important;
-            border-color: var(--holo-blue-neon) !important;
-            transform: translateY(-5px) scale(1.03) !important;
-            box-shadow: 0 0 25px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(0, 229, 255, 0.2) !important;
-        }
-
-        body.theme-holographic .module-icon {
-            color: var(--holo-blue-mid) !important;
-            text-shadow: 0 0 5px var(--holo-blue-neon);
-        }
-
-        body.theme-holographic .module-card:hover .module-icon {
-            color: #fff !important;
-            text-shadow: 0 0 20px var(--holo-blue-neon) !important;
-        }
-
-        body.theme-holographic .module-name {
-            text-shadow: 0 0 5px rgba(0, 229, 255, 0.5);
-        }
-
-        body.theme-holographic .status-online { border-top-color: var(--holo-blue-neon) !important; }
-        body.theme-holographic .status-online .module-status span { color: var(--holo-blue-neon) !important; text-shadow: 0 0 10px var(--holo-blue-neon); }
-
-        body.theme-holographic .category-title {
-            color: #fff !important;
-            text-shadow: 0 0 10px var(--holo-blue-neon) !important;
-            border-bottom: 2px solid var(--holo-blue-neon);
-            padding-bottom: 5px;
-            display: inline-block;
-        }
-        body.theme-holographic .category-title::before {
-            color: var(--holo-blue-neon) !important;
-            text-shadow: 0 0 10px var(--holo-blue-neon);
-        }
-        body.theme-holographic .category-title::after {
-            display: none;
+        /* --- RESPONSIVE --- */
+        @media (max-width: 900px) {
+            .app-container { grid-template-columns: 1fr; grid-template-rows: 70px 1fr auto; }
+            .sidebar { grid-column: 1 / -1; flex-direction: row; justify-content: space-between; height: auto; border-left: none; border-top: 1px solid rgba(255,255,255,0.1); }
+            .side-nav { display: none; }
+            .profile-block { padding: 0; border: none; margin: 0; flex-direction: row; gap: 15px; }
+            .avatar-frame { width: 40px; height: 40px; margin: 0; }
         }
     </style>
 </head>
+<body>
 
-<body class="theme-holographic">
-<div class="tactical-grid"></div>
+<div class="bg-grid"></div>
+<div class="scanlines"></div>
 <div class="vignette"></div>
-<div class="radar-scan"></div>
 
-<div class="hud-side hud-left">
-    <div class="hud-ruler"></div>
-    <div class="hud-marker">SYSTEM.ROOT</div>
-    <div class="hud-ruler"></div>
-</div>
-<div class="hud-side hud-right">
-    <div class="hud-ruler"></div>
-    <div class="hud-marker">SECURE.CONN</div>
-    <div class="hud-ruler"></div>
-</div>
+<div class="app-container">
 
-<div class="term-hint">PRESS [ F9 ] TO TOGGLE TERMINAL</div>
+    <header class="header">
+        <div class="brand">
+            <div class="logo-glitch">SAS</div> // MAINFRAME
+        </div>
+        <div class="header-stats">
+            <div><span class="ping-dot"></span>CONNEXION SÉCURISÉE</div>
+            <div style="margin-left: 20px;">PING: 12ms</div>
+        </div>
+    </header>
 
-<div class="terminal-wrapper">
-    <div class="terminal">
-        <div class="header-strip">
-            <div>
-                <h1>SAS <span style="text-shadow: 0 0 10px var(--danger);">MAINFRAME</span></h1>
-                <div style="font-size: 0.8rem; color: #667788; letter-spacing: 2px; margin-top: 5px;">SECURE ACCESS SYSTEM // RESTRICTED AREA</div>
+    <main class="main-content">
+
+        <div class="section-title">ACCRÉDITATION NIVEAU 1 [GÉNÉRAL]</div>
+
+        <div class="card-grid">
+            <div onclick="accessModule('database.html', 1)" class="nav-card border-cyan">
+                <div class="card-icon">👥</div>
+                <div class="card-info">
+                    <div class="card-title">BASE AGENTS</div>
+                    <div class="card-status"><span class="status-light" style="color:var(--cyan)"></span> ONLINE</div>
+                </div>
             </div>
-            <div class="meta-data">
-                <span id="conn-status" style="color:var(--primary)">CONNECTED</span> // PING: 12ms<br>
-                SYS.VER.4.0.2 // <span class="blink">MONITORING</span><br>
 
-                <button class="btn-connect" onclick="toggleTerminal()">> CONNEXION TERMINAL</button>
+            <div onclick="accessModule('reglement.html', 1)" class="nav-card border-cyan">
+                <div class="card-icon">📜</div>
+                <div class="card-info">
+                    <div class="card-title">RÈGLEMENT</div>
+                    <div class="card-status"><span class="status-light" style="color:var(--cyan)"></span> READ ONLY</div>
+                </div>
+            </div>
+
+            <div onclick="accessModule('map.html', 1)" class="nav-card border-cyan">
+                <div class="card-icon">🗺️</div>
+                <div class="card-info">
+                    <div class="card-title">CARTOGRAPHIE</div>
+                    <div class="card-status"><span class="status-light" style="color:var(--cyan)"></span> LIVE FEED</div>
+                </div>
+            </div>
+
+            <div onclick="accessModule('report.html', 1)" class="nav-card border-cyan">
+                <div class="card-icon">📝</div>
+                <div class="card-info">
+                    <div class="card-title">RAPPORT</div>
+                    <div class="card-status"><span class="status-light" style="color:var(--cyan)"></span> AUTO-GEN</div>
+                </div>
             </div>
         </div>
-        <div id="dashboard-view" class="view-section dashboard-container">
-            <div class="modules-section">
 
-                <div class="category-title">ACCRÉDITATION NIVEAU 1 [GÉNÉRAL]</div>
-                <div class="grid-modules">
-                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('database.html', 1)">
-                        <div class="module-icon">👥</div>
-                        <div>
-                            <div class="module-name">BASE AGENTS</div>
-                            <div class="module-status"><span style="color:var(--primary)">●</span> SYSTEM ONLINE</div>
-                        </div>
-                    </div>
-                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('reglement.html', 1)">
-                        <div class="module-icon">📜</div>
-                        <div>
-                            <div class="module-name">RÈGLEMENT</div>
-                            <div class="module-status"><span style="color:var(--primary)">●</span> READ ONLY</div>
-                        </div>
-                    </div>
-                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('map.html', 1)">
-                        <div class="module-icon">🗺️</div>
-                        <div>
-                            <div class="module-name">CARTOGRAPHIE</div>
-                            <div class="module-status"><span style="color:var(--primary)">●</span> LIVE FEED</div>
-                        </div>
-                    </div>
-                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('report.html', 1)">
-                        <div class="module-icon">📝</div>
-                        <div>
-                            <div class="module-name">GÉNÉRATEUR RAPPORT</div>
-                            <div class="module-status"><span style="color:var(--primary)">●</span> AUTO-GEN</div>
-                        </div>
-                    </div>
+        <div class="section-title">ACCRÉDITATION NIVEAU 2 [TACTIQUE]</div>
+
+        <div class="card-grid">
+            <div onclick="accessModule('investigation.html', 2)" class="nav-card border-amber">
+                <div class="card-icon">🔍</div>
+                <div class="card-info">
+                    <div class="card-title">INVESTIGATION</div>
+                    <div class="card-status"><span class="status-light" style="color: var(--amber)"></span> RESTRICTED</div>
                 </div>
-
-                <div class="category-title">ACCRÉDITATION NIVEAU 2 [CONFIDENTIEL]</div>
-                <div class="grid-modules">
-                    <a href="/investigation.html" class="module-card status-restricted">
-                        <div class="module-icon">🔍</div>
-                        <div>
-                            <div class="module-name">INVESTIGATION</div>
-                            <div class="module-status"><span style="color:var(--warning)">●</span> RESTRICTED ACCESS</div>
-                        </div>
-                    </a>
-                    <a href="#" class="module-card status-danger">
-                        <div class="module-icon">🎯</div>
-                        <div>
-                            <div class="module-name">VIP TARGETS</div>
-                            <div class="module-status"><span style="color:var(--danger)">●</span> HIGH PRIORITY</div>
-                        </div>
-                    </a>
-                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('logistics.html', 1)">
-                        <div class="module-icon">📝</div>
-                        <div>
-                            <div class="module-name">LOGISTIQUE</div>
-                            <div class="module-status"><span style="color:var(--primary)">●</span> STOCK </div>
-                        </div>
-                    </div>
-                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('missions.html', 1)">
-                        <div class="module-icon">📝</div>
-                        <div>
-                            <div class="module-name">MISSIONS</div>
-                            <div class="module-status"><span style="color:var(--primary)">●</span> PLANNING </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="category-title">ACCRÉDITATION NIVEAU 10 [ÉTAT-MAJOR]</div>
-                <div class="grid-modules">
-                    <div class="module-card status-danger" style="cursor: pointer;" onclick="accessModule('admin.html', 10)">
-                        <div class="module-icon">⚖️</div>
-                        <div>
-                            <div class="module-name">ADMINISTRATION</div>
-                            <div class="module-status"><span style="color:var(--danger)">●</span> CLASSIFIED</div>
-                        </div>
-                    </div>
-                    <div class="module-card status-danger" style="cursor: pointer;" onclick="accessModule('medical.html', 3)">
-                        <div class="module-icon">⚕️</div>
-                        <div>
-                            <div class="module-name">INFIRMERIE</div>
-                            <div class="module-status"><span style="color:var(--danger)">●</span> MEDICAL LOGS</div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
-            <div id="sidebar-placeholder"></div>
+
+            <div onclick="accessModule('vip.html', 2)" class="nav-card border-amber">
+                <div class="card-icon">🎯</div>
+                <div class="card-info">
+                    <div class="card-title">VIP TARGETS</div>
+                    <div class="card-status"><span class="status-light" style="color: var(--red)"></span> HIGH PRIORITY</div>
+                </div>
+            </div>
+
+            <div onclick="accessModule('simulation.html', 2)" class="nav-card border-amber">
+                <div class="card-icon">⚔️</div>
+                <div class="card-info">
+                    <div class="card-title">SIMULATION</div>
+                    <div class="card-status"><span class="status-light" style="color: var(--amber)"></span> TRAINING</div>
+                </div>
+            </div>
+
+            <div onclick="accessModule('missions.html', 2)" class="nav-card border-amber">
+                <div class="card-icon">📅</div>
+                <div class="card-info">
+                    <div class="card-title">MISSIONS</div>
+                    <div class="card-status"><span class="status-light" style="color: var(--amber)"></span> ACTIVE</div>
+                </div>
+            </div>
+
+            <div onclick="accessModule('logistics.html', 2)" class="nav-card border-amber">
+                <div class="card-icon">📦</div>
+                <div class="card-info">
+                    <div class="card-title">LOGISTIQUE</div>
+                    <div class="card-status"><span class="status-light" style="color: var(--amber)"></span> STOCK</div>
+                </div>
+            </div>
         </div>
-        <div id="profile-view" class="view-section hidden profile-view-container"></div>
-    </div>
+
+        <div class="section-title">ACCRÉDITATION NIVEAU 10 [ÉTAT-MAJOR]</div>
+
+        <div class="card-grid">
+            <div onclick="accessModule('admin.html', 10)" class="nav-card border-red">
+                <div class="card-icon">⚖️</div>
+                <div class="card-info">
+                    <div class="card-title">ADMINISTRATION</div>
+                    <div class="card-status"><span class="status-light" style="color: var(--red)"></span> CLASSIFIED</div>
+                </div>
+            </div>
+
+            <div onclick="accessModule('medical.html', 3)" class="nav-card border-red">
+                <div class="card-icon">⚕️</div>
+                <div class="card-info">
+                    <div class="card-title">INFIRMERIE</div>
+                    <div class="card-status"><span class="status-light" style="color: var(--red)"></span> BIO-HAZARD</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <aside class="sidebar">
+        <div class="profile-block">
+            <div class="avatar-frame">
+                <img src="https://ui-avatars.com/api/?name=Admin+User&background=000&color=00F3FF&size=128&bold=true" alt="User">
+            </div>
+            <div class="profile-name">COMMANDER</div>
+            <div class="profile-clearance">CLEARANCE: LEVEL 10</div>
+        </div>
+
+        <ul class="side-nav">
+            <li><a href="#">DASHBOARD</a></li>
+            <li><a href="#">COMMUNICATIONS</a></li>
+            <li><a href="#" onclick="toggleTerminal(); return false;">> TERMINAL</a></li>
+            <li><a href="#" class="logout" onclick="logout()">DÉCONNEXION</a></li>
+        </ul>
+    </aside>
+
 </div>
 
-<div id="terminal-console" class="terminal-console">
-    <div id="terminal-history" class="terminal-history">
-        <div class="term-line term-info">SAS Mainframe [Version 4.0.2]</div>
-        <div class="term-line term-info">(c) SAS 2025. All rights reserved.</div>
-        <div class="term-line">System ready. Type '/help' for a list of commands.</div>
-        <br>
-    </div>
-    <div class="terminal-input-area">
+<div id="terminal-overlay">
+    <div class="term-line">SAS Mainframe [Version 4.0.2]</div>
+    <div class="term-line">(c) SAS Security Corp. All rights reserved.</div>
+    <br>
+    <div class="cmd-input-area">
         <span class="prompt">root@sas-mainframe:~#</span>
-        <input type="text" id="cmd-input" class="cmd-input" placeholder="Enter command..." autocomplete="off">
+        <input type="text" id="cmd-input" placeholder="Enter command..." autocomplete="off">
     </div>
 </div>
 
-<script src="js/script.js"></script>
 <script>
+    // Initialisation Niveau Sécurité (Simulation)
+    if (!localStorage.getItem('userSecurityLevel')) {
+        localStorage.setItem('userSecurityLevel', 10);
+    }
+
+    // Fonction d'accès aux modules
     function accessModule(url, requiredLevel) {
-        const currentLevel = parseInt(localStorage.getItem('userSecurityLevel') || 0);
+        const currentLevel = parseInt(localStorage.getItem('userSecurityLevel'));
+
+        console.log(`Tentative accès : Niveau ${currentLevel} requis ${requiredLevel}`);
+
         if (currentLevel >= requiredLevel) {
-            window.location.href = url;
+            // Animation de transition
+            document.body.style.transition = "opacity 0.3s";
+            document.body.style.opacity = "0";
+            setTimeout(() => {
+                // Simulation redirection (pour l'exemple on recharge ou alert)
+                // window.location.href = url;
+                alert(`ACCÈS AUTORISÉ : Redirection vers ${url}`);
+                document.body.style.opacity = "1";
+            }, 300);
         } else {
             alert("⛔ ACCÈS REFUSÉ : ACCRÉDITATION INSUFFISANTE");
         }
     }
 
+    // Gestion du Terminal
     function toggleTerminal() {
-        const term = document.getElementById('terminal-console');
+        const term = document.getElementById('terminal-overlay');
         const input = document.getElementById('cmd-input');
-        const history = document.getElementById('terminal-history');
-
         term.classList.toggle('open');
+        if (term.classList.contains('open')) setTimeout(() => input.focus(), 100);
+    }
 
-        if(term.classList.contains('open')) {
-            setTimeout(() => input.focus(), 100);
-            if(history) history.scrollTop = history.scrollHeight;
+    // Commandes Terminal Basiques
+    document.getElementById('cmd-input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            const val = this.value.toLowerCase();
+            const term = document.getElementById('terminal-overlay');
+
+            const historyLine = document.createElement('div');
+            historyLine.className = 'term-line';
+            historyLine.innerHTML = `<span style="color:var(--cyan)">root@sas:~#</span> ${this.value}`;
+            term.insertBefore(historyLine, document.querySelector('.cmd-input-area'));
+
+            const responseLine = document.createElement('div');
+            responseLine.className = 'term-line';
+            responseLine.style.color = "#ccc";
+
+            if(val === 'help') responseLine.innerHTML = "CMDS: help, clear, logout, status";
+            else if (val === 'clear') { location.reload(); return; }
+            else if (val === 'status') { responseLine.innerHTML = "SYSTEM OK // INTEGRITY 100%"; responseLine.style.color = "var(--primary)"; }
+            else responseLine.innerHTML = `Unknown command: ${val}`;
+
+            term.insertBefore(responseLine, document.querySelector('.cmd-input-area'));
+            this.value = '';
+            term.scrollTop = term.scrollHeight;
         }
+    });
+
+    // Raccourci F9
+    document.addEventListener('keydown', (e) => { if (e.key === 'F9') toggleTerminal(); });
+
+    // Logout
+    function logout() {
+        localStorage.removeItem('userSecurityLevel');
+        alert("DÉCONNEXION EN COURS...");
+        location.reload();
     }
 </script>
 </body>
