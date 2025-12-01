@@ -12,12 +12,8 @@
     <link rel="stylesheet" href="css/style-mo.css">
 
     <style>
-        /* CSS ADDITIONNEL POUR FAIRE FONCTIONNER VOS ANCIENS ÉLÉMENTS DANS LE NOUVEAU DESIGN */
-
-        /* Pour cacher des zones via JS */
         .hidden { display: none !important; }
 
-        /* Style pour les logs (remis comme avant mais adapté aux couleurs) */
         .log-container {
             margin-top: 20px;
             padding: 10px;
@@ -26,7 +22,7 @@
             overflow-y: auto;
             flex: 1;
             border-top: 1px dashed rgba(255,255,255,0.15);
-            max-height: 300px; /* Limite la hauteur dans la sidebar */
+            max-height: 300px;
         }
         .log-entry {
             margin-bottom: 8px;
@@ -40,7 +36,6 @@
             color: #ccc;
         }
 
-        /* Console Terminal (Tiroir du bas) */
         .terminal-console {
             position: fixed; bottom: 0; left: 0; width: 100%; height: 40vh;
             background: rgba(5, 5, 5, 0.98);
@@ -55,7 +50,6 @@
         .terminal-input-area { display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: rgba(255,255,255,0.05); }
         .cmd-input { background: transparent; border: none; outline: none; color: #fff; width: 100%; font-family: var(--font-data); }
 
-        /* Bouton accès profil (Style custom pour s'intégrer) */
         .btn-profile-access {
             background: transparent; border: 1px solid var(--cyan); color: var(--cyan);
             padding: 5px 10px; font-size: 0.7rem; cursor: pointer; font-family: var(--font-ui);
@@ -67,7 +61,6 @@
 </head>
 
 <body>
-
 <div class="bg-grid"></div>
 <div class="scanlines"></div>
 <div class="vignette"></div>
@@ -154,12 +147,14 @@
                 </div>
             </div>
 
-        </div> <div id="profile-view" class="hidden profile-view-container">
-        <button class="back-button" onclick="window.location.reload()" style="background:transparent; border:1px solid red; color:red; padding:10px; margin-bottom:20px; cursor:pointer;">[ RETOUR ]</button>
-        <h2 class="section-title">DOSSIER PERSONNEL</h2>
-        <div id="full-profile-content">
         </div>
-    </div>
+
+        <div id="profile-view" class="hidden profile-view-container">
+            <button class="back-button" onclick="window.location.reload()" style="background:transparent; border:1px solid red; color:red; padding:10px; margin-bottom:20px; cursor:pointer;">[ RETOUR ]</button>
+            <h2 class="section-title">DOSSIER PERSONNEL</h2>
+            <div id="full-profile-content">
+            </div>
+        </div>
 
     </main>
 
@@ -205,13 +200,8 @@
 
 <script src="js/script.js"></script>
 <script>
-    // Fonctions de secours si script.js ne les définit pas
-
     function accessModule(url, requiredLevel) {
-        // Logique de vérification (récupérée de votre code)
         const currentLevel = parseInt(localStorage.getItem('userSecurityLevel') || 0);
-        // Pour tester, on peut simuler un niveau ici :
-        // const currentLevel = 10;
         if (currentLevel >= requiredLevel) {
             window.location.href = url;
         } else {
@@ -226,7 +216,6 @@
         if(term.classList.contains('open')) setTimeout(() => input.focus(), 100);
     }
 
-    // Fonction basique pour simuler l'ouverture du profil si votre JS ne le fait pas
     function showProfile() {
         const dash = document.getElementById('dashboard-view');
         const prof = document.getElementById('profile-view');
@@ -238,7 +227,6 @@
 
     function logoutFunction() {
         alert("Déconnexion en cours...");
-        // window.location.href = 'login.html';
     }
 </script>
 </body>
