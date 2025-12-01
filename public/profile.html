@@ -570,18 +570,41 @@
         }
     });
 
-    function initPsychometrics() {
-        let currentStress = parseInt(localStorage.getItem('sas_stress_level')) || 0;
-        updateStressUI(currentStress);
+    async function initPsychometrics() {
+        try {
+            const res = await fetch('/api/game?entity=stress', {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('sas_token')}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                updateStressUI(data.stress_level);
+            }
+        } catch (e) {
+            updateStressUI(0);
+        }
     }
-    function adjustStress(amount) {
-        let currentStress = parseInt(localStorage.getItem('sas_stress_level')) || 0;
-        currentStress += amount;
-        if (currentStress < 0) currentStress = 0;
-        if (currentStress > 100) currentStress = 100;
-        localStorage.setItem('sas_stress_level', currentStress);
-        updateStressUI(currentStress);
+
+    async function adjustStress(amount) {
+        try {
+            const res = await fetch('/api/game?entity=stress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('sas_token')}`
+                },
+                body: JSON.stringify({ amount: amount })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                updateStressUI(data.stress_level);
+            }
+        } catch (e) {
+            console.error(e);
+        }
     }
+
     function updateStressUI(level) {
         const bar = document.getElementById('stress-bar');
         const pct = document.getElementById('stress-pct');
