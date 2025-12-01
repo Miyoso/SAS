@@ -131,23 +131,27 @@
             opacity: 0.7;
         }
 
+        /* --- STYLES STRESS MODIFIÉS --- */
         .stress-strip-container {
             background: rgba(0,0,0,0.5);
-            height: 6px;
+            height: 8px; /* Un peu plus épais */
             width: 100%;
             position: relative;
+            margin-top: 2px;
         }
         .stress-strip-fill {
             height: 100%;
             transition: width 0.3s;
-            box-shadow: 0 0 5px currentColor;
+            box-shadow: 0 0 8px currentColor; /* Glow plus intense */
         }
         .stress-label {
-            font-size: 0.6rem;
-            color: #888;
-            padding: 2px 15px 0 15px;
+            font-size: 0.9rem; /* Plus grand */
+            font-weight: bold; /* Plus gras */
+            padding: 6px 15px 4px 15px;
             text-align: right;
             font-family: 'Share Tech Mono';
+            letter-spacing: 1px;
+            /* La couleur sera définie dynamiquement */
         }
     </style>
 </head>
@@ -225,11 +229,14 @@
                 if (data.stress >= 30) stressColor = '#eebb00';
                 if (data.stress >= 70) stressColor = '#ff3333';
 
+                // Modification : Texte en couleur avec effet de lueur
                 const stressHtml = `
                     <div class="stress-strip-container">
                         <div class="stress-strip-fill" style="width: ${data.stress}%; background-color: ${stressColor}; color: ${stressColor};"></div>
                     </div>
-                    <div class="stress-label">PSY: ${data.stress}%</div>
+                    <div class="stress-label" style="color: ${stressColor}; text-shadow: 0 0 8px ${stressColor};">
+                        NIVEAU STRESS: ${data.stress}%
+                    </div>
                 `;
 
                 let injuriesHtml = '';
