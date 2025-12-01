@@ -13,8 +13,6 @@
     <link rel="stylesheet" href="css/style-mo.css">
 
     <style>
-        /* --- CSS SPÉCIFIQUE ARCADE --- */
-
         .arcade-container {
             display: grid;
             grid-template-columns: 3fr 1fr;
@@ -22,7 +20,6 @@
             height: calc(100vh - 160px);
         }
 
-        /* ZONE DE JEU */
         .game-viewport {
             background: rgba(5, 8, 10, 0.8);
             border: 2px solid var(--dim);
@@ -32,10 +29,9 @@
             align-items: center;
             justify-content: center;
             box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
-            cursor: crosshair; /* Curseur de visée */
+            cursor: crosshair;
         }
 
-        /* Feedback visuel quand on rate (flash rouge) */
         .game-viewport.miss-flash {
             animation: flashRed 0.2s ease-out;
         }
@@ -45,7 +41,6 @@
             100% { box-shadow: inset 0 0 0 transparent; border-color: var(--dim); }
         }
 
-        /* Indicateur de pénalité (-50) */
         .floating-penalty {
             position: absolute;
             color: var(--danger);
@@ -72,7 +67,6 @@
 
         .game-title { font-size: 3rem; color: var(--primary); text-shadow: 0 0 20px var(--primary); margin-bottom: 20px; font-weight: 800; letter-spacing: 5px; }
 
-        /* HUD Score et Vitesse */
         .hud-top-right { position: absolute; top: 20px; right: 30px; text-align: right; pointer-events: none; }
         .game-score-display { font-size: 2rem; color: #fff; font-family: 'Share Tech Mono'; }
         .speed-indicator { font-size: 0.8rem; color: var(--warning); letter-spacing: 1px; margin-top: 5px; }
@@ -81,7 +75,6 @@
         .life-pip { width: 15px; height: 15px; background: var(--danger); box-shadow: 0 0 10px var(--danger); transform: rotate(45deg); transition: 0.3s; }
         .life-lost { background: #333; box-shadow: none; border: 1px solid #555; }
 
-        /* NŒUDS DU JEU (CIBLES) */
         .node-target {
             position: absolute;
             width: 60px; height: 60px;
@@ -101,7 +94,6 @@
         @keyframes spawnPop { from { transform: scale(0); } to { transform: scale(1); } }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* LEADERBOARD */
         .leaderboard-panel {
             background: rgba(15, 20, 25, 0.6);
             border: 1px solid var(--primary);
@@ -130,7 +122,6 @@
             animation: scanDown 3s linear infinite; z-index: 5;
         }
         @keyframes scanDown { 0% {top:0;} 100% {top:100%;} }
-
     </style>
 </head>
 <body>
@@ -198,14 +189,13 @@
     </div>
 
     <script>
-        // --- CONFIGURATION ---
         const GameConfig = {
-            startSpawnRate: 1200,   // Vitesse de départ (ms)
-            minSpawnRate: 350,      // Vitesse max (ms)
-            speedUpStep: 50,        // Accélération (ms en moins)
-            speedUpInterval: 5000,  // Accélère toutes les 5 secondes
-            scoreHit: 100,          // Points par cible
-            scoreMiss: 50           // Pénalité tir raté
+            startSpawnRate: 1200,
+            minSpawnRate: 350,
+            speedUpStep: 50,
+            speedUpInterval: 5000,
+            scoreHit: 100,
+            scoreMiss: 50
         };
 
         let gameState = {
@@ -218,7 +208,6 @@
             spawnTimeout: null
         };
 
-        // --- AUDIO ENGINE ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         function playSound(type) {
@@ -231,7 +220,6 @@
             const now = audioCtx.currentTime;
 
             if (type === 'hit') {
-                // Son laser rapide
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(800, now);
                 osc.frequency.exponentialRampToValueAtTime(1500, now + 0.1);
@@ -240,7 +228,6 @@
                 osc.start(now);
                 osc.stop(now + 0.1);
             } else if (type === 'miss') {
-                // Son buzzer erreur (grave)
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(150, now);
                 osc.frequency.linearRampToValueAtTime(100, now + 0.2);
@@ -249,7 +236,6 @@
                 osc.start(now);
                 osc.stop(now + 0.2);
             } else if (type === 'start') {
-                // Son montée en puissance
                 osc.type = 'square';
                 osc.frequency.setValueAtTime(200, now);
                 osc.frequency.exponentialRampToValueAtTime(600, now + 0.5);
@@ -259,31 +245,24 @@
             }
         }
 
-        // --- GAME LOGIC ---
-
         function startGame() {
             playSound('start');
 
-            // Reset variables
             gameState.active = true;
             gameState.score = 0;
             gameState.lives = 3;
             gameState.currentRate = GameConfig.startSpawnRate;
 
-            // Reset UI
             document.getElementById('game-overlay').classList.add('hidden-overlay');
             updateScoreUI();
             updateLivesUI();
             updateSpeedUI();
 
-            // Nettoyage plateau
             document.querySelectorAll('.node-target').forEach(n => n.remove());
             document.querySelectorAll('.floating-penalty').forEach(n => n.remove());
 
-            // Boucle de Jeu
             gameLoop();
 
-            // Boucle de Difficulté (Basée sur le TEMPS)
             gameState.difficultyTimer = setInterval(() => {
                 if (gameState.currentRate > GameConfig.minSpawnRate) {
                     gameState.currentRate -= GameConfig.speedUpStep;
@@ -297,7 +276,6 @@
 
             spawnNode();
 
-            // Le prochain spawn dépend du currentRate qui diminue avec le temps
             gameState.spawnTimeout = setTimeout(gameLoop, gameState.currentRate);
         }
 
@@ -306,7 +284,6 @@
             const node = document.createElement('div');
             node.classList.add('node-target');
 
-            // Position aléatoire sécurisée
             const maxX = gameArea.clientWidth - 70;
             const maxY = gameArea.clientHeight - 70;
             const x = Math.floor(Math.random() * maxX);
@@ -316,58 +293,47 @@
             node.style.top = y + 'px';
             node.innerText = Math.floor(Math.random()*99).toString().padStart(2, '0');
 
-            // --- ÉVÉNEMENT : CIBLE TOUCHÉE ---
             node.onmousedown = (e) => {
                 if (!gameState.active) return;
-                e.stopPropagation(); // EMPÊCHE DE DÉCLENCHER LE CLICK SUR LE FOND
+                e.stopPropagation();
 
                 playSound('hit');
                 gameState.score += GameConfig.scoreHit;
                 updateScoreUI();
 
-                // Effet de destruction
                 node.style.background = '#fff';
                 node.style.transform = 'scale(1.5)';
                 node.style.opacity = '0';
                 setTimeout(() => node.remove(), 100);
 
-                // Annuler la punition de disparition
                 clearTimeout(node.despawnTimer);
             };
 
             gameArea.appendChild(node);
 
-            // Disparition automatique (Trop lent)
-            // Plus c'est rapide, plus les cibles disparaissent vite aussi
             const lifeTime = Math.max(800, gameState.currentRate * 1.5);
 
             node.despawnTimer = setTimeout(() => {
                 if (node.parentNode) {
                     node.remove();
-                    // Une cible manquée (disparue) ne retire pas de points, mais une vie
                     loseLife();
                 }
             }, lifeTime);
         }
 
-        // --- GESTION DU "CLICK À CÔTÉ" ---
         document.getElementById('game-area').onmousedown = (e) => {
             if (!gameState.active) return;
 
-            // Si on arrive ici, c'est qu'on a cliqué sur le fond (grâce au stopPropagation sur les cibles)
             playSound('miss');
 
-            // Pénalité Score
             gameState.score = Math.max(0, gameState.score - GameConfig.scoreMiss);
             updateScoreUI();
 
-            // Feedback Visuel (Flash Rouge)
             const area = document.getElementById('game-area');
             area.classList.remove('miss-flash');
-            void area.offsetWidth; // Reflow hack pour restart animation
+            void area.offsetWidth;
             area.classList.add('miss-flash');
 
-            // Indicateur flottant "-50"
             showFloatingText(e.clientX, e.clientY, `-${GameConfig.scoreMiss}`);
         };
 
@@ -382,9 +348,11 @@
         }
 
         function loseLife() {
+            if (!gameState.active) return;
+
             gameState.lives--;
             updateLivesUI();
-            playSound('miss'); // Son d'erreur aussi quand on perd une vie
+            playSound('miss');
 
             if (gameState.lives <= 0) {
                 gameOver();
@@ -411,14 +379,11 @@
             loadLeaderboard();
         }
 
-        // --- UI UPDATES ---
-
         function updateScoreUI() {
             document.getElementById('current-score').textContent = gameState.score;
         }
 
         function updateSpeedUI() {
-            // Calcul pourcentage vitesse (inversement proportionnel au délai)
             const speedPct = Math.round((GameConfig.startSpawnRate / gameState.currentRate) * 100);
             document.getElementById('speed-display').textContent = `VITESSE: ${speedPct}%`;
         }
@@ -432,8 +397,6 @@
                 container.appendChild(pip);
             }
         }
-
-        // --- API CALLS ---
 
         async function loadLeaderboard() {
             const container = document.getElementById('leaderboard-list');
