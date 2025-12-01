@@ -9,11 +9,13 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Libre+Barcode+128+Text&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style-mo.css">
     <style>
+        /* Styles de base pour le Dashboard (Surcharges mineures pour la mise en page) */
         body {
             background-color: #020406;
             overflow-x: hidden;
         }
 
+        /* HUD & Background Elements (Identique à database.html) */
         .tactical-grid {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-image:
@@ -40,6 +42,7 @@
         }
         @keyframes scanScreen { 0% {top: -10%;} 100% {top: 110%;} }
 
+        /* HUD Latéral */
         .hud-side {
             position: fixed; top: 100px; bottom: 50px; width: 60px;
             display: flex; flex-direction: column; justify-content: space-between; align-items: center;
@@ -61,19 +64,23 @@
             background: repeating-linear-gradient(to bottom, #334455 0, #334455 1px, transparent 2px, transparent 10px);
         }
 
+        /* Mise en page des modules */
         .view-section {
             display: flex; flex: 1; overflow: hidden;
             transition: opacity 0.5s ease;
             position: relative;
         }
         .hidden { display: none !important; }
+
         .modules-section {
             flex: 3; padding: 30px; overflow-y: auto;
             border-right: 1px solid rgba(255,255,255,0.05);
+            /* Petit dégradé en bas pour l'effet de fondu */
             mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
         }
         .modules-section::-webkit-scrollbar { width: 6px; }
         .modules-section::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 3px; }
+
         .category-title {
             color: var(--secondary); font-size: 0.8rem; margin-top: 25px; margin-bottom: 20px;
             display: flex; align-items: center; letter-spacing: 3px; font-weight: bold;
@@ -81,11 +88,14 @@
         }
         .category-title::before { content: '>'; margin-right: 10px; color: var(--danger); }
         .category-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--dim), transparent); margin-left: 15px; opacity: 0.5; }
+
         .grid-modules {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px;
         }
+
+        /* Cartes Modules (Style Tactique Standard) */
         .module-card {
-            background: rgba(15, 20, 25, 0.6);
+            background: rgba(10, 14, 18, 0.7); /* Fond sombre transparent */
             border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 20px;
             position: relative; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -96,35 +106,24 @@
         }
         .module-card:hover {
             transform: translateY(-5px) scale(1.02);
-            background: rgba(20, 30, 40, 0.8);
-            border-color: rgba(255,255,255,0.4);
+            background: rgba(20, 25, 30, 0.9);
+            border-color: var(--primary); /* Bordure verte au survol */
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             z-index: 10;
         }
-        .module-card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
-            transition: 0.3s;
-        }
-        .module-icon { font-size: 2rem; margin-bottom: 15px; color: #ccc; transition: 0.3s; }
-        .module-card:hover .module-icon { transform: scale(1.1); color: #fff; text-shadow: 0 0 15px currentColor; }
+
+        /* Barres de statut colorées */
+        .status-online { border-top: 2px solid var(--primary); }
+        .status-restricted { border-top: 2px solid var(--warning); }
+        .status-danger { border-top: 2px solid var(--danger); }
+
+        .module-icon { font-size: 2rem; margin-bottom: 15px; color: #667788; transition: 0.3s; }
+        .module-card:hover .module-icon { color: #fff; text-shadow: 0 0 10px currentColor; }
+
         .module-name { font-family: var(--font-code); font-weight: 800; color: #fff; font-size: 1.1rem; letter-spacing: 1px; }
         .module-status { font-size: 0.65rem; color: #667788; margin-top: 8px; letter-spacing: 1px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
 
-        .status-online { border-top: 2px solid var(--primary); }
-        .status-online::before { background: var(--primary); opacity: 0.5; }
-        .status-online:hover::before { opacity: 1; box-shadow: 0 0 10px var(--primary); }
-        .status-online .module-icon { color: var(--primary); }
-
-        .status-restricted { border-top: 2px solid var(--warning); }
-        .status-restricted::before { background: var(--warning); opacity: 0.5; }
-        .status-restricted:hover::before { opacity: 1; box-shadow: 0 0 10px var(--warning); }
-        .status-restricted .module-icon { color: var(--warning); }
-
-        .status-danger { border-top: 2px solid var(--danger); }
-        .status-danger::before { background: var(--danger); opacity: 0.5; }
-        .status-danger:hover::before { opacity: 1; box-shadow: 0 0 10px var(--danger); }
-        .status-danger .module-icon { color: var(--danger); }
-
+        /* Sidebar (Guest/Logged) */
         .sidebar-section {
             flex: 1; padding: 0; background: rgba(0,0,0,0.2);
             display: flex; flex-direction: column;
@@ -143,15 +142,10 @@
             background: #000; box-shadow: 0 0 15px rgba(0,0,0,0.5);
             position: relative;
         }
-        .mini-avatar::after {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-            background: var(--primary); animation: scanAvatar 2s infinite linear;
-            opacity: 0.7; box-shadow: 0 0 5px var(--primary);
-        }
-        @keyframes scanAvatar { 0% {top:0} 100% {top:100%} }
         .mini-details { flex: 1; }
         .mini-name { color: #fff; font-weight: 800; font-family: var(--font-code); font-size: 1.1rem; letter-spacing: 1px; }
         .mini-rank { color: var(--secondary); font-size: 0.75rem; letter-spacing: 2px; margin-top: 2px; }
+
         .btn-profile-access {
             background: transparent; border: 1px solid var(--dim); color: var(--dim);
             padding: 6px 12px; font-size: 0.65rem; cursor: pointer; font-family: var(--font-ui);
@@ -159,6 +153,7 @@
             text-transform: uppercase; letter-spacing: 1px;
         }
         .btn-profile-access:hover { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 157, 0.05); }
+
         .sidebar-header {
             padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05);
             background: rgba(0,0,0,0.3);
@@ -166,37 +161,15 @@
             display: flex; align-items: center; gap: 10px;
         }
         .sidebar-header::before { content: ''; width: 6px; height: 6px; background: currentColor; }
+
         .log-container { padding: 20px; font-family: var(--font-code); font-size: 0.75rem; overflow-y: auto; flex:1; }
         .log-entry {
             margin-bottom: 8px; padding-left: 12px; border-left: 2px solid rgba(255,255,255,0.1);
             color: #667788; transition: 0.2s;
         }
         .log-entry:hover { border-left-color: var(--secondary); color: #ccc; padding-left: 18px; background: linear-gradient(90deg, rgba(255,255,255,0.02), transparent); }
-        .log-time { color: var(--dim); margin-right: 8px; font-size: 0.7rem; }
-        .profile-view-container {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100%; width: 100%; position: relative;
-        }
-        .back-button {
-            position: absolute; top: 20px; left: 20px;
-            background: transparent; border: 1px solid var(--danger); color: var(--danger);
-            padding: 10px 20px; cursor: pointer; font-family: var(--font-code);
-            transition: 0.3s; z-index: 50;
-        }
 
-        .terminal {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            backdrop-filter: none !important;
-        }
-
-
-        .terminal::before,
-        .terminal::after {
-            display: none !important;
-        }
-        .back-button:hover { background: var(--danger); color: #000; box-shadow: 0 0 15px var(--danger); }
+        /* Terminal Console Overlay */
         .terminal-console {
             position: fixed; bottom: 0; left: 0; width: 100%; height: 40vh;
             background: rgba(5, 8, 10, 0.95);
@@ -217,6 +190,7 @@
         }
         .prompt { color: var(--primary); font-weight: bold; font-family: var(--font-code); text-shadow: 0 0 5px var(--primary); }
         .cmd-input { background: transparent; border: none; outline: none; color: #fff; font-family: var(--font-code); font-size: 1rem; width: 100%; caret-color: var(--primary); }
+
         .term-hint {
             position: fixed; bottom: 10px; right: 20px; font-size: 0.7rem;
             color: var(--dim); z-index: 100; opacity: 0.5; letter-spacing: 1px;
@@ -243,114 +217,10 @@
             box-shadow: 0 0 15px var(--primary);
             font-weight: bold;
         }
-
-        body.theme-holographic {
-            --holo-blue-neon: #00e5ff;
-            --holo-blue-mid: #00a8e8;
-            --holo-dark-bg: #050a14;
-            --holo-glass: rgba(0, 229, 255, 0.08);
-            --holo-border-glow: 0 0 20px rgba(0, 229, 255, 0.6), inset 0 0 20px rgba(0, 229, 255, 0.2);
-
-            --primary: var(--holo-blue-neon) !important;
-            --secondary: #ffffff !important;
-            --dim: #5a7d9a !important;
-            --danger: #ff3366 !important;
-
-            background-color: var(--holo-dark-bg) !important;
-            background-image: url('assets/image_19cc3b.jpg') !important;
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
-
-        body.theme-holographic .tactical-grid {
-            background-image:
-                    linear-gradient(rgba(0, 229, 255, 0.1) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(0, 229, 255, 0.1) 1px, transparent 1px) !important;
-            opacity: 0.5;
-        }
-
-        body.theme-holographic .radar-scan {
-            background: rgba(0, 229, 255, 0.3) !important;
-            box-shadow: 0 0 25px rgba(0, 229, 255, 0.8) !important;
-        }
-
-        body.theme-holographic .terminal {
-            background: rgba(10, 15, 25, 0.75) !important;
-            backdrop-filter: blur(15px) !important;
-            border: 3px solid var(--holo-blue-neon) !important;
-            box-shadow: var(--holo-border-glow), 0 20px 40px rgba(0,0,0,0.5) !important;
-            border-radius: 4px;
-
-            clip-path: polygon(
-                    20px 0, calc(100% - 20px) 0,
-                    100% 20px, 100% calc(100% - 20px),
-                    calc(100% - 20px) 100%, 20px 100%,
-                    0 calc(100% - 20px), 0 20px
-            );
-            padding: 20px;
-        }
-
-        body.theme-holographic .header-strip {
-            background: linear-gradient(90deg, var(--holo-glass), transparent) !important;
-            border-bottom: 2px solid var(--holo-blue-neon) !important;
-        }
-
-        body.theme-holographic h1 {
-            text-shadow: 0 0 15px var(--holo-blue-neon) !important;
-            font-weight: 800;
-            letter-spacing: 4px;
-        }
-
-        body.theme-holographic .module-card {
-            background: linear-gradient(135deg, rgba(0, 229, 255, 0.1), rgba(0, 10, 20, 0.4)) !important;
-            border: 1px solid rgba(0, 229, 255, 0.4) !important;
-            backdrop-filter: blur(5px);
-            box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.05);
-        }
-
-        body.theme-holographic .module-card:hover {
-            background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 20, 40, 0.6)) !important;
-            border-color: var(--holo-blue-neon) !important;
-            transform: translateY(-5px) scale(1.03) !important;
-            box-shadow: 0 0 25px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(0, 229, 255, 0.2) !important;
-        }
-
-        body.theme-holographic .module-icon {
-            color: var(--holo-blue-mid) !important;
-            text-shadow: 0 0 5px var(--holo-blue-neon);
-        }
-
-        body.theme-holographic .module-card:hover .module-icon {
-            color: #fff !important;
-            text-shadow: 0 0 20px var(--holo-blue-neon) !important;
-        }
-
-        body.theme-holographic .module-name {
-            text-shadow: 0 0 5px rgba(0, 229, 255, 0.5);
-        }
-
-        body.theme-holographic .status-online { border-top-color: var(--holo-blue-neon) !important; }
-        body.theme-holographic .status-online .module-status span { color: var(--holo-blue-neon) !important; text-shadow: 0 0 10px var(--holo-blue-neon); }
-
-        body.theme-holographic .category-title {
-            color: #fff !important;
-            text-shadow: 0 0 10px var(--holo-blue-neon) !important;
-            border-bottom: 2px solid var(--holo-blue-neon);
-            padding-bottom: 5px;
-            display: inline-block;
-        }
-        body.theme-holographic .category-title::before {
-            color: var(--holo-blue-neon) !important;
-            text-shadow: 0 0 10px var(--holo-blue-neon);
-        }
-        body.theme-holographic .category-title::after {
-            display: none;
-        }
     </style>
 </head>
 
-<body class="theme-holographic">
+<body>
 <div class="tactical-grid"></div>
 <div class="vignette"></div>
 <div class="radar-scan"></div>
