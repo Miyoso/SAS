@@ -26,6 +26,28 @@ export default async function handler(req, res) {
             return res.status(200).json(result.rows);
         }
 
+        if (entity === 'stress') {
+            if (method === 'GET') {
+                const result = await pool.query('SELECT stress_level FROM agents WHERE id = $1', [user.userId]);
+                if (result.rows.length === 0) return res.status(404).json({ error: 'Agent introuvable' });
+                return res.status(200).json({ stress_level: result.rows[0].stress_level });
+            }
+
+            if (method === 'POST') {
+                let { amount } = req.body;
+
+                const currentRes = await pool.query('SELECT stress_level FROM agents WHERE id = $1', [user.userId]);
+                let currentLevel = currentRes.rows[0].stress_level || 0;
+
+                let newLevel = currentLevel + parseInt(amount);
+                if (newLevel < 0) newLevel = 0;
+                if (newLevel > 100) newLevel = 100;
+
+                await pool.query('UPDATE agents SET stress_level = $1 WHERE id = $2', [newLevel, user.userId]);
+                return res.status(200).json({ stress_level: newLevel });
+            }
+        }
+
         if (entity === 'markers') {
             if (method === 'GET') {
                 const result = await pool.query('SELECT * FROM map_objects ORDER BY created_at ASC');

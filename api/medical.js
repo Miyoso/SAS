@@ -27,7 +27,7 @@ export default async function handler(req, res) {
             }
 
             const query = `
-                SELECT i.*, a.username, a.rank 
+                SELECT i.*, a.username, a.rank, a.stress_level
                 FROM injuries i
                 JOIN agents a ON i.agent_id = a.id
                 WHERE i.status = 'active'
