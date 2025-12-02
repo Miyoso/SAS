@@ -7,15 +7,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="stylele.css">
     <link rel="stylesheet" href="css/stylele.css">
 </head>
-
 <body>
 <div class="tactical-grid"></div>
 <div class="vignette"></div>
 <div class="radar-scan"></div>
-
 <div class="hud-side hud-left">
     <div class="hud-ruler"></div>
     <div class="hud-marker">SYSTEM.ROOT</div>
@@ -26,27 +23,22 @@
     <div class="hud-marker">SECURE.CONN</div>
     <div class="hud-ruler"></div>
 </div>
-
 <div class="term-hint">PRESS [ F9 ] TO TOGGLE TERMINAL</div>
-
 <div class="terminal-wrapper">
     <div class="terminal">
-
         <div class="header-strip">
             <div>
                 <h1>SAS // <span>MAINFRAME</span></h1>
                 <div class="sub-header">SECURE ACCESS SYSTEM // RESTRICTED AREA</div>
             </div>
             <div class="meta-data">
-                <span id="conn-status" style="color:var(--accent-cyan)">CONNECTED</span> // PING: 12ms<br>
+                <span id="conn-status" style="color:var(--accent-primary)">CONNECTED</span> // PING: 12ms<br>
                 SYS.VER.4.0.2 // <span class="blink">MONITORING</span><br>
                 <button class="btn-connect" onclick="toggleTerminal()">> CONNEXION TERMINAL</button>
             </div>
         </div>
-
         <div id="dashboard-view" class="view-section dashboard-container">
             <div class="modules-section">
-
                 <div class="category-title">ACCRÉDITATION NIVEAU 1 [GÉNÉRAL]</div>
                 <div class="grid-modules">
                     <div class="module-card status-online" onclick="accessModule('database.html', 1)">
@@ -78,7 +70,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="category-title">ACCRÉDITATION NIVEAU 2 [TACTIQUE]</div>
                 <div class="grid-modules">
                     <a href="/investigation.html" class="module-card status-restricted">
@@ -110,7 +101,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="category-title">ACCRÉDITATION NIVEAU 10 [ÉTAT-MAJOR]</div>
                 <div class="grid-modules">
                     <div class="module-card status-danger" onclick="accessModule('admin.html', 10)">
@@ -128,16 +118,13 @@
                         </div>
                     </div>
                 </div>
-
             </div>
-
             <div class="sidebar-panel">
                 <div class="user-profile-card">
                     <div class="avatar-frame">
                         <img id="sidebar-avatar" src="assets/default.jpg" alt="Agent Avatar" class="avatar-img">
                         <div class="scan-effect"></div>
                     </div>
-
                     <div class="user-details">
                         <h2 id="sidebar-username">UNKNOWN</h2>
                         <div class="user-rank">
@@ -146,17 +133,6 @@
                         <a href="profile.html" class="btn-profile-access">[ VOIR PROFIL COMPLET ]</a>
                     </div>
                 </div>
-
-                <div class="sidebar-nav">
-                    <h3>// NAVIGATION RAPIDE</h3>
-                    <ul class="nav-list">
-                        <li><a href="database.html" class="nav-link"><span class="icon">📂</span> BASE DE DONNÉES</a></li>
-                        <li><a href="map.html" class="nav-link"><span class="icon">🗺️</span> CARTE TACTIQUE</a></li>
-                        <li><a href="report.html" class="nav-link"><span class="icon">📝</span> RAPPORTS</a></li>
-                        <li><a href="logistics.html" class="nav-link"><span class="icon">📦</span> LOGISTIQUE</a></li>
-                    </ul>
-                </div>
-
                 <div class="sidebar-footer">
                     <button onclick="logout()" class="btn-disconnect">
                         <span class="blink">⚠️</span> DÉCONNEXION
@@ -164,11 +140,9 @@
                 </div>
             </div>
         </div>
-
         <div id="profile-view" class="view-section hidden profile-view-container"></div>
     </div>
 </div>
-
 <div id="terminal-console" class="terminal-console">
     <div id="terminal-history" class="terminal-history">
         <div class="term-line term-info">SAS Mainframe [Version 4.0.2]</div>
@@ -181,7 +155,6 @@
         <input type="text" id="cmd-input" class="cmd-input" placeholder="Enter command..." autocomplete="off">
     </div>
 </div>
-
 <script src="js/script.js"></script>
 <script>
     function accessModule(url, requiredLevel) {
@@ -192,14 +165,11 @@
             alert("⛔ ACCÈS REFUSÉ : ACCRÉDITATION INSUFFISANTE");
         }
     }
-
     function toggleTerminal() {
         const term = document.getElementById('terminal-console');
         const input = document.getElementById('cmd-input');
         const history = document.getElementById('terminal-history');
-
         term.classList.toggle('open');
-
         if(term.classList.contains('open')) {
             setTimeout(() => input.focus(), 100);
             if(history) history.scrollTop = history.scrollHeight;
