@@ -131,7 +131,58 @@
 
             </div>
 
-            <div id="sidebar-placeholder"></div>
+            <div class="sidebar-panel">
+                <div class="sidebar-section">
+                    <h3>// SYSTEM STATUS</h3>
+
+                    <div class="stat-group">
+                        <div class="stat-label"><span>CPU CORE_01</span> <span class="stat-value cyan">78%</span></div>
+                        <div class="progress-bar">
+                            <div class="bar-fill cyan-glow" style="width: 78%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="stat-group">
+                        <div class="stat-label"><span>MEMORY ALLOC.</span> <span class="stat-value yellow">64%</span></div>
+                        <div class="progress-bar">
+                            <div class="bar-fill yellow-glow" style="width: 64%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="stat-group">
+                        <div class="stat-label"><span>NETWORK UPLINK</span> <span class="stat-value cyan">STABLE</span></div>
+                        <div class="network-graph">
+                            <span style="height: 30%"></span><span style="height: 50%"></span><span style="height: 80%"></span><span style="height: 40%"></span><span style="height: 70%"></span><span style="height: 90%"></span><span style="height: 60%"></span><span style="height: 40%"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section sidebar-logs">
+                    <h3>// RECENT ACTIVITY LOG</h3>
+                    <ul class="log-list">
+                        <li class="log-item info">
+                            <span class="log-time">14:32:01</span>
+                            <span class="log-msg">USER 'ISABELLA' ACCESS GRANTED [LVL-10]</span>
+                        </li>
+                        <li class="log-item alert">
+                            <span class="log-time">14:30:45</span>
+                            <span class="log-msg">FIREWALL: SUSPICIOUS PACKET BLOCKED ON PORT 443</span>
+                        </li>
+                        <li class="log-item info">
+                            <span class="log-time">14:25:22</span>
+                            <span class="log-msg">MODULE 'LOGISTICS' DATABASE UPDATED</span>
+                        </li>
+                        <li class="log-item warning">
+                            <span class="log-time">14:10:15</span>
+                            <span class="log-msg">SENSOR ARRAY BETA: RECALIBRATION REQUIRED</span>
+                        </li>
+                        <li class="log-item info">
+                            <span class="log-time">14:00:00</span>
+                            <span class="log-msg">SYSTEM BOOT SEQUENCE COMPLETED.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
 
         <div id="profile-view" class="view-section hidden profile-view-container"></div>
