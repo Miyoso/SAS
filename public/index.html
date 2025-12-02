@@ -6,351 +6,12 @@
     <title>SAS MAINFRAME // SYSTEM</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Libre+Barcode+128+Text&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="stylele.css">
     <link rel="stylesheet" href="css/style-mo.css">
-    <style>
-        body {
-            background-color: #020406;
-            overflow-x: hidden;
-        }
-
-        .tactical-grid {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image:
-                    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            z-index: -10;
-            pointer-events: none;
-            mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
-        }
-
-        .vignette {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, transparent 50%, #000 100%);
-            z-index: -5; pointer-events: none;
-        }
-
-        .radar-scan {
-            position: fixed; top: 0; left: 0; width: 100%; height: 5px;
-            background: rgba(0, 255, 157, 0.3);
-            box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
-            animation: scanScreen 8s linear infinite;
-            z-index: -4; opacity: 0.3; pointer-events: none;
-        }
-        @keyframes scanScreen { 0% {top: -10%;} 100% {top: 110%;} }
-
-        .hud-side {
-            position: fixed; top: 100px; bottom: 50px; width: 60px;
-            display: flex; flex-direction: column; justify-content: space-between; align-items: center;
-            z-index: 0; pointer-events: none;
-            color: #334455; font-size: 0.6rem; letter-spacing: 1px;
-            border-left: 1px dashed rgba(255,255,255,0.05);
-            border-right: 1px dashed rgba(255,255,255,0.05);
-        }
-        .hud-left { left: 20px; border-left: none; }
-        .hud-right { right: 20px; border-right: none; }
-
-        .hud-marker {
-            writing-mode: vertical-rl; text-orientation: mixed;
-            transform: rotate(180deg);
-            opacity: 0.6;
-        }
-        .hud-ruler {
-            height: 100px; width: 4px;
-            background: repeating-linear-gradient(to bottom, #334455 0, #334455 1px, transparent 2px, transparent 10px);
-        }
-
-        .view-section {
-            display: flex; flex: 1; overflow: hidden;
-            transition: opacity 0.5s ease;
-            position: relative;
-        }
-        .hidden { display: none !important; }
-        .modules-section {
-            flex: 3; padding: 30px; overflow-y: auto;
-            border-right: 1px solid rgba(255,255,255,0.05);
-            mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
-        }
-        .modules-section::-webkit-scrollbar { width: 6px; }
-        .modules-section::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 3px; }
-        .category-title {
-            color: var(--secondary); font-size: 0.8rem; margin-top: 25px; margin-bottom: 20px;
-            display: flex; align-items: center; letter-spacing: 3px; font-weight: bold;
-            text-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
-        }
-        .category-title::before { content: '>'; margin-right: 10px; color: var(--danger); }
-        .category-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--dim), transparent); margin-left: 15px; opacity: 0.5; }
-        .grid-modules {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px;
-        }
-        .module-card {
-            background: rgba(15, 20, 25, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            position: relative; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            text-decoration: none;
-            display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;
-            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
-            backdrop-filter: blur(5px);
-        }
-        .module-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            background: rgba(20, 30, 40, 0.8);
-            border-color: rgba(255,255,255,0.4);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 10;
-        }
-        .module-card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
-            transition: 0.3s;
-        }
-        .module-icon { font-size: 2rem; margin-bottom: 15px; color: #ccc; transition: 0.3s; }
-        .module-card:hover .module-icon { transform: scale(1.1); color: #fff; text-shadow: 0 0 15px currentColor; }
-        .module-name { font-family: var(--font-code); font-weight: 800; color: #fff; font-size: 1.1rem; letter-spacing: 1px; }
-        .module-status { font-size: 0.65rem; color: #667788; margin-top: 8px; letter-spacing: 1px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
-
-        .status-online { border-top: 2px solid var(--primary); }
-        .status-online::before { background: var(--primary); opacity: 0.5; }
-        .status-online:hover::before { opacity: 1; box-shadow: 0 0 10px var(--primary); }
-        .status-online .module-icon { color: var(--primary); }
-
-        .status-restricted { border-top: 2px solid var(--warning); }
-        .status-restricted::before { background: var(--warning); opacity: 0.5; }
-        .status-restricted:hover::before { opacity: 1; box-shadow: 0 0 10px var(--warning); }
-        .status-restricted .module-icon { color: var(--warning); }
-
-        .status-danger { border-top: 2px solid var(--danger); }
-        .status-danger::before { background: var(--danger); opacity: 0.5; }
-        .status-danger:hover::before { opacity: 1; box-shadow: 0 0 10px var(--danger); }
-        .status-danger .module-icon { color: var(--danger); }
-
-        .sidebar-section {
-            flex: 1; padding: 0; background: rgba(0,0,0,0.2);
-            display: flex; flex-direction: column;
-            border-left: 1px solid rgba(255,255,255,0.1);
-            min-width: 300px;
-        }
-        .mini-profile {
-            padding: 30px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
-            display: flex; align-items: center; gap: 20px;
-        }
-        .mini-avatar {
-            width: 60px; height: 60px; border: 2px solid rgba(255,255,255,0.2);
-            display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
-            background: #000; box-shadow: 0 0 15px rgba(0,0,0,0.5);
-            position: relative;
-        }
-        .mini-avatar::after {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-            background: var(--primary); animation: scanAvatar 2s infinite linear;
-            opacity: 0.7; box-shadow: 0 0 5px var(--primary);
-        }
-        @keyframes scanAvatar { 0% {top:0} 100% {top:100%} }
-        .mini-details { flex: 1; }
-        .mini-name { color: #fff; font-weight: 800; font-family: var(--font-code); font-size: 1.1rem; letter-spacing: 1px; }
-        .mini-rank { color: var(--secondary); font-size: 0.75rem; letter-spacing: 2px; margin-top: 2px; }
-        .btn-profile-access {
-            background: transparent; border: 1px solid var(--dim); color: var(--dim);
-            padding: 6px 12px; font-size: 0.65rem; cursor: pointer; font-family: var(--font-ui);
-            transition: 0.2s; text-decoration: none; display: inline-block; margin-top: 10px;
-            text-transform: uppercase; letter-spacing: 1px;
-        }
-        .btn-profile-access:hover { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 157, 0.05); }
-        .sidebar-header {
-            padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05);
-            background: rgba(0,0,0,0.3);
-            font-weight: bold; color: #8899aa; letter-spacing: 2px; font-size: 0.7rem;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .sidebar-header::before { content: ''; width: 6px; height: 6px; background: currentColor; }
-        .log-container { padding: 20px; font-family: var(--font-code); font-size: 0.75rem; overflow-y: auto; flex:1; }
-        .log-entry {
-            margin-bottom: 8px; padding-left: 12px; border-left: 2px solid rgba(255,255,255,0.1);
-            color: #667788; transition: 0.2s;
-        }
-        .log-entry:hover { border-left-color: var(--secondary); color: #ccc; padding-left: 18px; background: linear-gradient(90deg, rgba(255,255,255,0.02), transparent); }
-        .log-time { color: var(--dim); margin-right: 8px; font-size: 0.7rem; }
-        .profile-view-container {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100%; width: 100%; position: relative;
-        }
-        .back-button {
-            position: absolute; top: 20px; left: 20px;
-            background: transparent; border: 1px solid var(--danger); color: var(--danger);
-            padding: 10px 20px; cursor: pointer; font-family: var(--font-code);
-            transition: 0.3s; z-index: 50;
-        }
-
-        .terminal {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            backdrop-filter: none !important;
-        }
-
-
-        .terminal::before,
-        .terminal::after {
-            display: none !important;
-        }
-        .back-button:hover { background: var(--danger); color: #000; box-shadow: 0 0 15px var(--danger); }
-        .terminal-console {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 40vh;
-            background: rgba(5, 8, 10, 0.95);
-            border-top: 2px solid var(--primary);
-            display: flex; flex-direction: column; z-index: 2000;
-            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-            backdrop-filter: blur(10px);
-        }
-        .terminal-console.open { transform: translateY(0); }
-        .terminal-history {
-            flex: 1; overflow-y: auto; padding: 20px 40px;
-            font-family: var(--font-code); font-size: 0.9rem; color: #aaa;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .terminal-input-area {
-            display: flex; align-items: center; gap: 15px; padding: 20px 40px;
-            background: rgba(0,0,0,0.3);
-        }
-        .prompt { color: var(--primary); font-weight: bold; font-family: var(--font-code); text-shadow: 0 0 5px var(--primary); }
-        .cmd-input { background: transparent; border: none; outline: none; color: #fff; font-family: var(--font-code); font-size: 1rem; width: 100%; caret-color: var(--primary); }
-        .term-hint {
-            position: fixed; bottom: 10px; right: 20px; font-size: 0.7rem;
-            color: var(--dim); z-index: 100; opacity: 0.5; letter-spacing: 1px;
-            font-family: var(--font-code);
-        }
-
-        .btn-connect {
-            background: rgba(0, 255, 157, 0.05);
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            font-family: 'Share Tech Mono', monospace;
-            padding: 5px 15px;
-            cursor: pointer;
-            margin-top: 5px;
-            font-size: 0.75rem;
-            letter-spacing: 1px;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            box-shadow: 0 0 5px rgba(0, 255, 157, 0.1);
-        }
-        .btn-connect:hover {
-            background: var(--primary);
-            color: #000;
-            box-shadow: 0 0 15px var(--primary);
-            font-weight: bold;
-        }
-
-        body.theme-holographic {
-            --holo-blue-neon: #00e5ff;
-            --holo-blue-mid: #00a8e8;
-            --holo-dark-bg: #050a14;
-            --holo-glass: rgba(0, 229, 255, 0.08);
-            --holo-border-glow: 0 0 20px rgba(0, 229, 255, 0.6), inset 0 0 20px rgba(0, 229, 255, 0.2);
-
-            --primary: var(--holo-blue-neon) !important;
-            --secondary: #ffffff !important;
-            --dim: #5a7d9a !important;
-            --danger: #ff3366 !important;
-
-            background-color: var(--holo-dark-bg) !important;
-            background-image: url('assets/image_19cc3b.jpg') !important;
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
-
-        body.theme-holographic .tactical-grid {
-            background-image:
-                    linear-gradient(rgba(0, 229, 255, 0.1) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(0, 229, 255, 0.1) 1px, transparent 1px) !important;
-            opacity: 0.5;
-        }
-
-        body.theme-holographic .radar-scan {
-            background: rgba(0, 229, 255, 0.3) !important;
-            box-shadow: 0 0 25px rgba(0, 229, 255, 0.8) !important;
-        }
-
-        body.theme-holographic .terminal {
-            background: rgba(10, 15, 25, 0.75) !important;
-            backdrop-filter: blur(15px) !important;
-            border: 3px solid var(--holo-blue-neon) !important;
-            box-shadow: var(--holo-border-glow), 0 20px 40px rgba(0,0,0,0.5) !important;
-            border-radius: 4px;
-
-            clip-path: polygon(
-                    20px 0, calc(100% - 20px) 0,
-                    100% 20px, 100% calc(100% - 20px),
-                    calc(100% - 20px) 100%, 20px 100%,
-                    0 calc(100% - 20px), 0 20px
-            );
-            padding: 20px;
-        }
-
-        body.theme-holographic .header-strip {
-            background: linear-gradient(90deg, var(--holo-glass), transparent) !important;
-            border-bottom: 2px solid var(--holo-blue-neon) !important;
-        }
-
-        body.theme-holographic h1 {
-            text-shadow: 0 0 15px var(--holo-blue-neon) !important;
-            font-weight: 800;
-            letter-spacing: 4px;
-        }
-
-        body.theme-holographic .module-card {
-            background: linear-gradient(135deg, rgba(0, 229, 255, 0.1), rgba(0, 10, 20, 0.4)) !important;
-            border: 1px solid rgba(0, 229, 255, 0.4) !important;
-            backdrop-filter: blur(5px);
-            box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.05);
-        }
-
-        body.theme-holographic .module-card:hover {
-            background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 20, 40, 0.6)) !important;
-            border-color: var(--holo-blue-neon) !important;
-            transform: translateY(-5px) scale(1.03) !important;
-            box-shadow: 0 0 25px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(0, 229, 255, 0.2) !important;
-        }
-
-        body.theme-holographic .module-icon {
-            color: var(--holo-blue-mid) !important;
-            text-shadow: 0 0 5px var(--holo-blue-neon);
-        }
-
-        body.theme-holographic .module-card:hover .module-icon {
-            color: #fff !important;
-            text-shadow: 0 0 20px var(--holo-blue-neon) !important;
-        }
-
-        body.theme-holographic .module-name {
-            text-shadow: 0 0 5px rgba(0, 229, 255, 0.5);
-        }
-
-        body.theme-holographic .status-online { border-top-color: var(--holo-blue-neon) !important; }
-        body.theme-holographic .status-online .module-status span { color: var(--holo-blue-neon) !important; text-shadow: 0 0 10px var(--holo-blue-neon); }
-
-        body.theme-holographic .category-title {
-            color: #fff !important;
-            text-shadow: 0 0 10px var(--holo-blue-neon) !important;
-            border-bottom: 2px solid var(--holo-blue-neon);
-            padding-bottom: 5px;
-            display: inline-block;
-        }
-        body.theme-holographic .category-title::before {
-            color: var(--holo-blue-neon) !important;
-            text-shadow: 0 0 10px var(--holo-blue-neon);
-        }
-        body.theme-holographic .category-title::after {
-            display: none;
-        }
-    </style>
 </head>
 
-<body class="theme-holographic">
+<body>
 <div class="tactical-grid"></div>
 <div class="vignette"></div>
 <div class="radar-scan"></div>
@@ -370,18 +31,19 @@
 
 <div class="terminal-wrapper">
     <div class="terminal">
+
         <div class="header-strip">
             <div>
-                <h1>SAS <span style="text-shadow: 0 0 10px var(--danger);">MAINFRAME</span></h1>
-                <div style="font-size: 0.8rem; color: #667788; letter-spacing: 2px; margin-top: 5px;">SECURE ACCESS SYSTEM // RESTRICTED AREA</div>
+                <h1>SAS // <span>MAINFRAME</span></h1>
+                <div class="sub-header">SECURE ACCESS SYSTEM // RESTRICTED AREA</div>
             </div>
             <div class="meta-data">
-                <span id="conn-status" style="color:var(--primary)">CONNECTED</span> // PING: 12ms<br>
+                <span id="conn-status" style="color:var(--accent-cyan)">CONNECTED</span> // PING: 12ms<br>
                 SYS.VER.4.0.2 // <span class="blink">MONITORING</span><br>
-
                 <button class="btn-connect" onclick="toggleTerminal()">> CONNEXION TERMINAL</button>
             </div>
         </div>
+
         <div id="dashboard-view" class="view-section dashboard-container">
             <div class="modules-section">
 
@@ -389,62 +51,62 @@
                 <div class="grid-modules">
                     <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('database.html', 1)">
                         <div class="module-icon">👥</div>
-                        <div>
+                        <div class="module-info">
                             <div class="module-name">BASE AGENTS</div>
-                            <div class="module-status"><span style="color:var(--primary)">●</span> SYSTEM ONLINE</div>
+                            <div class="module-status"><span>●</span> SYSTEM ONLINE</div>
                         </div>
                     </div>
                     <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('reglement.html', 1)">
                         <div class="module-icon">📜</div>
-                        <div>
+                        <div class="module-info">
                             <div class="module-name">RÈGLEMENT</div>
-                            <div class="module-status"><span style="color:var(--primary)">●</span> READ ONLY</div>
+                            <div class="module-status"><span>●</span> READ ONLY</div>
                         </div>
                     </div>
                     <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('map.html', 1)">
                         <div class="module-icon">🗺️</div>
-                        <div>
+                        <div class="module-info">
                             <div class="module-name">CARTOGRAPHIE</div>
-                            <div class="module-status"><span style="color:var(--primary)">●</span> LIVE FEED</div>
+                            <div class="module-status"><span>●</span> LIVE FEED</div>
                         </div>
                     </div>
                     <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('report.html', 1)">
                         <div class="module-icon">📝</div>
-                        <div>
-                            <div class="module-name">GÉNÉRATEUR RAPPORT</div>
-                            <div class="module-status"><span style="color:var(--primary)">●</span> AUTO-GEN</div>
+                        <div class="module-info">
+                            <div class="module-name">RAPPORT</div>
+                            <div class="module-status"><span>●</span> AUTO-GEN</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="category-title">ACCRÉDITATION NIVEAU 2 [CONFIDENTIEL]</div>
+                <div class="category-title">ACCRÉDITATION NIVEAU 2 [TACTIQUE]</div>
                 <div class="grid-modules">
                     <a href="/investigation.html" class="module-card status-restricted">
                         <div class="module-icon">🔍</div>
-                        <div>
+                        <div class="module-info">
                             <div class="module-name">INVESTIGATION</div>
-                            <div class="module-status"><span style="color:var(--warning)">●</span> RESTRICTED ACCESS</div>
+                            <div class="module-status"><span>●</span> RESTRICTED</div>
                         </div>
                     </a>
                     <a href="#" class="module-card status-danger">
                         <div class="module-icon">🎯</div>
-                        <div>
+                        <div class="module-info">
                             <div class="module-name">VIP TARGETS</div>
-                            <div class="module-status"><span style="color:var(--danger)">●</span> HIGH PRIORITY</div>
+                            <div class="module-status"><span>●</span> HIGH PRIORITY</div>
                         </div>
                     </a>
                     <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('logistics.html', 1)">
-                        <div class="module-icon">📝</div>
-                        <div>
+                        <div class="module-icon">📦</div>
+                        <div class="module-info">
                             <div class="module-name">LOGISTIQUE</div>
-                            <div class="module-status"><span style="color:var(--primary)">●</span> STOCK </div>
+                            <div class="module-status"><span>●</span> STOCK</div>
                         </div>
                     </div>
                     <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('missions.html', 1)">
-                        <div class="module-icon">📝</div>
-                        <div>
+                        <div class="module-icon">🗓️</div>
+                        <div class="module-info">
                             <div class="module-name">MISSIONS</div>
-                            <div class="module-status"><span style="color:var(--primary)">●</span> PLANNING </div>
+                            <div class="module-status"><span>●</span> ACTIVE</div>
                         </div>
                     </div>
                 </div>
@@ -453,23 +115,25 @@
                 <div class="grid-modules">
                     <div class="module-card status-danger" style="cursor: pointer;" onclick="accessModule('admin.html', 10)">
                         <div class="module-icon">⚖️</div>
-                        <div>
+                        <div class="module-info">
                             <div class="module-name">ADMINISTRATION</div>
-                            <div class="module-status"><span style="color:var(--danger)">●</span> CLASSIFIED</div>
+                            <div class="module-status"><span>●</span> CLASSIFIED</div>
                         </div>
                     </div>
                     <div class="module-card status-danger" style="cursor: pointer;" onclick="accessModule('medical.html', 3)">
                         <div class="module-icon">⚕️</div>
-                        <div>
+                        <div class="module-info">
                             <div class="module-name">INFIRMERIE</div>
-                            <div class="module-status"><span style="color:var(--danger)">●</span> MEDICAL LOGS</div>
+                            <div class="module-status"><span>●</span> RESTRICTED</div>
                         </div>
                     </div>
                 </div>
 
             </div>
+
             <div id="sidebar-placeholder"></div>
         </div>
+
         <div id="profile-view" class="view-section hidden profile-view-container"></div>
     </div>
 </div>
@@ -489,6 +153,7 @@
 
 <script src="js/script.js"></script>
 <script>
+    // Logique conservée à 100%
     function accessModule(url, requiredLevel) {
         const currentLevel = parseInt(localStorage.getItem('userSecurityLevel') || 0);
         if (currentLevel >= requiredLevel) {
