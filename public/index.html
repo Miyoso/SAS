@@ -120,18 +120,41 @@
                 </div>
             </div>
             <div class="sidebar-panel">
-                <div class="user-profile-card">
-                    <div class="avatar-frame">
-                        <img id="sidebar-avatar" src="assets/default.jpg" alt="Agent Avatar" class="avatar-img">
-                        <div class="scan-effect"></div>
+                <div class="user-mini-header">
+                    <div class="avatar-small-frame">
+                        <img id="sidebar-avatar" src="assets/default.jpg" alt="Agent">
                     </div>
-                    <div class="user-details">
-                        <h2 id="sidebar-username">UNKNOWN</h2>
-                        <div class="user-rank">
-                            ACCRÉDITATION: <span id="sidebar-rank" class="rank-badge">LVL-0</span>
-                        </div>
-                        <a href="profile.html" class="btn-profile-access">[ VOIR PROFIL COMPLET ]</a>
+                    <div class="mini-info">
+                        <span id="mini-username" class="mini-user-text">AGENT</span>
+                        <span id="mini-rank" class="mini-rank-text">LVL-0</span>
                     </div>
+                </div>
+                <div class="separator-line"></div>
+                <div class="xp-bar-container">
+                    <div class="xp-bar-fill"></div>
+                </div>
+                <div class="user-main-info">
+                    <h2 id="sidebar-username">UNKNOWN</h2>
+                    <div class="rank-row">
+                        <span style="color:var(--text-dim); font-size:0.7rem;">ACCRÉDITATION:</span>
+                        <span id="sidebar-rank" class="rank-box">LVL-0</span>
+                    </div>
+                    <a href="profile.html" class="profile-link">[ VOIR PROFIL COMPLET ]</a>
+                </div>
+                <div class="sidebar-nav">
+                    <div class="nav-label">// NAVIGATION RAPIDE</div>
+                    <a href="database.html" class="nav-block">
+                        <span class="nav-icon">📂</span> BASE DE DONNÉES
+                    </a>
+                    <a href="map.html" class="nav-block">
+                        <span class="nav-icon">🗺️</span> CARTE TACTIQUE
+                    </a>
+                    <a href="report.html" class="nav-block">
+                        <span class="nav-icon">📝</span> RAPPORTS
+                    </a>
+                    <a href="logistics.html" class="nav-block">
+                        <span class="nav-icon">📦</span> LOGISTIQUE
+                    </a>
                 </div>
                 <div class="sidebar-footer">
                     <button onclick="logout()" class="btn-disconnect">

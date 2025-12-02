@@ -75,27 +75,10 @@ function scrollToBottom() {
     }
 }
 function unlockInterface(agent) {
-    const sidebarGuest = document.getElementById('sidebar-guest');
-    const sidebarLogged = document.getElementById('sidebar-logged');
     const miniUsername = document.getElementById('mini-username');
     const miniRank = document.getElementById('mini-rank');
-    const miniAvatar = document.querySelector('#sidebar-logged .mini-avatar');
-    if (sidebarGuest && sidebarLogged) {
-        sidebarGuest.classList.add('hidden');
-        sidebarLogged.classList.remove('hidden');
-        if(miniUsername) miniUsername.textContent = agent.username.toUpperCase();
-        if(miniRank) miniRank.textContent = agent.rank;
-        if (miniAvatar) {
-            const lowerName = agent.username.toLowerCase();
-            if (avatarMap[lowerName]) {
-                miniAvatar.innerHTML = `<img src="assets/${avatarMap[lowerName]}" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
-                miniAvatar.style.border = "2px solid var(--primary)";
-                miniAvatar.style.background = "transparent";
-            } else {
-                miniAvatar.innerHTML = "👤";
-            }
-        }
-    }
+    if(miniUsername) miniUsername.textContent = agent.username.toUpperCase();
+    if(miniRank) miniRank.textContent = `LVL-${agent.rank}`;
     const sideUsername = document.getElementById('sidebar-username');
     if(sideUsername) sideUsername.textContent = agent.username.toUpperCase();
     const sideRank = document.getElementById('sidebar-rank');
@@ -103,7 +86,7 @@ function unlockInterface(agent) {
         sideRank.textContent = `LVL-${agent.rank}`;
         if(agent.rank >= 10) sideRank.style.color = "var(--accent-danger)";
         else if(agent.rank >= 5) sideRank.style.color = "var(--accent-warning)";
-        else sideRank.style.color = "var(--accent-primary)";
+        else sideRank.style.color = "var(--accent-warning)";
         sideRank.style.borderColor = sideRank.style.color;
     }
     const sideAvatar = document.getElementById('sidebar-avatar');
@@ -120,7 +103,7 @@ function unlockInterface(agent) {
     localStorage.setItem('userSecurityLevel', agent.rank);
     if(connStatus) {
         connStatus.textContent = "CONNECTED";
-        connStatus.style.color = "var(--primary)";
+        connStatus.style.color = "var(--accent-primary)";
     }
     if(promptSpan) promptSpan.textContent = `${agent.username}@sas-mainframe:~#`;
 }
@@ -130,18 +113,13 @@ function logout() {
     localStorage.removeItem('userSecurityLevel');
     localStorage.removeItem('sas_token');
     switchView('dashboard');
-    const sidebarGuest = document.getElementById('sidebar-guest');
-    const sidebarLogged = document.getElementById('sidebar-logged');
-    if (sidebarGuest && sidebarLogged) {
-        sidebarLogged.classList.add('hidden');
-        sidebarGuest.classList.remove('hidden');
-    }
     if(connStatus) {
         connStatus.textContent = "DISCONNECTED";
-        connStatus.style.color = "var(--danger)";
+        connStatus.style.color = "var(--accent-danger)";
     }
     if(promptSpan) promptSpan.textContent = "guest@sas-node:~#";
     addToHistory("System logout completed.", 'info');
+    window.location.reload();
 }
 window.logout = logout;
 async function processCommand(cmd) {
@@ -221,21 +199,7 @@ async function processCommand(cmd) {
     }
 }
 async function loadComponents() {
-    const placeholder = document.getElementById('sidebar-placeholder');
-    if (placeholder) {
-        try {
-            const response = await fetch('/components/sidebar.html');
-            if (response.ok) {
-                const html = await response.text();
-                placeholder.innerHTML = html;
-                restoreSession();
-            }
-        } catch (error) {
-            console.error("Erreur chargement sidebar:", error);
-        }
-    } else {
-        restoreSession();
-    }
+    restoreSession();
 }
 async function restoreSession() {
     const token = localStorage.getItem('sas_token');
