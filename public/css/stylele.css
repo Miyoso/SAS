@@ -1,17 +1,16 @@
 /* =========================================
-   STYLELE.CSS - SAS MAINFRAME UI
+   STYLELE.CSS - SAS MAINFRAME UI [UPDATED]
    ========================================= */
 
 :root {
-    /* Palette de couleurs "Tactical UI" */
     --bg-deep: #020406;
     --bg-panel: rgba(10, 15, 20, 0.85);
     --bg-card: rgba(16, 20, 24, 0.6);
     --bg-card-hover: rgba(30, 40, 50, 0.9);
 
-    --accent-primary: #00E5FF; /* Cyan - Général */
-    --accent-warning: #FFC107; /* Jaune - Tactique/Restriction */
-    --accent-danger: #FF3366;  /* Rouge - Admin/Danger */
+    --accent-primary: #00E5FF;
+    --accent-warning: #FFC107;
+    --accent-danger: #FF3366;
 
     --text-main: #eceff1;
     --text-dim: #546e7a;
@@ -35,7 +34,7 @@ body {
     background-color: var(--bg-deep);
     color: var(--text-main);
     font-family: var(--font-code);
-    overflow: hidden; /* Empêche le scroll sur le body, on scrolle dans les divs */
+    overflow: hidden;
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -89,24 +88,37 @@ body {
 /* --- LAYOUT --- */
 .terminal-wrapper {
     display: flex; flex-direction: column; height: 100vh;
-    padding: 20px 60px; max-width: 1920px; margin: 0 auto; width: 100%;
+    padding: 30px 60px;
+    max-width: 1920px; margin: 0 auto; width: 100%;
 }
 
 .terminal { display: flex; flex-direction: column; height: 100%; position: relative; }
 
 /* --- HEADER --- */
 .header-strip {
-    display: flex; justify-content: space-between; align-items: flex-start;
-    padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
-    margin-bottom: 10px; flex-shrink: 0;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    padding: 0 10px 25px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    margin-bottom: 20px;
+    flex-shrink: 0;
 }
 
 h1 {
-    margin: 0; font-family: var(--font-display); font-size: 2rem;
-    letter-spacing: 4px; color: #fff; text-transform: uppercase;
+    margin: 0; font-family: var(--font-display);
+    font-size: 2.5rem;
+    letter-spacing: 6px;
+    color: #fff; text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
 }
 h1 span { font-weight: 400; opacity: 0.8; }
-.sub-header { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 3px; margin-top: 5px; }
+
+.sub-header {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    letter-spacing: 4px;
+    margin-top: 8px;
+    font-weight: 600;
+}
 
 .meta-data {
     text-align: right; font-size: 0.75rem; color: var(--text-dim); line-height: 1.6;
@@ -135,53 +147,123 @@ h1 span { font-weight: 400; opacity: 0.8; }
 .modules-section::-webkit-scrollbar-thumb { background: var(--text-dim); }
 
 .category-title {
-    color: var(--accent-warning); font-size: 0.8rem; margin-top: 35px; margin-bottom: 20px;
-    display: flex; align-items: center; letter-spacing: 2px; font-weight: bold;
-    border-bottom: 1px solid rgba(255, 193, 7, 0.2); padding-bottom: 5px; width: fit-content;
+    color: var(--accent-warning);
+    font-size: 0.85rem;
+    margin-top: 45px;
+    margin-bottom: 25px;
+    display: flex; align-items: center;
+    letter-spacing: 3px;
+    font-weight: 800;
+    text-transform: uppercase;
+    opacity: 0.9;
+    border-bottom: none;
+}
+
+.category-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent-warning), transparent);
+    margin-left: 20px;
+    opacity: 0.4;
 }
 
 /* --- GRID & CARDS --- */
 .grid-modules {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
 }
 
 .module-card {
-    background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05);
-    padding: 15px 20px; position: relative;
-    transition: all 0.2s ease-out; text-decoration: none;
-    display: flex; align-items: center; gap: 15px; min-height: 100px;
-    clip-path: var(--card-clip); backdrop-filter: blur(4px);
+    background: rgba(16, 20, 24, 0.7);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 25px 30px;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 20px;
+    min-height: 120px;
+    clip-path: var(--card-clip);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    cursor: pointer;
 }
+
 .module-card::before {
     content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
     background: var(--text-dim); transition: 0.3s;
 }
+
 .module-card:hover {
-    transform: translateY(-3px); background: var(--bg-card-hover);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    transform: translateY(-5px) scale(1.02);
+    background: rgba(30, 40, 50, 0.95);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    border-color: rgba(255,255,255,0.2);
 }
 
 /* Icons & Info */
-.module-icon { font-size: 2rem; color: var(--text-dim); transition: 0.3s; filter: grayscale(100%); }
-.module-info { flex: 1; }
-.module-name {
-    font-family: var(--font-display); font-weight: 700; color: #fff;
-    font-size: 1.1rem; letter-spacing: 1px; margin-bottom: 4px;
+.module-icon {
+    font-size: 2.2rem;
+    color: var(--text-dim);
+    transition: 0.3s;
+    filter: grayscale(100%);
+    opacity: 0.7;
 }
-.module-status { font-size: 0.65rem; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; }
 
-/* Status Colors */
-.status-online:hover::before { background: var(--accent-primary); box-shadow: 0 0 10px var(--accent-primary); }
-.status-online:hover .module-icon { color: var(--accent-primary); filter: grayscale(0%); }
-.status-online span { color: var(--accent-primary); }
+.module-info { flex: 1; }
 
-.status-restricted:hover::before { background: var(--accent-warning); box-shadow: 0 0 10px var(--accent-warning); }
-.status-restricted:hover .module-icon { color: var(--accent-warning); filter: grayscale(0%); }
-.status-restricted span { color: var(--accent-warning); }
+.module-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: #fff;
+    font-size: 1.25rem;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
 
-.status-danger:hover::before { background: var(--accent-danger); box-shadow: 0 0 10px var(--accent-danger); }
-.status-danger:hover .module-icon { color: var(--accent-danger); filter: grayscale(0%); }
-.status-danger span { color: var(--accent-danger); }
+.module-status {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+}
+
+/* Status Hover Effects */
+.status-online:hover { border-left-color: var(--accent-primary); }
+.status-online:hover::before { background: var(--accent-primary); box-shadow: 0 0 15px var(--accent-primary); }
+.status-online:hover .module-icon {
+    color: var(--accent-primary);
+    filter: grayscale(0%) drop-shadow(0 0 8px rgba(0, 229, 255, 0.6));
+    transform: scale(1.1);
+    opacity: 1;
+}
+.status-online .module-status span { color: var(--accent-primary); text-shadow: 0 0 5px var(--accent-primary); }
+
+.status-restricted:hover { border-left-color: var(--accent-warning); }
+.status-restricted:hover::before { background: var(--accent-warning); box-shadow: 0 0 15px var(--accent-warning); }
+.status-restricted:hover .module-icon {
+    color: var(--accent-warning);
+    filter: grayscale(0%) drop-shadow(0 0 8px rgba(255, 193, 7, 0.6));
+    transform: scale(1.1);
+    opacity: 1;
+}
+.status-restricted .module-status span { color: var(--accent-warning); text-shadow: 0 0 5px var(--accent-warning); }
+
+.status-danger:hover { border-left-color: var(--accent-danger); }
+.status-danger:hover::before { background: var(--accent-danger); box-shadow: 0 0 15px var(--accent-danger); }
+.status-danger:hover .module-icon {
+    color: var(--accent-danger);
+    filter: grayscale(0%) drop-shadow(0 0 8px rgba(255, 51, 102, 0.6));
+    transform: scale(1.1);
+    opacity: 1;
+}
+.status-danger .module-status span { color: var(--accent-danger); text-shadow: 0 0 5px var(--accent-danger); }
 
 /* --- SIDEBAR PLACEHOLDER --- */
 #sidebar-placeholder {

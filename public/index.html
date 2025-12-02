@@ -49,28 +49,28 @@
 
                 <div class="category-title">ACCRÉDITATION NIVEAU 1 [GÉNÉRAL]</div>
                 <div class="grid-modules">
-                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('database.html', 1)">
+                    <div class="module-card status-online" onclick="accessModule('database.html', 1)">
                         <div class="module-icon">👥</div>
                         <div class="module-info">
                             <div class="module-name">BASE AGENTS</div>
                             <div class="module-status"><span>●</span> SYSTEM ONLINE</div>
                         </div>
                     </div>
-                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('reglement.html', 1)">
+                    <div class="module-card status-online" onclick="accessModule('reglement.html', 1)">
                         <div class="module-icon">📜</div>
                         <div class="module-info">
                             <div class="module-name">RÈGLEMENT</div>
                             <div class="module-status"><span>●</span> READ ONLY</div>
                         </div>
                     </div>
-                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('map.html', 1)">
+                    <div class="module-card status-online" onclick="accessModule('map.html', 1)">
                         <div class="module-icon">🗺️</div>
                         <div class="module-info">
                             <div class="module-name">CARTOGRAPHIE</div>
                             <div class="module-status"><span>●</span> LIVE FEED</div>
                         </div>
                     </div>
-                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('report.html', 1)">
+                    <div class="module-card status-online" onclick="accessModule('report.html', 1)">
                         <div class="module-icon">📝</div>
                         <div class="module-info">
                             <div class="module-name">RAPPORT</div>
@@ -95,14 +95,14 @@
                             <div class="module-status"><span>●</span> HIGH PRIORITY</div>
                         </div>
                     </a>
-                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('logistics.html', 1)">
+                    <div class="module-card status-online" onclick="accessModule('logistics.html', 1)">
                         <div class="module-icon">📦</div>
                         <div class="module-info">
                             <div class="module-name">LOGISTIQUE</div>
                             <div class="module-status"><span>●</span> STOCK</div>
                         </div>
                     </div>
-                    <div class="module-card status-online" style="cursor: pointer;" onclick="accessModule('missions.html', 1)">
+                    <div class="module-card status-online" onclick="accessModule('missions.html', 1)">
                         <div class="module-icon">🗓️</div>
                         <div class="module-info">
                             <div class="module-name">MISSIONS</div>
@@ -113,14 +113,14 @@
 
                 <div class="category-title">ACCRÉDITATION NIVEAU 10 [ÉTAT-MAJOR]</div>
                 <div class="grid-modules">
-                    <div class="module-card status-danger" style="cursor: pointer;" onclick="accessModule('admin.html', 10)">
+                    <div class="module-card status-danger" onclick="accessModule('admin.html', 10)">
                         <div class="module-icon">⚖️</div>
                         <div class="module-info">
                             <div class="module-name">ADMINISTRATION</div>
                             <div class="module-status"><span>●</span> CLASSIFIED</div>
                         </div>
                     </div>
-                    <div class="module-card status-danger" style="cursor: pointer;" onclick="accessModule('medical.html', 3)">
+                    <div class="module-card status-danger" onclick="accessModule('medical.html', 3)">
                         <div class="module-icon">⚕️</div>
                         <div class="module-info">
                             <div class="module-name">INFIRMERIE</div>
@@ -153,7 +153,6 @@
 
 <script src="js/script.js"></script>
 <script>
-    // Logique conservée à 100%
     function accessModule(url, requiredLevel) {
         const currentLevel = parseInt(localStorage.getItem('userSecurityLevel') || 0);
         if (currentLevel >= requiredLevel) {
