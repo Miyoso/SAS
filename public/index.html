@@ -4,14 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAS MAINFRAME // SYSTEM</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="stylele.css">
-    <link rel="stylesheet" href="css/stylele.css">
+
 </head>
 
 <body>
+
 <div class="tactical-grid"></div>
 <div class="vignette"></div>
 <div class="radar-scan"></div>
@@ -38,7 +41,7 @@
                 <div class="sub-header">SECURE ACCESS SYSTEM // RESTRICTED AREA</div>
             </div>
             <div class="meta-data">
-                <span id="conn-status" style="color:var(--accent-cyan)">CONNECTED</span> // PING: 12ms<br>
+                <span id="conn-status" style="color:var(--accent-primary)">CONNECTED</span> // PING: 12ms<br>
                 SYS.VER.4.0.2 // <span class="blink">MONITORING</span><br>
                 <button class="btn-connect" onclick="toggleTerminal()">> CONNEXION TERMINAL</button>
             </div>
@@ -153,7 +156,7 @@
 
 <script src="js/script.js"></script>
 <script>
-    // Logique conservée à 100%
+    // Logique JS intacte
     function accessModule(url, requiredLevel) {
         const currentLevel = parseInt(localStorage.getItem('userSecurityLevel') || 0);
         if (currentLevel >= requiredLevel) {
