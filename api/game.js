@@ -170,40 +170,56 @@ export default async function handler(req, res) {
                 }
 
                 if (action === 'create_link') {
-                    await pool.query(
-                        'INSERT INTO investigation_links (board_id, from_id, to_id, color, label) VALUES ($1, $2, $3, $4, $5)',
+                    const r = await pool.query(
+                        'INSERT INTO investigation_links (board_id, from_id, to_id, color, label) VALUES ($1, $2, $3, $4, $5) RETURNING *',
                         [board_id, req.body.from_id, req.body.to_id, req.body.color, req.body.label]
                     );
-                    await pusher.trigger('investigation-board', 'link-created', req.body);
+                    await pusher.trigger('investigation-board', 'link-created', r.rows[0]);
                     return res.status(200).json({ success: true });
                 }
             }
 
             if (method === 'PUT') {
+                if (req.body.is_link) {
+                    const { id, label, color } = req.body;
+                    const result = await pool.query(
+                        'UPDATE investigation_links SET label=$1, color=$2 WHERE id=$3 RETURNING *',
+                        [label, color, id]
+                    );
+                    if (result.rows.length > 0) {
+                        await pusher.trigger('investigation-board', 'link-updated', result.rows[0]);
+                        return res.status(200).json(result.rows[0]);
+                    }
+                    return res.status(404).json({ error: "Lien non trouvé" });
+                }
+
                 if (req.body.label !== undefined) {
                     const { id, label, sub_label, image_url, type } = req.body;
-
                     const result = await pool.query(
                         'UPDATE investigation_nodes SET label=$1, sub_label=$2, image_url=$3, type=$4 WHERE id=$5 RETURNING *',
                         [label, sub_label, image_url, type, id]
                     );
-
                     if (result.rows.length > 0) {
                         await pusher.trigger('investigation-board', 'node-updated', result.rows[0]);
                         return res.status(200).json(result.rows[0]);
                     }
-                }
-                else if (req.body.x !== undefined && req.body.y !== undefined) {
+                } else if (req.body.x !== undefined && req.body.y !== undefined) {
                     await pool.query('UPDATE investigation_nodes SET x=$1, y=$2 WHERE id=$3', [req.body.x, req.body.y, req.body.id]);
                     await pusher.trigger('investigation-board', 'node-moved', req.body);
                     return res.status(200).json({ success: true });
                 }
-
                 return res.status(400).json({ error: "Données manquantes" });
             }
 
             if (method === 'DELETE') {
+                if (req.body.is_link) {
+                    await pool.query('DELETE FROM investigation_links WHERE id=$1', [req.body.id]);
+                    await pusher.trigger('investigation-board', 'link-deleted', { id: req.body.id });
+                    return res.status(200).json({ success: true });
+                }
+
                 await pool.query('DELETE FROM investigation_nodes WHERE id=$1', [req.body.id]);
+                await pool.query('DELETE FROM investigation_links WHERE from_id=$1 OR to_id=$1', [req.body.id]);
                 await pusher.trigger('investigation-board', 'node-deleted', req.body);
                 return res.status(200).json({ success: true });
             }

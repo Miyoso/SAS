@@ -12,14 +12,35 @@
     z-index: 0; overflow: visible;
 }
 
+.link-group {
+    pointer-events: auto;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.link-group:hover {
+    opacity: 0.7;
+}
+
+.link-group:hover .connection-line {
+    stroke-width: 4px;
+    filter: drop-shadow(0 0 5px currentColor);
+}
+
 .connection-line {
-    stroke: var(--danger);
+    fill: none;
     stroke-width: 2px;
     stroke-dasharray: 10, 10;
-    opacity: 0.8;
-    filter: drop-shadow(0 0 5px var(--danger));
-    fill: none;
+    filter: drop-shadow(0 0 2px currentColor);
     animation: flow 1s linear infinite;
+    transition: stroke-width 0.2s;
+}
+
+.link-hitbox {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 20px;
+    cursor: pointer;
 }
 
 @keyframes flow {
