@@ -3,22 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHADOW CO. :: AGENT [RUY DIAZ]</title>
+    <title>SHADOW CO. :: AGENT [BLITZ]</title>
 
     <script>
-        const allowedAgents = [
-            'Graves',
-            'Javier',
-            'LoveLace', 
-            'Blitz'
-        ];
+        document.addEventListener("DOMContentLoaded", () => {
 
-        const currentUser = localStorage.getItem('sas_user');
+            const sessionRaw = localStorage.getItem('sas_session');
 
-        if (!allowedAgents.includes(currentUser)) {
-            alert("ERREUR D'ACCRÉDITATION :: ACCÈS REFUSÉ");
-            window.location.href = '../access-denied.html';
-        }
+
+            const allowedAgents = [
+                'Javier',
+                'LoveLace',
+                '[Blitz]',
+                'Graves'
+            ];
+
+            let isAuthorized = false;
+
+            if (sessionRaw) {
+                try {
+                    const user = JSON.parse(sessionRaw);
+
+                    if (allowedAgents.includes(user.username)) {
+                        isAuthorized = true;
+                    }
+                } catch (e) {
+                    console.error("Erreur lecture session");
+                }
+            }
+
+            if (!isAuthorized) {
+                alert("ERREUR D'ACCRÉDITATION :: ACCÈS REFUSÉ");
+                window.location.href = '../index.html'; // Redirection vers le dashboard
+            }
+        });
     </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
