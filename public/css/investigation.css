@@ -15,10 +15,23 @@
 .connection-line {
     stroke: var(--danger);
     stroke-width: 2px;
-    stroke-dasharray: 5, 5;
-    opacity: 0.6;
+    stroke-dasharray: 10, 10;
+    opacity: 0.8;
     filter: drop-shadow(0 0 5px var(--danger));
     fill: none;
+    animation: flow 1s linear infinite;
+}
+
+@keyframes flow {
+    to { stroke-dashoffset: -20; }
+}
+
+.link-label {
+    fill: #fff;
+    font-family: 'Share Tech Mono';
+    font-size: 12px;
+    text-shadow: 0 0 4px #000;
+    background-color: rgba(0,0,0,0.7);
 }
 
 .board-item {
@@ -33,6 +46,15 @@
     user-select: none;
     z-index: 1;
     transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.board-item.note {
+    background: rgba(255, 235, 59, 0.15);
+    border: 1px solid rgba(255, 235, 59, 0.4);
+    width: 220px;
+    height: 220px;
+    align-items: flex-start;
+    padding: 15px;
 }
 
 .board-item:hover {
@@ -59,6 +81,26 @@
     text-transform: uppercase; letter-spacing: 1px;
 }
 
+.board-item.note .item-label {
+    color: #ffeeb0;
+    width: 100%;
+    text-align: left;
+    border-bottom: 1px dashed rgba(255, 235, 59, 0.3);
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+}
+
+.board-item.note .item-sub {
+    color: #ddd;
+    text-transform: none;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    text-align: left;
+    width: 100%;
+    flex: 1;
+    overflow: hidden;
+}
+
 .pin {
     width: 10px; height: 10px; border-radius: 50%;
     position: absolute; top: -5px; left: 50%; transform: translateX(-50%);
@@ -68,6 +110,7 @@
 .pin-red { background-color: var(--danger); color: var(--danger); }
 .pin-yellow { background-color: var(--warning); color: var(--warning); }
 .pin-blue { background-color: var(--secondary); color: var(--secondary); }
+.pin-note { background-color: #ffd700; color: #ffd700; }
 
 .hud-overlay {
     position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
@@ -115,11 +158,11 @@
 
 .form-group { margin-bottom: 15px; }
 .form-group label { display: block; font-size: 0.7rem; color: #8899aa; margin-bottom: 5px; }
-.form-group input {
+.form-group input, .form-group textarea {
     width: 100%; background: #000; border: 1px solid #444; color: #fff; padding: 10px;
     font-family: 'JetBrains Mono'; outline: none;
 }
-.form-group input:focus { border-color: var(--primary); }
+.form-group input:focus, .form-group textarea:focus { border-color: var(--primary); }
 
 .type-selector { display: flex; gap: 10px; }
 .type-btn { flex: 1; background: #222; border: 1px solid #444; color: #888; padding: 10px; cursor: pointer; }

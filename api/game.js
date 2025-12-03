@@ -170,9 +170,10 @@ export default async function handler(req, res) {
                 }
 
                 if (action === 'create_link') {
+                    // MISE À JOUR : Ajout du label
                     await pool.query(
-                        'INSERT INTO investigation_links (board_id, from_id, to_id, color) VALUES ($1, $2, $3, $4)',
-                        [board_id, req.body.from_id, req.body.to_id, req.body.color]
+                        'INSERT INTO investigation_links (board_id, from_id, to_id, color, label) VALUES ($1, $2, $3, $4, $5)',
+                        [board_id, req.body.from_id, req.body.to_id, req.body.color, req.body.label]
                     );
                     await pusher.trigger('investigation-board', 'link-created', req.body);
                     return res.status(200).json({ success: true });

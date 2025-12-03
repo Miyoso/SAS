@@ -182,26 +182,38 @@ function renderNode(node) {
 
     let contentHtml = '';
     let pinColor = 'pin-red';
-    let img = node.image_url || '';
 
-    if (node.type === 'target') {
-        if (!img) img = 'assets/Adam.jpg';
-        contentHtml = `<img src="${img}" draggable="false" onerror="this.src='assets/Adam.jpg'">`;
-        pinColor = 'pin-red';
-    } else if (node.type === 'evidence') {
-        pinColor = 'pin-yellow';
-        contentHtml = img ? `<img src="${img}" draggable="false">` : `<div class="evidence-content" style="padding:20px; color:#aaa; font-size:0.8rem; text-align:center;">PREUVE<br>NUMÉRIQUE</div>`;
+    if (node.type === 'note') {
+        el.classList.add('note');
+        pinColor = 'pin-note';
+        contentHtml = `
+            <div class="item-label">${node.label}</div>
+            <div class="item-sub">${node.sub_label || ''}</div>
+        `;
     } else {
-        pinColor = 'pin-blue';
-        if (!img) img = 'assets/carte.jpg';
-        contentHtml = `<img src="${img}" style="opacity:0.8" draggable="false">`;
+        let img = node.image_url || '';
+        if (node.type === 'target') {
+            if (!img) img = 'assets/Adam.jpg';
+            contentHtml = `<img src="${img}" draggable="false" onerror="this.src='assets/Adam.jpg'">`;
+            pinColor = 'pin-red';
+        } else if (node.type === 'evidence') {
+            pinColor = 'pin-yellow';
+            contentHtml = img ? `<img src="${img}" draggable="false">` : `<div class="evidence-content" style="padding:20px; color:#aaa; font-size:0.8rem; text-align:center;">PREUVE<br>NUMÉRIQUE</div>`;
+        } else {
+            pinColor = 'pin-blue';
+            if (!img) img = 'assets/carte.jpg';
+            contentHtml = `<img src="${img}" style="opacity:0.8" draggable="false">`;
+        }
+
+        contentHtml += `
+            <div class="item-label">${node.label}</div>
+            <div class="item-sub">${node.sub_label || ''}</div>
+        `;
     }
 
     el.innerHTML = `
         <div class="pin ${pinColor}"></div>
         ${contentHtml}
-        <div class="item-label">${node.label}</div>
-        <div class="item-sub">${node.sub_label || ''}</div>
         <button class="btn-del" onclick="deleteNode(${node.id}, event)">×</button>
     `;
 
@@ -359,7 +371,9 @@ function resetLinkMode() {
 }
 
 async function createLink(fromId, toId) {
-    linksData.push({ from_id: parseInt(fromId), to_id: parseInt(toId), color: currentLinkColor });
+    const label = prompt("Label du lien (ex: TUEUR DE) ?", "") || "";
+
+    linksData.push({ from_id: parseInt(fromId), to_id: parseInt(toId), color: currentLinkColor, label: label });
     drawLines();
 
     try {
@@ -371,7 +385,8 @@ async function createLink(fromId, toId) {
                 board_id: currentBoardId,
                 from_id: fromId,
                 to_id: toId,
-                color: currentLinkColor
+                color: currentLinkColor,
+                label: label
             })
         });
 
@@ -386,7 +401,7 @@ function drawLines() {
     const svg = document.getElementById('connections-layer');
     svg.innerHTML = '';
 
-    linksData.forEach(link => {
+    linksData.forEach((link, index) => {
         const el1 = document.getElementById(`node-${link.from_id}`);
         const el2 = document.getElementById(`node-${link.to_id}`);
 
@@ -402,14 +417,30 @@ function drawLines() {
             const cx = (x1 + x2) / 2;
             const cy = (y1 + y2) / 2 + curveAmount;
 
+            const pathId = `link-path-${index}`;
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('d', `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`);
+            path.setAttribute('id', pathId);
 
             path.classList.add('connection-line');
             path.style.stroke = link.color || '#ff3333';
-            path.style.fill = 'none';
 
             svg.appendChild(path);
+
+            if (link.label) {
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.classList.add('link-label');
+                text.setAttribute('dy', '-5');
+
+                const textPath = document.createElementNS('http://www.w3.org/2000/svg', 'textPath');
+                textPath.setAttribute('href', `#${pathId}`);
+                textPath.setAttribute('startOffset', '50%');
+                textPath.setAttribute('text-anchor', 'middle');
+                textPath.textContent = link.label;
+
+                text.appendChild(textPath);
+                svg.appendChild(text);
+            }
         }
     });
 }
@@ -420,9 +451,41 @@ window.createNode = function(type) {
 
     document.getElementById('inp-label').value = '';
     document.getElementById('inp-sub').value = '';
-    document.getElementById('inp-img').value = '';
+
+    // Gérer l'affichage des champs selon le type
+    if (type === 'note') {
+        document.getElementById('group-img').style.display = 'none';
+        document.getElementById('inp-label').placeholder = "Titre de la note...";
+        document.getElementById('inp-sub').placeholder = "Contenu...";
+        document.getElementById('inp-sub').tagName === 'TEXTAREA' ? null : replaceInputWithTextarea();
+    } else {
+        document.getElementById('group-img').style.display = 'block';
+        document.getElementById('inp-label').placeholder = "Nom du dossier...";
+        document.getElementById('inp-sub').placeholder = "Info complémentaire...";
+        resetInputToText();
+    }
 
     setModalType(type);
+}
+
+function replaceInputWithTextarea() {
+    const oldInput = document.getElementById('inp-sub');
+    const textArea = document.createElement('textarea');
+    textArea.id = 'inp-sub';
+    textArea.placeholder = "Contenu de la note...";
+    textArea.rows = 5;
+    oldInput.parentNode.replaceChild(textArea, oldInput);
+}
+
+function resetInputToText() {
+    const oldInput = document.getElementById('inp-sub');
+    if (oldInput.tagName === 'TEXTAREA') {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.id = 'inp-sub';
+        input.placeholder = "Info complémentaire...";
+        oldInput.parentNode.replaceChild(input, oldInput);
+    }
 }
 
 window.closeModal = function() {
@@ -433,6 +496,14 @@ window.setModalType = function(type) {
     currentModalType = type;
     document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(`btn-type-${type}`).classList.add('active');
+
+    if(type === 'note') {
+        document.getElementById('group-img').style.display = 'none';
+        replaceInputWithTextarea();
+    } else {
+        document.getElementById('group-img').style.display = 'block';
+        resetInputToText();
+    }
 }
 
 window.confirmCreateNode = async function() {
@@ -448,7 +519,7 @@ window.confirmCreateNode = async function() {
         board_id: currentBoardId,
         type: currentModalType,
         label: label.toUpperCase(),
-        sub_label: sub ? sub.toUpperCase() : '',
+        sub_label: currentModalType === 'note' ? sub : (sub ? sub.toUpperCase() : ''),
         image_url: img,
         x: Math.floor(centerX),
         y: Math.floor(centerY)
