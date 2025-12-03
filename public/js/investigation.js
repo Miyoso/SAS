@@ -9,6 +9,7 @@ let linkStartId = null;
 let currentLinkColor = '#ff3333';
 let currentBoardId = null;
 let currentScale = 1;
+let editingNodeId = null;
 
 function getAuthHeaders() {
     const token = localStorage.getItem('sas_token');
@@ -56,6 +57,15 @@ function initRealtimeBoard() {
 
             requestAnimationFrame(drawLines);
         }
+    });
+
+    channel.bind('node-updated', (data) => {
+        const existingEl = document.getElementById(`node-${data.id}`);
+        if (existingEl) {
+            existingEl.remove();
+        }
+        renderNode(data);
+        requestAnimationFrame(drawLines);
     });
 
     channel.bind('node-deleted', (data) => {
@@ -218,6 +228,24 @@ function renderNode(node) {
     `;
 
     el.addEventListener("mousedown", handleNodeClick);
+
+    el.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        editingNodeId = node.id;
+
+        document.getElementById('creation-modal').classList.remove('hidden');
+        document.querySelector('.modal-title').innerText = "MODIFIER ÉLÉMENT";
+
+        setModalType(node.type);
+
+        document.getElementById('inp-label').value = node.label || '';
+        document.getElementById('inp-sub').value = node.sub_label || '';
+        if(document.getElementById('inp-img')) {
+            document.getElementById('inp-img').value = node.image_url || '';
+        }
+    });
 
     world.appendChild(el);
 }
@@ -452,7 +480,6 @@ window.createNode = function(type) {
     document.getElementById('inp-label').value = '';
     document.getElementById('inp-sub').value = '';
 
-    // Gérer l'affichage des champs selon le type
     if (type === 'note') {
         document.getElementById('group-img').style.display = 'none';
         document.getElementById('inp-label').placeholder = "Titre de la note...";
@@ -490,6 +517,8 @@ function resetInputToText() {
 
 window.closeModal = function() {
     document.getElementById('creation-modal').classList.add('hidden');
+    editingNodeId = null;
+    document.querySelector('.modal-title').innerText = "NOUVEL ÉLÉMENT";
 }
 
 window.setModalType = function(type) {
@@ -510,6 +539,33 @@ window.confirmCreateNode = async function() {
     const label = document.getElementById('inp-label').value || 'INCONNU';
     const sub = document.getElementById('inp-sub').value;
     const img = document.getElementById('inp-img').value;
+
+    if (editingNodeId) {
+        const payload = {
+            id: editingNodeId,
+            label: label.toUpperCase(),
+            sub_label: currentModalType === 'note' ? sub : (sub ? sub.toUpperCase() : ''),
+            image_url: img,
+            type: currentModalType
+        };
+
+        try {
+            const res = await fetch('/api/game?entity=investigation', {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                closeModal();
+            } else {
+                alert("Erreur lors de la modification.");
+            }
+        } catch(e) {
+            alert("Erreur réseau.");
+        }
+        return;
+    }
 
     const centerX = (window.innerWidth / 2 - panX - 90 * currentScale) / currentScale;
     const centerY = (window.innerHeight / 2 - panY - 100 * currentScale) / currentScale;

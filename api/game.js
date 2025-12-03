@@ -170,7 +170,6 @@ export default async function handler(req, res) {
                 }
 
                 if (action === 'create_link') {
-                    // MISE À JOUR : Ajout du label
                     await pool.query(
                         'INSERT INTO investigation_links (board_id, from_id, to_id, color, label) VALUES ($1, $2, $3, $4, $5)',
                         [board_id, req.body.from_id, req.body.to_id, req.body.color, req.body.label]
@@ -181,9 +180,26 @@ export default async function handler(req, res) {
             }
 
             if (method === 'PUT') {
-                await pool.query('UPDATE investigation_nodes SET x=$1, y=$2 WHERE id=$3', [req.body.x, req.body.y, req.body.id]);
-                await pusher.trigger('investigation-board', 'node-moved', req.body);
-                return res.status(200).json({ success: true });
+                if (req.body.label !== undefined) {
+                    const { id, label, sub_label, image_url, type } = req.body;
+
+                    const result = await pool.query(
+                        'UPDATE investigation_nodes SET label=$1, sub_label=$2, image_url=$3, type=$4 WHERE id=$5 RETURNING *',
+                        [label, sub_label, image_url, type, id]
+                    );
+
+                    if (result.rows.length > 0) {
+                        await pusher.trigger('investigation-board', 'node-updated', result.rows[0]);
+                        return res.status(200).json(result.rows[0]);
+                    }
+                }
+                else if (req.body.x !== undefined && req.body.y !== undefined) {
+                    await pool.query('UPDATE investigation_nodes SET x=$1, y=$2 WHERE id=$3', [req.body.x, req.body.y, req.body.id]);
+                    await pusher.trigger('investigation-board', 'node-moved', req.body);
+                    return res.status(200).json({ success: true });
+                }
+
+                return res.status(400).json({ error: "Données manquantes" });
             }
 
             if (method === 'DELETE') {
