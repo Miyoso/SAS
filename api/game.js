@@ -170,18 +170,17 @@ export default async function handler(req, res) {
                 }
 
                 if (action === 'create_link') {
-                    const r = await pool.query(
-                        'INSERT INTO investigation_links (board_id, from_id, to_id, color, label) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+                    await pool.query(
+                        'INSERT INTO investigation_links (board_id, from_id, to_id, color, label) VALUES ($1, $2, $3, $4, $5)',
                         [board_id, req.body.from_id, req.body.to_id, req.body.color, req.body.label]
                     );
-                    const newLink = { ...req.body, id: r.rows[0].id };
-                    await pusher.trigger('investigation-board', 'link-created', newLink);
-                    return res.status(200).json({ success: true, id: r.rows[0].id });
+                    await pusher.trigger('investigation-board', 'link-created', req.body);
+                    return res.status(200).json({ success: true });
                 }
             }
 
             if (method === 'PUT') {
-                if (req.body.label !== undefined && !req.body.action) {
+                if (req.body.label !== undefined) {
                     const { id, label, sub_label, image_url, type } = req.body;
 
                     const result = await pool.query(
@@ -194,16 +193,6 @@ export default async function handler(req, res) {
                         return res.status(200).json(result.rows[0]);
                     }
                 }
-                else if (req.body.action === 'update_link') {
-                    const { id, label, color } = req.body;
-                    await pool.query(
-                        'UPDATE investigation_links SET label=$1, color=$2 WHERE id=$3',
-                        [label, color, id]
-                    );
-                    const updatedLink = { id, label, color, from_id: req.body.from_id, to_id: req.body.to_id };
-                    await pusher.trigger('investigation-board', 'link-updated', updatedLink);
-                    return res.status(200).json({ success: true });
-                }
                 else if (req.body.x !== undefined && req.body.y !== undefined) {
                     await pool.query('UPDATE investigation_nodes SET x=$1, y=$2 WHERE id=$3', [req.body.x, req.body.y, req.body.id]);
                     await pusher.trigger('investigation-board', 'node-moved', req.body);
@@ -214,14 +203,8 @@ export default async function handler(req, res) {
             }
 
             if (method === 'DELETE') {
-                if (req.body.type === 'link') {
-                    await pool.query('DELETE FROM investigation_links WHERE id=$1', [req.body.id]);
-                    await pusher.trigger('investigation-board', 'link-deleted', { id: req.body.id });
-                } else {
-                    await pool.query('DELETE FROM investigation_nodes WHERE id=$1', [req.body.id]);
-                    await pool.query('DELETE FROM investigation_links WHERE from_id=$1 OR to_id=$1', [req.body.id]);
-                    await pusher.trigger('investigation-board', 'node-deleted', req.body);
-                }
+                await pool.query('DELETE FROM investigation_nodes WHERE id=$1', [req.body.id]);
+                await pusher.trigger('investigation-board', 'node-deleted', req.body);
                 return res.status(200).json({ success: true });
             }
         }
