@@ -1,201 +1,497 @@
-/* public/css/investigation.css */
+let activeItem = null;
+let isPanning = false;
+let dragOffsetX, dragOffsetY;
+let panX = 0, panY = 0;
+let startPanX, startPanY;
+let linksData = [];
+let isLinking = false;
+let linkStartId = null;
+let currentLinkColor = '#ff3333';
+let currentBoardId = null;
+let currentScale = 1;
 
-#board-container {
-    width: 100vw; height: 100vh;
-    position: relative;
-    overflow: hidden; /* Ou 'auto' si vous voulez scroller */
-    background: radial-gradient(circle at center, #111 0%, #000 100%);
-    cursor: grab;
+function getAuthHeaders() {
+    const token = localStorage.getItem('sas_token');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
 }
 
-/* Le calque SVG prend toute la place pour dessiner les lignes */
-#connections-layer {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; /* Laisse passer les clics vers le fond */
-    z-index: 0;
+document.addEventListener('DOMContentLoaded', () => {
+    setupPanning();
+    loadBoardsList();
+
+    if (typeof Pusher !== 'undefined') {
+        initRealtimeBoard();
+    }
+});
+
+function initRealtimeBoard() {
+    const pusher = new Pusher('51d51cc5bfc1c8ee90d4', {
+        cluster: 'eu'
+    });
+
+    const channel = pusher.subscribe('investigation-board');
+
+    channel.bind('node-created', (node) => {
+        if (node.board_id != currentBoardId) return;
+        if (!document.getElementById(`node-${node.id}`)) {
+            renderNode(node);
+        }
+    });
+
+    channel.bind('node-moved', (data) => {
+        if (activeItem && activeItem.getAttribute('data-db-id') == data.id) {
+            return;
+        }
+
+        const el = document.getElementById(`node-${data.id}`);
+        if (el) {
+            el.style.transition = "left 0.3s, top 0.3s";
+            el.style.left = data.x + 'px';
+            el.style.top = data.y + 'px';
+
+            setTimeout(() => { el.style.transition = ""; }, 300);
+
+            requestAnimationFrame(drawLines);
+        }
+    });
+
+    channel.bind('node-deleted', (data) => {
+        const el = document.getElementById(`node-${data.id}`);
+        if (el) {
+            el.remove();
+            linksData = linksData.filter(l => l.from_id != data.id && l.to_id != data.id);
+            drawLines();
+        }
+    });
+
+    channel.bind('link-created', (link) => {
+        const exists = linksData.find(l => l.from_id == link.from_id && l.to_id == link.to_id);
+        if (!exists) {
+            linksData.push(link);
+            drawLines();
+        }
+    });
 }
 
-/* Style des lignes SVG */
-.connection-line {
-    stroke: var(--danger); /* Fil rouge */
-    stroke-width: 2px;
-    stroke-dasharray: 5, 5; /* Pointillés tactiques */
-    opacity: 0.6;
-    filter: drop-shadow(0 0 5px var(--danger));
+function toggleSidebar() {
+    document.getElementById('case-sidebar').classList.toggle('open');
 }
 
-/* Les "Cartes" ou "Noeuds" */
-.board-item {
-    position: absolute;
-    width: 180px;
-    background: rgba(10, 15, 20, 0.9);
-    border: 1px solid rgba(255,255,255,0.1);
-    padding: 10px;
-    display: flex; flex-direction: column; align-items: center; gap: 5px;
-    backdrop-filter: blur(5px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    user-select: none;
-    z-index: 1;
-    transition: box-shadow 0.2s, border-color 0.2s;
+async function loadBoardsList() {
+    try {
+        const res = await fetch('/api/game?entity=boards', { headers: getAuthHeaders() });
+        const boards = await res.json();
+
+        const container = document.getElementById('case-list');
+        container.innerHTML = '';
+
+        if(boards.length === 0) {
+            container.innerHTML = '<div style="padding:10px; color:#666">Aucun dossier. Créez-en un.</div>';
+            return;
+        }
+
+        if (!currentBoardId && boards.length > 0) {
+            selectBoard(boards[0].id);
+        }
+
+        boards.forEach(b => {
+            const div = document.createElement('div');
+            div.className = `case-item ${b.id === currentBoardId ? 'active' : ''}`;
+            div.onclick = () => selectBoard(b.id);
+            div.innerHTML = `
+                <div class="case-title">📁 ${b.title}</div>
+                <div class="case-date">REF: ${b.id} // ${new Date(b.created_at).toLocaleDateString()}</div>
+            `;
+            container.appendChild(div);
+        });
+    } catch(e) { console.error(e); }
 }
 
-.board-item:hover {
-    z-index: 10;
-    border-color: var(--primary);
-    box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
-    cursor: grab;
+async function createNewBoard() {
+    const title = document.getElementById('new-case-title').value;
+    if(!title) return;
+
+    await fetch('/api/game?entity=boards', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ title })
+    });
+
+    document.getElementById('new-case-title').value = '';
+    loadBoardsList();
 }
 
-.board-item:active { cursor: grabbing; }
-
-/* Images dans les cartes */
-.board-item img {
-    width: 100%; height: 120px; object-fit: cover;
-    border: 1px solid #333;
-    filter: grayscale(0.8) contrast(1.2);
+function selectBoard(id) {
+    currentBoardId = id;
+    document.querySelectorAll('.case-item').forEach(el => el.classList.remove('active'));
+    loadBoardsList();
+    loadBoardData();
 }
 
-/* Texte */
-.item-label {
-    font-family: 'Share Tech Mono'; color: #fff; font-weight: bold;
-    font-size: 1rem; text-align: center; text-shadow: 0 0 5px black;
-}
-.item-sub {
-    font-family: 'JetBrains Mono'; font-size: 0.6rem; color: #aaa;
-    text-transform: uppercase; letter-spacing: 1px;
-}
+async function loadBoardData() {
+    if(!currentBoardId) return;
 
-/* Les "Punaises" virtuelles en haut des cartes */
-.pin {
-    width: 10px; height: 10px; border-radius: 50%;
-    position: absolute; top: -5px; left: 50%; transform: translateX(-50%);
-    box-shadow: 0 0 10px currentColor;
-    border: 2px solid #fff;
-}
-.pin-red { background-color: var(--danger); color: var(--danger); }
-.pin-yellow { background-color: var(--warning); color: var(--warning); }
-.pin-blue { background-color: var(--secondary); color: var(--secondary); }
+    const world = document.getElementById('board-world');
+    document.querySelectorAll('.board-item').forEach(e => e.remove());
 
-/* HUD Outils */
-.hud-overlay {
-    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-    background: rgba(0,0,0,0.8); border: 1px solid #333;
-    padding: 15px 30px; border-radius: 40px;
-    display: flex; align-items: center; gap: 20px;
-    backdrop-filter: blur(10px); z-index: 100;
-}
-.hud-overlay h1 { font-size: 1.2rem; margin: 0; border-right: 1px solid #555; padding-right: 20px; }
-.tools button {
-    background: transparent; border: 1px solid var(--dim); color: #ccc;
-    padding: 8px 16px; font-family: 'Share Tech Mono'; cursor: pointer;
-    transition: 0.2s;
-}
-.tools button:hover { background: var(--primary); color: #000; border-color: var(--primary); }
+    let svg = document.getElementById('connections-layer');
+    if (!svg) {
+        svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.id = "connections-layer";
+        world.appendChild(svg);
+    }
+    svg.innerHTML = '';
 
-.btn-del {
-    position: absolute; top: -5px; right: -5px;
-    width: 20px; height: 20px;
-    background: var(--danger); color: #fff; border: none;
-    border-radius: 50%; font-weight: bold; cursor: pointer;
-    display: none; /* Caché par défaut */
-    align-items: center; justify-content: center;
-    font-size: 12px; z-index: 20;
-}
-.board-item:hover .btn-del { display: flex; } /* Apparaît au survol */
+    try {
+        const res = await fetch(`/api/game?entity=investigation&board_id=${currentBoardId}`, {
+            method: 'GET',
+            headers: getAuthHeaders()
+        });
 
-/* MODAL STYLES */
-.hidden { display: none !important; }
+        if (res.status === 401) {
+            window.location.href = '/index.html';
+            return;
+        }
 
-.modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
-    z-index: 2000; display: flex; align-items: center; justify-content: center;
+        if (!res.ok) throw new Error("Erreur serveur");
+
+        const data = await res.json();
+        linksData = data.links || [];
+
+        if (data.nodes) {
+            data.nodes.forEach(node => renderNode(node));
+            requestAnimationFrame(drawLines);
+        }
+    } catch (err) {
+        console.error(err);
+    }
 }
 
-.modal-box {
-    background: rgba(15, 20, 25, 0.95);
-    border: 1px solid var(--primary);
-    padding: 30px; width: 400px;
-    box-shadow: 0 0 50px rgba(0, 255, 157, 0.2);
-    font-family: 'Share Tech Mono'; color: #fff;
+function renderNode(node) {
+    const world = document.getElementById('board-world');
+    const el = document.createElement('div');
+
+    el.classList.add('board-item');
+    el.id = `node-${node.id}`;
+    el.setAttribute('data-db-id', node.id);
+    el.style.left = node.x + 'px';
+    el.style.top = node.y + 'px';
+
+    let contentHtml = '';
+    let pinColor = 'pin-red';
+    let img = node.image_url || '';
+
+    if (node.type === 'target') {
+        if (!img) img = 'assets/Adam.jpg';
+        contentHtml = `<img src="${img}" draggable="false" onerror="this.src='assets/Adam.jpg'">`;
+        pinColor = 'pin-red';
+    } else if (node.type === 'evidence') {
+        pinColor = 'pin-yellow';
+        contentHtml = img ? `<img src="${img}" draggable="false">` : `<div class="evidence-content" style="padding:20px; color:#aaa; font-size:0.8rem; text-align:center;">PREUVE<br>NUMÉRIQUE</div>`;
+    } else {
+        pinColor = 'pin-blue';
+        if (!img) img = 'assets/carte.jpg';
+        contentHtml = `<img src="${img}" style="opacity:0.8" draggable="false">`;
+    }
+
+    el.innerHTML = `
+        <div class="pin ${pinColor}"></div>
+        ${contentHtml}
+        <div class="item-label">${node.label}</div>
+        <div class="item-sub">${node.sub_label || ''}</div>
+        <button class="btn-del" onclick="deleteNode(${node.id}, event)">×</button>
+    `;
+
+    el.addEventListener("mousedown", handleNodeClick);
+
+    world.appendChild(el);
 }
 
-.modal-title { margin-top: 0; color: var(--primary); border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+function setupPanning() {
+    const viewport = document.getElementById('board-viewport');
 
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; font-size: 0.7rem; color: #8899aa; margin-bottom: 5px; }
-.form-group input { 
-    width: 100%; background: #000; border: 1px solid #444; color: #fff; padding: 10px; 
-    font-family: 'JetBrains Mono'; outline: none; 
-}
-.form-group input:focus { border-color: var(--primary); }
+    viewport.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.board-item')) return;
+        if (e.target.closest('.hud-overlay')) return;
+        if (e.target.closest('.modal-overlay')) return;
 
-.type-selector { display: flex; gap: 10px; }
-.type-btn { flex: 1; background: #222; border: 1px solid #444; color: #888; padding: 10px; cursor: pointer; }
-.type-btn.active { background: var(--primary); color: #000; font-weight: bold; border-color: var(--primary); }
+        isPanning = true;
+        startPanX = e.clientX - panX;
+        startPanY = e.clientY - panY;
+        viewport.style.cursor = 'grabbing';
+    });
 
-.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-.btn-confirm { flex: 1; background: var(--primary); color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; }
-.btn-cancel { flex: 1; background: transparent; color: var(--danger); border: 1px solid var(--danger); padding: 12px; cursor: pointer; }
+    window.addEventListener('mousemove', (e) => {
+        if (isPanning) {
+            e.preventDefault();
+            panX = e.clientX - startPanX;
+            panY = e.clientY - startPanY;
+            updateWorldTransform();
+        }
+    });
 
-/* Highlight pour le mode Link */
-.linking-mode .board-item { opacity: 0.5; }
-.linking-mode .board-item:hover { opacity: 1; border-color: var(--warning); cursor: crosshair; }
-.board-item.selected-link { border-color: var(--warning); box-shadow: 0 0 20px var(--warning); opacity: 1 !important; }
+    window.addEventListener('mouseup', () => {
+        isPanning = false;
+        viewport.style.cursor = 'grab';
+    });
 
-/* VIEWPORT FIXE */
-#board-viewport {
-    width: 100vw; height: 100vh;
-    position: relative; overflow: hidden;
-    cursor: grab; /* Curseur main pour déplacer */
-}
-
-#board-viewport:active { cursor: grabbing; }
-
-/* LE MONDE QUI BOUGE */
-#board-world {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    transform-origin: 0 0;
-    /* La transformation sera gérée par le JS (translate X Y) */
+    viewport.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        const newScale = Math.min(Math.max(0.2, currentScale + delta), 2);
+        currentScale = newScale;
+        updateWorldTransform();
+    }, { passive: false });
 }
 
-/* PALETTE DE COULEURS */
-.separator { width: 1px; height: 30px; background: #555; margin: 0 10px; }
-
-.color-picker-group {
-    display: flex; gap: 8px; background: rgba(0,0,0,0.5); 
-    padding: 5px 10px; border-radius: 20px; border: 1px solid #444;
+function updateWorldTransform() {
+    const world = document.getElementById('board-world');
+    world.style.transform = `translate(${panX}px, ${panY}px) scale(${currentScale})`;
 }
 
-.color-dot {
-    width: 18px; height: 18px; border-radius: 50%; cursor: pointer;
-    border: 2px solid transparent; transition: 0.2s;
+function handleNodeClick(e) {
+    if(e.target.classList.contains('btn-del')) return;
+
+    if (isLinking) {
+        e.stopPropagation();
+        const clickedNode = e.currentTarget;
+        const dbId = clickedNode.getAttribute('data-db-id');
+
+        if (!linkStartId) {
+            linkStartId = dbId;
+            clickedNode.classList.add('selected-link');
+        } else {
+            if (linkStartId !== dbId) createLink(linkStartId, dbId);
+            resetLinkMode();
+        }
+        return;
+    }
+
+    e.stopPropagation();
+    activeItem = e.currentTarget;
+
+    const rect = activeItem.getBoundingClientRect();
+
+    const scale = currentScale;
+    dragOffsetX = (e.clientX - rect.left) / scale;
+    dragOffsetY = (e.clientY - rect.top) / scale;
+
+    document.addEventListener("mouseup", itemDragEnd);
+    document.addEventListener("mousemove", itemDrag);
 }
 
-.color-dot:hover { transform: scale(1.2); }
-.color-dot.active { border-color: #fff; box-shadow: 0 0 10px currentColor; transform: scale(1.1); }
+function itemDrag(e) {
+    if (activeItem) {
+        e.preventDefault();
 
-/* SVG LAYER */
-#connections-layer {
-    position: absolute; top: 0; left: 0; 
-    width: 5000px; height: 5000px; /* Très grand pour couvrir le déplacement */
-    pointer-events: none; overflow: visible;
+        const scale = currentScale;
+        const containerRect = document.getElementById('board-world').getBoundingClientRect();
+
+        const mouseX = (e.clientX - containerRect.left) / scale;
+        const mouseY = (e.clientY - containerRect.top) / scale;
+
+        const newX = mouseX - dragOffsetX;
+        const newY = mouseY - dragOffsetY;
+
+        activeItem.style.left = newX + 'px';
+        activeItem.style.top = newY + 'px';
+
+        requestAnimationFrame(drawLines);
+    }
 }
 
-/* Séparateur de catégorie */
-.category-row td {
-    background: linear-gradient(90deg, rgba(0, 168, 255, 0.2), transparent);
-    color: var(--term-blue);
-    font-weight: bold;
-    font-size: 1.1rem;
-    padding-top: 20px !important;
-    padding-bottom: 10px !important;
-    border-bottom: 2px solid var(--term-blue) !important;
-    letter-spacing: 3px;
-    text-shadow: 0 0 5px var(--term-blue);
+async function itemDragEnd() {
+    if (activeItem) {
+        const id = activeItem.getAttribute('data-db-id');
+        const x = parseInt(activeItem.style.left);
+        const y = parseInt(activeItem.style.top);
+
+        try {
+            await fetch('/api/game?entity=investigation', {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id, x, y })
+            });
+        } catch(e) {
+            console.error(e);
+        }
+
+        document.removeEventListener("mouseup", itemDragEnd);
+        document.removeEventListener("mousemove", itemDrag);
+        activeItem = null;
+    }
 }
 
-/* Petit ajustement pour que la première ligne ne soit pas collée en haut */
-.category-row:first-child td {
-    padding-top: 10px !important;
+window.setLinkColor = function(color, btn) {
+    currentLinkColor = color;
+    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+window.toggleLinkMode = function() {
+    isLinking = !isLinking;
+    const btn = document.getElementById('btn-link');
+    const container = document.getElementById('board-viewport');
+
+    if (isLinking) {
+        container.classList.add('linking-mode');
+        btn.style.background = currentLinkColor;
+        btn.style.color = (currentLinkColor === '#ffffff') ? '#000' : '#fff';
+        btn.innerText = "SÉLECTIONNER...";
+    } else {
+        resetLinkMode();
+    }
+}
+
+function resetLinkMode() {
+    isLinking = false;
+    linkStartId = null;
+    document.getElementById('board-viewport').classList.remove('linking-mode');
+    document.querySelectorAll('.selected-link').forEach(el => el.classList.remove('selected-link'));
+
+    const btn = document.getElementById('btn-link');
+    btn.style.background = '';
+    btn.style.color = '';
+    btn.innerText = "🔗 LIER";
+}
+
+async function createLink(fromId, toId) {
+    linksData.push({ from_id: parseInt(fromId), to_id: parseInt(toId), color: currentLinkColor });
+    drawLines();
+
+    try {
+        const res = await fetch('/api/game?entity=investigation', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+                action: 'create_link',
+                board_id: currentBoardId,
+                from_id: fromId,
+                to_id: toId,
+                color: currentLinkColor
+            })
+        });
+
+        if(!res.ok) throw new Error("Erreur serveur");
+
+    } catch(e) {
+        alert("Impossible de créer le lien");
+    }
+}
+
+function drawLines() {
+    const svg = document.getElementById('connections-layer');
+    svg.innerHTML = '';
+
+    linksData.forEach(link => {
+        const el1 = document.getElementById(`node-${link.from_id}`);
+        const el2 = document.getElementById(`node-${link.to_id}`);
+
+        if (el1 && el2) {
+            const x1 = parseInt(el1.style.left) + el1.offsetWidth / 2;
+            const y1 = parseInt(el1.style.top) + el1.offsetHeight / 2;
+            const x2 = parseInt(el2.style.left) + el2.offsetWidth / 2;
+            const y2 = parseInt(el2.style.top) + el2.offsetHeight / 2;
+
+            const dist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            const curveAmount = Math.min(100, dist * 0.2);
+
+            const cx = (x1 + x2) / 2;
+            const cy = (y1 + y2) / 2 + curveAmount;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`);
+
+            path.classList.add('connection-line');
+            path.style.stroke = link.color || '#ff3333';
+            path.style.fill = 'none';
+
+            svg.appendChild(path);
+        }
+    });
+}
+
+let currentModalType = 'target';
+window.createNode = function(type) {
+    document.getElementById('creation-modal').classList.remove('hidden');
+
+    document.getElementById('inp-label').value = '';
+    document.getElementById('inp-sub').value = '';
+    document.getElementById('inp-img').value = '';
+
+    setModalType(type);
+}
+
+window.closeModal = function() {
+    document.getElementById('creation-modal').classList.add('hidden');
+}
+
+window.setModalType = function(type) {
+    currentModalType = type;
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`btn-type-${type}`).classList.add('active');
+}
+
+window.confirmCreateNode = async function() {
+    const label = document.getElementById('inp-label').value || 'INCONNU';
+    const sub = document.getElementById('inp-sub').value;
+    const img = document.getElementById('inp-img').value;
+
+    const centerX = (window.innerWidth / 2 - panX - 90 * currentScale) / currentScale;
+    const centerY = (window.innerHeight / 2 - panY - 100 * currentScale) / currentScale;
+
+    const payload = {
+        action: 'create_node',
+        board_id: currentBoardId,
+        type: currentModalType,
+        label: label.toUpperCase(),
+        sub_label: sub ? sub.toUpperCase() : '',
+        image_url: img,
+        x: Math.floor(centerX),
+        y: Math.floor(centerY)
+    };
+
+    try {
+        const res = await fetch('/api/game?entity=investigation', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            const newNode = await res.json();
+            renderNode(newNode);
+            closeModal();
+        } else {
+            alert("Erreur lors de la création.");
+        }
+    } catch(e) {
+        alert("Erreur réseau.");
+    }
+}
+
+window.deleteNode = async function(id, event) {
+    event.stopPropagation();
+    if(confirm("SUPPRIMER DÉFINITIVEMENT CE DOSSIER ?")) {
+        try {
+            const res = await fetch('/api/game?entity=investigation', {
+                method: 'DELETE',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id })
+            });
+
+            if(res.ok) {
+                document.getElementById(`node-${id}`).remove();
+                linksData = linksData.filter(l => l.from_id !== id && l.to_id !== id);
+                drawLines();
+            } else {
+                alert("Erreur lors de la suppression.");
+            }
+        } catch(e) {
+            alert("Erreur réseau.");
+        }
+    }
 }

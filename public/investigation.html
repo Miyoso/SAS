@@ -7,9 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style-mo.css">
     <link rel="stylesheet" href="css/investigation.css">
-
     <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
-
 </head>
 <body>
 
@@ -80,22 +78,34 @@
     </div>
 </div>
 
+<div id="case-sidebar" class="case-sidebar">
+    <div class="sidebar-header">
+        <span>ARCHIVES // DOSSIERS</span>
+        <button onclick="toggleSidebar()" style="background:none; border:none; color:#fff; cursor:pointer;">◀</button>
+    </div>
+
+    <div class="new-case-form">
+        <input type="text" id="new-case-title" placeholder="NOM DU DOSSIER...">
+        <button onclick="createNewBoard()">+</button>
+    </div>
+
+    <div id="case-list" class="case-list">
+        <div class="blink">CHARGEMENT...</div>
+    </div>
+</div>
+
+<button id="btn-open-sidebar" onclick="toggleSidebar()">📂 DOSSIERS</button>
+
 <div id="sidebar-placeholder"></div>
 
 <script src="js/script.js"></script>
 <script src="js/investigation.js"></script>
-
 <script src="js/collaboration.js"></script>
 
 <script>
-
     const session = JSON.parse(localStorage.getItem('sas_session')) || { username: 'GHOST' };
-
-
     if (typeof SAS_COLLAB !== 'undefined') {
         SAS_COLLAB.init(session.username, '#00ff9d');
-    } else {
-        console.warn("SAS_COLLAB non chargé");
     }
 </script>
 </body>

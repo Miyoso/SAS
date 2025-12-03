@@ -131,31 +131,60 @@ export default async function handler(req, res) {
             }
         }
 
-        if (entity === 'investigation') {
+        if (entity === 'boards') {
             if (method === 'GET') {
-                const nodes = await pool.query('SELECT * FROM investigation_nodes');
-                const links = await pool.query('SELECT * FROM investigation_links');
-                return res.status(200).json({ nodes: nodes.rows, links: links.rows });
+                const result = await pool.query('SELECT * FROM investigation_boards ORDER BY created_at DESC');
+                return res.status(200).json(result.rows);
             }
             if (method === 'POST') {
-                const { action } = req.body;
+                const { title } = req.body;
+                const result = await pool.query('INSERT INTO investigation_boards (title) VALUES ($1) RETURNING *', [title]);
+                return res.status(200).json(result.rows[0]);
+            }
+            if (method === 'DELETE') {
+                await pool.query('DELETE FROM investigation_boards WHERE id = $1', [req.body.id]);
+                return res.status(200).json({ success: true });
+            }
+        }
+
+        if (entity === 'investigation') {
+            if (method === 'GET') {
+                const boardId = req.query.board_id;
+                if (!boardId) return res.status(400).json({ error: "Board ID requis" });
+
+                const nodes = await pool.query('SELECT * FROM investigation_nodes WHERE board_id = $1', [boardId]);
+                const links = await pool.query('SELECT * FROM investigation_links WHERE board_id = $1', [boardId]);
+                return res.status(200).json({ nodes: nodes.rows, links: links.rows });
+            }
+
+            if (method === 'POST') {
+                const { action, board_id } = req.body;
+
                 if (action === 'create_node') {
-                    const r = await pool.query('INSERT INTO investigation_nodes (type, label, sub_label, image_url, x, y) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-                        [req.body.type, req.body.label, req.body.sub_label, req.body.image_url, req.body.x, req.body.y]);
+                    const r = await pool.query(
+                        'INSERT INTO investigation_nodes (board_id, type, label, sub_label, image_url, x, y) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+                        [board_id, req.body.type, req.body.label, req.body.sub_label, req.body.image_url, req.body.x, req.body.y]
+                    );
                     await pusher.trigger('investigation-board', 'node-created', r.rows[0]);
                     return res.status(200).json(r.rows[0]);
                 }
+
                 if (action === 'create_link') {
-                    await pool.query('INSERT INTO investigation_links (from_id, to_id, color) VALUES ($1, $2, $3)', [req.body.from_id, req.body.to_id, req.body.color]);
+                    await pool.query(
+                        'INSERT INTO investigation_links (board_id, from_id, to_id, color) VALUES ($1, $2, $3, $4)',
+                        [board_id, req.body.from_id, req.body.to_id, req.body.color]
+                    );
                     await pusher.trigger('investigation-board', 'link-created', req.body);
                     return res.status(200).json({ success: true });
                 }
             }
+
             if (method === 'PUT') {
                 await pool.query('UPDATE investigation_nodes SET x=$1, y=$2 WHERE id=$3', [req.body.x, req.body.y, req.body.id]);
                 await pusher.trigger('investigation-board', 'node-moved', req.body);
                 return res.status(200).json({ success: true });
             }
+
             if (method === 'DELETE') {
                 await pool.query('DELETE FROM investigation_nodes WHERE id=$1', [req.body.id]);
                 await pusher.trigger('investigation-board', 'node-deleted', req.body);
