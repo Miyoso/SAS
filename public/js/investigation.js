@@ -1,17 +1,14 @@
-/* public/js/investigation.js */
-
 let activeItem = null;
 let isPanning = false;
-
 let dragOffsetX, dragOffsetY;
-
 let panX = 0, panY = 0;
 let startPanX, startPanY;
-
 let linksData = [];
 let isLinking = false;
 let linkStartId = null;
 let currentLinkColor = '#ff3333';
+let currentBoardId = null;
+let currentScale = 1;
 
 function getAuthHeaders() {
     const token = localStorage.getItem('sas_token');
@@ -22,8 +19,9 @@ function getAuthHeaders() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadBoardData();
     setupPanning();
+    loadBoardsList();
+
     if (typeof Pusher !== 'undefined') {
         initRealtimeBoard();
     }
@@ -37,6 +35,7 @@ function initRealtimeBoard() {
     const channel = pusher.subscribe('investigation-board');
 
     channel.bind('node-created', (node) => {
+        if (node.board_id != currentBoardId) return;
         if (!document.getElementById(`node-${node.id}`)) {
             renderNode(node);
         }
@@ -77,11 +76,66 @@ function initRealtimeBoard() {
     });
 }
 
-async function loadBoardData() {
-    const world = document.getElementById('board-world');
+function toggleSidebar() {
+    document.getElementById('case-sidebar').classList.toggle('open');
+}
 
-    const existingItems = document.querySelectorAll('.board-item');
-    existingItems.forEach(e => e.remove());
+async function loadBoardsList() {
+    try {
+        const res = await fetch('/api/game?entity=boards', { headers: getAuthHeaders() });
+        const boards = await res.json();
+
+        const container = document.getElementById('case-list');
+        container.innerHTML = '';
+
+        if(boards.length === 0) {
+            container.innerHTML = '<div style="padding:10px; color:#666">Aucun dossier. Créez-en un.</div>';
+            return;
+        }
+
+        if (!currentBoardId && boards.length > 0) {
+            selectBoard(boards[0].id);
+        }
+
+        boards.forEach(b => {
+            const div = document.createElement('div');
+            div.className = `case-item ${b.id === currentBoardId ? 'active' : ''}`;
+            div.onclick = () => selectBoard(b.id);
+            div.innerHTML = `
+                <div class="case-title">📁 ${b.title}</div>
+                <div class="case-date">REF: ${b.id} // ${new Date(b.created_at).toLocaleDateString()}</div>
+            `;
+            container.appendChild(div);
+        });
+    } catch(e) { console.error(e); }
+}
+
+async function createNewBoard() {
+    const title = document.getElementById('new-case-title').value;
+    if(!title) return;
+
+    await fetch('/api/game?entity=boards', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ title })
+    });
+
+    document.getElementById('new-case-title').value = '';
+    loadBoardsList();
+}
+
+function selectBoard(id) {
+    currentBoardId = id;
+    document.querySelectorAll('.case-item').forEach(el => el.classList.remove('active'));
+    loadBoardsList();
+    loadBoardData();
+}
+
+async function loadBoardData() {
+    if(!currentBoardId) return;
+
+    const world = document.getElementById('board-world');
+    document.querySelectorAll('.board-item').forEach(e => e.remove());
 
     let svg = document.getElementById('connections-layer');
     if (!svg) {
@@ -89,10 +143,10 @@ async function loadBoardData() {
         svg.id = "connections-layer";
         world.appendChild(svg);
     }
+    svg.innerHTML = '';
 
     try {
-        // MODIFICATION : Appel API consolidé
-        const res = await fetch('/api/game?entity=investigation', {
+        const res = await fetch(`/api/game?entity=investigation&board_id=${currentBoardId}`, {
             method: 'GET',
             headers: getAuthHeaders()
         });
@@ -105,7 +159,6 @@ async function loadBoardData() {
         if (!res.ok) throw new Error("Erreur serveur");
 
         const data = await res.json();
-
         linksData = data.links || [];
 
         if (data.nodes) {
@@ -184,11 +237,19 @@ function setupPanning() {
         isPanning = false;
         viewport.style.cursor = 'grab';
     });
+
+    viewport.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        const newScale = Math.min(Math.max(0.2, currentScale + delta), 2);
+        currentScale = newScale;
+        updateWorldTransform();
+    }, { passive: false });
 }
 
 function updateWorldTransform() {
     const world = document.getElementById('board-world');
-    world.style.transform = `translate(${panX}px, ${panY}px)`;
+    world.style.transform = `translate(${panX}px, ${panY}px) scale(${currentScale})`;
 }
 
 function handleNodeClick(e) {
@@ -213,8 +274,10 @@ function handleNodeClick(e) {
     activeItem = e.currentTarget;
 
     const rect = activeItem.getBoundingClientRect();
-    dragOffsetX = e.clientX - rect.left;
-    dragOffsetY = e.clientY - rect.top;
+
+    const scale = currentScale;
+    dragOffsetX = (e.clientX - rect.left) / scale;
+    dragOffsetY = (e.clientY - rect.top) / scale;
 
     document.addEventListener("mouseup", itemDragEnd);
     document.addEventListener("mousemove", itemDrag);
@@ -224,8 +287,14 @@ function itemDrag(e) {
     if (activeItem) {
         e.preventDefault();
 
-        const newX = e.clientX - panX - dragOffsetX;
-        const newY = e.clientY - panY - dragOffsetY;
+        const scale = currentScale;
+        const containerRect = document.getElementById('board-world').getBoundingClientRect();
+
+        const mouseX = (e.clientX - containerRect.left) / scale;
+        const mouseY = (e.clientY - containerRect.top) / scale;
+
+        const newX = mouseX - dragOffsetX;
+        const newY = mouseY - dragOffsetY;
 
         activeItem.style.left = newX + 'px';
         activeItem.style.top = newY + 'px';
@@ -241,7 +310,6 @@ async function itemDragEnd() {
         const y = parseInt(activeItem.style.top);
 
         try {
-            // MODIFICATION : Appel API consolidé
             await fetch('/api/game?entity=investigation', {
                 method: 'PUT',
                 headers: getAuthHeaders(),
@@ -295,12 +363,12 @@ async function createLink(fromId, toId) {
     drawLines();
 
     try {
-        // MODIFICATION : Appel API consolidé
         const res = await fetch('/api/game?entity=investigation', {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({
                 action: 'create_link',
+                board_id: currentBoardId,
                 from_id: fromId,
                 to_id: toId,
                 color: currentLinkColor
@@ -328,14 +396,20 @@ function drawLines() {
             const x2 = parseInt(el2.style.left) + el2.offsetWidth / 2;
             const y2 = parseInt(el2.style.top) + el2.offsetHeight / 2;
 
-            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            line.setAttribute('x1', x1); line.setAttribute('y1', y1);
-            line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+            const dist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            const curveAmount = Math.min(100, dist * 0.2);
 
-            line.classList.add('connection-line');
-            line.style.stroke = link.color || '#ff3333';
+            const cx = (x1 + x2) / 2;
+            const cy = (y1 + y2) / 2 + curveAmount;
 
-            svg.appendChild(line);
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`);
+
+            path.classList.add('connection-line');
+            path.style.stroke = link.color || '#ff3333';
+            path.style.fill = 'none';
+
+            svg.appendChild(path);
         }
     });
 }
@@ -366,11 +440,12 @@ window.confirmCreateNode = async function() {
     const sub = document.getElementById('inp-sub').value;
     const img = document.getElementById('inp-img').value;
 
-    const centerX = (window.innerWidth / 2) - panX - 90;
-    const centerY = (window.innerHeight / 2) - panY - 100;
+    const centerX = (window.innerWidth / 2 - panX - 90 * currentScale) / currentScale;
+    const centerY = (window.innerHeight / 2 - panY - 100 * currentScale) / currentScale;
 
     const payload = {
         action: 'create_node',
+        board_id: currentBoardId,
         type: currentModalType,
         label: label.toUpperCase(),
         sub_label: sub ? sub.toUpperCase() : '',
@@ -380,7 +455,6 @@ window.confirmCreateNode = async function() {
     };
 
     try {
-        // MODIFICATION : Appel API consolidé
         const res = await fetch('/api/game?entity=investigation', {
             method: 'POST',
             headers: getAuthHeaders(),
@@ -403,7 +477,6 @@ window.deleteNode = async function(id, event) {
     event.stopPropagation();
     if(confirm("SUPPRIMER DÉFINITIVEMENT CE DOSSIER ?")) {
         try {
-            // MODIFICATION : Appel API consolidé
             const res = await fetch('/api/game?entity=investigation', {
                 method: 'DELETE',
                 headers: getAuthHeaders(),
