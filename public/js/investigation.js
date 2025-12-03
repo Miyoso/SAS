@@ -78,11 +78,24 @@ function initRealtimeBoard() {
     });
 
     channel.bind('link-created', (link) => {
-        const exists = linksData.find(l => l.from_id == link.from_id && l.to_id == link.to_id);
-        if (!exists) {
+        if (!linksData.find(l => l.id == link.id)) {
             linksData.push(link);
             drawLines();
         }
+    });
+
+    channel.bind('link-updated', (updatedLink) => {
+        const index = linksData.findIndex(l => l.id == updatedLink.id);
+        if (index !== -1) {
+            linksData[index].label = updatedLink.label;
+            linksData[index].color = updatedLink.color;
+            drawLines();
+        }
+    });
+
+    channel.bind('link-deleted', (data) => {
+        linksData = linksData.filter(l => l.id != data.id);
+        drawLines();
     });
 }
 
@@ -401,9 +414,6 @@ function resetLinkMode() {
 async function createLink(fromId, toId) {
     const label = prompt("Label du lien (ex: TUEUR DE) ?", "") || "";
 
-    linksData.push({ from_id: parseInt(fromId), to_id: parseInt(toId), color: currentLinkColor, label: label });
-    drawLines();
-
     try {
         const res = await fetch('/api/game?entity=investigation', {
             method: 'POST',
@@ -411,15 +421,24 @@ async function createLink(fromId, toId) {
             body: JSON.stringify({
                 action: 'create_link',
                 board_id: currentBoardId,
-                from_id: fromId,
-                to_id: toId,
+                from_id: parseInt(fromId),
+                to_id: parseInt(toId),
                 color: currentLinkColor,
                 label: label
             })
         });
 
-        if(!res.ok) throw new Error("Erreur serveur");
-
+        if(res.ok) {
+            const data = await res.json();
+            linksData.push({
+                id: data.id,
+                from_id: parseInt(fromId),
+                to_id: parseInt(toId),
+                color: currentLinkColor,
+                label: label
+            });
+            drawLines();
+        }
     } catch(e) {
         alert("Impossible de créer le lien");
     }
@@ -445,7 +464,7 @@ function drawLines() {
             const cx = (x1 + x2) / 2;
             const cy = (y1 + y2) / 2 + curveAmount;
 
-            const pathId = `link-path-${index}`;
+            const pathId = `link-path-${link.id || index}`;
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('d', `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`);
             path.setAttribute('id', pathId);
@@ -453,12 +472,60 @@ function drawLines() {
             path.classList.add('connection-line');
             path.style.stroke = link.color || '#ff3333';
 
+            path.style.pointerEvents = 'stroke';
+            path.style.cursor = 'pointer';
+            path.setAttribute('stroke-width', '4');
+
+            path.addEventListener('contextmenu', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (confirm(`MODIFIER ce lien ?\n\nOK = Modifier Label/Couleur\nANNULER = Supprimer le lien`)) {
+                    const newLabel = prompt("Nouveau Label :", link.label);
+                    if (newLabel === null) return;
+
+                    const newColor = currentLinkColor;
+
+                    try {
+                        await fetch('/api/game?entity=investigation', {
+                            method: 'PUT',
+                            headers: getAuthHeaders(),
+                            body: JSON.stringify({
+                                action: 'update_link',
+                                id: link.id,
+                                from_id: link.from_id,
+                                to_id: link.to_id,
+                                label: newLabel,
+                                color: newColor
+                            })
+                        });
+                    } catch(err) { console.error(err); }
+
+                } else {
+                    if (confirm("Confirmer la SUPPRESSION définitive du lien ?")) {
+                        try {
+                            await fetch('/api/game?entity=investigation', {
+                                method: 'DELETE',
+                                headers: getAuthHeaders(),
+                                body: JSON.stringify({ id: link.id, type: 'link' })
+                            });
+                        } catch(err) { console.error(err); }
+                    }
+                }
+            });
+
             svg.appendChild(path);
 
             if (link.label) {
                 const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                 text.classList.add('link-label');
                 text.setAttribute('dy', '-5');
+                text.style.pointerEvents = 'all';
+                text.style.cursor = 'pointer';
+
+                text.addEventListener('contextmenu', (e) => {
+                    path.dispatchEvent(new MouseEvent('contextmenu', e));
+                });
 
                 const textPath = document.createElementNS('http://www.w3.org/2000/svg', 'textPath');
                 textPath.setAttribute('href', `#${pathId}`);
