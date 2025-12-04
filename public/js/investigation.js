@@ -633,7 +633,9 @@ window.confirmCreateNode = async function() {
         });
         if (res.ok) {
             const newNode = await res.json();
-            renderNode(newNode);
+            if (!document.getElementById(`node-${newNode.id}`)) {
+                renderNode(newNode);
+            }
             closeModal();
         } else alert("Erreur lors de la création.");
     } catch(e) { alert("Erreur réseau."); }
