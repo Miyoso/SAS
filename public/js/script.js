@@ -8,6 +8,7 @@ const pRank = document.getElementById('p-rank');
 const connStatus = document.getElementById('conn-status');
 const promptSpan = document.querySelector('.prompt');
 let currentUser = null;
+
 const avatarMap = {
     'adam': 'Adam.jpg',
     'blake': 'Blake.png',
@@ -24,6 +25,7 @@ const avatarMap = {
     'nyx': 'LoveLace.jpg',
     'roxanne': 'Roxanne.jpg'
 };
+
 function switchView(viewName) {
     if (viewName === 'profile') {
         if(dashboardView) dashboardView.classList.add('hidden');
@@ -34,6 +36,37 @@ function switchView(viewName) {
     }
 }
 window.switchView = switchView;
+
+function logout() {
+    currentUser = null;
+    localStorage.removeItem('sas_session');
+    localStorage.removeItem('userSecurityLevel');
+    localStorage.removeItem('sas_token');
+
+    if (dashboardView) switchView('dashboard');
+
+    if(connStatus) {
+        connStatus.textContent = "DISCONNECTED";
+        connStatus.style.color = "var(--accent-danger)";
+    }
+    if(promptSpan) promptSpan.textContent = "guest@sas-node:~#";
+
+    addToHistory("System logout completed.", 'info');
+    // Redirection vers l'accueil pour éviter de rester sur une page protégée
+    window.location.href = '/index.html';
+}
+window.logout = logout;
+
+// Délégation d'événement pour gérer le clic sur le bouton déconnexion dynamique
+document.addEventListener('click', function(e) {
+    const target = e.target.closest('.log-entry');
+    // On détecte le bouton qui contient le texte de déconnexion ou l'attribut onclick logout
+    if (target && (target.textContent.includes('DÉCONNEXION') || target.getAttribute('onclick') === 'logout()')) {
+        e.preventDefault();
+        logout();
+    }
+});
+
 document.addEventListener('keydown', function(event) {
     if (event.key === 'F9' && terminal && input) {
         event.preventDefault();
@@ -46,6 +79,7 @@ document.addEventListener('keydown', function(event) {
         }
     }
 });
+
 if (input) {
     input.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
@@ -59,6 +93,7 @@ if (input) {
         }
     });
 }
+
 function addToHistory(text, type) {
     if (!historyDiv) return;
     const line = document.createElement('div');
@@ -69,18 +104,22 @@ function addToHistory(text, type) {
     line.textContent = text;
     historyDiv.appendChild(line);
 }
+
 function scrollToBottom() {
     if (historyDiv) {
         historyDiv.scrollTop = historyDiv.scrollHeight;
     }
 }
+
 function unlockInterface(agent) {
     const miniUsername = document.getElementById('mini-username');
     const miniRank = document.getElementById('mini-rank');
     if(miniUsername) miniUsername.textContent = agent.username.toUpperCase();
     if(miniRank) miniRank.textContent = `LVL-${agent.rank}`;
+
     const sideUsername = document.getElementById('sidebar-username');
     if(sideUsername) sideUsername.textContent = agent.username.toUpperCase();
+
     const sideRank = document.getElementById('sidebar-rank');
     if(sideRank) {
         sideRank.textContent = `LVL-${agent.rank}`;
@@ -89,6 +128,7 @@ function unlockInterface(agent) {
         else sideRank.style.color = "var(--accent-warning)";
         sideRank.style.borderColor = sideRank.style.color;
     }
+
     const sideAvatar = document.getElementById('sidebar-avatar');
     if(sideAvatar) {
         const lowerName = agent.username.toLowerCase();
@@ -98,34 +138,24 @@ function unlockInterface(agent) {
             sideAvatar.src = 'assets/default.jpg';
         }
     }
+
     if(pUsername) pUsername.textContent = agent.username.toUpperCase();
     if(pRank) pRank.textContent = agent.rank;
+
     localStorage.setItem('userSecurityLevel', agent.rank);
+
     if(connStatus) {
         connStatus.textContent = "CONNECTED";
         connStatus.style.color = "var(--accent-primary)";
     }
     if(promptSpan) promptSpan.textContent = `${agent.username}@sas-mainframe:~#`;
 }
-function logout() {
-    currentUser = null;
-    localStorage.removeItem('sas_session');
-    localStorage.removeItem('userSecurityLevel');
-    localStorage.removeItem('sas_token');
-    switchView('dashboard');
-    if(connStatus) {
-        connStatus.textContent = "DISCONNECTED";
-        connStatus.style.color = "var(--accent-danger)";
-    }
-    if(promptSpan) promptSpan.textContent = "guest@sas-node:~#";
-    addToHistory("System logout completed.", 'info');
-    window.location.reload();
-}
-window.logout = logout;
+
 async function processCommand(cmd) {
     const parts = cmd.trim().split(" ");
     const command = parts[0].toLowerCase();
     const args = parts.slice(1);
+
     if (command === '/login') {
         if (args.length < 2) {
             addToHistory("USAGE: /login [username] [password]", 'error');
@@ -147,6 +177,8 @@ async function processCommand(cmd) {
                 localStorage.setItem('sas_session', JSON.stringify(currentUser));
                 addToHistory(`ACCESS GRANTED. WELCOME ${currentUser.username}.`, 'info');
                 unlockInterface(currentUser);
+                // Rafraîchir la page après 1 seconde pour mettre à jour l'interface
+                setTimeout(() => window.location.reload(), 1000);
             } else {
                 addToHistory(`ERROR: ${data.error}`, 'error');
             }
@@ -155,6 +187,7 @@ async function processCommand(cmd) {
         }
         return;
     }
+
     if (command === '/register') {
         if (args.length < 2) {
             addToHistory("USAGE: /register [username] [password]", 'error');
@@ -180,6 +213,7 @@ async function processCommand(cmd) {
         }
         return;
     }
+
     if (command === '/help') {
         addToHistory("AVAILABLE COMMANDS:", 'info');
         addToHistory("  /login [user] [pass]", 'system');
@@ -198,9 +232,11 @@ async function processCommand(cmd) {
         addToHistory(`bash: ${cmd}: command not found`, 'error');
     }
 }
+
 async function loadComponents() {
     restoreSession();
 }
+
 async function restoreSession() {
     const token = localStorage.getItem('sas_token');
     if (token) {
@@ -215,6 +251,8 @@ async function restoreSession() {
                 unlockInterface(currentUser);
                 addToHistory(`SESSION VERIFIED. RANK UPDATED: ${currentUser.rank}`, 'info');
             } else {
+                // Token invalide, on déconnecte proprement
+                localStorage.removeItem('sas_token');
                 logout();
             }
         } catch (e) {
@@ -222,6 +260,7 @@ async function restoreSession() {
         }
     }
 }
+
 document.addEventListener('DOMContentLoaded', () => {
     loadComponents();
 });
