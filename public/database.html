@@ -187,7 +187,6 @@
         .hud-label { font-size: 0.65rem; color: #667788; letter-spacing: 1px; }
         .hud-value { font-size: 0.9rem; color: #fff; font-family: 'JetBrains Mono'; }
 
-        /* Style du bouton retour index */
         .btn-return {
             display: inline-flex;
             align-items: center;
@@ -202,6 +201,12 @@
             letter-spacing: 1px;
             transition: all 0.3s ease;
             clip-path: polygon(0 0, 100% 0, 100% 70%, 95% 100%, 0 100%);
+
+            /* --- CORRECTION ESSENTIELLE --- */
+            position: relative; /* Permet au z-index de fonctionner */
+            z-index: 10000;     /* Place le bouton au-dessus des effets d'écran/scanlines */
+            cursor: pointer;    /* Force le curseur main */
+            pointer-events: auto; /* Force la réactivité aux clics */
         }
 
         .btn-return:hover {
