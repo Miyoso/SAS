@@ -187,6 +187,37 @@
         .hud-label { font-size: 0.65rem; color: #667788; letter-spacing: 1px; }
         .hud-value { font-size: 0.9rem; color: #fff; font-family: 'JetBrains Mono'; }
 
+        /* Style du bouton retour index */
+        .btn-return {
+            display: inline-flex;
+            align-items: center;
+            margin-top: 15px;
+            padding: 8px 16px;
+            background: rgba(0, 255, 157, 0.05);
+            border: 1px solid rgba(0, 255, 157, 0.4);
+            color: rgba(0, 255, 157, 0.8);
+            text-decoration: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            clip-path: polygon(0 0, 100% 0, 100% 70%, 95% 100%, 0 100%);
+        }
+
+        .btn-return:hover {
+            background: rgba(0, 255, 157, 0.2);
+            border-color: #00ff9d;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
+            transform: translateX(5px);
+        }
+
+        .btn-return::before {
+            content: '<';
+            margin-right: 8px;
+            font-weight: bold;
+        }
+
     </style>
 </head>
 <body>
@@ -211,7 +242,9 @@
     <div class="screen-header">
         <div class="screen-title">SHADOW // NET</div>
         <div class="screen-subtitle">PERSONNEL DATABASE V.4.0</div>
-    </div>
+
+        <a href="index.html" class="btn-return">RETOUR</a>
+        </div>
 
     <div id="user-hud" class="user-hud" style="display: none;">
         <div class="hud-block">
