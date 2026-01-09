@@ -7,14 +7,13 @@
     
     <script>
         const session = localStorage.getItem('sas_session');
-        
+        if (!session) window.location.href = '/index.html'; // Sécurité : Redirection si pas connecté
     </script>
 
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style-mo.css">
 
     <style>
-        
         body {
             background-color: #020406;
             color: #eee;
@@ -24,24 +23,21 @@
             margin: 0;
         }
 
-
         .tactical-grid {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
+            background-image:
                 linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
             background-size: 40px 40px;
             z-index: -10;
-            mask-image: radial-gradient(circleAt center, black 40%, transparent 90%);
+            mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
         }
-
 
         .vignette {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at 50% 50%, transparent 50%, #000 100%);
             z-index: -5; pointer-events: none;
         }
-
 
         .radar-scan {
             position: fixed; top: 0; left: 0; width: 100%; height: 5px;
@@ -51,7 +47,6 @@
             z-index: -4; opacity: 0.3;
         }
         @keyframes scanScreen { 0% {top: -10%;} 100% {top: 110%;} }
-
 
         .hud-side {
             position: fixed; top: 100px; bottom: 50px; width: 60px;
@@ -70,10 +65,9 @@
             opacity: 0.6;
         }
         .hud-ruler {
-            height: 100px; width: 4px; 
+            height: 100px; width: 4px;
             background: repeating-linear-gradient(to bottom, #334455 0, #334455 1px, transparent 2px, transparent 10px);
         }
-
 
         .hierarchy-wrapper {
             display: flex; flex-direction: column; align-items: center;
@@ -81,9 +75,9 @@
             position: relative; z-index: 5;
             min-width: 1000px;
             animation: fadeIn 1s ease-out;
+            margin-left: 80px; /* Espace pour la sidebar */
         }
         @keyframes fadeIn { from {opacity:0; transform: scale(0.95);} to {opacity:1; transform: scale(1);} }
-
 
         .node-card {
             background: rgba(10, 14, 18, 0.85);
@@ -97,7 +91,6 @@
             clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
             overflow: hidden;
         }
-
 
         .node-card::after {
             content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
@@ -115,22 +108,19 @@
             z-index: 10;
         }
 
-
         .node-role { font-size: 0.65rem; color: #667788; margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
         .node-role::before { content:''; width: 4px; height: 4px; background: currentColor; }
-        
-        .node-name { font-family: 'JetBrains Mono'; font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 12px; letter-spacing: 1px; }
-        
-        .node-footer { 
-            display: flex; justify-content: space-between; align-items: center; 
-            border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; font-size: 0.65rem; color: #8899aa; 
-        }
 
+        .node-name { font-family: 'JetBrains Mono'; font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 12px; letter-spacing: 1px; }
+
+        .node-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; font-size: 0.65rem; color: #8899aa;
+        }
 
         .rank-director { border-left: 3px solid #D40000FF; width: 320px; }
         .rank-director .node-role { color: #D40000FF; }
         .rank-director:hover { box-shadow: 0 0 30px rgba(212, 175, 55, 0.15); border-color: #d40000; }
-
 
         .rank-lt { border-left: 3px solid #ccc; width: 280px; }
         .rank-lt:hover { border-color: #fff; }
@@ -138,14 +128,11 @@
         .lt-jackal { border-left-color: #FFD633FF; } .lt-jackal .node-role { color: #ffd633; }
         .slt-rouge { border-left-color: #d40000; }  .slt-rouge .node-role { color: #d40000; }
 
-
         .rank-soldier { border-left: 3px solid #445566; width: 220px; opacity: 0.85; }
         .rank-soldier:hover { opacity: 1; border-left-color: var(--primary); border-color: var(--primary); }
         .rank-soldier:hover .node-name { color: var(--primary); }
 
-
         .line { position: absolute; background: #334455; z-index: -1; opacity: 0.5; }
-
         .line::before {
             content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(90deg, transparent, #fff, transparent);
@@ -154,24 +141,19 @@
         .line-v::before { background: linear-gradient(180deg, transparent, #fff, transparent); }
         @keyframes dataFlow { 0% {opacity:0;} 50% {opacity:0.5;} 100% {opacity:0;} }
 
-
         .level-1 { margin-bottom: 70px; position: relative; display: flex; justify-content: center; }
         .stem-1 { width: 1px; height: 35px; bottom: -35px; left: 50%; background: #d4af37; }
 
         .level-2-wrapper { margin-bottom: 70px; display: flex; gap: 120px; justify-content: center; position: relative; }
         .bridge { height: 1px; top: -35px; left: 140px; right: 140px; background: linear-gradient(90deg, #ff3333, #ccc, #00f3ff); }
         .stem-lt { width: 1px; height: 35px; top: -35px; left: 50%; background: #ccc; }
-        
+
         .level-3-grid { display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; max-width: 1200px; position: relative; padding-top: 40px; }
         .stem-main-soldier { width: 1px; height: 40px; top: 0; left: 50%; background: linear-gradient(180deg, #ccc, #334455); }
         .bar-soldier { height: 1px; width: 85%; top: 20px; left: 7.5%; background: #334455; }
         .stem-small { width: 1px; height: 20px; top: -20px; left: 50%; background: #334455; }
 
-
-        .screen-header {
-            position: absolute; top: 30px; left: 40px;
-            font-family: 'JetBrains Mono';
-        }
+        .screen-header { position: absolute; top: 30px; left: 40px; font-family: 'JetBrains Mono'; }
         .screen-title { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
         .screen-subtitle { color: var(--danger); font-size: 0.7rem; letter-spacing: 3px; margin-top: 5px; }
 
@@ -187,6 +169,17 @@
         .hud-label { font-size: 0.65rem; color: #667788; letter-spacing: 1px; }
         .hud-value { font-size: 0.9rem; color: #fff; font-family: 'JetBrains Mono'; }
 
+        /* BOUTON RETOUR STYLE SAS */
+        .sas-back-btn {
+            position: fixed; top: 20px; right: 280px; /* Ajusté pour ne pas chevaucher le HUD */
+            z-index: 9999;
+            font-family: 'Courier New', monospace; font-weight: bold; font-size: 1rem;
+            text-decoration: none; text-transform: uppercase; letter-spacing: 1px;
+            color: #33ff33; border: 1px solid #33ff33; background-color: rgba(0, 10, 0, 0.85);
+            padding: 10px 20px; transition: all 0.3s ease; backdrop-filter: blur(4px);
+            box-shadow: 0 0 15px rgba(51, 255, 51, 0.1);
+        }
+        .sas-back-btn:hover { background-color: #33ff33; color: #000; box-shadow: 0 0 20px rgba(51, 255, 51, 0.6); cursor: pointer; }
     </style>
 </head>
 <body>
@@ -194,6 +187,12 @@
     <div class="tactical-grid"></div>
     <div class="vignette"></div>
     <div class="radar-scan"></div>
+
+    <a href="/index.html" class="sas-back-btn">
+        [ &lt;&lt; RETOUR_DASHBOARD ]
+    </a>
+
+    <div id="sidebar-placeholder"></div>
 
     <div class="hud-side hud-left">
         <div class="hud-ruler"></div>
@@ -316,22 +315,35 @@
                 <div class="node-footer"><span>ADVISOR</span> <span>●</span></div>
             </a>
         </div>
-
-        <div id="sidebar-placeholder"></div>
-
     </div>
 
+    <script src="js/script.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // 1. Gestion de la session et du HUD
             const sessionRaw = localStorage.getItem('sas_session');
             if (sessionRaw) {
                 try {
                     const currentUser = JSON.parse(sessionRaw);
-                    document.getElementById('hud-username').textContent = currentUser.username;
+                    document.getElementById('hud-username').textContent = currentUser.username.toUpperCase();
                     document.getElementById('hud-rank').textContent = 'LVL ' + currentUser.rank;
                     document.getElementById('user-hud').style.display = 'flex';
                 } catch(e) {}
             }
+
+            // 2. Chargement de la Sidebar
+            fetch('components/sidebar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('sidebar-placeholder').innerHTML = data;
+
+                    // Si unlockInterface existe dans script.js, on l'appelle pour mettre à jour la sidebar
+                    if(typeof unlockInterface === 'function' && sessionRaw) {
+                        const agent = JSON.parse(sessionRaw);
+                        unlockInterface(agent);
+                    }
+                })
+                .catch(err => console.error("Erreur chargement sidebar:", err));
         });
     </script>
 </body>
