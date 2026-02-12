@@ -1,6 +1,4 @@
 const terminal = document.getElementById('terminal-console');
-const input = document.getElementById('cmd-input');
-const historyDiv = document.getElementById('terminal-history');
 const dashboardView = document.getElementById('dashboard-view');
 const profileView = document.getElementById('profile-view');
 const pUsername = document.getElementById('p-username');
@@ -51,16 +49,12 @@ function logout() {
     }
     if(promptSpan) promptSpan.textContent = "guest@sas-node:~#";
 
-    addToHistory("System logout completed.", 'info');
-    // Redirection vers l'accueil pour éviter de rester sur une page protégée
     window.location.href = '/index.html';
 }
 window.logout = logout;
 
-// Délégation d'événement pour gérer le clic sur le bouton déconnexion dynamique
 document.addEventListener('click', function(e) {
     const target = e.target.closest('.log-entry');
-    // On détecte le bouton qui contient le texte de déconnexion ou l'attribut onclick logout
     if (target && (target.textContent.includes('DÉCONNEXION') || target.getAttribute('onclick') === 'logout()')) {
         e.preventDefault();
         logout();
@@ -68,46 +62,54 @@ document.addEventListener('click', function(e) {
 });
 
 document.addEventListener('keydown', function(event) {
-    if (event.key === 'F9' && terminal && input) {
+    if (event.key === 'F9' && terminal) {
         event.preventDefault();
         terminal.classList.toggle('open');
-        if (terminal.classList.contains('open')) {
-            setTimeout(() => input.focus(), 100);
-            scrollToBottom();
-        } else {
-            input.blur();
-        }
     }
 });
 
-if (input) {
-    input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            const command = input.value.trim();
-            if (command !== "") {
-                addToHistory(command, 'user');
-                processCommand(command);
-                input.value = "";
-                scrollToBottom();
-            }
+async function handleLogin() {
+    const userField = document.getElementById('login-username');
+    const passField = document.getElementById('login-password');
+    const msgDiv = document.getElementById('login-msg');
+    
+    const username = userField.value.trim();
+    const password = passField.value.trim();
+
+    if (!username || !password) {
+        msgDiv.textContent = "ERREUR: CHAMPS INCOMPLETS";
+        msgDiv.className = "term-line term-error";
+        return;
+    }
+
+    msgDiv.textContent = "VÉRIFICATION DES ACCRÉDITATIONS...";
+    msgDiv.className = "term-line term-info";
+
+    try {
+        const response = await fetch('/api/auth?action=login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+
+        if (response.ok) {
+            msgDiv.textContent = "ACCÈS ACCORDÉ. BIENVENUE AGENT.";
+            msgDiv.style.color = "var(--accent-primary)";
+            
+            currentUser = data.agent;
+            localStorage.setItem('sas_token', data.token);
+            localStorage.setItem('sas_session', JSON.stringify(currentUser));
+            
+            setTimeout(() => window.location.reload(), 800);
+        } else {
+            msgDiv.textContent = `ÉCHEC: ${data.error.toUpperCase()}`;
+            msgDiv.className = "term-line term-error";
         }
-    });
-}
-
-function addToHistory(text, type) {
-    if (!historyDiv) return;
-    const line = document.createElement('div');
-    line.classList.add('term-line');
-    if(type === 'user') line.classList.add('term-user');
-    if(type === 'error') line.classList.add('term-error');
-    if(type === 'info') line.classList.add('term-info');
-    line.textContent = text;
-    historyDiv.appendChild(line);
-}
-
-function scrollToBottom() {
-    if (historyDiv) {
-        historyDiv.scrollTop = historyDiv.scrollHeight;
+    } catch (err) {
+        msgDiv.textContent = "ERREUR FATALE: SERVEUR INJOIGNABLE";
+        msgDiv.className = "term-line term-error";
     }
 }
 
@@ -116,18 +118,6 @@ function unlockInterface(agent) {
     const miniRank = document.getElementById('mini-rank');
     if(miniUsername) miniUsername.textContent = agent.username.toUpperCase();
     if(miniRank) miniRank.textContent = `LVL-${agent.rank}`;
-
-    const sideUsername = document.getElementById('sidebar-username');
-    if(sideUsername) sideUsername.textContent = agent.username.toUpperCase();
-
-    const sideRank = document.getElementById('sidebar-rank');
-    if(sideRank) {
-        sideRank.textContent = `LVL-${agent.rank}`;
-        if(agent.rank >= 10) sideRank.style.color = "var(--accent-danger)";
-        else if(agent.rank >= 5) sideRank.style.color = "var(--accent-warning)";
-        else sideRank.style.color = "var(--accent-warning)";
-        sideRank.style.borderColor = sideRank.style.color;
-    }
 
     const sideAvatar = document.getElementById('sidebar-avatar');
     if(sideAvatar) {
@@ -148,89 +138,6 @@ function unlockInterface(agent) {
         connStatus.textContent = "CONNECTED";
         connStatus.style.color = "var(--accent-primary)";
     }
-    if(promptSpan) promptSpan.textContent = `${agent.username}@sas-mainframe:~#`;
-}
-
-async function processCommand(cmd) {
-    const parts = cmd.trim().split(" ");
-    const command = parts[0].toLowerCase();
-    const args = parts.slice(1);
-
-    if (command === '/login') {
-        if (args.length < 2) {
-            addToHistory("USAGE: /login [username] [password]", 'error');
-            return;
-        }
-        const username = args[0];
-        const password = args[1];
-        addToHistory("VERIFYING CREDENTIALS...", 'info');
-        try {
-            const response = await fetch('/api/auth?action=login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const data = await response.json();
-            if (response.ok) {
-                currentUser = data.agent;
-                localStorage.setItem('sas_token', data.token);
-                localStorage.setItem('sas_session', JSON.stringify(currentUser));
-                addToHistory(`ACCESS GRANTED. WELCOME ${currentUser.username}.`, 'info');
-                unlockInterface(currentUser);
-                // Rafraîchir la page après 1 seconde pour mettre à jour l'interface
-                setTimeout(() => window.location.reload(), 1000);
-            } else {
-                addToHistory(`ERROR: ${data.error}`, 'error');
-            }
-        } catch (err) {
-            addToHistory("FATAL ERROR: Connection failed.", 'error');
-        }
-        return;
-    }
-
-    if (command === '/register') {
-        if (args.length < 2) {
-            addToHistory("USAGE: /register [username] [password]", 'error');
-            return;
-        }
-        const username = args[0];
-        const password = args[1];
-        addToHistory("CREATING NEW IDENTITY...", 'info');
-        try {
-            const response = await fetch('/api/auth?action=signup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const data = await response.json();
-            if (response.ok) {
-                addToHistory(`SUCCESS: Identity created for ${data.agent.username}. You can now /login.`, 'info');
-            } else {
-                addToHistory(`ERROR: ${data.error}`, 'error');
-            }
-        } catch (err) {
-            addToHistory("FATAL ERROR: Connection failed.", 'error');
-        }
-        return;
-    }
-
-    if (command === '/help') {
-        addToHistory("AVAILABLE COMMANDS:", 'info');
-        addToHistory("  /login [user] [pass]", 'system');
-        addToHistory("  /register [user] [pass]", 'system');
-        addToHistory("  /clear", 'system');
-        addToHistory("  /logout", 'system');
-    }
-    else if (command === '/clear') {
-        if(historyDiv) historyDiv.innerHTML = "";
-        addToHistory("Console cleared.", 'info');
-    }
-    else if (command === '/logout') {
-        logout();
-    }
-    else {
-        addToHistory(`bash: ${cmd}: command not found`, 'error');
-    }
 }
 
 async function loadComponents() {
@@ -249,9 +156,7 @@ async function restoreSession() {
                 currentUser = data.agent;
                 localStorage.setItem('sas_session', JSON.stringify(currentUser));
                 unlockInterface(currentUser);
-                addToHistory(`SESSION VERIFIED. RANK UPDATED: ${currentUser.rank}`, 'info');
             } else {
-                // Token invalide, on déconnecte proprement
                 localStorage.removeItem('sas_token');
                 logout();
             }
@@ -260,6 +165,15 @@ async function restoreSession() {
         }
     }
 }
+
+document.addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        const term = document.getElementById('terminal-console');
+        if (term && term.classList.contains('open')) {
+            handleLogin();
+        }
+    }
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     loadComponents();

@@ -134,7 +134,6 @@
                     <div class="xp-bar-fill"></div>
                 </div>
                 <div class="user-main-info">
-
                     <a href="profile.html" class="profile-link">[ VOIR PROFIL COMPLET ]</a>
                 </div>
                 <div class="sidebar-logs">
@@ -177,15 +176,24 @@
     </div>
 </div>
 <div id="terminal-console" class="terminal-console">
-    <div id="terminal-history" class="terminal-history">
-        <div class="term-line term-info">SAS Mainframe [Version 4.0.2]</div>
-        <div class="term-line term-info">(c) SAS 2025. All rights reserved.</div>
-        <div class="term-line">System ready. Type '/help' for a list of commands.</div>
-        <br>
+    <div class="terminal-header" style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--accent-primary)">
+        <span>> SECURE_AUTH_GATE</span>
+        <button onclick="toggleTerminal()" style="background:none; border:none; color:var(--accent-primary); cursor:pointer;">[ X ]</button>
     </div>
-    <div class="terminal-input-area">
-        <span class="prompt">root@sas-mainframe:~#</span>
-        <input type="text" id="cmd-input" class="cmd-input" placeholder="Enter command..." autocomplete="off">
+    <div id="login-form-container" style="padding: 20px;">
+        <div class="term-line term-info" style="margin-bottom: 15px;">AUTHENTIFICATION REQUISE // VEUILLEZ SAISIR VOS IDENTIFIANTS</div>
+        <div class="login-field" style="margin-bottom: 10px;">
+            <span class="prompt">USER_ID:</span>
+            <input type="text" id="login-username" class="cmd-input" placeholder="Nom d'agent..." style="width: 200px;">
+        </div>
+        <div class="login-field" style="margin-bottom: 20px;">
+            <span class="prompt">PASSWD:</span>
+            <input type="password" id="login-password" class="cmd-input" placeholder="********" style="width: 200px;">
+        </div>
+        <div id="login-msg" class="term-line" style="margin-bottom: 10px; min-height: 20px;"></div>
+        <button class="btn-connect" onclick="handleLogin()" style="width: 100%; padding: 10px;">
+            DÉVERROUILLAGE SYSTÈME
+        </button>
     </div>
 </div>
 <script src="js/script.js"></script>
@@ -200,13 +208,7 @@
     }
     function toggleTerminal() {
         const term = document.getElementById('terminal-console');
-        const input = document.getElementById('cmd-input');
-        const history = document.getElementById('terminal-history');
         term.classList.toggle('open');
-        if(term.classList.contains('open')) {
-            setTimeout(() => input.focus(), 100);
-            if(history) history.scrollTop = history.scrollHeight;
-        }
     }
 </script>
 </body>
