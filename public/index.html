@@ -8,6 +8,22 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/stylele.css">
+    <style>
+        .auth-required { display: none ! sociology; }
+        .logged-in .auth-required { display: block; }
+        .logged-in .grid-modules { display: grid; }
+        #login-overlay {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+            border: 1px dashed var(--accent-primary);
+            margin: 20px;
+            background: rgba(0, 20, 0, 0.3);
+        }
+        .logged-in #login-overlay { display: none; }
+    </style>
 </head>
 <body>
 <div class="tactical-grid"></div>
@@ -25,20 +41,27 @@
 </div>
 <div class="term-hint">PRESS [ F9 ] TO TOGGLE TERMINAL</div>
 <div class="terminal-wrapper">
-    <div class="terminal">
+    <div id="main-terminal" class="terminal">
         <div class="header-strip">
             <div>
                 <h1>SAS // <span>MAINFRAME</span></h1>
                 <div class="sub-header">SECURE ACCESS SYSTEM // RESTRICTED AREA</div>
             </div>
             <div class="meta-data">
-                <span id="conn-status" style="color:var(--accent-primary)">CONNECTED</span> // PING: 12ms<br>
+                <span id="conn-status" style="color:var(--accent-danger)">DISCONNECTED</span> // PING: --ms<br>
                 SYS.VER.4.0.2 // <span class="blink">MONITORING</span><br>
                 <button class="btn-connect" onclick="toggleTerminal()">> CONNEXION TERMINAL</button>
             </div>
         </div>
+        
         <div id="dashboard-view" class="view-section dashboard-container">
-            <div class="modules-section">
+            <div id="login-overlay">
+                <div class="term-line term-error">ERREUR : ACCÈS INTERDIT</div>
+                <div class="term-line">VEUILLEZ VOUS AUTHENTIFIER POUR ACCÉDER AUX MODULES</div>
+                <button class="btn-connect" onclick="toggleTerminal()" style="margin-top:20px; padding: 15px 30px;">[ OUVRIR LE PORTAIL D'ACCÈS ]</button>
+            </div>
+
+            <div class="modules-section auth-required">
                 <div class="category-title">ACCRÉDITATION NIVEAU 1 [GÉNÉRAL]</div>
                 <div class="grid-modules">
                     <div class="module-card status-online" onclick="accessModule('database.html', 1)">
@@ -119,7 +142,8 @@
                     </div>
                 </div>
             </div>
-            <div class="sidebar-panel">
+
+            <div class="sidebar-panel auth-required">
                 <div class="user-mini-header">
                     <div class="avatar-small-frame">
                         <img id="sidebar-avatar" src="assets/default.jpg" alt="Agent">
@@ -140,28 +164,8 @@
                     <h3>// ACTIVITÉ SYSTÈME</h3>
                     <ul class="log-list">
                         <li class="log-item info">
-                            <span class="log-time">14:05:22</span>
-                            <span class="log-msg">Connexion utilisateur établie via port 443.</span>
-                        </li>
-                        <li class="log-item warning">
-                            <span class="log-time">13:58:10</span>
-                            <span class="log-msg">Tentative d'accès module admin bloquée [IP: 192.168.X.X].</span>
-                        </li>
-                        <li class="log-item info">
-                            <span class="log-time">13:45:00</span>
-                            <span class="log-msg">Synchronisation base de données agents terminée.</span>
-                        </li>
-                        <li class="log-item alert">
-                            <span class="log-time">12:30:15</span>
-                            <span class="log-msg">ALERTE : Signature thermique détectée secteur 4.</span>
-                        </li>
-                        <li class="log-item info">
-                            <span class="log-time">12:00:01</span>
-                            <span class="log-msg">System Boot Sequence... OK.</span>
-                        </li>
-                        <li class="log-item info">
-                            <span class="log-time">11:59:55</span>
-                            <span class="log-msg">Chargement des modules tactiques.</span>
+                            <span class="log-time">SYNC</span>
+                            <span class="log-msg">Session active détectée.</span>
                         </li>
                     </ul>
                 </div>
@@ -175,6 +179,7 @@
         <div id="profile-view" class="view-section hidden profile-view-container"></div>
     </div>
 </div>
+
 <div id="terminal-console" class="terminal-console">
     <div class="terminal-header" style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--accent-primary)">
         <span>> SECURE_AUTH_GATE</span>
@@ -191,11 +196,12 @@
             <input type="password" id="login-password" class="cmd-input" placeholder="********" style="width: 200px;">
         </div>
         <div id="login-msg" class="term-line" style="margin-bottom: 10px; min-height: 20px;"></div>
-        <button class="btn-connect" onclick="handleLogin()" style="width: 100%; padding: 10px;">
+        <button class="btn-connect" id="btn-login-submit" onclick="handleLogin()" style="width: 100%; padding: 10px;">
             DÉVERROUILLAGE SYSTÈME
         </button>
     </div>
 </div>
+
 <script src="js/script.js"></script>
 <script>
     function accessModule(url, requiredLevel) {

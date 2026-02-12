@@ -1,5 +1,6 @@
 const terminal = document.getElementById('terminal-console');
 const dashboardView = document.getElementById('dashboard-view');
+const mainTerminal = document.getElementById('main-terminal');
 const profileView = document.getElementById('profile-view');
 const pUsername = document.getElementById('p-username');
 const pRank = document.getElementById('p-rank');
@@ -40,6 +41,7 @@ function logout() {
     localStorage.removeItem('sas_session');
     localStorage.removeItem('userSecurityLevel');
     localStorage.removeItem('sas_token');
+    document.body.classList.remove('logged-in');
 
     if (dashboardView) switchView('dashboard');
 
@@ -47,26 +49,9 @@ function logout() {
         connStatus.textContent = "DISCONNECTED";
         connStatus.style.color = "var(--accent-danger)";
     }
-    if(promptSpan) promptSpan.textContent = "guest@sas-node:~#";
-
     window.location.href = '/index.html';
 }
 window.logout = logout;
-
-document.addEventListener('click', function(e) {
-    const target = e.target.closest('.log-entry');
-    if (target && (target.textContent.includes('DÉCONNEXION') || target.getAttribute('onclick') === 'logout()')) {
-        e.preventDefault();
-        logout();
-    }
-});
-
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'F9' && terminal) {
-        event.preventDefault();
-        terminal.classList.toggle('open');
-    }
-});
 
 async function handleLogin() {
     const userField = document.getElementById('login-username');
@@ -95,12 +80,14 @@ async function handleLogin() {
         const data = await response.json();
 
         if (response.ok) {
-            msgDiv.textContent = "ACCÈS ACCORDÉ. BIENVENUE AGENT.";
+            msgDiv.textContent = "ACCÈS ACCORDÉ. INITIALISATION HUD...";
             msgDiv.style.color = "var(--accent-primary)";
             
             currentUser = data.agent;
             localStorage.setItem('sas_token', data.token);
             localStorage.setItem('sas_session', JSON.stringify(currentUser));
+            
+            document.body.classList.add('logged-in');
             
             setTimeout(() => window.location.reload(), 800);
         } else {
@@ -114,6 +101,7 @@ async function handleLogin() {
 }
 
 function unlockInterface(agent) {
+    document.body.classList.add('logged-in');
     const miniUsername = document.getElementById('mini-username');
     const miniRank = document.getElementById('mini-rank');
     if(miniUsername) miniUsername.textContent = agent.username.toUpperCase();
@@ -122,11 +110,7 @@ function unlockInterface(agent) {
     const sideAvatar = document.getElementById('sidebar-avatar');
     if(sideAvatar) {
         const lowerName = agent.username.toLowerCase();
-        if (avatarMap[lowerName]) {
-            sideAvatar.src = `assets/${avatarMap[lowerName]}`;
-        } else {
-            sideAvatar.src = 'assets/default.jpg';
-        }
+        sideAvatar.src = avatarMap[lowerName] ? `assets/${avatarMap[lowerName]}` : 'assets/default.jpg';
     }
 
     if(pUsername) pUsername.textContent = agent.username.toUpperCase();
@@ -138,10 +122,6 @@ function unlockInterface(agent) {
         connStatus.textContent = "CONNECTED";
         connStatus.style.color = "var(--accent-primary)";
     }
-}
-
-async function loadComponents() {
-    restoreSession();
 }
 
 async function restoreSession() {
@@ -158,10 +138,10 @@ async function restoreSession() {
                 unlockInterface(currentUser);
             } else {
                 localStorage.removeItem('sas_token');
-                logout();
+                document.body.classList.remove('logged-in');
             }
         } catch (e) {
-            console.error("Erreur de vérification session", e);
+            console.error("Vérification session échouée", e);
         }
     }
 }
@@ -175,6 +155,4 @@ document.addEventListener('keypress', function (e) {
     }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadComponents();
-});
+document.addEventListener('DOMContentLoaded', restoreSession);
