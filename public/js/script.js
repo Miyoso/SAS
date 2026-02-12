@@ -1,122 +1,73 @@
 const terminal = document.getElementById('terminal-console');
-const dashboardView = document.getElementById('dashboard-view');
-const mainTerminal = document.getElementById('main-terminal');
-const profileView = document.getElementById('profile-view');
-const pUsername = document.getElementById('p-username');
-const pRank = document.getElementById('p-rank');
 const connStatus = document.getElementById('conn-status');
-const promptSpan = document.querySelector('.prompt');
 let currentUser = null;
 
 const avatarMap = {
-    'adam': 'Adam.jpg',
-    'blake': 'Blake.png',
-    'blitz': 'Blitz.png',
-    'dust': 'Dust.png',
-    'wei': 'Dust.png',
-    'graves': 'Graves.jpg',
-    'jackal': 'Jackal.jpg',
-    'ji': 'Jackal.jpg',
-    'javier': 'Javier.jpg',
-    'lexa': 'Lexa.png',
-    'selena': 'Lexa.png',
-    'lovelace': 'LoveLace.jpg',
-    'nyx': 'LoveLace.jpg',
-    'roxanne': 'Roxanne.jpg'
+    'adam': 'Adam.jpg', 'blake': 'Blake.png', 'blitz': 'Blitz.png',
+    'dust': 'Dust.png', 'wei': 'Dust.png', 'graves': 'Graves.jpg',
+    'jackal': 'Jackal.jpg', 'ji': 'Jackal.jpg', 'javier': 'Javier.jpg',
+    'lexa': 'Lexa.png', 'selena': 'Lexa.png', 'lovelace': 'LoveLace.jpg',
+    'nyx': 'LoveLace.jpg', 'roxanne': 'Roxanne.jpg'
 };
 
-function switchView(viewName) {
-    if (viewName === 'profile') {
-        if(dashboardView) dashboardView.classList.add('hidden');
-        if(profileView) profileView.classList.remove('hidden');
-    } else {
-        if(profileView) profileView.classList.add('hidden');
-        if(dashboardView) dashboardView.classList.remove('hidden');
-    }
-}
-window.switchView = switchView;
-
 function logout() {
-    currentUser = null;
     localStorage.removeItem('sas_session');
     localStorage.removeItem('userSecurityLevel');
     localStorage.removeItem('sas_token');
     document.body.classList.remove('logged-in');
-
-    if (dashboardView) switchView('dashboard');
-
-    if(connStatus) {
-        connStatus.textContent = "DISCONNECTED";
-        connStatus.style.color = "var(--accent-danger)";
-    }
     window.location.href = '/index.html';
 }
 window.logout = logout;
 
 async function handleLogin() {
-    const userField = document.getElementById('login-username');
-    const passField = document.getElementById('login-password');
-    const msgDiv = document.getElementById('login-msg');
-    
-    const username = userField.value.trim();
-    const password = passField.value.trim();
+    const user = document.getElementById('login-username').value.trim();
+    const pass = document.getElementById('login-password').value.trim();
+    const msg = document.getElementById('login-msg');
 
-    if (!username || !password) {
-        msgDiv.textContent = "ERREUR: CHAMPS INCOMPLETS";
-        msgDiv.className = "term-line term-error";
+    if (!user || !pass) {
+        msg.textContent = "ERREUR: CHAMPS VIDES";
+        msg.className = "term-line term-error";
         return;
     }
-
-    msgDiv.textContent = "VÉRIFICATION DES ACCRÉDITATIONS...";
-    msgDiv.className = "term-line term-info";
 
     try {
         const response = await fetch('/api/auth?action=login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username: user, password: pass })
         });
-        
         const data = await response.json();
 
         if (response.ok) {
-            msgDiv.textContent = "ACCÈS ACCORDÉ. INITIALISATION HUD...";
-            msgDiv.style.color = "var(--accent-primary)";
-            
-            currentUser = data.agent;
+            msg.textContent = "ACCÈS ACCORDÉ.";
+            msg.className = "term-line term-info";
             localStorage.setItem('sas_token', data.token);
-            localStorage.setItem('sas_session', JSON.stringify(currentUser));
-            
-            document.body.classList.add('logged-in');
-            
-            setTimeout(() => window.location.reload(), 800);
+            localStorage.setItem('sas_session', JSON.stringify(data.agent));
+            localStorage.setItem('userSecurityLevel', data.agent.rank);
+            setTimeout(() => window.location.reload(), 500);
         } else {
-            msgDiv.textContent = `ÉCHEC: ${data.error.toUpperCase()}`;
-            msgDiv.className = "term-line term-error";
+            msg.textContent = "ÉCHEC D'IDENTIFICATION";
+            msg.className = "term-line term-error";
         }
     } catch (err) {
-        msgDiv.textContent = "ERREUR FATALE: SERVEUR INJOIGNABLE";
-        msgDiv.className = "term-line term-error";
+        msg.textContent = "ERREUR SERVEUR";
+        msg.className = "term-line term-error";
     }
 }
+window.handleLogin = handleLogin;
 
 function unlockInterface(agent) {
     document.body.classList.add('logged-in');
-    const miniUsername = document.getElementById('mini-username');
-    const miniRank = document.getElementById('mini-rank');
-    if(miniUsername) miniUsername.textContent = agent.username.toUpperCase();
-    if(miniRank) miniRank.textContent = `LVL-${agent.rank}`;
+    const miniU = document.getElementById('mini-username');
+    const miniR = document.getElementById('mini-rank');
+    if(miniU) miniU.textContent = agent.username.toUpperCase();
+    if(miniR) miniR.textContent = `LVL-${agent.rank}`;
 
-    const sideAvatar = document.getElementById('sidebar-avatar');
-    if(sideAvatar) {
-        const lowerName = agent.username.toLowerCase();
-        sideAvatar.src = avatarMap[lowerName] ? `assets/${avatarMap[lowerName]}` : 'assets/default.jpg';
+    const sideA = document.getElementById('sidebar-avatar');
+    if(sideA) {
+        const name = agent.username.toLowerCase();
+        sideA.src = avatarMap[name] ? `assets/${avatarMap[name]}` : 'assets/default.jpg';
     }
-
-    if(pUsername) pUsername.textContent = agent.username.toUpperCase();
-    if(pRank) pRank.textContent = agent.rank;
-
-    localStorage.setItem('userSecurityLevel', agent.rank);
 
     if(connStatus) {
         connStatus.textContent = "CONNECTED";
@@ -126,33 +77,26 @@ function unlockInterface(agent) {
 
 async function restoreSession() {
     const token = localStorage.getItem('sas_token');
-    if (token) {
-        try {
-            const response = await fetch('/api/auth?action=me', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                currentUser = data.agent;
-                localStorage.setItem('sas_session', JSON.stringify(currentUser));
-                unlockInterface(currentUser);
-            } else {
-                localStorage.removeItem('sas_token');
-                document.body.classList.remove('logged-in');
-            }
-        } catch (e) {
-            console.error("Vérification session échouée", e);
+    if (!token) return;
+
+    try {
+        const response = await fetch('/api/auth?action=me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            unlockInterface(data.agent);
+        } else {
+            logout();
         }
+    } catch (e) {
+        console.error("Session error", e);
     }
 }
 
-document.addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        const term = document.getElementById('terminal-console');
-        if (term && term.classList.contains('open')) {
-            handleLogin();
-        }
-    }
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'F9') toggleTerminal();
+    if (e.key === 'Enter' && terminal.classList.contains('open')) handleLogin();
 });
 
 document.addEventListener('DOMContentLoaded', restoreSession);

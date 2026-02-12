@@ -9,20 +9,21 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/stylele.css">
     <style>
-        .auth-required { display: none ! sociology; }
-        .logged-in .auth-required { display: block; }
-        .logged-in .grid-modules { display: grid; }
+        .auth-content { display: none !important; }
+        body.logged-in .auth-content { display: block !important; }
+        body.logged-in .grid-modules { display: grid !important; }
+        body.logged-in #login-overlay { display: none !important; }
         #login-overlay {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 400px;
+            height: 300px;
+            width: 100%;
             border: 1px dashed var(--accent-primary);
-            margin: 20px;
-            background: rgba(0, 20, 0, 0.3);
+            background: rgba(0, 20, 0, 0.2);
+            grid-column: 1 / -1;
         }
-        .logged-in #login-overlay { display: none; }
     </style>
 </head>
 <body>
@@ -41,14 +42,14 @@
 </div>
 <div class="term-hint">PRESS [ F9 ] TO TOGGLE TERMINAL</div>
 <div class="terminal-wrapper">
-    <div id="main-terminal" class="terminal">
+    <div class="terminal">
         <div class="header-strip">
             <div>
                 <h1>SAS // <span>MAINFRAME</span></h1>
                 <div class="sub-header">SECURE ACCESS SYSTEM // RESTRICTED AREA</div>
             </div>
             <div class="meta-data">
-                <span id="conn-status" style="color:var(--accent-danger)">DISCONNECTED</span> // PING: --ms<br>
+                <span id="conn-status" style="color:var(--accent-danger)">DISCONNECTED</span><br>
                 SYS.VER.4.0.2 // <span class="blink">MONITORING</span><br>
                 <button class="btn-connect" onclick="toggleTerminal()">> CONNEXION TERMINAL</button>
             </div>
@@ -57,11 +58,10 @@
         <div id="dashboard-view" class="view-section dashboard-container">
             <div id="login-overlay">
                 <div class="term-line term-error">ERREUR : ACCÈS INTERDIT</div>
-                <div class="term-line">VEUILLEZ VOUS AUTHENTIFIER POUR ACCÉDER AUX MODULES</div>
-                <button class="btn-connect" onclick="toggleTerminal()" style="margin-top:20px; padding: 15px 30px;">[ OUVRIR LE PORTAIL D'ACCÈS ]</button>
+                <button class="btn-connect" onclick="toggleTerminal()" style="margin-top:20px; padding: 10px 20px;">S'AUTHENTIFIER</button>
             </div>
 
-            <div class="modules-section auth-required">
+            <div class="modules-section auth-content">
                 <div class="category-title">ACCRÉDITATION NIVEAU 1 [GÉNÉRAL]</div>
                 <div class="grid-modules">
                     <div class="module-card status-online" onclick="accessModule('database.html', 1)">
@@ -124,26 +124,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="category-title">ACCRÉDITATION NIVEAU 10 [ÉTAT-MAJOR]</div>
-                <div class="grid-modules">
-                    <div class="module-card status-danger" onclick="accessModule('admin.html', 10)">
-                        <div class="module-icon">⚖️</div>
-                        <div class="module-info">
-                            <div class="module-name">ADMINISTRATION</div>
-                            <div class="module-status"><span>●</span> CLASSIFIED</div>
-                        </div>
-                    </div>
-                    <div class="module-card status-danger" onclick="accessModule('medical.html', 3)">
-                        <div class="module-icon">⚕️</div>
-                        <div class="module-info">
-                            <div class="module-name">INFIRMERIE</div>
-                            <div class="module-status"><span>●</span> RESTRICTED</div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
-            <div class="sidebar-panel auth-required">
+            <div class="sidebar-panel auth-content">
                 <div class="user-mini-header">
                     <div class="avatar-small-frame">
                         <img id="sidebar-avatar" src="assets/default.jpg" alt="Agent">
@@ -154,29 +137,14 @@
                     </div>
                 </div>
                 <div class="separator-line"></div>
-                <div class="xp-bar-container">
-                    <div class="xp-bar-fill"></div>
-                </div>
                 <div class="user-main-info">
-                    <a href="profile.html" class="profile-link">[ VOIR PROFIL COMPLET ]</a>
-                </div>
-                <div class="sidebar-logs">
-                    <h3>// ACTIVITÉ SYSTÈME</h3>
-                    <ul class="log-list">
-                        <li class="log-item info">
-                            <span class="log-time">SYNC</span>
-                            <span class="log-msg">Session active détectée.</span>
-                        </li>
-                    </ul>
+                    <a href="profile.html" class="profile-link">[ PROFIL ]</a>
                 </div>
                 <div class="sidebar-footer">
-                    <button onclick="logout()" class="btn-disconnect">
-                        <span class="blink">⚠️</span> DÉCONNEXION
-                    </button>
+                    <button onclick="logout()" class="btn-disconnect">⚠️ DÉCONNEXION</button>
                 </div>
             </div>
         </div>
-        <div id="profile-view" class="view-section hidden profile-view-container"></div>
     </div>
 </div>
 
@@ -185,20 +153,18 @@
         <span>> SECURE_AUTH_GATE</span>
         <button onclick="toggleTerminal()" style="background:none; border:none; color:var(--accent-primary); cursor:pointer;">[ X ]</button>
     </div>
-    <div id="login-form-container" style="padding: 20px;">
-        <div class="term-line term-info" style="margin-bottom: 15px;">AUTHENTIFICATION REQUISE // VEUILLEZ SAISIR VOS IDENTIFIANTS</div>
+    <div style="padding: 20px;">
+        <div class="term-line term-info" style="margin-bottom: 15px;">IDENTIFICATION REQUISE</div>
         <div class="login-field" style="margin-bottom: 10px;">
-            <span class="prompt">USER_ID:</span>
-            <input type="text" id="login-username" class="cmd-input" placeholder="Nom d'agent..." style="width: 200px;">
+            <span class="prompt">USER:</span>
+            <input type="text" id="login-username" class="cmd-input" placeholder="...">
         </div>
         <div class="login-field" style="margin-bottom: 20px;">
-            <span class="prompt">PASSWD:</span>
-            <input type="password" id="login-password" class="cmd-input" placeholder="********" style="width: 200px;">
+            <span class="prompt">PASS:</span>
+            <input type="password" id="login-password" class="cmd-input" placeholder="...">
         </div>
         <div id="login-msg" class="term-line" style="margin-bottom: 10px; min-height: 20px;"></div>
-        <button class="btn-connect" id="btn-login-submit" onclick="handleLogin()" style="width: 100%; padding: 10px;">
-            DÉVERROUILLAGE SYSTÈME
-        </button>
+        <button class="btn-connect" onclick="handleLogin()" style="width: 100%; padding: 10px;">ACCÉDER AU MAINFRAME</button>
     </div>
 </div>
 
@@ -206,15 +172,11 @@
 <script>
     function accessModule(url, requiredLevel) {
         const currentLevel = parseInt(localStorage.getItem('userSecurityLevel') || 0);
-        if (currentLevel >= requiredLevel) {
-            window.location.href = url;
-        } else {
-            alert("⛔ ACCÈS REFUSÉ : ACCRÉDITATION INSUFFISANTE");
-        }
+        if (currentLevel >= requiredLevel) { window.location.href = url; } 
+        else { alert("⛔ ACCRÉDITATION INSUFFISANTE"); }
     }
     function toggleTerminal() {
-        const term = document.getElementById('terminal-console');
-        term.classList.toggle('open');
+        document.getElementById('terminal-console').classList.toggle('open');
     }
 </script>
 </body>
