@@ -99,4 +99,64 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && terminal.classList.contains('open')) handleLogin();
 });
 
+// 1. Fonction pour charger la sidebar depuis le fichier externe
+async function loadSidebar() {
+    const sidebarContainer = document.querySelector('.sidebar-panel');
+    if (!sidebarContainer) return;
+
+    try {
+        const response = await fetch('components/sidebar.html');
+        const html = await response.text();
+        sidebarContainer.innerHTML = html;
+        
+        // Une fois injectée, on restaure la session pour mettre à jour l'UI
+        restoreSession();
+    } catch (err) {
+        console.error("Erreur de chargement de la navigation", err);
+    }
+}
+
+function logout() {
+    localStorage.removeItem('sas_token');
+    localStorage.removeItem('sas_session');
+    localStorage.removeItem('userSecurityLevel');
+    window.location.href = 'index.html';
+}
+
+function unlockInterface(agent) {
+    document.body.classList.add('logged-in');
+    
+    
+    const guestDiv = document.getElementById('sidebar-guest');
+    const loggedDiv = document.getElementById('sidebar-logged');
+    if(guestDiv) guestDiv.classList.add('hidden');
+    if(loggedDiv) loggedDiv.classList.remove('hidden');
+
+   
+    const miniU = document.getElementById('mini-username');
+    const miniR = document.getElementById('mini-rank');
+    if(miniU) miniU.textContent = agent.username.toUpperCase();
+    if(miniR) miniR.textContent = agent.rank;
+
+    const sideA = document.getElementById('sidebar-avatar');
+    if(sideA) {
+        const name = agent.username.toLowerCase();
+        sideA.src = avatarMap[name] ? `assets/${avatarMap[name]}` : 'assets/default.jpg';
+    }
+}
+
+async function restoreSession() {
+    const token = localStorage.getItem('sas_token');
+    if (!token) return;
+    try {
+        const response = await fetch('/api/auth?action=me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            unlockInterface(data.agent);
+        }
+    } catch (e) { console.error(e); }
+}
+
 document.addEventListener('DOMContentLoaded', restoreSession);
