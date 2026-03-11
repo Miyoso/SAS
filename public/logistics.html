@@ -12,7 +12,6 @@
     </script>
 
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/style-mo.css">
     <link rel="stylesheet" href="css/logistics.css">
 </head>
@@ -32,7 +31,7 @@
                 </div>
             </header>
 
-            <section class="intel-grid" style="display: grid; grid-template-columns: 2fr 1fr 250px; gap: 20px; height: calc(100vh - 140px);">
+            <section class="intel-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; height: calc(100vh - 140px);">
 
                 <div class="panel full-height" style="display: flex; flex-direction: column;">
                     <div class="panel-header">
@@ -63,13 +62,14 @@
                     </div>
                 </div>
 
-                <div class="sidebar-panel"></div>
-
             </section>
 
             <footer class="footer">
                 <div>LOGISTICS TERMINAL V.2.2</div>
-                <div id="conn-status" style="color:var(--primary)">CONNECTED</div>
+                <div>
+                    <a href="profile.html" style="color: var(--secondary); margin-right: 15px;">[ RETOUR PROFIL ]</a>
+                    <a href="database.html" style="color: var(--secondary);">[ BASE DE DONNÉES ]</a>
+                </div>
             </footer>
 
         </main>
@@ -119,7 +119,6 @@
         </div>
     </div>
 
-    <script src="js/script.js"></script>
     <script src="js/equipment.js"></script>
 </body>
 </html>
