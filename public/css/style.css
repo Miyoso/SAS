@@ -194,3 +194,100 @@ h1 span { color: var(--danger); }
 .hidden {
     display: none !important;
 }
+
+
+
+.sidebar-section {
+    flex: 0 0 280px; 
+    height: 100%;
+    overflow-y: auto;
+    background: rgba(5, 8, 10, 0.95);
+    border-left: none;
+    border-right: 1px solid rgba(0, 255, 157, 0.2);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 2. Indicateur de page active */
+.log-entry {
+    transition: all 0.3s ease;
+}
+.log-entry.active {
+    border-left: 3px solid var(--primary);
+    background: linear-gradient(90deg, rgba(0, 255, 157, 0.15) 0%, transparent 100%);
+}
+.log-entry.active a {
+    color: var(--primary) !important;
+    text-shadow: 0 0 8px rgba(0, 255, 157, 0.5);
+    font-weight: bold;
+}
+
+
+.mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10000;
+    background: rgba(10, 15, 20, 0.9);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 12px 15px;
+    cursor: pointer;
+    font-family: var(--font-code);
+    box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
+    border-radius: 4px;
+}
+
+
+@media (max-width: 850px) {
+    .mobile-nav-toggle {
+        display: block;
+    }
+    .sidebar-section {
+        position: fixed;
+        top: 0;
+        left: -300px; 
+        width: 280px;
+        z-index: 9999;
+        box-shadow: 10px 0 30px rgba(0,0,0,0.8);
+    }
+    .sidebar-section.open {
+        transform: translateX(300px); 
+    }
+}
+
+
+.page-transition {
+    animation: fadeInPage 0.6s ease-out forwards;
+}
+@keyframes fadeInPage {
+    0% { opacity: 0; transform: translateY(15px); filter: blur(5px); }
+    100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+
+.breadcrumbs {
+    padding: 15px 30px;
+    font-size: 0.85rem;
+    color: var(--dim);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    background: rgba(0,0,0,0.4);
+    font-family: var(--font-code);
+}
+.breadcrumbs a {
+    color: var(--secondary);
+    text-decoration: none;
+    transition: 0.2s;
+}
+.breadcrumbs a:hover {
+    color: var(--primary);
+    text-shadow: 0 0 8px var(--primary);
+}
+.breadcrumbs span.separator {
+    margin: 0 10px;
+    color: #444;
+}
+.breadcrumbs .current {
+    color: #fff;
+    font-weight: bold;
+}
