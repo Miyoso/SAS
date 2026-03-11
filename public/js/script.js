@@ -99,7 +99,6 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && terminal.classList.contains('open')) handleLogin();
 });
 
-// 1. Fonction pour charger la sidebar depuis le fichier externe
 async function loadSidebar() {
     const sidebarContainer = document.querySelector('.sidebar-panel');
     if (!sidebarContainer) return;
@@ -108,12 +107,8 @@ async function loadSidebar() {
         const response = await fetch('components/sidebar.html');
         const html = await response.text();
         sidebarContainer.innerHTML = html;
-        
-        // Une fois injectée, on restaure la session pour mettre à jour l'UI
         restoreSession();
-    } catch (err) {
-        console.error("Erreur de chargement de la navigation", err);
-    }
+    } catch (err) {}
 }
 
 function logout() {
@@ -126,13 +121,11 @@ function logout() {
 function unlockInterface(agent) {
     document.body.classList.add('logged-in');
     
-    
     const guestDiv = document.getElementById('sidebar-guest');
     const loggedDiv = document.getElementById('sidebar-logged');
     if(guestDiv) guestDiv.classList.add('hidden');
     if(loggedDiv) loggedDiv.classList.remove('hidden');
 
-   
     const miniU = document.getElementById('mini-username');
     const miniR = document.getElementById('mini-rank');
     if(miniU) miniU.textContent = agent.username.toUpperCase();
@@ -156,7 +149,7 @@ async function restoreSession() {
             const data = await response.json();
             unlockInterface(data.agent);
         }
-    } catch (e) { console.error(e); }
+    } catch (e) {}
 }
 
 document.addEventListener('DOMContentLoaded', restoreSession);
