@@ -44,8 +44,17 @@
         .card-body { display: flex; gap: 15px; }
         .photo-box { width: 100px; height: 130px; border: 1px solid var(--accent-blue); overflow: hidden; position: relative; }
         .photo-box img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.2) brightness(0.9); }
-        .photo-box::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--accent-blue); opacity: 0.5; animation: scanHolo 3s linear infinite; }
-        @keyframes scanHolo { 0% {top: 0;} 100% {top: 100%;} }
+        
+        /* SCANNER LASER */
+        .photo-box::after {
+            content: ''; position: absolute; 
+            top: -50%; left: -50%; width: 200%; height: 50px; 
+            background: linear-gradient(to bottom, transparent, rgba(0, 243, 255, 0.8), transparent);
+            box-shadow: 0 5px 15px rgba(0, 243, 255, 0.5);
+            transform: rotate(15deg);
+            animation: scanner 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+        }
+        @keyframes scanner { 0% { top: -20%; } 100% { top: 120%; } }
 
         .agent-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
         .card-label { font-size: 0.6rem; color: var(--text-dim); margin-bottom: 2px; font-family: var(--font-display); }
@@ -56,15 +65,53 @@
         .barcode { font-family: 'Libre Barcode 128 Text', cursive; font-size: 2.5rem; color: var(--text-dim); line-height: 0.8; }
         .chip { width: 30px; height: 20px; background: linear-gradient(135deg, #ccc, #fff, #ccc); border-radius: 3px; border: 1px solid #999; }
 
+        /* === EFFET GLITCH === */
+        .glitch { position: relative; display: inline-block; }
+        .glitch::before, .glitch::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; background: var(--bg-deep);
+        }
+        .glitch::before {
+            left: 2px; text-shadow: -1px 0 var(--accent-danger);
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+        .glitch::after {
+            left: -2px; text-shadow: -1px 0 var(--accent-warning);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim-1 {
+            0% { clip-path: inset(20% 0 80% 0); } 20% { clip-path: inset(60% 0 10% 0); }
+            40% { clip-path: inset(40% 0 50% 0); } 60% { clip-path: inset(80% 0 5% 0); }
+            80% { clip-path: inset(10% 0 70% 0); } 100% { clip-path: inset(30% 0 20% 0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(10% 0 60% 0); } 20% { clip-path: inset(30% 0 20% 0); }
+            40% { clip-path: inset(70% 0 10% 0); } 60% { clip-path: inset(20% 0 50% 0); }
+            80% { clip-path: inset(50% 0 30% 0); } 100% { clip-path: inset(5% 0 80% 0); }
+        }
+
+        /* === BORDURES FUTURISTES === */
+        .cyber-panel {
+            background: rgba(10, 15, 20, 0.85);
+            border: 1px solid var(--accent-blue);
+            padding: 20px; margin-bottom: 20px;
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.05) inset;
+            position: relative;
+        }
+        .cyber-panel::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 15px; height: 15px;
+            background: var(--accent-blue); clip-path: polygon(0 0, 100% 0, 0 100%);
+        }
+
         /* === SPECIFICS === */
         .audio-viz { display: flex; gap: 3px; height: 15px; align-items: flex-end; }
         .bar { width: 4px; background: var(--accent-blue); animation: sound 1s infinite alternate; }
         @keyframes sound { 0% {height: 20%;} 100% {height: 100%;} }
 
-        .redacted { background: rgba(0, 243, 255, 0.1); color: var(--accent-blue); padding: 0 4px; cursor: crosshair; font-family: var(--font-code); }
+        .redacted { background: rgba(0, 243, 255, 0.1); color: var(--accent-blue); padding: 0 4px; cursor: crosshair; font-family: var(--font-code); transition: 0.2s; }
         .redacted:hover { background: var(--accent-blue); color: #000; }
 
-        /* Correction Navbar pour cette page */
         body.logged-in .tactical-navbar.auth-content, .tactical-navbar {
             display: flex !important; gap: 10px; padding: 0 10px 15px 10px; margin-bottom: 15px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05); overflow-x: auto; scrollbar-width: none;
@@ -105,7 +152,7 @@
             
             <header class="header-strip" style="border-bottom-color: var(--accent-blue); margin-bottom: 10px;">
                 <div>
-                    <h1>DOSSIER // <span style="color: var(--accent-blue); text-shadow: 0 0 10px var(--accent-blue);">NYX</span></h1>
+                    <h1>DOSSIER // <span class="glitch" data-text="NYX" style="color: var(--accent-blue); text-shadow: 0 0 10px var(--accent-blue);">NYX</span></h1>
                     <div class="sub-header" style="color: var(--accent-blue);">SHADOW COMPANY // CYBER-OPS DIVISION</div>
                 </div>
                 <div class="meta-data">
@@ -125,7 +172,7 @@
 
             <main class="view-section" style="gap: 30px;">
                 
-                <section class="modules-section" style="flex: 1; overflow-y: auto;">
+                <section class="modules-section" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 15px;">
                     
                     <div class="id-card-container">
                         <div class="id-card" id="card">
@@ -159,7 +206,7 @@
                         </div>
                     </div>
 
-                    <div style="background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.2); padding: 20px; margin-bottom: 20px;">
+                    <div class="cyber-panel">
                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px dashed var(--accent-blue); padding-bottom: 10px; margin-bottom: 15px;">
                             <span style="font-family: var(--font-code); color: var(--accent-blue); font-weight: bold;">DIGITAL_FOOTPRINT</span>
                             <div class="audio-viz">
@@ -184,8 +231,8 @@
                         </div>
                     </div>
 
-                    <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 20px;">
-                        <h3 style="font-family: var(--font-display); color: var(--text-dim); margin: 0 0 15px 0; border-bottom: 1px solid #333; padding-bottom: 5px;">TECH_PROFILE</h3>
+                    <div class="cyber-panel">
+                        <h3 style="font-family: var(--font-display); color: var(--text-dim); margin: 0 0 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">TECH_PROFILE</h3>
                         
                         <div class="log-entry">
                             <span style="color: var(--accent-primary)">[+]</span> Loyauté conditionnelle vérifiée
@@ -207,77 +254,77 @@
 
                 </section>
 
-                <aside class="sidebar-panel" style="flex: 1.2; border-bottom-color: var(--accent-blue);">
+                <aside class="sidebar-panel" style="flex: 1.2; border-bottom-color: var(--accent-blue); padding: 0;">
                     
-                    <div class="panel-header" style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end;">
-                        <h3 style="margin: 0; color: var(--accent-blue); font-family: var(--font-display); letter-spacing: 2px;">PROJET: OVERRIDE</h3>
-                        <span style="font-size:0.65rem; color:var(--accent-danger); font-family: var(--font-code);" class="blink">ROOT ACCESS</span>
-                    </div>
-                    <div class="separator-line"></div>
-                    
-                    <div style="font-family: var(--font-code); font-size: 0.8rem; color: var(--text-dim); line-height: 1.6; margin-top: 15px;">
-                        <p>
-                            <span style="color: var(--accent-blue);">root@nyx:~$</span> ./sudo_inject.py --silent
-                        </p>
-                        <p style="padding-left: 10px; border-left: 2px solid #333;">
-                            > Scan des vulnérabilités kernel... <span style="color:var(--accent-primary)">[OK]</span><br>
-                            > Exploitation de la faille Zero-Day... <span style="color:var(--accent-primary)">[OK]</span><br>
-                            > Escalade de privilèges administrateur... <span style="color:var(--accent-warning)">[EN COURS]</span><br>
-                            > ACCÈS ROOT AU SERVEUR CENTRAL... <span style="color:var(--accent-primary)">[ACCORDÉ]</span>
-                        </p>
+                    <div class="cyber-panel" style="margin: 25px; border-color: var(--accent-danger);">
+                        <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end;">
+                            <h3 style="margin: 0; color: var(--accent-danger); font-family: var(--font-display); letter-spacing: 2px;">PROJET: OVERRIDE</h3>
+                            <span style="font-size:0.65rem; color:var(--accent-danger); font-family: var(--font-code);" class="blink">ROOT ACCESS</span>
+                        </div>
+                        <div class="separator-line" style="background: linear-gradient(90deg, var(--accent-danger), transparent);"></div>
                         
-                        <div style="background: rgba(255, 51, 51, 0.1); border-left: 3px solid var(--accent-danger); padding: 10px; margin-top: 20px; color: #fff;">
-                            <span style="color: var(--accent-danger); font-weight: bold; font-size: 0.7rem;">ALERTE SYSTÈME:</span><br>
-                            L'UTILISATEUR 'ROOT' A PRIS LE CONTRÔLE TOTAL. LES PROTOCOLES DE SÉCURITÉ ONT ÉTÉ DÉSACTIVÉS MANUELLEMENT.
+                        <div style="font-family: var(--font-code); font-size: 0.8rem; color: var(--text-dim); line-height: 1.6; margin-top: 15px;">
+                            <p>
+                                <span style="color: var(--accent-danger);">root@nyx:~$</span> ./sudo_inject.py --silent
+                            </p>
+                            
+                            <div id="live-typing" style="padding-left: 10px; border-left: 2px solid #333; min-height: 80px; color: #fff;"></div>
+                            
+                            <div style="background: rgba(255, 51, 51, 0.1); border-left: 3px solid var(--accent-danger); padding: 10px; margin-top: 20px; color: #fff;">
+                                <span style="color: var(--accent-danger); font-weight: bold; font-size: 0.7rem;">ALERTE SYSTÈME:</span><br>
+                                L'UTILISATEUR 'ROOT' A PRIS LE CONTRÔLE TOTAL. LES PROTOCOLES DE SÉCURITÉ ONT ÉTÉ DÉSACTIVÉS MANUELLEMENT.
+                            </div>
                         </div>
                     </div>
 
-                    <h3 style="font-family: var(--font-display); color: #fff; margin: 30px 0 10px 0; font-size: 0.9rem;">TCP/IP LOGS</h3>
-                    <div class="separator-line"></div>
+                    <div style="padding: 0 25px;">
+                        <h3 style="font-family: var(--font-display); color: #fff; margin: 10px 0 10px 0; font-size: 0.9rem;">TCP/IP LOGS</h3>
+                        <div class="separator-line"></div>
 
-                    <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.75rem; background: rgba(255,255,255,0.02); padding: 8px;">
-                            <span style="color: var(--text-dim)">22:41:09</span>
-                            <span>SHEPHERD_PC</span>
-                            <span class="redacted" data-real="BACKDOOR" data-scramble="UNKNOWN"></span>
-                            <span style="color: var(--accent-danger)">ROOT</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.75rem; background: rgba(255,255,255,0.02); padding: 8px;">
-                            <span style="color: var(--text-dim)">23:15:00</span>
-                            <span class="redacted" data-real="TASK FORCE 141" data-scramble="ENEMIES"></span>
-                            <span>DDOS</span>
-                            <span style="color: var(--accent-warning)">BLOCK</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.75rem; background: rgba(255,255,255,0.02); padding: 8px;">
-                            <span style="color: var(--text-dim)">00:00:01</span>
-                            <span>SHADOW_MAIN</span>
-                            <span class="redacted" data-real="WIPE_LOGS" data-scramble="CLEAN"></span>
-                            <span style="color: var(--accent-primary)">CLEAN</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.75rem; background: rgba(255,255,255,0.02); padding: 8px; border: 1px solid var(--accent-blue);">
-                            <span style="color: var(--accent-blue)">NOW</span>
-                            <span class="redacted" style="color: var(--accent-blue)" data-real="CE TERMINAL" data-scramble="YOU"></span>
-                            <span>MONITORING</span>
-                            <span class="blink" style="color: var(--accent-blue)">ACTIF</span>
+                        <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+                            <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.75rem; background: rgba(255,255,255,0.02); padding: 8px;">
+                                <span style="color: var(--text-dim)">22:41:09</span>
+                                <span>SHEPHERD_PC</span>
+                                <span class="redacted" data-real="BACKDOOR" data-scramble="UNKNOWN"></span>
+                                <span style="color: var(--accent-danger)">ROOT</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.75rem; background: rgba(255,255,255,0.02); padding: 8px;">
+                                <span style="color: var(--text-dim)">23:15:00</span>
+                                <span class="redacted" data-real="TASK FORCE 141" data-scramble="ENEMIES"></span>
+                                <span>DDOS</span>
+                                <span style="color: var(--accent-warning)">BLOCK</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.75rem; background: rgba(255,255,255,0.02); padding: 8px;">
+                                <span style="color: var(--text-dim)">00:00:01</span>
+                                <span>SHADOW_MAIN</span>
+                                <span class="redacted" data-real="WIPE_LOGS" data-scramble="CLEAN"></span>
+                                <span style="color: var(--accent-primary)">CLEAN</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.75rem; background: rgba(0,243,255,0.05); padding: 8px; border: 1px solid rgba(0,243,255,0.3);">
+                                <span style="color: var(--accent-blue)">NOW</span>
+                                <span class="redacted" style="color: var(--accent-blue)" data-real="CE TERMINAL" data-scramble="YOU"></span>
+                                <span>MONITORING</span>
+                                <span class="blink" style="color: var(--accent-blue)">ACTIF</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div style="margin-top: auto; padding-top: 20px;">
-                        <div style="border: 1px solid var(--accent-danger); background: rgba(255, 51, 51, 0.05); padding: 15px;">
+                    <div style="margin-top: auto; padding: 25px;">
+                        <div style="border: 1px dashed var(--accent-danger); background: rgba(255, 51, 51, 0.05); padding: 15px;">
                             <div style="color: var(--accent-danger); font-family: var(--font-code); font-size: 0.75rem; margin-bottom: 10px; font-weight: bold;">
                                 [ ! ] AUTHENTIFICATION MANUELLE REQUISE
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 8px; font-family: var(--font-code); font-size: 0.7rem;">
                                 <div style="display: flex; justify-content: space-between; color: var(--text-dim);">
-                                    <span>[FICHIER: operations_datahaven.log]</span>
+                                    <span>> operations_datahaven.log</span>
                                     <span style="color: var(--accent-danger);">[CORROMPU]</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; color: var(--text-dim);">
-                                    <span>[FICHIER: archives_n.dat]</span>
+                                    <span>> archives_n.dat</span>
                                     <span style="color: var(--accent-danger);">[LOCKED]</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; color: var(--text-dim);">
-                                    <span>[FICHIER: contacts_actifs.db]</span>
+                                    <span>> contacts_actifs.db</span>
                                     <span style="color: var(--accent-danger);">[LOCKED]</span>
                                 </div>
                             </div>
@@ -304,7 +351,40 @@
                 setTimeout(() => bootScreen.remove(), 500);
             }, 1500);
 
-            // 2. 3D CARD EFFECT
+            // 2. EFFET MACHINE A ECRIRE (TYPEWRITER)
+            const logText = "> Scan des vulnérabilités kernel... [OK]\n> Exploitation de la faille Zero-Day... [OK]\n> Escalade de privilèges administrateur... [EN COURS]\n> ACCÈS ROOT AU SERVEUR CENTRAL... [ACCORDÉ]";
+            const typeTarget = document.getElementById('live-typing');
+            let typeIndex = 0;
+
+            function typeWriter() {
+                if(!typeTarget) return;
+                if (typeIndex < logText.length) {
+                    let char = logText.charAt(typeIndex);
+                    if (char === '\n') {
+                        typeTarget.innerHTML += '<br>';
+                    } else {
+                        // Ajoute une coloration spécifique pour les mots clés
+                        if(logText.substring(typeIndex, typeIndex+4) === '[OK]') {
+                            typeTarget.innerHTML += '<span style="color:var(--accent-primary)">[OK]</span>';
+                            typeIndex += 3;
+                        } else if(logText.substring(typeIndex, typeIndex+10) === '[EN COURS]') {
+                            typeTarget.innerHTML += '<span style="color:var(--accent-warning)">[EN COURS]</span>';
+                            typeIndex += 9;
+                        } else if(logText.substring(typeIndex, typeIndex+9) === '[ACCORDÉ]') {
+                            typeTarget.innerHTML += '<span class="blink" style="color:var(--accent-danger)">[ACCORDÉ]</span>';
+                            typeIndex += 8;
+                        } else {
+                            typeTarget.innerHTML += char;
+                        }
+                    }
+                    typeIndex++;
+                    setTimeout(typeWriter, 30); // Vitesse de frappe
+                }
+            }
+            // On lance l'effet de frappe juste après la disparition du boot screen
+            setTimeout(typeWriter, 1800);
+
+            // 3. 3D CARD EFFECT
             const card = document.getElementById('card');
             const cardContainer = document.querySelector('.id-card-container');
 
@@ -324,7 +404,7 @@
                 });
             }
 
-            // 3. HACKER TEXT DECRYPTION
+            // 4. HACKER TEXT DECRYPTION
             const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
             document.querySelectorAll('.redacted').forEach(element => {
                 element.textContent = element.getAttribute('data-scramble');
