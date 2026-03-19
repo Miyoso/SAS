@@ -15,6 +15,7 @@
         body.logged-in .modules-section.auth-content { display: block !important; }
         body.logged-in .sidebar-panel.auth-content { display: flex !important; }
         body.logged-in #login-overlay { display: none !important; }
+        
         #login-overlay {
             display: flex;
             flex-direction: column;
@@ -26,131 +27,180 @@
             background: rgba(0, 255, 157, 0.05);
             backdrop-filter: blur(5px);
         }
+
+        .login-overlay-title {
+            font-family: var(--font-code);
+            font-size: 1.2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--accent-primary);
+            background: rgba(0, 255, 157, 0.1);
+        }
+
+        .terminal-header-title {
+            font-family: var(--font-code);
+            font-weight: bold;
+            color: var(--accent-primary);
+        }
+
+        .btn-close-term {
+            background: none;
+            border: none;
+            color: var(--accent-primary);
+            cursor: pointer;
+            font-weight: bold;
+            font-family: var(--font-code);
+        }
+
+        .terminal-body {
+            padding: 20px;
+        }
+
+        .login-field {
+            margin-bottom: 15px;
+        }
+
+        .btn-full-width {
+            width: 100%;
+            justify-content: center;
+            padding: 12px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
 
-<div class="tactical-grid"></div>
-<div class="vignette"></div>
-<div class="radar-scan"></div>
+<div class="tactical-grid" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+<div class="radar-scan" aria-hidden="true"></div>
 
-<div class="hud-side hud-left">
+<div class="hud-side hud-left" aria-hidden="true">
     <div class="hud-ruler"></div>
     <div class="hud-marker">SYSTEM.ROOT</div>
-    <div class="hud-marker" style="color:var(--accent-danger)">SECURE</div>
+    <div class="hud-marker term-error">SECURE</div>
     <div class="hud-ruler"></div>
 </div>
-<div class="hud-side hud-right">
+<div class="hud-side hud-right" aria-hidden="true">
     <div class="hud-ruler"></div>
     <div class="hud-marker">SECURE.CONN</div>
     <div class="hud-marker">128.0.0.1</div>
     <div class="hud-ruler"></div>
 </div>
 
-<div class="term-hint">PRESS [ F9 ] TO TOGGLE TERMINAL</div>
+<div class="term-hint" aria-hidden="true">PRESS [ F9 ] TO TOGGLE TERMINAL</div>
 
 <div class="terminal-wrapper">
     <div class="terminal">
-        <div class="header-strip">
+        <header class="header-strip">
             <div>
                 <h1>SAS // <span>MAINFRAME</span></h1>
                 <div class="sub-header">SECURE ACCESS SYSTEM // RESTRICTED AREA</div>
             </div>
             <div class="meta-data">
-                <span id="conn-status" style="color:var(--accent-danger)">DISCONNECTED</span><br>
+                <span id="conn-status" class="term-error">DISCONNECTED</span><br>
                 SYS.VER.4.0.2 // <span class="blink">MONITORING</span><br>
-                <button class="btn-connect" onclick="toggleTerminal()">> CONNEXION TERMINAL</button>
+                <button class="btn-connect" onclick="toggleTerminal()" aria-label="Ouvrir le terminal">> CONNEXION TERMINAL</button>
             </div>
-        </div>
+        </header>
         
-        <div id="dashboard-view" class="view-section dashboard-container">
-            <div id="login-overlay">
-                <div class="term-line term-error" style="font-family: var(--font-code); font-size: 1.2rem; font-weight: bold; letter-spacing: 2px;">ERREUR : ACCÈS INTERDIT</div>
-                <button class="btn-connect" onclick="toggleTerminal()" style="margin-top:20px; padding: 10px 20px; font-size: 1rem;">S'AUTHENTIFIER</button>
-            </div>
+        <main id="dashboard-view" class="view-section dashboard-container">
+            
+            <section id="login-overlay">
+                <div class="term-line term-error login-overlay-title">ERREUR : ACCÈS INTERDIT</div>
+                <button class="btn-connect" onclick="toggleTerminal()">S'AUTHENTIFIER</button>
+            </section>
 
-            <div class="modules-section auth-content">
-                <div class="category-title">ACCRÉDITATION NIVEAU 1 [GÉNÉRAL]</div>
-                <div class="grid-modules">
-                    <div class="module-card status-online" onclick="accessModule('database.html', 1)">
-                        <div class="module-icon">👥</div>
+            <section class="modules-section auth-content">
+                <h2 class="category-title">ACCRÉDITATION NIVEAU 1 [GÉNÉRAL]</h2>
+                <nav class="grid-modules" aria-label="Menu principal">
+                    <button class="module-card status-online" onclick="accessModule('database.html', 1)">
+                        <div class="module-icon" aria-hidden="true">👥</div>
                         <div class="module-info">
                             <div class="module-name">BASE AGENTS</div>
                             <div class="module-status"><span>●</span> SYSTEM ONLINE</div>
                         </div>
-                    </div>
-                    <div class="module-card status-online" onclick="accessModule('reglement.html', 1)">
-                        <div class="module-icon">📜</div>
+                    </button>
+                    <button class="module-card status-online" onclick="accessModule('reglement.html', 1)">
+                        <div class="module-icon" aria-hidden="true">📜</div>
                         <div class="module-info">
                             <div class="module-name">RÈGLEMENT</div>
                             <div class="module-status"><span>●</span> READ ONLY</div>
                         </div>
-                    </div>
-                    <div class="module-card status-online" onclick="accessModule('map.html', 1)">
-                        <div class="module-icon">🗺️</div>
+                    </button>
+                    <button class="module-card status-online" onclick="accessModule('map.html', 1)">
+                        <div class="module-icon" aria-hidden="true">🗺️</div>
                         <div class="module-info">
                             <div class="module-name">CARTOGRAPHIE</div>
                             <div class="module-status"><span>●</span> LIVE FEED</div>
                         </div>
-                    </div>
-                    <div class="module-card status-online" onclick="accessModule('report.html', 1)">
-                        <div class="module-icon">📝</div>
+                    </button>
+                    <button class="module-card status-online" onclick="accessModule('report.html', 1)">
+                        <div class="module-icon" aria-hidden="true">📝</div>
                         <div class="module-info">
                             <div class="module-name">RAPPORT</div>
                             <div class="module-status"><span>●</span> AUTO-GEN</div>
                         </div>
-                    </div>
-                </div>
+                    </button>
+                </nav>
                 
-                <div class="category-title">ACCRÉDITATION NIVEAU 2 [TACTIQUE]</div>
-                <div class="grid-modules">
-                    <a href="investigation.html" class="module-card status-restricted" style="text-decoration:none;">
-                        <div class="module-icon">🔍</div>
+                <h2 class="category-title">ACCRÉDITATION NIVEAU 2 [TACTIQUE]</h2>
+                <nav class="grid-modules" aria-label="Menu tactique">
+                    <a href="investigation.html" class="module-card status-restricted">
+                        <div class="module-icon" aria-hidden="true">🔍</div>
                         <div class="module-info">
                             <div class="module-name">INVESTIGATION</div>
                             <div class="module-status"><span>●</span> RESTRICTED</div>
                         </div>
                     </a>
-                    <div class="module-card status-danger">
-                        <div class="module-icon">🎯</div>
+                    <button class="module-card status-danger" onclick="accessModule('#', 2)">
+                        <div class="module-icon" aria-hidden="true">🎯</div>
                         <div class="module-info">
                             <div class="module-name">VIP TARGETS</div>
                             <div class="module-status"><span>●</span> HIGH PRIORITY</div>
                         </div>
-                    </div>
-                    <div class="module-card status-online" onclick="accessModule('logistics.html', 1)">
-                        <div class="module-icon">📦</div>
+                    </button>
+                    <button class="module-card status-online" onclick="accessModule('logistics.html', 1)">
+                        <div class="module-icon" aria-hidden="true">📦</div>
                         <div class="module-info">
                             <div class="module-name">LOGISTIQUE</div>
                             <div class="module-status"><span>●</span> STOCK</div>
                         </div>
-                    </div>
-                    <div class="module-card status-online" onclick="accessModule('missions.html', 1)">
-                        <div class="module-icon">🗓️</div>
+                    </button>
+                    <button class="module-card status-online" onclick="accessModule('missions.html', 1)">
+                        <div class="module-icon" aria-hidden="true">🗓️</div>
                         <div class="module-info">
                             <div class="module-name">MISSIONS</div>
                             <div class="module-status"><span>●</span> ACTIVE</div>
                         </div>
-                    </div>
-                </div>
-            </div>
+                    </button>
+                </nav>
+            </section>
 
-            <div class="sidebar-panel auth-content">
-                <div class="user-mini-header">
+            <aside class="sidebar-panel auth-content">
+                <header class="user-mini-header">
                     <div class="avatar-small-frame">
-                        <img id="sidebar-avatar" src="assets/default.jpg" alt="Agent">
+                        <img id="sidebar-avatar" src="assets/default.jpg" alt="Photo de profil de l'agent">
                     </div>
                     <div class="mini-info">
                         <span id="mini-username" class="mini-user-text">AGENT</span>
                         <span id="mini-rank" class="mini-rank-text">LVL-0</span>
                     </div>
-                </div>
-                <div class="separator-line"></div>
+                </header>
+                
+                <div class="separator-line" aria-hidden="true"></div>
+                
                 <div class="user-main-info">
-                    <a href="profile.html" class="profile-link">[ PROFIL ]</a>
+                    <a href="profile.html" class="profile-link">[ ACCÉDER AU PROFIL ]</a>
                 </div>
                 
-                <div class="sidebar-logs">
+                <section class="sidebar-logs">
                     <h3>ACTIVITÉ SYSTÈME</h3>
                     <ul class="log-list">
                         <li class="log-item info">
@@ -178,43 +228,53 @@
                             <span class="log-msg">Chargement des modules tactiques.</span>
                         </li>
                     </ul>
-                </div>
+                </section>
                 
-                <div class="sidebar-footer">
+                <footer class="sidebar-footer">
                     <button onclick="logout()" class="btn-disconnect">⚠️ DÉCONNEXION</button>
-                </div>
-            </div>
-        </div>
+                </footer>
+            </aside>
+        </main>
     </div>
 </div>
 
-<div id="terminal-console" class="terminal-console">
-    <div class="terminal-header" style="display:flex; justify-content:space-between; padding:10px 20px; border-bottom:1px solid var(--accent-primary); background: rgba(0, 255, 157, 0.1);">
-        <span style="font-family: var(--font-code); font-weight: bold; color: var(--accent-primary);">> SECURE_AUTH_GATE</span>
-        <button onclick="toggleTerminal()" style="background:none; border:none; color:var(--accent-primary); cursor:pointer; font-weight: bold;">[ X ]</button>
-    </div>
-    <div style="padding: 20px;">
+<section id="terminal-console" class="terminal-console" aria-label="Console d'authentification">
+    <header class="terminal-header">
+        <span class="terminal-header-title">> SECURE_AUTH_GATE</span>
+        <button class="btn-close-term" onclick="toggleTerminal()" aria-label="Fermer le terminal">[ X ]</button>
+    </header>
+    <div class="terminal-body">
         <div class="term-line term-info" style="margin-bottom: 15px; font-family: var(--font-code);">IDENTIFICATION REQUISE</div>
-        <div class="login-field" style="margin-bottom: 10px;">
+        
+        <div class="login-field">
             <span class="prompt">USER:</span>
-            <input type="text" id="login-username" class="cmd-input" placeholder="...">
+            <input type="text" id="login-username" class="cmd-input" placeholder="Matricule...">
         </div>
-        <div class="login-field" style="margin-bottom: 20px;">
+        
+        <div class="login-field">
             <span class="prompt">PASS:</span>
-            <input type="password" id="login-password" class="cmd-input" placeholder="...">
+            <input type="password" id="login-password" class="cmd-input" placeholder="Mot de passe...">
         </div>
-        <div id="login-msg" class="term-line" style="margin-bottom: 10px; min-height: 20px; font-family: var(--font-code);"></div>
-        <button class="btn-connect" onclick="handleLogin()" style="width: 100%; padding: 10px; justify-content: center;">ACCÉDER AU MAINFRAME</button>
+        
+        <div id="login-msg" class="term-line term-error" style="margin-bottom: 10px; min-height: 20px; font-family: var(--font-code);"></div>
+        
+        <button class="btn-connect btn-full-width" onclick="handleLogin()">ACCÉDER AU MAINFRAME</button>
     </div>
-</div>
+</section>
 
 <script src="js/script.js"></script>
 <script>
+    // Ces fonctions devraient idéalement être déplacées dans js/script.js
     function accessModule(url, requiredLevel) {
+        if(url === '#') return;
         const currentLevel = parseInt(localStorage.getItem('userSecurityLevel') || 0);
-        if (currentLevel >= requiredLevel) { window.location.href = url; } 
-        else { alert("⛔ ACCRÉDITATION INSUFFISANTE"); }
+        if (currentLevel >= requiredLevel) { 
+            window.location.href = url; 
+        } else { 
+            alert("⛔ ACCRÉDITATION INSUFFISANTE : NIVEAU " + requiredLevel + " REQUIS"); 
+        }
     }
+
     function toggleTerminal() {
         document.getElementById('terminal-console').classList.toggle('open');
     }
