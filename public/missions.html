@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/stylele.css">
     
     <style>
-        /* === CORRECTION NAVBAR === */
+        /* === NAVBAR === */
         body.logged-in .tactical-navbar.auth-content,
         .tactical-navbar {
             display: flex !important; 
@@ -27,7 +27,7 @@
         /* === OPS BOARD STYLES === */
         .ops-container {
             display: flex; flex-direction: column; gap: 15px;
-            height: calc(100vh - 210px); /* Hauteur calculée sous la navbar */
+            height: calc(100vh - 220px); /* Ajustement pour la navbar et le header */
             overflow: hidden;
         }
 
@@ -75,7 +75,7 @@
             background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1);
             padding: 15px; cursor: grab; position: relative; transition: all 0.2s;
             display: flex; flex-direction: column; gap: 10px;
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            clip-path: var(--card-clip);
         }
         .mission-card:hover {
             border-color: var(--accent-primary); transform: translateX(4px); background: var(--bg-card-hover);
@@ -293,7 +293,8 @@
     let currentMissionId = null;
     let draggedCard = null;
     let allAgents = []; 
-    // Assure-toi que la clé correspond à ce que tu utilises dans auth.js ('sas_token' ou 'sas_session')
+    
+    // Ton système de token (fallback sur sas_session si besoin)
     const token = localStorage.getItem('sas_token') || localStorage.getItem('sas_session');
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -305,7 +306,6 @@
 
     async function loadAgentsList() {
         try {
-            // Remplacer par ta route d'API
             const res = await fetch('/api/game?entity=users', { headers: { 'Authorization': `Bearer ${token}` } });
             if(res.ok) {
                 allAgents = await res.json();
@@ -317,7 +317,6 @@
         const select = document.getElementById('add-agent-select');
         select.innerHTML = '<option value="">-- AFFECTER UN AGENT --</option>';
 
-        // Évite les erreurs si l'agent est un objet dans ton backend plutôt qu'une string
         const rosterNames = currentRoster.map(a => typeof a === 'string' ? a : a.username || a.name);
         
         const availableAgents = allAgents.filter(agent => {
@@ -334,7 +333,6 @@
             availableAgents.forEach(agent => {
                 const name = typeof agent === 'string' ? agent : agent.username || agent.name;
                 const opt = document.createElement('option');
-                // Envoie l'ID si c'est un objet, ou le nom si c'est une string (dépend de ton API)
                 opt.value = agent.id || name; 
                 opt.textContent = name.toUpperCase();
                 select.appendChild(opt);
@@ -441,10 +439,9 @@
             const select = document.getElementById('equip-select');
             select.innerHTML = '<option value="">-- RECHERCHE INVENTAIRE --</option>';
             
-            // Assure-toi que data est un tableau (parfois c'est encapsulé dans data.inventory)
             const inventory = Array.isArray(data) ? data : data.inventory || [];
-            
             const available = inventory.filter(i => !i.assigned_to && !i.mission_id && i.status !== 'PERDU');
+            
             available.forEach(item => {
                 const opt = document.createElement('option');
                 opt.value = item.id;
