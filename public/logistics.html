@@ -12,33 +12,130 @@
     </script>
 
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style-mo.css">
+    <link rel="stylesheet" href="css/stylele.css">
     <link rel="stylesheet" href="css/logistics.css">
+
+    <style>
+        .inventory-header {
+            display: flex;
+            padding: 10px 15px;
+            background: rgba(238, 187, 0, 0.1);
+            border-bottom: 1px solid var(--accent-warning);
+            color: var(--accent-warning);
+            font-family: var(--font-code);
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .equipment-list-container {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--text-dim) transparent;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 3000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-window {
+            background: var(--bg-panel);
+            border: 1px solid var(--accent-warning);
+            width: 100%;
+            max-width: 600px;
+            padding: 25px;
+            box-shadow: 0 0 30px rgba(238, 187, 0, 0.15);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            color: var(--accent-warning);
+            font-family: var(--font-code);
+            font-weight: bold;
+            border-bottom: 1px dashed var(--accent-warning);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-bottom: 5px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        select, .modal-input {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 10px;
+            font-family: var(--font-display);
+            outline: none;
+        }
+        select:focus, .modal-input:focus {
+            border-color: var(--accent-warning);
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
 </head>
 <body>
 
+    <div class="tactical-grid" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="radar-scan" aria-hidden="true"></div>
+
+    <div class="hud-side hud-left" aria-hidden="true">
+        <div class="hud-ruler"></div>
+        <div class="hud-marker">SYS.LOGISTICS</div>
+        <div class="hud-marker" style="color:var(--accent-warning)">SUPPLY</div>
+        <div class="hud-ruler"></div>
+    </div>
+    <div class="hud-side hud-right" aria-hidden="true">
+        <div class="hud-ruler"></div>
+        <div class="hud-marker">SECURE.CONN</div>
+        <div class="hud-marker">128.0.0.1</div>
+        <div class="hud-ruler"></div>
+    </div>
+
     <div class="terminal-wrapper">
-        <main class="terminal">
+        <div class="terminal">
             
             <header class="header-strip">
                 <div>
-                    <h1>LOGISTIQUE :: <span style="color: var(--warning);">ARMURERIE</span></h1>
-                    <div style="color: var(--primary); font-size: 0.9rem; letter-spacing: 3px;">SHADOW COMPANY // SUPPLY CHAIN</div>
+                    <h1>LOGISTIQUE // <span style="color: var(--accent-warning);">ARMURERIE</span></h1>
+                    <div class="sub-header">SHADOW COMPANY // SUPPLY CHAIN</div>
                 </div>
                 <div class="meta-data">
-                    <div>SYSTEM: <span style="color: var(--primary)">ONLINE</span></div>
-                    <button onclick="openModal()" class="btn-main-action">[ + SAISIR NOUVEAU MATÉRIEL ]</button>
+                    <span style="color: var(--accent-primary)">SYSTEM: ONLINE</span><br><br>
+                    <button onclick="openModal()" class="btn-connect" style="color: var(--accent-warning); border-color: rgba(238, 187, 0, 0.4); background: rgba(238, 187, 0, 0.05);">[ + SAISIR NOUVEAU MATÉRIEL ]</button>
                 </div>
             </header>
 
-            <section class="intel-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; height: calc(100vh - 140px);">
-
-                <div class="panel full-height" style="display: flex; flex-direction: column;">
-                    <div class="panel-header">
-                        <span class="panel-title">INVENTAIRE TACTIQUE</span>
-                        <div class="search-box">
-                            <input type="text" id="search-input" placeholder="RECHERCHER (NOM, S/N, AGENT)...">
-                        </div>
+            <main class="view-section">
+                
+                <section class="modules-section" style="flex: 2; display: flex; flex-direction: column; overflow: hidden;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px;">
+                        <h2 class="category-title" style="margin: 0;">INVENTAIRE TACTIQUE</h2>
+                        <input type="text" id="search-input" class="cmd-input" style="width: 300px; padding: 5px 10px;" placeholder="RECHERCHER (NOM, S/N, AGENT)...">
                     </div>
 
                     <div class="inventory-header">
@@ -49,44 +146,42 @@
                     </div>
 
                     <div id="equipment-list" class="equipment-list-container">
-                        <div class="blink" style="padding: 20px; color: #555;">CHARGEMENT DU MANIFESTE...</div>
+                        <div class="blink" style="padding: 20px; color: var(--text-dim); font-family: var(--font-code);">CHARGEMENT DU MANIFESTE...</div>
                     </div>
-                </div>
+                </section>
 
-                <div class="panel full-height" style="display: flex; flex-direction: column;">
-                    <div class="panel-header">
-                        <span class="panel-title" style="color: var(--warning)">REGISTRE_MOUVEMENTS</span>
-                        <span style="font-size:0.7rem; color:#666">LIVE_FEED</span>
+                <aside class="sidebar-panel" style="flex: 1; border-bottom: 2px solid var(--accent-warning);">
+                    <div class="panel-header" style="margin-bottom: 15px;">
+                        <h3 style="margin: 0; color: var(--accent-warning); font-family: var(--font-display); letter-spacing: 2px;">REGISTRE_MOUVEMENTS</h3>
+                        <span style="font-size:0.65rem; color:var(--accent-primary); font-family: var(--font-code);" class="blink">LIVE_FEED</span>
                     </div>
-                    <div id="logs-list" class="logs-container">
+                    <div class="separator-line"></div>
+                    
+                    <div id="logs-list" class="sidebar-logs" style="margin-top: 15px;">
                     </div>
-                </div>
 
-            </section>
+                    <div class="sidebar-footer" style="margin-top: auto; display: flex; gap: 10px; flex-direction: column;">
+                        <a href="database.html" class="btn-connect" style="width: 100%; justify-content: center; text-decoration: none;">[ BASE DE DONNÉES ]</a>
+                        <a href="profile.html" class="btn-connect" style="width: 100%; justify-content: center; text-decoration: none;">[ RETOUR PROFIL ]</a>
+                    </div>
+                </aside>
 
-            <footer class="footer">
-                <div>LOGISTICS TERMINAL V.2.2</div>
-                <div>
-                    <a href="profile.html" style="color: var(--secondary); margin-right: 15px;">[ RETOUR PROFIL ]</a>
-                    <a href="database.html" style="color: var(--secondary);">[ BASE DE DONNÉES ]</a>
-                </div>
-            </footer>
-
-        </main>
+            </main>
+        </div>
     </div>
 
     <div id="modal-overlay" class="modal-overlay" style="display: none;">
         <div class="modal-window">
             <div class="modal-header">
                 <span>ENREGISTREMENT_DOTATION</span>
-                <button onclick="closeModal()" class="btn-close">×</button>
+                <button onclick="closeModal()" style="background: none; border: none; color: var(--accent-danger); cursor: pointer; font-weight: bold;">[ X ]</button>
             </div>
             
-            <form id="add-equipment-form" class="log-form">
+            <form id="add-equipment-form">
                 <div class="form-row">
                     <div class="form-group">
                         <label>NOM DE L'OBJET</label>
-                        <input type="text" id="item_name" required placeholder="EX: M4A1 TACTICAL">
+                        <input type="text" id="item_name" class="modal-input" required placeholder="EX: M4A1 TACTICAL">
                     </div>
                     <div class="form-group">
                         <label>CATÉGORIE</label>
@@ -103,17 +198,17 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>NUMÉRO DE SÉRIE (S/N)</label>
-                        <input type="text" id="serial_number" required placeholder="EX: W-9920-X">
+                        <input type="text" id="serial_number" class="modal-input" required placeholder="EX: W-9920-X">
                     </div>
                     <div class="form-group">
                         <label>LIEU DE STOCKAGE</label>
-                        <input type="text" id="storage_location" value="ARMURERIE CENTRALE">
+                        <input type="text" id="storage_location" class="modal-input" value="ARMURERIE CENTRALE">
                     </div>
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" onclick="closeModal()" class="btn-cancel">[ ANNULER ]</button>
-                    <button type="submit" class="btn-scan">[ CONFIRMER L'AJOUT ]</button>
+                    <button type="button" onclick="closeModal()" class="btn-connect" style="color: var(--accent-danger); border-color: rgba(255,51,51,0.4);">[ ANNULER ]</button>
+                    <button type="submit" class="btn-connect" style="color: var(--accent-warning); border-color: rgba(238,187,0,0.4);">[ CONFIRMER L'AJOUT ]</button>
                 </div>
             </form>
         </div>
