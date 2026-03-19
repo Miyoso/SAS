@@ -3,252 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dossier // NYX</title>
-    <style>
-        /* --- RESET GLOBAL --- */
-        body, html {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background-color: #f8f9fa;
-            color: #1a1a1a;
-        }
+    <title>SAS MAINFRAME // DOSSIER [NYX]</title>
 
-        .layout-container {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* --- SECTION HAUTE (BLANCHE) --- */
-        .top-section {
-            padding: 40px;
-            position: relative;
-            flex: 1; /* Prend l'espace restant */
-        }
-
-        .sys-info {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 40px;
-        }
-
-        .title-block h1 {
-            font-family: Georgia, 'Times New Roman', Times, serif;
-            font-size: 42px;
-            margin: 0 0 15px 0;
-            letter-spacing: 2px;
-        }
-
-        .title-block p {
-            font-family: 'Courier New', Courier, monospace;
-            margin: 3px 0;
-            font-size: 14px;
-        }
-
-        .nav-links {
-            margin-top: 25px;
-            display: flex;
-            gap: 15px;
-        }
-
-        .nav-links a {
-            color: #0000EE; /* Bleu classique des liens */
-            text-decoration: underline;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
-            text-transform: uppercase;
-        }
-
-        /* --- CARTE D'IDENTITÉ CENTRÉE --- */
-        .card-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-30%, -30%); /* Ajustement pour la centrer joliment */
-            background-color: #2b3036;
-            color: #e2e8f0;
-            width: 480px;
-            border-radius: 8px;
-            padding: 25px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            z-index: 10; /* S'assure que la carte passe par dessus le reste */
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            border-bottom: 1px solid #4a5568;
-            padding-bottom: 15px;
-        }
-
-        .card-header h2 {
-            margin: 0;
-            font-size: 20px;
-            letter-spacing: 4px;
-        }
-
-        .card-header span {
-            font-size: 10px;
-            color: #a0aec0;
-        }
-
-        .card-body {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 25px;
-        }
-
-        .agent-name {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 16px;
-        }
-
-        .agent-stats p {
-            margin: 0 0 12px 0;
-            font-size: 11px;
-            color: #a0aec0;
-            text-transform: uppercase;
-        }
-
-        .agent-stats strong {
-            display: block;
-            color: #ffffff;
-            font-size: 15px;
-            margin-top: 4px;
-            letter-spacing: 1px;
-        }
-
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            border-top: 1px solid #4a5568;
-            padding-top: 15px;
-        }
-
-        .barcode {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 24px;
-            letter-spacing: -2px;
-            color: #a0aec0;
-        }
-
-        .chip {
-            width: 40px;
-            height: 28px;
-            background: linear-gradient(135deg, #e2e8f0 0%, #a0aec0 100%);
-            border-radius: 4px;
-        }
-
-        /* --- SECTION BASSE (FONCÉE) --- */
-        .bottom-section {
-            background-color: #2b3036;
-            color: #ffffff;
-            padding: 30px 40px;
-            font-family: 'Courier New', Courier, monospace;
-            min-height: 250px;
-        }
-
-        .bottom-section h3 {
-            margin-top: 0;
-            font-size: 18px;
-            letter-spacing: 2px;
-            margin-bottom: 25px;
-        }
-
-        .footprint-item {
-            margin-bottom: 20px;
-        }
-
-        .footprint-item span {
-            color: #a0aec0;
-            display: block;
-            font-size: 12px;
-            margin-bottom: 5px;
-        }
-
-        .footprint-item strong {
-            font-weight: normal;
-            background-color: #1a1d21;
-            padding: 5px 10px;
-            display: inline-block;
-            color: #e2e8f0;
-            border-left: 2px solid #a0aec0;
-        }
-
-        .status-offline {
-            border-left: 2px solid #e53e3e !important;
-            color: #fc8181 !important;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/stylele.css">
 </head>
 <body>
 
-    <div class="layout-container">
-        <div class="top-section">
-            <div class="sys-info">
-                SYS.CYBER_OPS<br>
-                NETRUNNER<br>
-                PROXY.LINK<br>
-                192.168.1.1
-            </div>
+    <div class="tactical-grid"></div>
+    <div class="vignette"></div>
+    <div class="radar-scan"></div>
 
-            <div class="title-block">
-                <h1>DOSSIER // NYX</h1>
-                <p>SHADOW COMPANY // CYBER-OPS DIVISION</p>
-                <p>SRC: ENCRYPTED NODE</p>
-                <p>REQ ID: _X77-CYBER</p>
-            </div>
+    <div class="hud-side hud-left">
+        <div class="hud-marker">SYS.CYBER_OPS</div>
+        <div class="hud-ruler"></div>
+        <div class="hud-marker">NETRUNNER</div>
+    </div>
+    <div class="hud-side hud-right">
+        <div class="hud-marker">192.168.1.1</div>
+        <div class="hud-ruler"></div>
+        <div class="hud-marker">PROXY.LINK</div>
+    </div>
 
-            <div class="nav-links">
-                <a href="#">Mainframe</a>
-                <a href="#">Base Agents</a>
-                <a href="#">Map Feed</a>
-                <a href="#">Rapports</a>
-                <a href="#">Logistique</a>
-                <a href="#">Missions</a>
-            </div>
-
-            <div class="card-container">
-                <div class="card-header">
-                    <h2>SHADOW CO.</h2>
-                    <span>GHOST LEVEL</span>
+    <div class="terminal-wrapper">
+        <div class="terminal">
+            
+            <header class="header-strip">
+                <div>
+                    <h1>DOSSIER // <span>NYX</span></h1>
+                    <div class="sub-header">SHADOW COMPANY // CYBER-OPS DIVISION</div>
                 </div>
-                <div class="card-body">
-                    <div class="agent-name">Agent Nyx</div>
-                    <div class="agent-stats">
-                        <p>NOM DE CODE<br><strong>LoveLace</strong></p>
-                        <p>SPÉCIALITÉ<br><strong>NETRUNNER</strong></p>
-                        <p>CLEARANCE ID<br><strong>LVL-5-OMNI</strong></p>
+                <div class="meta-data">
+                    SRC: ENCRYPTED NODE<br>
+                    REQ ID: <span class="blink">_X77-CYBER</span>
+                </div>
+            </header>
+
+            <nav class="tactical-navbar">
+                <a href="#" class="nav-item">Mainframe</a>
+                <a href="#" class="nav-item active restricted">Base Agents</a>
+                <a href="#" class="nav-item">Map Feed</a>
+                <a href="#" class="nav-item">Rapports</a>
+                <a href="#" class="nav-item">Logistique</a>
+                <a href="#" class="nav-item">Missions</a>
+            </nav>
+
+            <main class="view-section">
+                
+                <section class="modules-section">
+                    
+                    <h2 class="category-title">IDENTIFICATION // CLASSIFIÉ</h2>
+                    <div class="grid-modules">
+                        <div class="module-card status-danger">
+                            <div class="module-icon">⚠</div>
+                            <div class="module-info">
+                                <div class="module-name">Code: LoveLace</div>
+                                <div class="module-status"><span>LVL-5-OMNI</span> // CLEARANCE ID</div>
+                            </div>
+                        </div>
+
+                        <div class="module-card status-online">
+                            <div class="module-icon">⟁</div>
+                            <div class="module-info">
+                                <div class="module-name">NETRUNNER</div>
+                                <div class="module-status"><span>ACTIF</span> // SPÉCIALITÉ</div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="card-footer">
-                    <div class="barcode">||| |||| || | |||||</div>
-                    <div class="chip"></div>
-                </div>
-            </div>
-        </div>
 
-        <div class="bottom-section">
-            <h3>DIGITAL_FOOTPRINT</h3>
-            <div class="footprint-item">
-                <span>UNITÉ D'AFFECTATION:</span>
-                <strong>SECTION 00 (SIGINT)</strong>
-            </div>
-            <div class="footprint-item">
-                <span>DERNIÈRE LOCALISATION:</span>
-                <strong>TRACING NODE...</strong>
-            </div>
-            <div class="footprint-item">
-                <span>STATUT RÉSEAU:</span>
-                <strong class="status-offline">OFFLINE</strong>
-            </div>
+                    <h2 class="category-title">DIGITAL FOOTPRINT // TRACKING</h2>
+                    <div class="grid-modules">
+                        <div class="module-card status-restricted">
+                            <div class="module-icon">⛬</div>
+                            <div class="module-info">
+                                <div class="module-name">SECTION 00 (SIGINT)</div>
+                                <div class="module-status"><span>RESTREINT</span> // UNITÉ D'AFFECTATION</div>
+                            </div>
+                        </div>
+
+                        <div class="module-card status-danger">
+                            <div class="module-icon">⦾</div>
+                            <div class="module-info">
+                                <div class="module-name">TRACING NODE...</div>
+                                <div class="module-status"><span class="blink">OFFLINE</span> // STATUT RÉSEAU</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <aside class="sidebar-panel">
+                    
+                    <div class="user-mini-header">
+                        <div class="avatar-small-frame">
+                            <img src="assets/LoveLace.jpg" alt="Agent Nyx" onerror="this.style.display='none'">
+                        </div>
+                        <div class="mini-info">
+                            <div class="mini-user-text">AGENT NYX</div>
+                            <div class="mini-rank-text">GHOST LEVEL</div>
+                        </div>
+                    </div>
+                    
+                    <div class="separator-line"></div>
+                    <div class="xp-bar-container">
+                        <div class="xp-bar-fill" style="width: 100%; background: var(--accent-danger); box-shadow: 0 0 5px var(--accent-danger);"></div>
+                    </div>
+
+                    <div class="user-main-info">
+                        <h2>TECH_PROFILE</h2>
+                        <div class="rank-row">
+                            <span class="rank-box">MENACE: ÉLEVÉE</span>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-logs">
+                        <h3>ANALYSE PSYCHOLOGIQUE</h3>
+                        <ul class="log-list">
+                            <li class="log-item info">
+                                <div class="log-time">00:01:12</div>
+                                <div class="log-msg">[+] Loyauté conditionnelle vérifiée</div>
+                            </li>
+                            <li class="log-item alert">
+                                <div class="log-time">00:03:45</div>
+                                <div class="log-msg">[-] Dépendance technologique sévère</div>
+                            </li>
+                            <li class="log-item alert">
+                                <div class="log-time">00:04:10</div>
+                                <div class="log-msg">[-] Aversion au risque physique direct</div>
+                            </li>
+                            <li class="log-item warning">
+                                <div class="log-time">00:15:00</div>
+                                <div class="log-msg">[-] Lacunes en communication interpersonnelle</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="sidebar-footer">
+                        <button class="btn-disconnect">OVERRIDE SYSTÈME</button>
+                    </div>
+
+                </aside>
+            </main>
         </div>
     </div>
+
+    <div class="term-hint">TERMINAL SECURE // CONNECTION ENCRYPTED</div>
 
 </body>
 </html>
