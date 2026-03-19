@@ -1,3 +1,61 @@
+/* =========================================
+   TACTICAL NAVBAR
+========================================= */
+.tactical-navbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 15px;
+    overflow-x: auto; /* Permet de scroller si l'écran est trop petit */
+    scrollbar-width: none; /* Cache la scrollbar sur Firefox */
+}
+
+.tactical-navbar::-webkit-scrollbar {
+    display: none; /* Cache la scrollbar sur Chrome/Safari */
+}
+
+.nav-item {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-family: var(--font-code);
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 8px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+.nav-item:hover {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateY(-2px);
+}
+
+
+.nav-item.active {
+    color: var(--accent-primary);
+    border-color: var(--accent-primary);
+    background: rgba(0, 255, 157, 0.05);
+    box-shadow: 0 0 15px rgba(0, 255, 157, 0.1) inset;
+    text-shadow: 0 0 8px rgba(0, 255, 157, 0.4);
+}
+
+/* État Actif pour les zones restreintes (ex: Investigation, VIP) */
+.nav-item.active.restricted {
+    color: var(--accent-warning);
+    border-color: var(--accent-warning);
+    background: rgba(238, 187, 0, 0.05);
+    box-shadow: 0 0 15px rgba(238, 187, 0, 0.1) inset;
+    text-shadow: 0 0 8px rgba(238, 187, 0, 0.4);
+}
+
 :root {
     --bg-deep: #020406;
     --bg-panel: rgba(10, 15, 20, 0.85);
