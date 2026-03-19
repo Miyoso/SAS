@@ -3,429 +3,323 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS MAINFRAME // AGENT [NYX]</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Share+Tech+Mono&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="css/stylele.css">
-
+    <title>DOSSIER // NYX</title>
     <style>
-        /* === BOOT SCREEN === */
-        #boot-screen {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #000; z-index: 9999; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; font-family: var(--font-code);
-            transition: opacity 0.5s ease;
+        /* --- VARIABLES & RESET --- */
+        :root {
+            --bg-color: #f4f5f7;
+            --text-dark: #1a1a24;
+            --card-bg: #2b3036;
+            --text-light: #e2e8f0;
+            --accent-color: #4a90e2; /* Couleur pour les liens et statuts */
+            --terminal-font: 'Courier New', Courier, monospace;
         }
-        .boot-text { color: var(--accent-blue); font-size: 1.5rem; letter-spacing: 2px; margin-bottom: 20px; text-shadow: 0 0 10px var(--accent-blue); }
-        .progress-bar { width: 300px; height: 4px; background: rgba(255,255,255,0.1); overflow: hidden; }
-        .progress-fill { height: 100%; width: 0%; background: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); animation: load 1.2s ease forwards; }
-        @keyframes load { to { width: 100%; } }
 
-        /* === ID CARD 3D === */
-        .id-card-container { perspective: 1000px; margin-bottom: 30px; display: flex; justify-content: center; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        /* --- EN-TÊTE (HEADER) --- */
+        .header-container {
+            padding: 20px 40px;
+            font-family: var(--terminal-font);
+            font-size: 0.9rem;
+        }
+
+        .sys-info {
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .main-title {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .main-title span {
+            font-weight: 900;
+        }
+
+        .req-info {
+            margin-bottom: 20px;
+        }
+
+        /* --- NAVIGATION --- */
+        .nav-menu {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .nav-menu a {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: bold;
+            padding: 5px 10px;
+            border: 1px solid transparent;
+            transition: all 0.2s ease-in-out;
+            text-transform: uppercase;
+        }
+
+        .nav-menu a:hover {
+            background-color: var(--text-dark);
+            color: var(--bg-color);
+            border: 1px solid var(--text-dark);
+        }
+
+        /* --- CARTE D'IDENTITÉ (ID CARD) --- */
+        .card-wrapper {
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+        }
+
         .id-card {
-            width: 350px; background: rgba(10, 15, 20, 0.85); border: 1px solid var(--accent-blue);
-            border-radius: 10px; padding: 20px; position: relative; transform-style: preserve-3d;
-            box-shadow: 0 15px 35px rgba(0, 243, 255, 0.1), inset 0 0 20px rgba(0, 243, 255, 0.05);
-            transition: transform 0.1s ease;
-        }
-        .holo-overlay {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;
-            background: linear-gradient(135deg, rgba(0,243,255,0.2) 0%, transparent 50%, rgba(255,51,51,0.1) 100%);
-            mix-blend-mode: overlay; border-radius: 10px;
-        }
-        .card-header { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--accent-blue); padding-bottom: 10px; margin-bottom: 15px; }
-        .card-logo-text { font-family: var(--font-display); color: var(--accent-blue); font-size: 1.2rem; font-weight: bold; letter-spacing: 2px;}
-        .security-level { background: var(--accent-blue); color: #000; padding: 2px 8px; font-family: var(--font-code); font-size: 0.7rem; font-weight: bold; border-radius: 3px; }
-        
-        .card-body { display: flex; gap: 15px; }
-        .photo-box { width: 100px; height: 130px; border: 1px solid var(--accent-blue); overflow: hidden; position: relative; }
-        .photo-box img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.2) brightness(0.9); }
-        
-        /* SCANNER LASER */
-        .photo-box::after {
-            content: ''; position: absolute; 
-            top: -50%; left: -50%; width: 200%; height: 50px; 
-            background: linear-gradient(to bottom, transparent, rgba(0, 243, 255, 0.8), transparent);
-            box-shadow: 0 5px 15px rgba(0, 243, 255, 0.5);
-            transform: rotate(15deg);
-            animation: scanner 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
-        }
-        @keyframes scanner { 0% { top: -20%; } 100% { top: 120%; } }
-
-        .agent-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-        .card-label { font-size: 0.6rem; color: var(--text-dim); margin-bottom: 2px; font-family: var(--font-display); }
-        .card-value { font-size: 1rem; color: #fff; font-weight: bold; margin-bottom: 10px; font-family: var(--font-code); }
-        .card-code { font-family: var(--font-code); color: var(--accent-danger); font-size: 0.8rem; letter-spacing: 2px; }
-
-        .card-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 15px; border-top: 1px solid rgba(0,243,255,0.2); padding-top: 10px; }
-        .barcode { font-family: 'Libre Barcode 128 Text', cursive; font-size: 2.5rem; color: var(--text-dim); line-height: 0.8; }
-        .chip { width: 30px; height: 20px; background: linear-gradient(135deg, #ccc, #fff, #ccc); border-radius: 3px; border: 1px solid #999; }
-
-        /* === EFFET GLITCH === */
-        .glitch { position: relative; display: inline-block; }
-        .glitch::before, .glitch::after {
-            content: attr(data-text); position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%; background: var(--bg-deep);
-        }
-        .glitch::before {
-            left: 2px; text-shadow: -1px 0 var(--accent-danger);
-            animation: glitch-anim-1 2s infinite linear alternate-reverse;
-        }
-        .glitch::after {
-            left: -2px; text-shadow: -1px 0 var(--accent-warning);
-            animation: glitch-anim-2 3s infinite linear alternate-reverse;
-        }
-        @keyframes glitch-anim-1 {
-            0% { clip-path: inset(20% 0 80% 0); } 20% { clip-path: inset(60% 0 10% 0); }
-            40% { clip-path: inset(40% 0 50% 0); } 60% { clip-path: inset(80% 0 5% 0); }
-            80% { clip-path: inset(10% 0 70% 0); } 100% { clip-path: inset(30% 0 20% 0); }
-        }
-        @keyframes glitch-anim-2 {
-            0% { clip-path: inset(10% 0 60% 0); } 20% { clip-path: inset(30% 0 20% 0); }
-            40% { clip-path: inset(70% 0 10% 0); } 60% { clip-path: inset(20% 0 50% 0); }
-            80% { clip-path: inset(50% 0 30% 0); } 100% { clip-path: inset(5% 0 80% 0); }
-        }
-
-        /* === BORDURES FUTURISTES === */
-        .cyber-panel {
-            background: rgba(10, 15, 20, 0.85);
-            border: 1px solid var(--accent-blue);
-            padding: 20px; margin-bottom: 20px;
-            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.05) inset;
+            background-color: var(--card-bg);
+            color: var(--text-light);
+            width: 450px;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
             position: relative;
         }
-        .cyber-panel::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 15px; height: 15px;
-            background: var(--accent-blue); clip-path: polygon(0 0, 100% 0, 0 100%);
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #4a5568;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
         }
 
-        /* === SPECIFICS === */
-        .audio-viz { display: flex; gap: 3px; height: 15px; align-items: flex-end; }
-        .bar { width: 4px; background: var(--accent-blue); animation: sound 1s infinite alternate; }
-        @keyframes sound { 0% {height: 20%;} 100% {height: 100%;} }
-
-        .redacted { background: rgba(0, 243, 255, 0.1); color: var(--accent-blue); padding: 0 4px; cursor: crosshair; font-family: var(--font-code); transition: 0.2s; }
-        .redacted:hover { background: var(--accent-blue); color: #000; }
-
-        body.logged-in .tactical-navbar.auth-content, .tactical-navbar {
-            display: flex !important; gap: 10px; padding: 0 10px 15px 10px; margin-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05); overflow-x: auto; scrollbar-width: none;
+        .card-header h2 {
+            font-size: 1.2rem;
+            font-weight: bold;
         }
-        .tactical-navbar::-webkit-scrollbar { display: none; }
 
-        .log-entry { margin-bottom: 15px; font-family: var(--font-code); font-size: 0.8rem; line-height: 1.4; }
-        .log-entry .label { color: var(--text-dim); font-size: 0.7rem; }
+        .card-header .ghost-level {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+
+        .card-body {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .agent-name {
+            font-size: 1.1rem;
+            font-family: var(--terminal-font);
+        }
+
+        .agent-details {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .detail-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 0.6rem;
+            color: #a0aec0;
+            text-transform: uppercase;
+        }
+
+        .detail-value {
+            font-size: 0.95rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        /* Bas de la carte (Code barre et puce) */
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-top: 1px solid #4a5568;
+            padding-top: 15px;
+        }
+
+        .barcode-container {
+            font-family: var(--terminal-font);
+        }
+
+        .barcode-lines {
+            font-size: 1.5rem;
+            letter-spacing: -2px;
+            color: #cbd5e0;
+            line-height: 1;
+        }
+
+        .barcode-numbers {
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            color: #a0aec0;
+        }
+
+        .smart-chip {
+            width: 40px;
+            height: 30px;
+            background: linear-gradient(135deg, #e2e8f0 0%, #a0aec0 100%);
+            border-radius: 4px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        }
+
+        /* --- PIED DE PAGE (DIGITAL FOOTPRINT) --- */
+        .digital-footprint {
+            background-color: var(--card-bg);
+            color: var(--text-light);
+            padding: 30px 40px;
+            margin-top: 40px;
+            font-family: var(--terminal-font);
+            border-top: 4px solid #1a1a24;
+        }
+
+        .digital-footprint h3 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .footprint-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .footprint-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .footprint-label {
+            font-size: 0.7rem;
+            color: #a0aec0;
+        }
+
+        .footprint-value {
+            font-size: 0.9rem;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 3px;
+            display: inline-block;
+            width: fit-content;
+            border-left: 2px solid var(--accent-color);
+        }
+
+        .status-offline {
+            border-left-color: #e53e3e; /* Rouge pour OFFLINE */
+            color: #fc8181;
+        }
     </style>
 </head>
-<body class="logged-in">
+<body>
 
-    <div id="boot-screen">
-        <div class="boot-text">BYPASSING FIREWALL...</div>
-        <div class="progress-bar"><div class="progress-fill"></div></div>
-        <div style="margin-top: 15px; font-size: 0.8rem; color: var(--text-dim);">PROTOCOL: GHOST_CLEAN // TARGET: NYX</div>
-    </div>
+    <header class="header-container">
+        <div class="sys-info">
+            SYS.CYBER_OPS<br>
+            NETRUNNER<br>
+            PROXY.LINK<br>
+            192.168.1.1 </div>
 
-    <div class="tactical-grid" aria-hidden="true"></div>
-    <div class="vignette" aria-hidden="true"></div>
-    <div class="radar-scan" aria-hidden="true"></div>
+        <h1 class="main-title">DOSSIER // <span>NYX</span></h1>
 
-    <div class="hud-side hud-left" aria-hidden="true">
-        <div class="hud-ruler"></div>
-        <div class="hud-marker">SYS.CYBER_OPS</div>
-        <div class="hud-marker" style="color:var(--accent-blue)">NETRUNNER</div>
-        <div class="hud-ruler"></div>
-    </div>
-    <div class="hud-side hud-right" aria-hidden="true">
-        <div class="hud-ruler"></div>
-        <div class="hud-marker">PROXY.LINK</div>
-        <div class="hud-marker">999.X.X.1</div>
-        <div class="hud-ruler"></div>
-    </div>
-
-    <div class="terminal-wrapper">
-        <div class="terminal">
-            
-            <header class="header-strip" style="border-bottom-color: var(--accent-blue); margin-bottom: 10px;">
-                <div>
-                    <h1>DOSSIER // <span class="glitch" data-text="NYX" style="color: var(--accent-blue); text-shadow: 0 0 10px var(--accent-blue);">NYX</span></h1>
-                    <div class="sub-header" style="color: var(--accent-blue);">SHADOW COMPANY // CYBER-OPS DIVISION</div>
-                </div>
-                <div class="meta-data">
-                    <span style="color: var(--text-dim)">SRC: ENCRYPTED NODE</span><br>
-                    REQ ID: <span class="blink" style="color: var(--accent-blue);">_X77-CYBER</span>
-                </div>
-            </header>
-
-            <nav class="tactical-navbar auth-content">
-                <a href="index.html" class="nav-item">MAINFRAME</a>
-                <a href="database.html" class="nav-item active">BASE AGENTS</a>
-                <a href="map.html" class="nav-item">MAP_FEED</a>
-                <a href="report.html" class="nav-item">RAPPORTS</a>
-                <a href="logistics.html" class="nav-item">LOGISTIQUE</a>
-                <a href="missions.html" class="nav-item">MISSIONS</a>
-            </nav>
-
-            <main class="view-section" style="gap: 30px;">
-                
-                <section class="modules-section" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 15px;">
-                    
-                    <div class="id-card-container">
-                        <div class="id-card" id="card">
-                            <div class="holo-overlay"></div>
-                            
-                            <div class="card-header">
-                                <div class="card-logo-text">SHADOW CO.</div>
-                                <div class="security-level">GHOST LEVEL</div>
-                            </div>
-                
-                            <div class="card-body">
-                                <div class="photo-box">
-                                    <img src="assets/LoveLace.jpg" alt="Agent Nyx">
-                                </div>
-                                <div class="agent-info">
-                                    <div class="card-label">NOM DE CODE</div>
-                                    <div class="card-value">LoveLace</div>
-                                    
-                                    <div class="card-label">SPÉCIALITÉ</div>
-                                    <div class="card-value" style="color: var(--accent-blue);">NETRUNNER</div>
-
-                                    <div class="card-label">CLEARANCE ID</div>
-                                    <div class="card-code">LVL-5-OMNI</div>
-                                </div>
-                            </div>
-                
-                            <div class="card-footer">
-                                <div class="barcode">000000000</div>
-                                <div class="chip"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="cyber-panel">
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px dashed var(--accent-blue); padding-bottom: 10px; margin-bottom: 15px;">
-                            <span style="font-family: var(--font-code); color: var(--accent-blue); font-weight: bold;">DIGITAL_FOOTPRINT</span>
-                            <div class="audio-viz">
-                                <div class="bar" style="animation-delay:0s;"></div>
-                                <div class="bar" style="animation-delay:0.1s;"></div>
-                                <div class="bar" style="animation-delay:0.2s;"></div>
-                                <div class="bar" style="animation-delay:0.3s;"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="log-entry">
-                            <span class="label">UNITÉ D'AFFECTATION:</span><br>
-                            <span style="color: #fff;">SECTION 00 (SIGINT)</span>
-                        </div>
-                        <div class="log-entry">
-                            <span class="label">DERNIÈRE LOCALISATION:</span><br>
-                            <span class="redacted" data-real="NON-LOCALISÉE (VPN MULTIPLES)" data-scramble="TRACING NODE..."></span>
-                        </div>
-                        <div class="log-entry">
-                            <span class="label">STATUT RÉSEAU:</span><br>
-                            <span class="redacted" data-real="CONNECTED // LISTENING" data-scramble="OFFLINE"></span>
-                        </div>
-                    </div>
-
-                    <div class="cyber-panel">
-                        <h3 style="font-family: var(--font-display); color: var(--text-dim); margin: 0 0 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">TECH_PROFILE</h3>
-                        
-                        <div class="log-entry">
-                            <span style="color: var(--accent-primary)">[+]</span> Loyauté conditionnelle vérifiée
-                        </div>
-                        <div class="log-entry">
-                            <span style="color: var(--accent-danger)">[-]</span> Dépendance technologique sévère
-                        </div>
-                        <div class="log-entry">
-                            <span style="color: var(--accent-danger)">[-]</span> Aversion au risque physique direct
-                        </div>
-                        <div class="log-entry">
-                            <span style="color: var(--accent-danger)">[-]</span> Lacunes en communication interpersonnelle
-                        </div>
-
-                        <div style="margin-top: 20px; font-size: 0.7rem; color: var(--accent-warning); border-top: 1px dashed var(--accent-warning); padding-top: 10px; font-family: var(--font-code);">
-                            // WARNING: SURVEILLE CONSTAMMENT LE RÉSEAU SHADOW. ELLE SAIT QUE VOUS LISEZ CECI.
-                        </div>
-                    </div>
-
-                </section>
-
-                <aside class="sidebar-panel" style="flex: 1.2; border-bottom-color: var(--accent-blue); padding: 0;">
-                    
-                    <div class="cyber-panel" style="margin: 25px; border-color: var(--accent-danger);">
-                        <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end;">
-                            <h3 style="margin: 0; color: var(--accent-danger); font-family: var(--font-display); letter-spacing: 2px;">PROJET: OVERRIDE</h3>
-                            <span style="font-size:0.65rem; color:var(--accent-danger); font-family: var(--font-code);" class="blink">ROOT ACCESS</span>
-                        </div>
-                        <div class="separator-line" style="background: linear-gradient(90deg, var(--accent-danger), transparent);"></div>
-                        
-                        <div style="font-family: var(--font-code); font-size: 0.8rem; color: var(--text-dim); line-height: 1.6; margin-top: 15px;">
-                            <p>
-                                <span style="color: var(--accent-danger);">root@nyx:~$</span> ./sudo_inject.py --silent
-                            </p>
-                            
-                            <div id="live-typing" style="padding-left: 10px; border-left: 2px solid #333; min-height: 80px; color: #fff;"></div>
-                            
-                            <div style="background: rgba(255, 51, 51, 0.1); border-left: 3px solid var(--accent-danger); padding: 10px; margin-top: 20px; color: #fff;">
-                                <span style="color: var(--accent-danger); font-weight: bold; font-size: 0.7rem;">ALERTE SYSTÈME:</span><br>
-                                L'UTILISATEUR 'ROOT' A PRIS LE CONTRÔLE TOTAL. LES PROTOCOLES DE SÉCURITÉ ONT ÉTÉ DÉSACTIVÉS MANUELLEMENT.
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="padding: 0 25px;">
-                        <h3 style="font-family: var(--font-display); color: #fff; margin: 10px 0 10px 0; font-size: 0.9rem;">TCP/IP LOGS</h3>
-                        <div class="separator-line"></div>
-
-                        <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
-                            <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.75rem; background: rgba(255,255,255,0.02); padding: 8px;">
-                                <span style="color: var(--text-dim)">22:41:09</span>
-                                <span>SHEPHERD_PC</span>
-                                <span class="redacted" data-real="BACKDOOR" data-scramble="UNKNOWN"></span>
-                                <span style="color: var(--accent-danger)">ROOT</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.75rem; background: rgba(255,255,255,0.02); padding: 8px;">
-                                <span style="color: var(--text-dim)">23:15:00</span>
-                                <span class="redacted" data-real="TASK FORCE 141" data-scramble="ENEMIES"></span>
-                                <span>DDOS</span>
-                                <span style="color: var(--accent-warning)">BLOCK</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.75rem; background: rgba(255,255,255,0.02); padding: 8px;">
-                                <span style="color: var(--text-dim)">00:00:01</span>
-                                <span>SHADOW_MAIN</span>
-                                <span class="redacted" data-real="WIPE_LOGS" data-scramble="CLEAN"></span>
-                                <span style="color: var(--accent-primary)">CLEAN</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.75rem; background: rgba(0,243,255,0.05); padding: 8px; border: 1px solid rgba(0,243,255,0.3);">
-                                <span style="color: var(--accent-blue)">NOW</span>
-                                <span class="redacted" style="color: var(--accent-blue)" data-real="CE TERMINAL" data-scramble="YOU"></span>
-                                <span>MONITORING</span>
-                                <span class="blink" style="color: var(--accent-blue)">ACTIF</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: auto; padding: 25px;">
-                        <div style="border: 1px dashed var(--accent-danger); background: rgba(255, 51, 51, 0.05); padding: 15px;">
-                            <div style="color: var(--accent-danger); font-family: var(--font-code); font-size: 0.75rem; margin-bottom: 10px; font-weight: bold;">
-                                [ ! ] AUTHENTIFICATION MANUELLE REQUISE
-                            </div>
-                            <div style="display: flex; flex-direction: column; gap: 8px; font-family: var(--font-code); font-size: 0.7rem;">
-                                <div style="display: flex; justify-content: space-between; color: var(--text-dim);">
-                                    <span>> operations_datahaven.log</span>
-                                    <span style="color: var(--accent-danger);">[CORROMPU]</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; color: var(--text-dim);">
-                                    <span>> archives_n.dat</span>
-                                    <span style="color: var(--accent-danger);">[LOCKED]</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; color: var(--text-dim);">
-                                    <span>> contacts_actifs.db</span>
-                                    <span style="color: var(--accent-danger);">[LOCKED]</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </aside>
-
-            </main>
+        <div class="req-info">
+            SHADOW COMPANY // CYBER-OPS DIVISION<br>
+            SRC: ENCRYPTED NODE<br>
+            REQ ID: _X77-CYBER
         </div>
-    </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        <nav class="nav-menu">
+            <a href="#">Mainframe</a>
+            <a href="#">Base Agents</a>
+            <a href="#">Map_Feed</a>
+            <a href="#">Rapports</a>
+            <a href="#">Logistique</a>
+            <a href="#">Missions</a>
+        </nav>
+    </header>
+
+    <main class="card-wrapper">
+        <div class="id-card">
+            <div class="card-header">
+                <h2>SHADOW CO.</h2>
+                <span class="ghost-level">Ghost Level</span>
+            </div>
             
-            // 1. BOOT SCREEN (Effet Cyber)
-            const bootScreen = document.getElementById('boot-screen');
-            const bootText = document.querySelector('.boot-text');
+            <div class="card-body">
+                <div class="agent-name">Agent Nyx</div>
+                
+                <div class="agent-details">
+                    <div class="detail-group">
+                        <span class="detail-label">Nom de code</span>
+                        <span class="detail-value">LoveLace</span>
+                    </div>
+                    <div class="detail-group">
+                        <span class="detail-label">Spécialité</span>
+                        <span class="detail-value">NETRUNNER</span>
+                    </div>
+                    <div class="detail-group">
+                        <span class="detail-label">Clearance ID</span>
+                        <span class="detail-value">LVL-5-OMNI</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <div class="barcode-container">
+                    <div class="barcode-lines">||||| |||| || | |||</div>
+                    <div class="barcode-numbers">0 4 9 3 8 2 0 1 9</div>
+                </div>
+                <div class="smart-chip"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="digital-footprint">
+        <h3>DIGITAL_FOOTPRINT</h3>
+        
+        <div class="footprint-grid">
+            <div class="footprint-item">
+                <span class="footprint-label">UNITÉ D'AFFECTATION:</span>
+                <span class="footprint-value">SECTION 00 (SIGINT)</span>
+            </div>
             
-            setTimeout(() => { bootText.textContent = "INJECTING SHELLCODE..."; }, 500);
-            setTimeout(() => { bootText.textContent = "CONNECTION ESTABLISHED."; }, 1200);
-            setTimeout(() => {
-                bootScreen.style.opacity = '0';
-                setTimeout(() => bootScreen.remove(), 500);
-            }, 1500);
+            <div class="footprint-item">
+                <span class="footprint-label">DERNIÈRE LOCALISATION:</span>
+                <span class="footprint-value">TRACING NODE...</span>
+            </div>
+            
+            <div class="footprint-item">
+                <span class="footprint-label">STATUT RÉSEAU:</span>
+                <span class="footprint-value status-offline">OFFLINE</span> 
+            </div>
+        </div>
+    </footer>
 
-            // 2. EFFET MACHINE A ECRIRE (TYPEWRITER)
-            const logText = "> Scan des vulnérabilités kernel... [OK]\n> Exploitation de la faille Zero-Day... [OK]\n> Escalade de privilèges administrateur... [EN COURS]\n> ACCÈS ROOT AU SERVEUR CENTRAL... [ACCORDÉ]";
-            const typeTarget = document.getElementById('live-typing');
-            let typeIndex = 0;
-
-            function typeWriter() {
-                if(!typeTarget) return;
-                if (typeIndex < logText.length) {
-                    let char = logText.charAt(typeIndex);
-                    if (char === '\n') {
-                        typeTarget.innerHTML += '<br>';
-                    } else {
-                        // Ajoute une coloration spécifique pour les mots clés
-                        if(logText.substring(typeIndex, typeIndex+4) === '[OK]') {
-                            typeTarget.innerHTML += '<span style="color:var(--accent-primary)">[OK]</span>';
-                            typeIndex += 3;
-                        } else if(logText.substring(typeIndex, typeIndex+10) === '[EN COURS]') {
-                            typeTarget.innerHTML += '<span style="color:var(--accent-warning)">[EN COURS]</span>';
-                            typeIndex += 9;
-                        } else if(logText.substring(typeIndex, typeIndex+9) === '[ACCORDÉ]') {
-                            typeTarget.innerHTML += '<span class="blink" style="color:var(--accent-danger)">[ACCORDÉ]</span>';
-                            typeIndex += 8;
-                        } else {
-                            typeTarget.innerHTML += char;
-                        }
-                    }
-                    typeIndex++;
-                    setTimeout(typeWriter, 30); // Vitesse de frappe
-                }
-            }
-            // On lance l'effet de frappe juste après la disparition du boot screen
-            setTimeout(typeWriter, 1800);
-
-            // 3. 3D CARD EFFECT
-            const card = document.getElementById('card');
-            const cardContainer = document.querySelector('.id-card-container');
-
-            if(card && cardContainer) {
-                cardContainer.addEventListener('mousemove', (e) => {
-                    const rect = cardContainer.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    const centerX = rect.width / 2;
-                    const centerY = rect.height / 2;
-                    const rotateX = ((y - centerY) / centerY) * -10; 
-                    const rotateY = ((x - centerX) / centerX) * 10;
-                    card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-                });
-                cardContainer.addEventListener('mouseleave', () => {
-                    card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
-                });
-            }
-
-            // 4. HACKER TEXT DECRYPTION
-            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
-            document.querySelectorAll('.redacted').forEach(element => {
-                element.textContent = element.getAttribute('data-scramble');
-                element.onmouseover = event => {
-                    let iterations = 0;
-                    const targetText = event.target.getAttribute('data-real');
-                    if(!targetText) return;
-                    const interval = setInterval(() => {
-                        event.target.textContent = targetText.split("").map((letter, index) => {
-                            if(index < iterations) return targetText[index];
-                            return letters[Math.floor(Math.random() * 43)]
-                        }).join("");
-                        if(iterations >= targetText.length) clearInterval(interval);
-                        iterations += 1 / 2;
-                    }, 20);
-                }
-                element.onmouseleave = event => {
-                   element.textContent = element.getAttribute('data-scramble');
-                }
-            });
-        });
-    </script>
 </body>
 </html>
