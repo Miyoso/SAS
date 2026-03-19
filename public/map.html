@@ -3,65 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS - TACTICAL MAP V2</title>
+    <title>SAS MAINFRAME // TACTICAL MAP</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style-mo.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/stylele.css">
 
     <style>
         body { margin: 0; padding: 0; overflow: hidden; background: #000; }
-        #map { height: 100vh; width: 100vw; background: #0a0a0a; z-index: 1; }
+        
+        /* La carte passe tout au fond, sous les effets visuels du thème */
+        #map { 
+            position: fixed; top: 0; left: 0; height: 100vh; width: 100vw; 
+            background: #05080a; z-index: -20; 
+        }
 
+      
         .ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 1000;
+            pointer-events: none; z-index: 1000; padding: 25px;
         }
 
-        .sidebar {
-            position: absolute; top: 20px; right: 20px; width: 300px;
-            background: rgba(10, 15, 20, 0.9); border: 1px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px); padding: 15px; pointer-events: auto;
-            display: flex; flex-direction: column; gap: 10px;
+        .map-header {
+            pointer-events: auto;
+            display: inline-block;
+            background: rgba(5, 8, 10, 0.85);
+            padding: 15px 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 2px solid var(--accent-primary);
+            backdrop-filter: blur(5px);
         }
 
-        .tool-btn {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            color: #ccc; padding: 10px; cursor: pointer; font-family: 'Share Tech Mono';
-            display: flex; align-items: center; gap: 10px; transition: 0.2s;
+        .map-sidebar {
+            position: absolute; top: 25px; right: 25px; width: 320px;
+            pointer-events: auto; height: auto;
+            border-bottom: none; border-top: 2px solid var(--accent-primary);
         }
-        .tool-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .tool-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 157, 0.1); }
 
-        /* NOUVEAU : BOUTON DE VALIDATION FLOTTANT */
+        .tool-btn-map {
+            width: 100%; justify-content: flex-start; margin-bottom: 10px;
+        }
+
+        .tool-btn-map.active {
+            background: rgba(0, 255, 157, 0.2);
+            border-color: var(--accent-primary);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
+            transform: translateX(5px);
+        }
+
+ 
         #finish-container {
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            pointer-events: auto; display: none; /* Caché par défaut */
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            pointer-events: auto; display: none;
         }
+        
         .finish-btn {
-            background: var(--primary); color: #000; font-weight: bold; border: none;
-            padding: 12px 24px; font-family: 'Share Tech Mono'; cursor: pointer;
-            box-shadow: 0 0 20px rgba(0, 255, 157, 0.4); font-size: 1rem;
+            background: var(--accent-primary); color: #000; font-weight: bold;
+            border: none; padding: 12px 24px; font-family: var(--font-code); 
+            cursor: pointer; box-shadow: 0 0 20px rgba(0, 255, 157, 0.4); 
+            font-size: 1rem; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: 0.3s;
         }
-        .finish-btn:hover { transform: scale(1.05); }
+        .finish-btn:hover { transform: scale(1.05); background: #fff; }
 
-        /* Popups & Modal */
+      
         .leaflet-popup-content-wrapper {
-            background: rgba(10, 15, 20, 0.95); border: 1px solid var(--primary);
-            color: #fff; font-family: 'JetBrains Mono'; border-radius: 0;
+            background: rgba(10, 14, 18, 0.95); border: 1px solid var(--accent-primary);
+            color: #fff; font-family: var(--font-code); border-radius: 0;
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
         }
-        .leaflet-popup-tip { background: var(--primary); }
+        .leaflet-popup-tip { background: var(--accent-primary); }
+        .leaflet-popup-close-button { color: var(--accent-primary) !important; text-decoration: none !important;}
 
-        .modal {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #0f1215; border: 1px solid var(--primary); padding: 20px;
-            width: 300px; pointer-events: auto; display: none;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px);
+            z-index: 3000; display: none; justify-content: center; align-items: center;
+            pointer-events: auto;
         }
-        .input-field {
-            width: 100%; background: #222; border: 1px solid #444; color: white;
-            padding: 8px; margin-bottom: 10px; font-family: 'JetBrains Mono';
+        .modal-window {
+            background: var(--bg-panel); border: 1px solid var(--accent-primary);
+            width: 100%; max-width: 400px; padding: 25px;
+            box-shadow: 0 0 30px rgba(0, 255, 157, 0.15);
         }
     </style>
 </head>
@@ -69,42 +95,68 @@
 
 <div id="map"></div>
 
+<div class="tactical-grid" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+<div class="radar-scan" aria-hidden="true"></div>
+
+<div class="hud-side hud-left" aria-hidden="true">
+    <div class="hud-ruler"></div>
+    <div class="hud-marker">SYS.CARTOGRAPHY</div>
+    <div class="hud-marker" style="color:var(--accent-primary)">LIVE_FEED</div>
+    <div class="hud-ruler"></div>
+</div>
+<div class="hud-side hud-right" aria-hidden="true">
+    <div class="hud-ruler"></div>
+    <div class="hud-marker">SAT.UPLINK</div>
+    <div class="hud-marker">128.0.0.1</div>
+    <div class="hud-ruler"></div>
+</div>
+
 <div class="ui-layer">
 
-    <div style="position:absolute; top:20px; left:20px; pointer-events:auto;">
-        <h1 style="margin:0; font-size:1.5rem; text-shadow:0 0 10px var(--primary);">TACTICAL MAP <span style="font-size:0.8rem; color:#666;">// LIVE</span></h1>
-        <a href="index.html" style="color:var(--primary); font-size:0.8rem; text-decoration:none;">< RETOUR</a>
+    <div class="map-header">
+        <h1>TACTICAL <span>MAP</span></h1>
+        <div class="sub-header" style="margin-bottom: 10px;">SATELLITE FEED // SECTOR 7</div>
+        <a href="index.html" class="btn-connect" style="text-decoration:none; display:inline-block;">< RETOUR MAINFRAME</a>
     </div>
 
-    <div class="sidebar">
-        <div style="color:var(--primary); border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:5px;">OUTILS</div>
+    <div class="sidebar-panel map-sidebar">
+        <h3 style="margin: 0 0 15px 0; color: var(--accent-primary); font-family: var(--font-display); letter-spacing: 2px;">OUTILS_TACTIQUES</h3>
+        <div class="separator-line" style="margin-bottom: 15px;"></div>
 
-        <div class="tool-btn active" onclick="selectTool('nav')">✋ NAVIGATION</div>
-        <div class="tool-btn" onclick="selectTool('marker')">📍 MARQUEUR</div>
-        <div class="tool-btn" onclick="selectTool('line')">➖ LIGNE (Trajet)</div>
-        <div class="tool-btn" onclick="selectTool('polygon')">⬢ ZONE (Polygone)</div>
+        <button class="btn-connect tool-btn-map active" onclick="selectTool('nav')">✋ NAVIGATION</button>
+        <button class="btn-connect tool-btn-map" onclick="selectTool('marker')">📍 MARQUEUR TACTIQUE</button>
+        <button class="btn-connect tool-btn-map" onclick="selectTool('line')">➖ TRACER TRAJET</button>
+        <button class="btn-connect tool-btn-map" onclick="selectTool('polygon')">⬢ DÉLIMITER ZONE</button>
 
-        <div style="font-size:0.7rem; color:#666; margin-top:10px;">
-            * Cliquez pour placer les points.
+        <div style="font-size:0.65rem; color:var(--text-dim); margin-top:15px; font-family: var(--font-code);">
+            > CLIQUEZ SUR LA CARTE POUR PLACER DES POINTS.
         </div>
     </div>
 
     <div id="finish-container">
-        <button class="finish-btn" onclick="finishDrawing()">✅ TERMINER LE TRACÉ</button>
+        <button class="finish-btn" onclick="finishDrawing()">[ EXECUTER LE TRACÉ ]</button>
     </div>
 
-    <div id="infoModal" class="modal">
-        <h3 style="color:var(--primary); margin-top:0;">DÉTAILS</h3>
-        <input type="text" id="descInput" class="input-field" placeholder="Description (ex: Ennemis)" autocomplete="off">
+    <div id="infoModal" class="modal-overlay">
+        <div class="modal-window">
+            <div class="terminal-header" style="display:flex; justify-content:space-between; border-bottom:1px dashed var(--accent-primary); padding-bottom:10px; margin-bottom:20px;">
+                <span style="font-family: var(--font-code); font-weight: bold; color: var(--accent-primary);">SAISIE_DONNÉES_CIBLE</span>
+            </div>
+            
+            <input type="text" id="descInput" class="cmd-input" style="margin-bottom:15px;" placeholder="Désignation (ex: Hostiles)..." autocomplete="off">
 
-        <select id="levelInput" class="input-field">
-            <option value="low">MENACE FAIBLE (Vert)</option>
-            <option value="mid">MENACE MOYENNE (Jaune)</option>
-            <option value="high">MENACE CRITIQUE (Rouge)</option>
-        </select>
+            <select id="levelInput" class="cmd-input" style="margin-bottom:20px;">
+                <option value="low">MENACE FAIBLE (Vert)</option>
+                <option value="mid">MENACE MOYENNE (Jaune)</option>
+                <option value="high">MENACE CRITIQUE (Rouge)</option>
+            </select>
 
-        <button onclick="saveShape()" class="tool-btn" style="width:100%; justify-content:center; border-color:var(--primary);">CONFIRMER</button>
-        <button onclick="cancelShape()" class="tool-btn" style="width:100%; justify-content:center; margin-top:5px;">ANNULER</button>
+            <div style="display:flex; gap:10px; flex-direction:column;">
+                <button onclick="saveShape()" class="btn-connect" style="width:100%; justify-content:center;">[ CONFIRMER LES DONNÉES ]</button>
+                <button onclick="cancelShape()" class="btn-connect" style="width:100%; justify-content:center; color:var(--accent-danger); border-color:rgba(255,51,51,0.4);">[ ABORT ]</button>
+            </div>
+        </div>
     </div>
 
 </div>
@@ -144,14 +196,12 @@
         map.on('click', onMapClick);
     }
 
-
     function selectTool(tool) {
         currentTool = tool;
-        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-        if(event) event.currentTarget.classList.add('active'); // Petite sécurité si appelé sans click direct
+        document.querySelectorAll('.tool-btn-map').forEach(b => b.classList.remove('active'));
+        if(event) event.currentTarget.classList.add('active'); 
 
         document.getElementById('map').style.cursor = (tool === 'nav') ? 'grab' : 'crosshair';
-
 
         resetDrawing();
     }
@@ -159,16 +209,12 @@
     function onMapClick(e) {
         if (currentTool === 'nav') return;
 
-
         if (currentTool === 'marker') {
             openModal('marker', [e.latlng]);
         }
-
-
         else if (currentTool === 'line' || currentTool === 'polygon') {
             tempPoints.push(e.latlng);
             drawTempShape();
-
 
             if (tempPoints.length > 0) {
                 document.getElementById('finish-container').style.display = 'block';
@@ -176,10 +222,9 @@
         }
     }
 
-
     function finishDrawing() {
         if (tempPoints.length < 2) {
-            alert("Il faut au moins 2 points pour créer une forme !");
+            alert("ERREUR: IL FAUT AU MOINS 2 POINTS.");
             return;
         }
         openModal(currentTool, tempPoints);
@@ -202,14 +247,13 @@
         document.getElementById('finish-container').style.display = 'none';
     }
 
-
     let pendingSave = null;
 
     function openModal(type, latlngs) {
         pendingSave = { type, latlngs };
-        document.getElementById('infoModal').style.display = 'block';
+        
+        document.getElementById('infoModal').style.display = 'flex';
         document.getElementById('descInput').focus();
-
         document.getElementById('finish-container').style.display = 'none';
     }
 
@@ -222,10 +266,10 @@
     async function saveShape() {
         if(!pendingSave) return;
 
-        const desc = document.getElementById('descInput').value || 'Zone';
+        const desc = document.getElementById('descInput').value || 'Zone Non Identifiée';
         const level = document.getElementById('levelInput').value;
         const session = JSON.parse(localStorage.getItem('sas_session'));
-        const author = session ? session.username : 'Inconnu';
+        const author = session ? session.username : 'AGENT INCONNU';
 
         const payload = {
             type: pendingSave.type,
@@ -238,23 +282,21 @@
         };
 
         try {
-
             await fetch('/api/game?entity=markers', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(payload)
             });
             cancelShape();
+            document.getElementById('descInput').value = ''; 
             loadData();
         } catch(e) {
-            alert("Erreur Sauvegarde");
+            alert("Erreur système lors de l'enregistrement.");
         }
     }
 
-
     async function loadData() {
         try {
-
             const res = await fetch('/api/game?entity=markers');
             if(!res.ok) return;
             const items = await res.json();
@@ -265,40 +307,43 @@
             items.forEach(item => {
                 const { latlngs, desc, level, author } = item.data;
                 let layer;
-                let color = '#00ff9d';
-                if(level === 'mid') color = '#eebb00';
-                if(level === 'high') color = '#ff3333';
+                
+               
+                let color = '#00ff9d'; // Low
+                if(level === 'mid') color = '#eebb00'; 
+                if(level === 'high') color = '#ff3333'; 
 
                 if (item.type === 'marker') {
                     const pos = Array.isArray(latlngs) ? latlngs[0] : latlngs;
-                    const iconHtml = `<div style="width:12px; height:12px; background:${color}; border-radius:50%; box-shadow:0 0 10px ${color}; border:2px solid white;"></div>`;
-                    const customIcon = L.divIcon({ className: 'custom-pin', html: iconHtml, iconSize: [16, 16], iconAnchor: [8, 8] });
+                    const iconHtml = `<div style="width:14px; height:14px; background:${color}; border-radius:50%; box-shadow:0 0 15px ${color}; border:2px solid #fff;"></div>`;
+                    const customIcon = L.divIcon({ className: 'custom-pin', html: iconHtml, iconSize: [18, 18], iconAnchor: [9, 9] });
                     layer = L.marker(pos, {icon: customIcon});
                 }
                 else if (item.type === 'line') {
-                    layer = L.polyline(latlngs, {color: color, weight: 3});
+                    layer = L.polyline(latlngs, {color: color, weight: 3, opacity: 0.8});
                 }
                 else if (item.type === 'polygon') {
-                    layer = L.polygon(latlngs, {color: color, fillColor: color, fillOpacity: 0.2});
+                    layer = L.polygon(latlngs, {color: color, fillColor: color, fillOpacity: 0.2, weight: 2});
                 }
 
                 if(layer) {
                     const popupContent = `
-                            <strong style="color:${color}">${desc}</strong><br>
-                            <span style="font-size:0.8em; color:#aaa;">PAR: ${author}</span><br>
-                            <button onclick="deleteItem(${item.id})" style="background:transparent; border:1px solid red; color:red; font-size:0.7em; margin-top:5px; cursor:pointer;">SUPPRIMER</button>
+                            <div style="font-family: 'Share Tech Mono', monospace; font-size:1.1em; border-bottom:1px solid ${color}; padding-bottom:5px; margin-bottom:5px; color:${color}; font-weight:bold; letter-spacing:1px;">
+                                ${desc.toUpperCase()}
+                            </div>
+                            <div style="font-size:0.8em; color:#888;">AJOUTÉ PAR : <span style="color:#fff;">${author}</span></div>
+                            <button onclick="deleteItem(${item.id})" style="background:transparent; border:1px dashed #ff3333; color:#ff3333; font-family:'JetBrains Mono'; font-size:0.7em; margin-top:10px; padding:5px; cursor:pointer; width:100%;">[ EFFACER ]</button>
                         `;
                     layer.bindPopup(popupContent);
                     layer.addTo(map);
                     drawnItems.push(layer);
                 }
             });
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error("Erreur de synchronisation carte:", e); }
     }
 
     window.deleteItem = async function(id) {
-        if(confirm("Supprimer cet élément ?")) {
-
+        if(confirm("CONFIRMER LA SUPPRESSION DE CETTE DONNÉE TACTIQUE ?")) {
             await fetch('/api/game?entity=markers', {
                 method: 'DELETE',
                 headers: {'Content-Type': 'application/json'},
