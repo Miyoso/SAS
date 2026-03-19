@@ -4,43 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAS MAINFRAME // SYSTEM</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/stylele.css">
+    
     <style>
         .auth-content { display: none !important; }
-        body.logged-in .auth-content { display: block !important; }
-        body.logged-in .grid-modules { display: grid !important; }
+        body.logged-in .modules-section.auth-content { display: block !important; }
+        body.logged-in .sidebar-panel.auth-content { display: flex !important; }
         body.logged-in #login-overlay { display: none !important; }
         #login-overlay {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 300px;
-            width: 100%;
+            height: 100%;
+            flex: 1;
             border: 1px dashed var(--accent-primary);
-            background: rgba(0, 20, 0, 0.2);
-            grid-column: 1 / -1;
+            background: rgba(0, 255, 157, 0.05);
+            backdrop-filter: blur(5px);
         }
     </style>
 </head>
 <body>
+
 <div class="tactical-grid"></div>
 <div class="vignette"></div>
 <div class="radar-scan"></div>
+
 <div class="hud-side hud-left">
     <div class="hud-ruler"></div>
     <div class="hud-marker">SYSTEM.ROOT</div>
+    <div class="hud-marker" style="color:var(--accent-danger)">SECURE</div>
     <div class="hud-ruler"></div>
 </div>
 <div class="hud-side hud-right">
     <div class="hud-ruler"></div>
     <div class="hud-marker">SECURE.CONN</div>
+    <div class="hud-marker">128.0.0.1</div>
     <div class="hud-ruler"></div>
 </div>
+
 <div class="term-hint">PRESS [ F9 ] TO TOGGLE TERMINAL</div>
+
 <div class="terminal-wrapper">
     <div class="terminal">
         <div class="header-strip">
@@ -57,8 +65,8 @@
         
         <div id="dashboard-view" class="view-section dashboard-container">
             <div id="login-overlay">
-                <div class="term-line term-error">ERREUR : ACCÈS INTERDIT</div>
-                <button class="btn-connect" onclick="toggleTerminal()" style="margin-top:20px; padding: 10px 20px;">S'AUTHENTIFIER</button>
+                <div class="term-line term-error" style="font-family: var(--font-code); font-size: 1.2rem; font-weight: bold; letter-spacing: 2px;">ERREUR : ACCÈS INTERDIT</div>
+                <button class="btn-connect" onclick="toggleTerminal()" style="margin-top:20px; padding: 10px 20px; font-size: 1rem;">S'AUTHENTIFIER</button>
             </div>
 
             <div class="modules-section auth-content">
@@ -93,22 +101,23 @@
                         </div>
                     </div>
                 </div>
+                
                 <div class="category-title">ACCRÉDITATION NIVEAU 2 [TACTIQUE]</div>
                 <div class="grid-modules">
-                    <a href="/investigation.html" class="module-card status-restricted">
+                    <a href="investigation.html" class="module-card status-restricted" style="text-decoration:none;">
                         <div class="module-icon">🔍</div>
                         <div class="module-info">
                             <div class="module-name">INVESTIGATION</div>
                             <div class="module-status"><span>●</span> RESTRICTED</div>
                         </div>
                     </a>
-                    <a href="#" class="module-card status-danger">
+                    <div class="module-card status-danger">
                         <div class="module-icon">🎯</div>
                         <div class="module-info">
                             <div class="module-name">VIP TARGETS</div>
                             <div class="module-status"><span>●</span> HIGH PRIORITY</div>
                         </div>
-                    </a>
+                    </div>
                     <div class="module-card status-online" onclick="accessModule('logistics.html', 1)">
                         <div class="module-icon">📦</div>
                         <div class="module-info">
@@ -140,8 +149,9 @@
                 <div class="user-main-info">
                     <a href="profile.html" class="profile-link">[ PROFIL ]</a>
                 </div>
-<div class="sidebar-logs">
-                    <h3>// ACTIVITÉ SYSTÈME</h3>
+                
+                <div class="sidebar-logs">
+                    <h3>ACTIVITÉ SYSTÈME</h3>
                     <ul class="log-list">
                         <li class="log-item info">
                             <span class="log-time">14:05:22</span>
@@ -169,9 +179,6 @@
                         </li>
                     </ul>
                 </div>
-
-
-
                 
                 <div class="sidebar-footer">
                     <button onclick="logout()" class="btn-disconnect">⚠️ DÉCONNEXION</button>
@@ -182,12 +189,12 @@
 </div>
 
 <div id="terminal-console" class="terminal-console">
-    <div class="terminal-header" style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--accent-primary)">
-        <span>> SECURE_AUTH_GATE</span>
-        <button onclick="toggleTerminal()" style="background:none; border:none; color:var(--accent-primary); cursor:pointer;">[ X ]</button>
+    <div class="terminal-header" style="display:flex; justify-content:space-between; padding:10px 20px; border-bottom:1px solid var(--accent-primary); background: rgba(0, 255, 157, 0.1);">
+        <span style="font-family: var(--font-code); font-weight: bold; color: var(--accent-primary);">> SECURE_AUTH_GATE</span>
+        <button onclick="toggleTerminal()" style="background:none; border:none; color:var(--accent-primary); cursor:pointer; font-weight: bold;">[ X ]</button>
     </div>
     <div style="padding: 20px;">
-        <div class="term-line term-info" style="margin-bottom: 15px;">IDENTIFICATION REQUISE</div>
+        <div class="term-line term-info" style="margin-bottom: 15px; font-family: var(--font-code);">IDENTIFICATION REQUISE</div>
         <div class="login-field" style="margin-bottom: 10px;">
             <span class="prompt">USER:</span>
             <input type="text" id="login-username" class="cmd-input" placeholder="...">
@@ -196,8 +203,8 @@
             <span class="prompt">PASS:</span>
             <input type="password" id="login-password" class="cmd-input" placeholder="...">
         </div>
-        <div id="login-msg" class="term-line" style="margin-bottom: 10px; min-height: 20px;"></div>
-        <button class="btn-connect" onclick="handleLogin()" style="width: 100%; padding: 10px;">ACCÉDER AU MAINFRAME</button>
+        <div id="login-msg" class="term-line" style="margin-bottom: 10px; min-height: 20px; font-family: var(--font-code);"></div>
+        <button class="btn-connect" onclick="handleLogin()" style="width: 100%; padding: 10px; justify-content: center;">ACCÉDER AU MAINFRAME</button>
     </div>
 </div>
 
