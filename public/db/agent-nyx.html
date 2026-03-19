@@ -3,158 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DOSSIER // NYX</title>
+    <title>Dossier // NYX</title>
     <style>
-        /* --- VARIABLES & RESET --- */
-        :root {
-            --bg-color: #f4f5f7;
-            --text-dark: #1a1a24;
-            --card-bg: #2b3036;
-            --text-light: #e2e8f0;
-            --accent-color: #4a90e2; /* Couleur pour les liens et statuts */
-            --terminal-font: 'Courier New', Courier, monospace;
-        }
-
-        * {
-            box-sizing: border-box;
+        /* --- RESET GLOBAL --- */
+        body, html {
             margin: 0;
             padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f8f9fa;
+            color: #1a1a1a;
         }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-dark);
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
+        .layout-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
-        /* --- EN-TÊTE (HEADER) --- */
-        .header-container {
-            padding: 20px 40px;
-            font-family: var(--terminal-font);
-            font-size: 0.9rem;
+        /* --- SECTION HAUTE (BLANCHE) --- */
+        .top-section {
+            padding: 40px;
+            position: relative;
+            flex: 1; /* Prend l'espace restant */
         }
 
         .sys-info {
-            margin-bottom: 20px;
-            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 40px;
         }
 
-        .main-title {
+        .title-block h1 {
             font-family: Georgia, 'Times New Roman', Times, serif;
-            font-size: 2.5rem;
+            font-size: 42px;
+            margin: 0 0 15px 0;
             letter-spacing: 2px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
         }
 
-        .main-title span {
-            font-weight: 900;
+        .title-block p {
+            font-family: 'Courier New', Courier, monospace;
+            margin: 3px 0;
+            font-size: 14px;
         }
 
-        .req-info {
-            margin-bottom: 20px;
-        }
-
-        /* --- NAVIGATION --- */
-        .nav-menu {
+        .nav-links {
+            margin-top: 25px;
             display: flex;
             gap: 15px;
-            margin-bottom: 40px;
-            flex-wrap: wrap;
         }
 
-        .nav-menu a {
-            color: var(--text-dark);
-            text-decoration: none;
-            font-weight: bold;
-            padding: 5px 10px;
-            border: 1px solid transparent;
-            transition: all 0.2s ease-in-out;
+        .nav-links a {
+            color: #0000EE; /* Bleu classique des liens */
+            text-decoration: underline;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
             text-transform: uppercase;
         }
 
-        .nav-menu a:hover {
-            background-color: var(--text-dark);
-            color: var(--bg-color);
-            border: 1px solid var(--text-dark);
-        }
-
-        /* --- CARTE D'IDENTITÉ (ID CARD) --- */
-        .card-wrapper {
-            display: flex;
-            justify-content: center;
-            padding: 40px;
-        }
-
-        .id-card {
-            background-color: var(--card-bg);
-            color: var(--text-light);
-            width: 450px;
+        /* --- CARTE D'IDENTITÉ CENTRÉE --- */
+        .card-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-30%, -30%); /* Ajustement pour la centrer joliment */
+            background-color: #2b3036;
+            color: #e2e8f0;
+            width: 480px;
             border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            display: flex;
-            flex-direction: column;
-            position: relative;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            z-index: 10; /* S'assure que la carte passe par dessus le reste */
         }
 
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 25px;
             border-bottom: 1px solid #4a5568;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            letter-spacing: 1px;
+            padding-bottom: 15px;
         }
 
         .card-header h2 {
-            font-size: 1.2rem;
-            font-weight: bold;
+            margin: 0;
+            font-size: 20px;
+            letter-spacing: 4px;
         }
 
-        .card-header .ghost-level {
-            font-size: 0.7rem;
-            opacity: 0.7;
-            text-transform: uppercase;
+        .card-header span {
+            font-size: 10px;
+            color: #a0aec0;
         }
 
         .card-body {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .agent-name {
-            font-size: 1.1rem;
-            font-family: var(--terminal-font);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
         }
 
-        .agent-details {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .detail-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .detail-label {
-            font-size: 0.6rem;
+        .agent-stats p {
+            margin: 0 0 12px 0;
+            font-size: 11px;
             color: #a0aec0;
             text-transform: uppercase;
         }
 
-        .detail-value {
-            font-size: 0.95rem;
-            font-weight: bold;
-            letter-spacing: 0.5px;
+        .agent-stats strong {
+            display: block;
+            color: #ffffff;
+            font-size: 15px;
+            margin-top: 4px;
+            letter-spacing: 1px;
         }
 
-        /* Bas de la carte (Code barre et puce) */
         .card-footer {
             display: flex;
             justify-content: space-between;
@@ -163,163 +130,125 @@
             padding-top: 15px;
         }
 
-        .barcode-container {
-            font-family: var(--terminal-font);
-        }
-
-        .barcode-lines {
-            font-size: 1.5rem;
+        .barcode {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 24px;
             letter-spacing: -2px;
-            color: #cbd5e0;
-            line-height: 1;
-        }
-
-        .barcode-numbers {
-            font-size: 0.7rem;
-            letter-spacing: 3px;
             color: #a0aec0;
         }
 
-        .smart-chip {
+        .chip {
             width: 40px;
-            height: 30px;
+            height: 28px;
             background: linear-gradient(135deg, #e2e8f0 0%, #a0aec0 100%);
             border-radius: 4px;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
         }
 
-        /* --- PIED DE PAGE (DIGITAL FOOTPRINT) --- */
-        .digital-footprint {
-            background-color: var(--card-bg);
-            color: var(--text-light);
+        /* --- SECTION BASSE (FONCÉE) --- */
+        .bottom-section {
+            background-color: #2b3036;
+            color: #ffffff;
             padding: 30px 40px;
-            margin-top: 40px;
-            font-family: var(--terminal-font);
-            border-top: 4px solid #1a1a24;
+            font-family: 'Courier New', Courier, monospace;
+            min-height: 250px;
         }
 
-        .digital-footprint h3 {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
+        .bottom-section h3 {
+            margin-top: 0;
+            font-size: 18px;
             letter-spacing: 2px;
-        }
-
-        .footprint-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            margin-bottom: 25px;
         }
 
         .footprint-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+            margin-bottom: 20px;
         }
 
-        .footprint-label {
-            font-size: 0.7rem;
+        .footprint-item span {
             color: #a0aec0;
+            display: block;
+            font-size: 12px;
+            margin-bottom: 5px;
         }
 
-        .footprint-value {
-            font-size: 0.9rem;
-            background-color: rgba(0, 0, 0, 0.3);
+        .footprint-item strong {
+            font-weight: normal;
+            background-color: #1a1d21;
             padding: 5px 10px;
-            border-radius: 3px;
             display: inline-block;
-            width: fit-content;
-            border-left: 2px solid var(--accent-color);
+            color: #e2e8f0;
+            border-left: 2px solid #a0aec0;
         }
 
         .status-offline {
-            border-left-color: #e53e3e; /* Rouge pour OFFLINE */
-            color: #fc8181;
+            border-left: 2px solid #e53e3e !important;
+            color: #fc8181 !important;
         }
     </style>
 </head>
 <body>
 
-    <header class="header-container">
-        <div class="sys-info">
-            SYS.CYBER_OPS<br>
-            NETRUNNER<br>
-            PROXY.LINK<br>
-            192.168.1.1 </div>
-
-        <h1 class="main-title">DOSSIER // <span>NYX</span></h1>
-
-        <div class="req-info">
-            SHADOW COMPANY // CYBER-OPS DIVISION<br>
-            SRC: ENCRYPTED NODE<br>
-            REQ ID: _X77-CYBER
-        </div>
-
-        <nav class="nav-menu">
-            <a href="#">Mainframe</a>
-            <a href="#">Base Agents</a>
-            <a href="#">Map_Feed</a>
-            <a href="#">Rapports</a>
-            <a href="#">Logistique</a>
-            <a href="#">Missions</a>
-        </nav>
-    </header>
-
-    <main class="card-wrapper">
-        <div class="id-card">
-            <div class="card-header">
-                <h2>SHADOW CO.</h2>
-                <span class="ghost-level">Ghost Level</span>
+    <div class="layout-container">
+        <div class="top-section">
+            <div class="sys-info">
+                SYS.CYBER_OPS<br>
+                NETRUNNER<br>
+                PROXY.LINK<br>
+                192.168.1.1
             </div>
-            
-            <div class="card-body">
-                <div class="agent-name">Agent Nyx</div>
-                
-                <div class="agent-details">
-                    <div class="detail-group">
-                        <span class="detail-label">Nom de code</span>
-                        <span class="detail-value">LoveLace</span>
-                    </div>
-                    <div class="detail-group">
-                        <span class="detail-label">Spécialité</span>
-                        <span class="detail-value">NETRUNNER</span>
-                    </div>
-                    <div class="detail-group">
-                        <span class="detail-label">Clearance ID</span>
-                        <span class="detail-value">LVL-5-OMNI</span>
+
+            <div class="title-block">
+                <h1>DOSSIER // NYX</h1>
+                <p>SHADOW COMPANY // CYBER-OPS DIVISION</p>
+                <p>SRC: ENCRYPTED NODE</p>
+                <p>REQ ID: _X77-CYBER</p>
+            </div>
+
+            <div class="nav-links">
+                <a href="#">Mainframe</a>
+                <a href="#">Base Agents</a>
+                <a href="#">Map Feed</a>
+                <a href="#">Rapports</a>
+                <a href="#">Logistique</a>
+                <a href="#">Missions</a>
+            </div>
+
+            <div class="card-container">
+                <div class="card-header">
+                    <h2>SHADOW CO.</h2>
+                    <span>GHOST LEVEL</span>
+                </div>
+                <div class="card-body">
+                    <div class="agent-name">Agent Nyx</div>
+                    <div class="agent-stats">
+                        <p>NOM DE CODE<br><strong>LoveLace</strong></p>
+                        <p>SPÉCIALITÉ<br><strong>NETRUNNER</strong></p>
+                        <p>CLEARANCE ID<br><strong>LVL-5-OMNI</strong></p>
                     </div>
                 </div>
-            </div>
-
-            <div class="card-footer">
-                <div class="barcode-container">
-                    <div class="barcode-lines">||||| |||| || | |||</div>
-                    <div class="barcode-numbers">0 4 9 3 8 2 0 1 9</div>
+                <div class="card-footer">
+                    <div class="barcode">||| |||| || | |||||</div>
+                    <div class="chip"></div>
                 </div>
-                <div class="smart-chip"></div>
             </div>
         </div>
-    </main>
 
-    <footer class="digital-footprint">
-        <h3>DIGITAL_FOOTPRINT</h3>
-        
-        <div class="footprint-grid">
+        <div class="bottom-section">
+            <h3>DIGITAL_FOOTPRINT</h3>
             <div class="footprint-item">
-                <span class="footprint-label">UNITÉ D'AFFECTATION:</span>
-                <span class="footprint-value">SECTION 00 (SIGINT)</span>
+                <span>UNITÉ D'AFFECTATION:</span>
+                <strong>SECTION 00 (SIGINT)</strong>
             </div>
-            
             <div class="footprint-item">
-                <span class="footprint-label">DERNIÈRE LOCALISATION:</span>
-                <span class="footprint-value">TRACING NODE...</span>
+                <span>DERNIÈRE LOCALISATION:</span>
+                <strong>TRACING NODE...</strong>
             </div>
-            
             <div class="footprint-item">
-                <span class="footprint-label">STATUT RÉSEAU:</span>
-                <span class="footprint-value status-offline">OFFLINE</span> 
+                <span>STATUT RÉSEAU:</span>
+                <strong class="status-offline">OFFLINE</strong>
             </div>
         </div>
-    </footer>
+    </div>
 
 </body>
 </html>
