@@ -11,15 +11,22 @@
     <link rel="stylesheet" href="css/stylele.css">
 
     <style>
-        body { margin: 0; padding: 0; overflow: hidden; background: #000; }
+        /* On force le fond à être transparent pour ne pas cacher la carte */
+        body { margin: 0; padding: 0; overflow: hidden; background: transparent !important; }
         
-        /* La carte passe tout au fond, sous les effets visuels du thème */
+        /* La carte est au niveau 1 */
         #map { 
             position: fixed; top: 0; left: 0; height: 100vh; width: 100vw; 
-            background: #05080a; z-index: -20; 
+            background: #05080a; z-index: 1; 
         }
 
-      
+        /* On force les effets du thème à passer PAR-DESSUS la carte */
+        .tactical-grid { z-index: 10 !important; }
+        .vignette { z-index: 11 !important; }
+        .radar-scan { z-index: 12 !important; }
+        .hud-side { z-index: 13 !important; }
+
+        /* Couche UI tout au-dessus */
         .ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 1000; padding: 25px;
@@ -53,7 +60,7 @@
             transform: translateX(5px);
         }
 
- 
+        /* Bouton de validation flottant */
         #finish-container {
             position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
             pointer-events: auto; display: none;
@@ -68,7 +75,7 @@
         }
         .finish-btn:hover { transform: scale(1.05); background: #fff; }
 
-      
+        /* Styles de la popup Leaflet adaptés au thème */
         .leaflet-popup-content-wrapper {
             background: rgba(10, 14, 18, 0.95); border: 1px solid var(--accent-primary);
             color: #fff; font-family: var(--font-code); border-radius: 0;
@@ -77,7 +84,7 @@
         .leaflet-popup-tip { background: var(--accent-primary); }
         .leaflet-popup-close-button { color: var(--accent-primary) !important; text-decoration: none !important;}
 
-        
+        /* Modal Sauvegarde */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px);
@@ -251,7 +258,7 @@
 
     function openModal(type, latlngs) {
         pendingSave = { type, latlngs };
-        
+        // Affichage Flex pour centrer la modale proprement
         document.getElementById('infoModal').style.display = 'flex';
         document.getElementById('descInput').focus();
         document.getElementById('finish-container').style.display = 'none';
@@ -268,8 +275,15 @@
 
         const desc = document.getElementById('descInput').value || 'Zone Non Identifiée';
         const level = document.getElementById('levelInput').value;
-        const session = JSON.parse(localStorage.getItem('sas_session'));
-        const author = session ? session.username : 'AGENT INCONNU';
+        
+        let author = 'AGENT INCONNU';
+        try {
+            const sessionData = localStorage.getItem('sas_session');
+            if (sessionData) {
+                const session = JSON.parse(sessionData);
+                author = session.username || author;
+            }
+        } catch(err) { console.error(err); }
 
         const payload = {
             type: pendingSave.type,
@@ -288,7 +302,7 @@
                 body: JSON.stringify(payload)
             });
             cancelShape();
-            document.getElementById('descInput').value = ''; 
+            document.getElementById('descInput').value = ''; // Reset input
             loadData();
         } catch(e) {
             alert("Erreur système lors de l'enregistrement.");
@@ -308,10 +322,10 @@
                 const { latlngs, desc, level, author } = item.data;
                 let layer;
                 
-               
+                // Couleurs du thème : primary, warning, danger
                 let color = '#00ff9d'; // Low
-                if(level === 'mid') color = '#eebb00'; 
-                if(level === 'high') color = '#ff3333'; 
+                if(level === 'mid') color = '#eebb00'; // Mid
+                if(level === 'high') color = '#ff3333'; // High
 
                 if (item.type === 'marker') {
                     const pos = Array.isArray(latlngs) ? latlngs[0] : latlngs;
