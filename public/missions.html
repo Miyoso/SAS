@@ -3,49 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS - OPS BOARD</title>
+    <title>SAS MAINFRAME // OPS CENTER</title>
+    
+    <script>
+        const session = localStorage.getItem('sas_session');
+        if (!session) { window.location.href = 'index.html'; }
+    </script>
+    
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style-mo.css">
+    <link rel="stylesheet" href="css/stylele.css">
+    
     <style>
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(8px);
-            z-index: 10000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 1;
-            transition: opacity 0.2s ease;
+        /* === CORRECTION NAVBAR === */
+        body.logged-in .tactical-navbar.auth-content,
+        .tactical-navbar {
+            display: flex !important; 
+            gap: 10px; padding: 0 10px 15px 10px; margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            overflow-x: auto; scrollbar-width: none;
         }
+        .tactical-navbar::-webkit-scrollbar { display: none; }
 
-        .hidden {
-            display: none !important;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        body {
-            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
-            background-color: #05080a;
-            margin: 0;
-        }
-
+        /* === OPS BOARD STYLES === */
         .ops-container {
-            flex: 1; display: flex; flex-direction: column;
-            padding: 20px 40px; gap: 20px;
-            height: 100%; box-sizing: border-box;
+            display: flex; flex-direction: column; gap: 15px;
+            height: calc(100vh - 210px); /* Hauteur calculée sous la navbar */
+            overflow: hidden;
         }
 
         .ops-toolbar {
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
-            padding: 15px 25px; backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
         }
-        .toolbar-stats { display: flex; gap: 30px; font-family: 'Share Tech Mono'; color: #8899aa; font-size: 0.9rem; }
-        .stat-item b { color: #fff; margin-left: 5px; }
+        
+        .toolbar-stats { display: flex; gap: 30px; font-family: var(--font-code); font-size: 0.8rem; color: var(--text-dim); }
+        .stat-item b { margin-left: 5px; font-size: 1rem; }
 
+        /* KANBAN GRID */
         .kanban-grid {
             flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
             overflow: hidden;
@@ -53,159 +48,185 @@
 
         .kanban-col {
             display: flex; flex-direction: column;
-            background: rgba(13, 17, 23, 0.7);
+            background: var(--bg-panel);
             border: 1px solid rgba(255,255,255,0.05);
-            border-top: 4px solid #444;
+            border-top: 2px solid #444;
         }
 
-        .col-pending { border-top-color: var(--warning); }
-        .col-active { border-top-color: var(--danger); background: linear-gradient(180deg, rgba(255,51,51,0.05) 0%, rgba(13,17,23,0.7) 30%); }
-        .col-completed { border-top-color: var(--primary); }
+        .col-pending { border-top-color: var(--accent-warning); }
+        .col-active { border-top-color: var(--accent-danger); background: linear-gradient(180deg, rgba(255,51,51,0.05) 0%, var(--bg-panel) 15%); }
+        .col-completed { border-top-color: var(--accent-primary); }
 
         .col-header {
-            padding: 15px 20px; background: rgba(0,0,0,0.4);
-            font-family: 'Share Tech Mono'; font-size: 1rem; letter-spacing: 2px;
-            display: flex; justify-content: space-between; color: #ccc;
+            padding: 12px 20px; background: rgba(0,0,0,0.6);
+            font-family: var(--font-code); font-size: 0.9rem; font-weight: bold; letter-spacing: 2px;
+            display: flex; justify-content: space-between; color: #fff;
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
         .col-body {
             flex: 1; padding: 15px; overflow-y: auto;
-            display: flex; flex-direction: column; gap: 10px;
+            display: flex; flex-direction: column; gap: 15px;
+            scrollbar-width: thin; scrollbar-color: var(--text-dim) transparent;
         }
-        .col-body::-webkit-scrollbar { width: 4px; }
-        .col-body::-webkit-scrollbar-thumb { background: #333; }
 
+        /* MISSION CARD */
         .mission-card {
-            background: #161b22; border: 1px solid #30363d;
-            padding: 12px 15px; cursor: grab; position: relative;
-            transition: all 0.2s;
-            display: flex; flex-direction: column; gap: 8px;
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1);
+            padding: 15px; cursor: grab; position: relative; transition: all 0.2s;
+            display: flex; flex-direction: column; gap: 10px;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
         .mission-card:hover {
-            border-color: var(--primary); transform: translateX(4px); background: #1c2128;
-            box-shadow: -4px 0 0 var(--primary);
+            border-color: var(--accent-primary); transform: translateX(4px); background: var(--bg-card-hover);
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.15); z-index: 10;
         }
-
-        .mc-header { display: flex; justify-content: space-between; align-items: center; }
-        .mc-title { font-family: 'JetBrains Mono'; font-weight: bold; color: #e6edf3; font-size: 0.95rem; }
-        .mc-icon { font-size: 0.7rem; color: #555; }
-
-        .mc-meta {
-            display: flex; justify-content: space-between; font-size: 0.75rem; color: #8b949e;
-            font-family: 'Share Tech Mono';
+        
+        /* MODALS */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
+            z-index: 3000; display: flex; justify-content: center; align-items: center;
+            opacity: 1; transition: opacity 0.2s ease; pointer-events: auto;
         }
-
-        .mc-badges { display: flex; gap: 5px; margin-top: 5px; }
-        .badge {
-            background: rgba(56, 139, 253, 0.15); color: #58a6ff;
-            padding: 2px 6px; border-radius: 4px; font-size: 0.7rem;
-            border: 1px solid rgba(56, 139, 253, 0.4);
-        }
-        .badge-gear { background: rgba(210, 153, 34, 0.15); color: #d29922; border-color: rgba(210, 153, 34, 0.4); }
+        .hidden { display: none !important; opacity: 0; pointer-events: none; }
 
         .modal-box {
-            background: #0b0e11;
-            border: 1px solid var(--dim);
-            box-shadow: 0 0 0 1px rgba(0, 255, 157, 0.1), 0 20px 50px rgba(0,0,0,0.8);
+            background: var(--bg-panel); border: 1px solid var(--accent-primary);
+            box-shadow: 0 0 30px rgba(0, 255, 157, 0.15);
             display: flex; flex-direction: column;
         }
-        .modal-wide { width: 900px; height: 700px; }
+        .modal-wide { width: 900px; height: 600px; max-height: 90vh; }
 
         .modal-top {
-            padding: 15px 25px; border-bottom: 1px solid #333; background: rgba(0,0,0,0.3);
+            padding: 15px 25px; border-bottom: 1px dashed var(--accent-primary);
             display: flex; justify-content: space-between; align-items: center;
         }
-        .modal-title { font-family: 'Share Tech Mono'; font-size: 1.2rem; color: var(--primary); letter-spacing: 2px; }
+        .modal-title { font-family: var(--font-code); font-size: 1.2rem; font-weight: bold; color: var(--accent-primary); }
 
         .modal-main { flex: 1; display: grid; grid-template-columns: 2fr 1fr; overflow: hidden; }
-        .modal-col-left { padding: 25px; overflow-y: auto; border-right: 1px solid #333; }
-        .modal-col-right { padding: 25px; background: rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 20px; }
+        .modal-col-left { padding: 25px; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.1); scrollbar-width: thin; }
+        .modal-col-right { padding: 25px; background: rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 20px; overflow-y: auto; scrollbar-width: thin;}
 
         .detail-group { margin-bottom: 25px; }
-        .detail-label { color: var(--secondary); font-size: 0.75rem; margin-bottom: 8px; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 4px; text-transform: uppercase; }
-        .detail-value { font-family: 'JetBrains Mono'; font-size: 0.9rem; line-height: 1.5; color: #d0d7de; }
+        .detail-label { color: var(--text-dim); font-size: 0.75rem; margin-bottom: 8px; letter-spacing: 1px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 4px; text-transform: uppercase; font-family: var(--font-code); }
+        .detail-value { font-family: var(--font-display); font-size: 1rem; line-height: 1.5; color: #fff; }
 
-        .btn-full { width: 100%; margin-bottom: 10px; text-align: center; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px; }
+        .form-label { font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-code); }
+        
+        .btn-full { width: 100%; justify-content: center; margin-bottom: 10px; }
     </style>
 </head>
-<body>
-<div class="crt-overlay"></div>
+<body class="logged-in">
 
-<div class="ops-container">
+<div class="tactical-grid" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+<div class="radar-scan" aria-hidden="true"></div>
 
-    <header class="header-strip" style="padding: 0; border: none; margin-bottom: 0;">
-        <div>
-            <h1 style="font-size: 2rem;">OPS :: <span style="color:var(--danger)">CENTER</span></h1>
-        </div>
-        <div style="display:flex; gap:15px;">
-            <a href="index.html" class="btn-tactical secondary" style="text-decoration:none; padding-top:12px;">RETOUR</a>
-        </div>
-    </header>
+<div class="hud-side hud-left" aria-hidden="true">
+    <div class="hud-ruler"></div>
+    <div class="hud-marker">SYS.COMMAND</div>
+    <div class="hud-marker" style="color:var(--accent-danger)">SECURE</div>
+    <div class="hud-ruler"></div>
+</div>
+<div class="hud-side hud-right" aria-hidden="true">
+    <div class="hud-ruler"></div>
+    <div class="hud-marker">OPS.FEED</div>
+    <div class="hud-marker">128.0.0.1</div>
+    <div class="hud-ruler"></div>
+</div>
 
-    <div class="ops-toolbar">
-        <div class="toolbar-stats">
-            <span class="stat-item">MISSIONS ACTIVES: <b id="stat-active" style="color:var(--danger)">0</b></span>
-            <span class="stat-item">EN ATTENTE: <b id="stat-pending" style="color:var(--warning)">0</b></span>
-            <span class="stat-item">TERMINÉES: <b id="stat-completed" style="color:var(--primary)">0</b></span>
-        </div>
-        <button onclick="openCreateModal()" class="btn-tactical">
-            [ + ] INITIALISER MISSION
-        </button>
-    </div>
-
-    <div class="kanban-grid">
-        <div class="kanban-col col-pending">
-            <div class="col-header">
-                <span>/// PLANIFICATION</span>
+<div class="terminal-wrapper">
+    <div class="terminal">
+        <header class="header-strip" style="margin-bottom: 10px;">
+            <div>
+                <h1>OPS // <span style="color: var(--accent-danger);">CENTER</span></h1>
+                <div class="sub-header">TACTICAL DEPLOYMENT & TRACKING</div>
             </div>
-            <div class="col-body" id="body-pending"></div>
-        </div>
-
-        <div class="kanban-col col-active">
-            <div class="col-header">
-                <span class="blink" style="color:var(--danger)">● OPÉRATIONS EN COURS</span>
+            <div class="meta-data">
+                <span style="color: var(--accent-danger)">SYSTEM: SECURE</span>
             </div>
-            <div class="col-body" id="body-active"></div>
-        </div>
+        </header>
 
-        <div class="kanban-col col-completed">
-            <div class="col-header">
-                <span style="color:var(--primary)">✓ DÉBRIEFING</span>
+        <nav class="tactical-navbar auth-content" aria-label="Navigation principale">
+            <a href="index.html" class="nav-item">MAINFRAME</a>
+            <a href="database.html" class="nav-item">BASE AGENTS</a>
+            <a href="map.html" class="nav-item">MAP_FEED</a>
+            <a href="report.html" class="nav-item">RAPPORTS</a>
+            <a href="logistics.html" class="nav-item">LOGISTIQUE</a>
+            <a href="missions.html" class="nav-item active">MISSIONS</a>
+            <a href="investigation.html" class="nav-item restricted">INVESTIGATION [N2]</a>
+        </nav>
+
+        <main class="ops-container view-section">
+            
+            <div class="ops-toolbar">
+                <div class="toolbar-stats">
+                    <span class="stat-item">ACTIVES: <b id="stat-active" style="color:var(--accent-danger)">0</b></span>
+                    <span class="stat-item">EN ATTENTE: <b id="stat-pending" style="color:var(--accent-warning)">0</b></span>
+                    <span class="stat-item">TERMINÉES: <b id="stat-completed" style="color:var(--accent-primary)">0</b></span>
+                </div>
+                <button onclick="openCreateModal()" class="btn-connect" style="color: var(--accent-danger); border-color: rgba(255, 51, 51, 0.4);">
+                    [ + ] INITIALISER MISSION
+                </button>
             </div>
-            <div class="col-body" id="body-completed"></div>
-        </div>
+
+            <div class="kanban-grid">
+                <div class="kanban-col col-pending">
+                    <div class="col-header">
+                        <span style="color: var(--accent-warning)">/// PLANIFICATION</span>
+                    </div>
+                    <div class="col-body" id="body-pending"></div>
+                </div>
+
+                <div class="kanban-col col-active">
+                    <div class="col-header">
+                        <span class="blink" style="color:var(--accent-danger)">● EN COURS</span>
+                    </div>
+                    <div class="col-body" id="body-active"></div>
+                </div>
+
+                <div class="kanban-col col-completed">
+                    <div class="col-header">
+                        <span style="color:var(--accent-primary)">✓ DÉBRIEFING</span>
+                    </div>
+                    <div class="col-body" id="body-completed"></div>
+                </div>
+            </div>
+
+        </main>
     </div>
 </div>
 
 <div id="create-modal" class="modal-overlay hidden">
-    <div class="modal-box" style="width: 600px;">
-        <div class="modal-top">
-            <span class="modal-title">NOUVEL ORDRE DE MISSION</span>
-            <button onclick="closeModals()" style="background:none; border:none; color:#666; cursor:pointer;">✖</button>
+    <div class="modal-box" style="width: 500px;">
+        <div class="modal-top" style="border-bottom-color: var(--accent-danger);">
+            <span class="modal-title" style="color: var(--accent-danger);">NOUVEL ORDRE DE MISSION</span>
+            <button onclick="closeModals()" style="background:none; border:none; color:var(--accent-danger); cursor:pointer; font-weight:bold;">[ X ]</button>
         </div>
         <form id="create-form" style="padding: 25px;">
             <div class="form-group">
-                <label>NOM DE CODE OPÉRATION</label>
-                <input type="text" id="m-title" class="form-input" placeholder="EX: SHADOW FALL" required>
+                <label class="form-label">NOM DE CODE OPÉRATION</label>
+                <input type="text" id="m-title" class="cmd-input" placeholder="EX: SHADOW FALL" required>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div class="form-group">
-                    <label>SECTEUR / LIEU</label>
-                    <input type="text" id="m-loc" class="form-input" required>
+                    <label class="form-label">SECTEUR / LIEU</label>
+                    <input type="text" id="m-loc" class="cmd-input" required>
                 </div>
                 <div class="form-group">
-                    <label>HEURE DE DÉPART</label>
-                    <input type="datetime-local" id="m-time" class="form-input" required>
+                    <label class="form-label">HEURE DE DÉPART</label>
+                    <input type="datetime-local" id="m-time" class="cmd-input" required>
                 </div>
             </div>
             <div class="form-group">
-                <label>OBJECTIFS & BRIEFING</label>
-                <textarea id="m-desc" class="form-textarea" style="height:100px; width:100%; background:rgba(0,0,0,0.3); border:1px solid #444; color:#eee; padding:10px;"></textarea>
+                <label class="form-label">OBJECTIFS & BRIEFING</label>
+                <textarea id="m-desc" class="cmd-input" style="height:100px; resize:vertical; font-family: var(--font-display);" required></textarea>
             </div>
             <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                <button type="button" onclick="closeModals()" class="btn-tactical secondary">ANNULER</button>
-                <button type="submit" class="btn-tactical">CONFIRMER</button>
+                <button type="button" onclick="closeModals()" class="btn-connect" style="color: var(--text-dim); border-color: rgba(255,255,255,0.2);">[ ABORT ]</button>
+                <button type="submit" class="btn-connect" style="color: var(--accent-danger); border-color: rgba(255,51,51,0.4);">[ CONFIRMER L'ORDRE ]</button>
             </div>
         </form>
     </div>
@@ -215,7 +236,7 @@
     <div class="modal-box modal-wide">
         <div class="modal-top">
             <span class="modal-title" id="d-title">OPERATION ALPHA</span>
-            <button onclick="closeModals()" style="background:none; border:none; color:#666; cursor:pointer;">✖</button>
+            <button onclick="closeModals()" style="background:none; border:none; color:var(--accent-primary); cursor:pointer; font-weight:bold;">[ X ]</button>
         </div>
 
         <div class="modal-main">
@@ -226,41 +247,42 @@
                 </div>
                 <div class="detail-group">
                     <div class="detail-label">LOCALISATION</div>
-                    <div id="d-loc" class="detail-value" style="color:var(--secondary)"></div>
+                    <div id="d-loc" class="detail-value" style="color:var(--accent-blue)"></div>
                 </div>
 
                 <div class="detail-group" style="margin-top:40px;">
-                    <div class="detail-label" style="display:flex; justify-content:space-between;">
-                        <span>ROSTER (AGENTS)</span>
-                        <span id="roster-count">0</span>
+                    <div class="detail-label" style="display:flex; justify-content:space-between; border-bottom-color: var(--accent-blue); color: var(--accent-blue);">
+                        <span>ROSTER TACTIQUE</span>
+                        <span>EFFECTIF: <span id="roster-count">0</span></span>
                     </div>
-                    <div id="d-roster-list" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
+                    
+                    <div id="d-roster-list" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:15px;"></div>
 
-                    <div style="display:flex; gap:10px; margin-top:15px;">
-                        <select id="add-agent-select" class="form-input" style="padding:6px; font-size:0.8rem;">
-                            <option value="">-- SÉLECTIONNER AGENT --</option>
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                        <select id="add-agent-select" class="cmd-input" style="flex: 1;">
+                            <option value="">-- AFFECTER UN AGENT --</option>
                         </select>
-                        <button onclick="addAgentToMission()" class="btn-tactical secondary" style="padding:6px 12px;">+</button>
+                        <button onclick="addAgentToMission()" class="btn-connect" style="color: var(--accent-blue); border-color: rgba(0, 243, 255, 0.4);">[ + ]</button>
                     </div>
                 </div>
             </div>
 
             <div class="modal-col-right">
                 <div style="flex:1;">
-                    <div class="detail-label" style="color:var(--warning)">LOGISTIQUE</div>
-                    <div id="d-loadout-list" style="max-height:200px; overflow-y:auto; font-size:0.8rem; color:#aaa; margin-bottom:10px;"></div>
+                    <div class="detail-label" style="color:var(--accent-warning); border-bottom-color: var(--accent-warning);">MATÉRIEL DÉPLOYÉ</div>
+                    <div id="d-loadout-list" style="max-height:200px; overflow-y:auto; font-size:0.8rem; color:var(--text-main); margin-bottom:15px; font-family: var(--font-code);"></div>
 
-                    <select id="equip-select" class="form-input" style="font-size:0.8rem; padding:8px; margin-bottom:8px;">
-                        <option>Chargement...</option>
+                    <select id="equip-select" class="cmd-input" style="margin-bottom:10px;">
+                        <option>Chargement inventaire...</option>
                     </select>
-                    <button onclick="addGearToMission()" class="btn-tactical secondary btn-full" style="font-size:0.8rem;">RÉQUISITIONNER</button>
+                    <button onclick="addGearToMission()" class="btn-connect btn-full" style="color: var(--accent-warning); border-color: rgba(238, 187, 0, 0.4);">[ RÉQUISITIONNER ARME ]</button>
                 </div>
 
-                <div style="border-top:1px dashed #444; padding-top:20px;">
-                    <div class="detail-label" style="text-align:center; border:none; margin-bottom:15px;">COMMANDEMENT</div>
-                    <button onclick="moveMission('PENDING')" class="btn-tactical secondary btn-full">EN ATTENTE</button>
-                    <button onclick="moveMission('ACTIVE')" class="btn-tactical danger btn-full">LANCER MISSION</button>
-                    <button onclick="moveMission('COMPLETED')" class="btn-tactical btn-full" style="border-color:var(--primary); color:var(--primary)">TERMINER</button>
+                <div style="border-top:1px dashed rgba(255,255,255,0.1); padding-top:20px; margin-top:auto;">
+                    <div class="detail-label" style="text-align:center; border:none; margin-bottom:15px;">GESTION STATUT</div>
+                    <button onclick="moveMission('PENDING')" class="btn-connect btn-full" style="color: var(--accent-warning); border-color: rgba(238, 187, 0, 0.4);">[ REPLACER EN ATTENTE ]</button>
+                    <button onclick="moveMission('ACTIVE')" class="btn-connect btn-full" style="color: var(--accent-danger); border-color: rgba(255, 51, 51, 0.4);">[ LANCER L'OPÉRATION ]</button>
+                    <button onclick="moveMission('COMPLETED')" class="btn-connect btn-full">[ CLÔTURER MISSION ]</button>
                 </div>
             </div>
         </div>
@@ -270,8 +292,9 @@
 <script>
     let currentMissionId = null;
     let draggedCard = null;
-    let allAgents = []; // Variable globale pour stocker tous les agents
-    const token = localStorage.getItem('sas_token');
+    let allAgents = []; 
+    // Assure-toi que la clé correspond à ce que tu utilises dans auth.js ('sas_token' ou 'sas_session')
+    const token = localStorage.getItem('sas_token') || localStorage.getItem('sas_session');
 
     document.addEventListener('DOMContentLoaded', () => {
         loadMissions();
@@ -282,7 +305,7 @@
 
     async function loadAgentsList() {
         try {
-            // MODIFICATION : Appel à /api/game?entity=users
+            // Remplacer par ta route d'API
             const res = await fetch('/api/game?entity=users', { headers: { 'Authorization': `Bearer ${token}` } });
             if(res.ok) {
                 allAgents = await res.json();
@@ -292,10 +315,15 @@
 
     function updateAgentSelect(currentRoster) {
         const select = document.getElementById('add-agent-select');
-        select.innerHTML = '<option value="">-- SÉLECTIONNER AGENT --</option>';
+        select.innerHTML = '<option value="">-- AFFECTER UN AGENT --</option>';
 
-        // On ne garde que les agents qui ne sont PAS dans le roster actuel
-        const availableAgents = allAgents.filter(agent => !currentRoster.includes(agent));
+        // Évite les erreurs si l'agent est un objet dans ton backend plutôt qu'une string
+        const rosterNames = currentRoster.map(a => typeof a === 'string' ? a : a.username || a.name);
+        
+        const availableAgents = allAgents.filter(agent => {
+            const name = typeof agent === 'string' ? agent : agent.username || agent.name;
+            return !rosterNames.includes(name);
+        });
 
         if (availableAgents.length === 0) {
             const opt = document.createElement('option');
@@ -304,9 +332,11 @@
             select.appendChild(opt);
         } else {
             availableAgents.forEach(agent => {
+                const name = typeof agent === 'string' ? agent : agent.username || agent.name;
                 const opt = document.createElement('option');
-                opt.value = agent;
-                opt.textContent = agent.toUpperCase();
+                // Envoie l'ID si c'est un objet, ou le nom si c'est une string (dépend de ton API)
+                opt.value = agent.id || name; 
+                opt.textContent = name.toUpperCase();
                 select.appendChild(opt);
             });
         }
@@ -314,11 +344,14 @@
 
     async function loadMissions() {
         try {
-            // MODIFICATION : Appel à /api/game?entity=missions
             const res = await fetch('/api/game?entity=missions', { headers: { 'Authorization': `Bearer ${token}` } });
+            if(!res.ok) return;
             const missions = await res.json();
 
-            ['pending', 'active', 'completed'].forEach(s => document.getElementById(`body-${s}`).innerHTML = '');
+            ['pending', 'active', 'completed'].forEach(s => {
+                const el = document.getElementById(`body-${s}`);
+                if(el) el.innerHTML = '';
+            });
 
             missions.forEach(m => {
                 const card = document.createElement('div');
@@ -329,25 +362,25 @@
                 const date = new Date(m.start_time).toLocaleDateString('fr-FR', {day: '2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
 
                 card.innerHTML = `
-                        <div class="mc-header">
-                            <span class="mc-title">${m.title}</span>
-                            <span class="mc-icon">●</span>
-                        </div>
-                        <div class="mc-meta">
-                            <span>📍 ${m.location}</span>
-                            <span>🕒 ${date}</span>
-                        </div>
-                        <div class="mc-badges">
-                            <div class="badge">👤 ${m.roster.length}</div>
-                            <div class="badge badge-gear">📦 ${m.loadout.length}</div>
-                        </div>
-                    `;
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-family:var(--font-code); font-weight:bold; color:#fff; font-size:1rem;">${m.title.toUpperCase()}</span>
+                        <span style="color:var(--text-dim); font-size:0.7rem;">[ID:${m.id}]</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-dim); font-family:var(--font-code);">
+                        <span>📍 ${m.location.toUpperCase()}</span>
+                        <span>🕒 ${date}</span>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:5px;">
+                        <span style="background:rgba(0, 243, 255, 0.1); border:1px solid rgba(0, 243, 255, 0.3); color:var(--accent-blue); padding:2px 6px; font-size:0.7rem; font-family:var(--font-code);">👤 ROSTER: ${m.roster ? m.roster.length : 0}</span>
+                        <span style="background:rgba(238, 187, 0, 0.1); border:1px solid rgba(238, 187, 0, 0.3); color:var(--accent-warning); padding:2px 6px; font-size:0.7rem; font-family:var(--font-code);">📦 GEAR: ${m.loadout ? m.loadout.length : 0}</span>
+                    </div>
+                `;
 
                 card.onclick = () => openDetailModal(m);
                 card.addEventListener('dragstart', dragStart);
                 card.addEventListener('dragend', dragEnd);
 
-                const colId = `body-${m.status.toLowerCase()}`;
+                const colId = `body-${(m.status || 'pending').toLowerCase()}`;
                 const col = document.getElementById(colId);
                 if(col) col.appendChild(card);
             });
@@ -357,14 +390,14 @@
     }
 
     function updateStats() {
-        document.getElementById('stat-pending').innerText = document.getElementById('body-pending').children.length;
-        document.getElementById('stat-active').innerText = document.getElementById('body-active').children.length;
-        document.getElementById('stat-completed').innerText = document.getElementById('body-completed').children.length;
+        if(document.getElementById('body-pending')) document.getElementById('stat-pending').innerText = document.getElementById('body-pending').children.length;
+        if(document.getElementById('body-active')) document.getElementById('stat-active').innerText = document.getElementById('body-active').children.length;
+        if(document.getElementById('body-completed')) document.getElementById('stat-completed').innerText = document.getElementById('body-completed').children.length;
     }
 
     function setupDragAndDrop() {
         document.querySelectorAll('.col-body').forEach(col => {
-            col.addEventListener('dragover', e => { e.preventDefault(); col.style.background = 'rgba(255,255,255,0.02)'; });
+            col.addEventListener('dragover', e => { e.preventDefault(); col.style.background = 'rgba(255,255,255,0.05)'; });
             col.addEventListener('dragleave', e => { col.style.background = 'transparent'; });
             col.addEventListener('drop', async e => {
                 e.preventDefault();
@@ -377,12 +410,14 @@
 
                     const missionId = draggedCard.dataset.id;
 
-                    await fetch('/api/game?entity=missions', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                        body: JSON.stringify({ action: 'move', id: missionId, status: newStatus })
-                    });
-                    updateStats();
+                    try {
+                        await fetch('/api/game?entity=missions', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ action: 'move', id: missionId, status: newStatus })
+                        });
+                        updateStats();
+                    } catch (err) { console.error(err); loadMissions(); }
                 }
             });
         });
@@ -399,18 +434,24 @@
     }
 
     async function loadAvailableGear() {
-
-        const res = await fetch('/api/game?entity=equipment', { headers: { 'Authorization': `Bearer ${token}` } });
-        const data = await res.json();
-        const select = document.getElementById('equip-select');
-        select.innerHTML = '<option value="">-- CHOISIR MATÉRIEL --</option>';
-        const available = data.inventory.filter(i => !i.assigned_to && !i.mission_id);
-        available.forEach(item => {
-            const opt = document.createElement('option');
-            opt.value = item.id;
-            opt.textContent = `[${item.category}] ${item.item_name} (${item.serial_number})`;
-            select.appendChild(opt);
-        });
+        try {
+            const res = await fetch('/api/game?entity=equipment', { headers: { 'Authorization': `Bearer ${token}` } });
+            if(!res.ok) return;
+            const data = await res.json();
+            const select = document.getElementById('equip-select');
+            select.innerHTML = '<option value="">-- RECHERCHE INVENTAIRE --</option>';
+            
+            // Assure-toi que data est un tableau (parfois c'est encapsulé dans data.inventory)
+            const inventory = Array.isArray(data) ? data : data.inventory || [];
+            
+            const available = inventory.filter(i => !i.assigned_to && !i.mission_id && i.status !== 'PERDU');
+            available.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = `[${item.category}] ${item.item_name} (S/N: ${item.serial_number})`;
+                select.appendChild(opt);
+            });
+        } catch(e) { console.error("Erreur équipement:", e); }
     }
 
     function openCreateModal() {
@@ -425,27 +466,34 @@
 
     function openDetailModal(mission) {
         currentMissionId = mission.id;
-        document.getElementById('d-title').textContent = mission.title;
-        document.getElementById('d-desc').textContent = mission.description || "Aucun renseignement.";
-        document.getElementById('d-loc').textContent = mission.location;
-        document.getElementById('roster-count').innerText = mission.roster.length;
+        document.getElementById('d-title').textContent = mission.title.toUpperCase();
+        document.getElementById('d-desc').textContent = mission.description || "Aucun renseignement disponible.";
+        document.getElementById('d-loc').textContent = mission.location.toUpperCase();
+        document.getElementById('roster-count').innerText = mission.roster ? mission.roster.length : 0;
 
-
-        updateAgentSelect(mission.roster);
+        const rosterArray = mission.roster || [];
+        updateAgentSelect(rosterArray);
 
         const rosterContainer = document.getElementById('d-roster-list');
-        rosterContainer.innerHTML = mission.roster.map(agent =>
-            `<div style="background:#161b22; padding:4px 8px; border:1px solid #30363d; border-radius:4px; font-size:0.8rem; color:#e6edf3;">${agent.toUpperCase()}</div>`
-        ).join('');
+        if (rosterArray.length === 0) {
+            rosterContainer.innerHTML = `<span style="color:var(--text-dim); font-size:0.8rem;">[ AUCUN AGENT AFFECTÉ ]</span>`;
+        } else {
+            rosterContainer.innerHTML = rosterArray.map(agent => {
+                const name = typeof agent === 'string' ? agent : agent.username || agent.name;
+                return `<div style="background:rgba(0,243,255,0.05); padding:5px 10px; border:1px solid rgba(0,243,255,0.4); color:var(--accent-blue); font-family:var(--font-code); font-size:0.8rem;">[OP] ${name.toUpperCase()}</div>`;
+            }).join('');
+        }
 
+        const loadoutArray = mission.loadout || [];
         const loadoutContainer = document.getElementById('d-loadout-list');
-        if(mission.loadout.length === 0) loadoutContainer.innerHTML = "<div style='font-style:italic; opacity:0.5;'>Aucun équipement.</div>";
-        else {
-            loadoutContainer.innerHTML = mission.loadout.map(item =>
-                `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #333; padding:4px 0;">
-                        <span>${item.item_name}</span>
-                        <span style="font-family:monospace; color:var(--warning);">${item.serial_number}</span>
-                    </div>`
+        if(loadoutArray.length === 0) {
+            loadoutContainer.innerHTML = "<div style='color:var(--text-dim);'>[ AUCUN ÉQUIPEMENT DÉPLOYÉ ]</div>";
+        } else {
+            loadoutContainer.innerHTML = loadoutArray.map(item =>
+                `<div style="display:flex; justify-content:space-between; border-bottom:1px dashed rgba(255,255,255,0.1); padding:8px 0;">
+                    <span style="color:#fff;">${item.item_name || 'Matériel Inconnu'}</span>
+                    <span style="color:var(--accent-warning);">${item.serial_number || 'S/N N/A'}</span>
+                </div>`
             ).join('');
         }
 
@@ -462,43 +510,53 @@
             start_time: document.getElementById('m-time').value
         };
 
-        await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
-        closeModals(); loadMissions();
+        try {
+            await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
+            document.getElementById('create-form').reset();
+            closeModals(); 
+            loadMissions();
+        } catch(err) { console.error(err); alert("Erreur de création."); }
     });
 
     async function moveMission(status) {
         if(!currentMissionId) return;
-
-        await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'move', id: currentMissionId, status: status }) });
-        closeModals(); loadMissions();
+        try {
+            await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'move', id: currentMissionId, status: status }) });
+            closeModals(); 
+            loadMissions();
+        } catch(err) { console.error(err); }
     }
 
     async function addAgentToMission() {
         const select = document.getElementById('add-agent-select');
-        const agentName = select.value;
+        const agentIdOrName = select.value;
+        if(!agentIdOrName) return;
 
-        if(!agentName) return;
-
-
-        await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, agent: agentName }) });
-        refreshDetails();
-        select.value = "";
+        try {
+            await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, agent: agentIdOrName }) });
+            refreshDetails();
+            select.value = "";
+        } catch(err) { console.error(err); }
     }
 
     async function addGearToMission() {
         const gearId = document.getElementById('equip-select').value;
         if(!gearId) return;
 
-        await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, equipment_id: gearId }) });
-        refreshDetails(); loadAvailableGear();
+        try {
+            await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, equipment_id: gearId }) });
+            refreshDetails(); 
+            loadAvailableGear();
+        } catch(err) { console.error(err); }
     }
 
     async function refreshDetails() {
-
-        const res = await fetch('/api/game?entity=missions', { headers: { 'Authorization': `Bearer ${token}` } });
-        const missions = await res.json();
-        const mission = missions.find(m => m.id === currentMissionId);
-        if(mission) openDetailModal(mission);
+        try {
+            const res = await fetch('/api/game?entity=missions', { headers: { 'Authorization': `Bearer ${token}` } });
+            const missions = await res.json();
+            const mission = missions.find(m => m.id === currentMissionId);
+            if(mission) openDetailModal(mission);
+        } catch(err) { console.error(err); }
     }
 </script>
 </body>
