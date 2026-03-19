@@ -18,8 +18,8 @@
     <style>
         .report-wrapper {
             display: flex; gap: 30px;
-            padding-top: 20px;
-            height: calc(100vh - 180px); /* Ajustement pour ne pas déborder sous le terminal */
+            /* Ajustement pour prendre en compte la navbar */
+            height: calc(100vh - 200px); 
         }
         
         .input-panel {
@@ -53,7 +53,7 @@
         .preview-container {
             flex: 1.2;
             display: flex; justify-content: center; align-items: flex-start;
-            background: #111; /* Fond sombre pour faire ressortir le papier */
+            background: #111; 
             padding: 20px;
             border: 1px solid rgba(255,255,255,0.1);
             overflow-y: auto;
@@ -144,15 +144,25 @@
 
 <div class="terminal-wrapper">
     <div class="terminal">
-        <header class="header-strip">
+        <header class="header-strip" style="margin-bottom: 10px;">
             <div>
                 <h1>REPORT // <span style="color: var(--accent-blue);">GENERATOR</span></h1>
                 <div class="sub-header">SAN ANDREAS SECURITY // INTERNAL TOOL</div>
             </div>
             <div class="meta-data">
-                <a href="index.html" class="btn-connect" style="text-decoration: none; color: var(--accent-blue); border-color: rgba(0, 243, 255, 0.4); background: rgba(0, 243, 255, 0.05);">< RETOUR MAINFRAME</a>
+                <span style="color: var(--accent-blue)">SYSTEM: ONLINE</span><br><br>
             </div>
         </header>
+
+        <nav class="tactical-navbar auth-content" aria-label="Navigation principale">
+            <a href="index.html" class="nav-item">MAINFRAME</a>
+            <a href="database.html" class="nav-item">BASE AGENTS</a>
+            <a href="map.html" class="nav-item">MAP_FEED</a>
+            <a href="report.html" class="nav-item active">RAPPORTS</a>
+            <a href="logistics.html" class="nav-item">LOGISTIQUE</a>
+            <a href="missions.html" class="nav-item">MISSIONS</a>
+            <a href="investigation.html" class="nav-item restricted">INVESTIGATION [N2]</a>
+        </nav>
 
         <main class="report-wrapper">
             
