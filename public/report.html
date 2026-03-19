@@ -16,10 +16,25 @@
     <link rel="stylesheet" href="css/stylele.css">
     
     <style>
+        /* === CORRECTION NAVBAR === */
+        /* Forcer le display flex quand on est connecté pour ne pas casser la navbar */
+        body.logged-in .tactical-navbar.auth-content,
+        .tactical-navbar {
+            display: flex !important; 
+            gap: 10px;
+            padding: 0 10px 15px 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .tactical-navbar::-webkit-scrollbar { display: none; }
+
         .report-wrapper {
             display: flex; gap: 30px;
-            /* Ajustement pour prendre en compte la navbar */
-            height: calc(100vh - 200px); 
+            /* Ajustement calculé précisément pour la navbar */
+            height: calc(100vh - 220px); 
         }
         
         .input-panel {
@@ -49,7 +64,7 @@
         .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .actions .btn-full { grid-column: span 2; }
 
-        /* Conteneur de prévisualisation (Scrollable indépendamment) */
+        /* Conteneur de prévisualisation */
         .preview-container {
             flex: 1.2;
             display: flex; justify-content: center; align-items: flex-start;
@@ -123,7 +138,7 @@
         }
     </style>
 </head>
-<body>
+<body class="logged-in">
 
 <div class="tactical-grid" aria-hidden="true"></div>
 <div class="vignette" aria-hidden="true"></div>
@@ -144,13 +159,13 @@
 
 <div class="terminal-wrapper">
     <div class="terminal">
-        <header class="header-strip" style="margin-bottom: 10px;">
+        <header class="header-strip" style="margin-bottom: 15px;">
             <div>
                 <h1>REPORT // <span style="color: var(--accent-blue);">GENERATOR</span></h1>
                 <div class="sub-header">SAN ANDREAS SECURITY // INTERNAL TOOL</div>
             </div>
             <div class="meta-data">
-                <span style="color: var(--accent-blue)">SYSTEM: ONLINE</span><br><br>
+                <span style="color: var(--accent-blue)">SYSTEM: ONLINE</span>
             </div>
         </header>
 
