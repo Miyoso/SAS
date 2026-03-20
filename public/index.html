@@ -17,7 +17,6 @@
         body.logged-in .sidebar-panel.auth-content { display: flex !important; }
         body.logged-in #login-overlay { display: none !important; }
         
-        /* Nouveau Login Centré et Stylisé */
         #login-overlay {
             display: flex;
             flex-direction: column;
@@ -37,6 +36,7 @@
             box-shadow: 0 0 30px rgba(0, 255, 157, 0.15), inset 0 0 20px rgba(0, 255, 157, 0.05);
             clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
             position: relative;
+            transition: transform 0.1s;
         }
 
         .login-box::before {
@@ -88,18 +88,43 @@
             margin-top: 15px;
         }
 
+        /* --- ANIMATIONS UX --- */
         @keyframes systemBoot {
             0% { opacity: 0; transform: scale(0.95) translateY(20px); filter: blur(10px); }
             100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
         }
 
-        /* Animation d'apparition du dashboard */
-        .modules-section {
-            animation: fadeIn 1s ease-out;
-        }
+        .modules-section { animation: fadeIn 1s ease-out; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateX(-20px); }
             to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Effet Glitch pour les erreurs */
+        .glitch-anim {
+            animation: glitchError 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+            border-color: var(--accent-danger) !important;
+            box-shadow: 0 0 15px rgba(255, 51, 51, 0.4) inset !important;
+        }
+        .glitch-anim::before { background: var(--accent-danger) !important; box-shadow: 0 0 15px var(--accent-danger) !important; }
+
+        @keyframes glitchError {
+            0% { transform: translate(0) }
+            20% { transform: translate(-4px, 2px) }
+            40% { transform: translate(-4px, -2px) }
+            60% { transform: translate(4px, 2px) }
+            80% { transform: translate(4px, -2px) }
+            100% { transform: translate(0) }
+        }
+
+        /* --- RESPONSIVE MOBILE --- */
+        @media (max-width: 900px) {
+            .terminal-wrapper { padding: 15px; }
+            .view-section { flex-direction: column; overflow-y: auto; }
+            .sidebar-panel { margin-left: 0; margin-top: 20px; min-width: 100%; }
+            .modules-section { padding-right: 0; overflow-y: visible; }
+            .header-strip h1 { font-size: 1.8rem; }
+            .meta-data { font-size: 0.6rem; }
         }
     </style>
 </head>
@@ -139,12 +164,12 @@
         <main id="dashboard-view" class="view-section dashboard-container">
             
             <section id="login-overlay">
-                <div class="login-box">
+                <div class="login-box" id="login-box">
                     <div class="login-title">>_ AUTHENTIFICATION</div>
                     
                     <div class="login-field">
                         <span class="prompt">ID_MATRICULE:</span>
-                        <input type="text" id="login-username" class="cmd-input" placeholder="Saisir matricule..." autocomplete="off">
+                        <input type="text" id="login-username" class="cmd-input" placeholder="Saisir matricule..." autocomplete="off" autofocus>
                     </div>
                     
                     <div class="login-field">
@@ -165,28 +190,28 @@
                         <div class="module-icon" aria-hidden="true">👥</div>
                         <div class="module-info">
                             <div class="module-name">BASE AGENTS</div>
-                            <div class="module-status"><span>●</span> SYSTEM ONLINE</div>
+                            <div class="module-status"><span>[1]</span> SYSTEM ONLINE</div>
                         </div>
                     </button>
                     <button class="module-card status-online" onclick="accessModule('reglement.html', 1)">
                         <div class="module-icon" aria-hidden="true">📜</div>
                         <div class="module-info">
                             <div class="module-name">RÈGLEMENT</div>
-                            <div class="module-status"><span>●</span> READ ONLY</div>
+                            <div class="module-status"><span>[2]</span> READ ONLY</div>
                         </div>
                     </button>
                     <button class="module-card status-online" onclick="accessModule('map.html', 1)">
                         <div class="module-icon" aria-hidden="true">🗺️</div>
                         <div class="module-info">
                             <div class="module-name">CARTOGRAPHIE</div>
-                            <div class="module-status"><span>●</span> LIVE FEED</div>
+                            <div class="module-status"><span>[3]</span> LIVE FEED</div>
                         </div>
                     </button>
                     <button class="module-card status-online" onclick="accessModule('report.html', 1)">
                         <div class="module-icon" aria-hidden="true">📝</div>
                         <div class="module-info">
                             <div class="module-name">RAPPORT</div>
-                            <div class="module-status"><span>●</span> AUTO-GEN</div>
+                            <div class="module-status"><span>[4]</span> AUTO-GEN</div>
                         </div>
                     </button>
                 </nav>
@@ -238,29 +263,25 @@
                 <div class="separator-line" aria-hidden="true"></div>
                 
                 <div class="user-main-info">
-                    <a href="profile.html" class="profile-link">> ACCÉDER AU DOSSIER PERSONNEL</a>
+                    <button onclick="accessModule('profile.html', 1)" class="profile-link" style="background:none; border:none; padding:0; cursor:pointer;">[ ACCÉDER AU DOSSIER ]</button>
                 </div>
                 
                 <section class="sidebar-logs">
                     <h3>ACTIVITÉ SYSTÈME</h3>
-                    <ul class="log-list">
+                    <ul class="log-list" id="system-logs">
                         <li class="log-item info">
-                            <span class="log-time">14:05:22</span>
+                            <span class="log-time">MAINTENANT</span>
                             <span class="log-msg">Uplink établi. Cryptage AES-256 actif.</span>
                         </li>
                         <li class="log-item alert">
-                            <span class="log-time">12:30:15</span>
+                            <span class="log-time">- 2H 14M</span>
                             <span class="log-msg">ALERTE : Anomalie détectée secteur 4.</span>
-                        </li>
-                        <li class="log-item info">
-                            <span class="log-time">12:00:01</span>
-                            <span class="log-msg">System Boot Sequence... OK.</span>
                         </li>
                     </ul>
                 </section>
                 
                 <footer class="sidebar-footer">
-                    <button onclick="logout()" class="btn-disconnect">Fermer la session [X]</button>
+                    <button onclick="logout()" class="btn-disconnect">⚠️ DÉCONNEXION</button>
                 </footer>
             </aside>
         </main>
@@ -268,29 +289,5 @@
 </div>
 
 <script src="js/script.js"></script>
-<script>
-    // Écouteur pour valider le login avec la touche 'Entrée'
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !document.body.classList.contains('logged-in')) {
-            handleLogin();
-        }
-    });
-
-    function accessModule(url, requiredLevel) {
-        if(url === '#') return;
-        const currentLevel = parseInt(localStorage.getItem('userSecurityLevel') || 0);
-        if (currentLevel >= requiredLevel) { 
-            window.location.href = url; 
-        } else { 
-            // Effet visuel d'erreur directement dans le DOM pour rester dans l'esthétique
-            const logList = document.querySelector('.log-list');
-            if(logList) {
-                logList.innerHTML = `<li class="log-item alert"><span class="log-time">MAINTENANT</span><span class="log-msg">ACCÈS REFUSÉ : NIVEAU ${requiredLevel} REQUIS.</span></li>` + logList.innerHTML;
-            } else {
-                alert("⛔ ACCRÉDITATION INSUFFISANTE : NIVEAU " + requiredLevel + " REQUIS"); 
-            }
-        }
-    }
-</script>
 </body>
 </html>
