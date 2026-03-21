@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS MAINFRAME // SYSTEM</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/stylele.css">
+    
+    <style>
+        .auth-content { display: none !important; }
+        body.logged-in .modules-section.auth-content { display: block !important; }
+        body.logged-in .sidebar-panel.auth-content { display: flex !important; }
+        body.logged-in #login-overlay { display: none !important; }
+        
+        #neural-network {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        #login-overlay {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            flex: 1;
+        }
+
+        .login-box {
+            background: rgba(10, 14, 18, 0.95);
+            border: 1px solid var(--accent-primary);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+            position: relative;
+            transition: transform 0.1s;
+            animation: systemBoot 1.5s ease-out forwards, neuralPulse 4s infinite alternate;
+        }
+
+        @keyframes neuralPulse {
+            0% { box-shadow: 0 0 20px rgba(0, 255, 157, 0.1), inset 0 0 10px rgba(0, 255, 157, 0.05); }
+            50% { box-shadow: 0 0 40px rgba(0, 255, 157, 0.3), inset 0 0 20px rgba(0, 255, 157, 0.1); }
+            100% { box-shadow: 0 0 20px rgba(0, 255, 157, 0.1), inset 0 0 10px rgba(0, 255, 157, 0.05); }
+        }
+
+        .login-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 3px;
+            background: var(--accent-primary);
+            box-shadow: 0 0 15px var(--accent-primary);
+        }
+
+        .login-title {
+            font-family: var(--font-code);
+            font-size: 1.5rem;
+            color: #fff;
+            text-align: center;
+            letter-spacing: 4px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px var(--accent-primary);
+            text-transform: uppercase;
+        }
+
+        .login-field {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .login-field .prompt {
+            font-size: 0.8rem;
+            color: var(--accent-primary);
+            letter-spacing: 2px;
+        }
+
+        .login-field .cmd-input {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+        }
+
+        .btn-full-width {
+            width: 100%;
+            justify-content: center;
+            padding: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        @keyframes systemBoot {
+            0% { opacity: 0; transform: scale(0.95) translateY(20px); filter: blur(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+        }
+
+        .modules-section { animation: fadeIn 1s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .glitch-anim {
+            animation: glitchError 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+            border-color: var(--accent-danger) !important;
+            box-shadow: 0 0 15px rgba(255, 51, 51, 0.4) inset !important;
+        }
+        
+        .glitch-anim::before { 
+            background: var(--accent-danger) !important; 
+            box-shadow: 0 0 15px var(--accent-danger) !important; 
+        }
+
+        @keyframes glitchError {
+            0% { transform: translate(0) }
+            20% { transform: translate(-4px, 2px) }
+            40% { transform: translate(-4px, -2px) }
+            60% { transform: translate(4px, 2px) }
+            80% { transform: translate(4px, -2px) }
+            100% { transform: translate(0) }
+        }
+
+        @media (max-width: 900px) {
+            .terminal-wrapper { padding: 15px; }
+            .view-section { flex-direction: column; overflow-y: auto; }
+            .sidebar-panel { margin-left: 0; margin-top: 20px; min-width: 100%; }
+            .modules-section { padding-right: 0; overflow-y: visible; }
+            .header-strip h1 { font-size: 1.8rem; }
+            .meta-data { font-size: 0.6rem; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="neural-network" aria-hidden="true"></canvas>
+
+<div class="tactical-grid" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+<div class="radar-scan" aria-hidden="true"></div>
+
+<div class="hud-side hud-left" aria-hidden="true">
+    <div class="hud-ruler"></div>
+    <div class="hud-marker">SYSTEM.ROOT</div>
+    <div class="hud-marker term-error">SECURE</div>
+    <div class="hud-ruler"></div>
+</div>
+<div class="hud-side hud-right" aria-hidden="true">
+    <div class="hud-ruler"></div>
+    <div class="hud-marker">SECURE.CONN</div>
+    <div class="hud-marker">128.0.0.1</div>
+    <div class="hud-ruler"></div>
+</div>
+
+<div class="terminal-wrapper">
+    <div class="terminal">
+        <header class="header-strip">
+            <div>
+                <h1>SAS // <span>MAINFRAME</span></h1>
+                <div class="sub-header">SYSTÈME DE LIAISON NEURONALE SÉCURISÉ // <span class="blink">ENCRYPTED CONNECTION</span></div>
+            </div>
+            <div class="meta-data">
+                <span id="conn-status" class="term-error">CONSCIENCE DÉCONNECTÉE</span><br>
+                SYS.VER.4.0.2 // UPLINK: STANDBY<br>
+                <span class="term-dim" style="font-size:0.6rem;">NODE: ALPHA-7</span>
+            </div>
+        </header>
+        
+        <main id="dashboard-view" class="view-section dashboard-container">
+            
+            <section id="login-overlay">
+                <div class="login-box" id="login-box">
+                    <div class="login-title">>_ LIAISON SYNAPTIQUE</div>
+                    
+                    <div class="login-field">
+                        <span class="prompt">EMPREINTE_CORTICALE:</span>
+                        <input type="text" id="login-username" class="cmd-input" placeholder="Saisir matricule..." autocomplete="off" autofocus>
+                    </div>
+                    
+                    <div class="login-field">
+                        <span class="prompt">SOUCHE_MÉMORIELLE:</span>
+                        <input type="password" id="login-password" class="cmd-input" placeholder="Saisir mot de passe...">
+                    </div>
+                    
+                    <div id="login-msg" class="term-line term-error" style="min-height: 20px; font-family: var(--font-code); text-align: center; margin-bottom: 10px;"></div>
+                    
+                    <button class="btn-connect btn-full-width" onclick="handleLogin()">[ SYNCHRONISER LES HÉMISPHÈRES ]</button>
+                </div>
+            </section>
+
+            <section class="modules-section auth-content">
+                <h2 class="category-title">ACCRÉDITATION NIVEAU 1 [GÉNÉRAL]</h2>
+                <nav class="grid-modules" aria-label="Menu principal">
+                    <button class="module-card status-online" onclick="accessModule('database.html', 1)">
+                        <div class="module-icon" aria-hidden="true">👥</div>
+                        <div class="module-info">
+                            <div class="module-name">BASE AGENTS</div>
+                            <div class="module-status"><span>[1]</span> SYSTEM ONLINE</div>
+                        </div>
+                    </button>
+                    <button class="module-card status-online" onclick="accessModule('reglement.html', 1)">
+                        <div class="module-icon" aria-hidden="true">📜</div>
+                        <div class="module-info">
+                            <div class="module-name">RÈGLEMENT</div>
+                            <div class="module-status"><span>[2]</span> READ ONLY</div>
+                        </div>
+                    </button>
+                    <button class="module-card status-online" onclick="accessModule('map.html', 1)">
+                        <div class="module-icon" aria-hidden="true">🗺️</div>
+                        <div class="module-info">
+                            <div class="module-name">CARTOGRAPHIE</div>
+                            <div class="module-status"><span>[3]</span> LIVE FEED</div>
+                        </div>
+                    </button>
+                    <button class="module-card status-online" onclick="accessModule('report.html', 1)">
+                        <div class="module-icon" aria-hidden="true">📝</div>
+                        <div class="module-info">
+                            <div class="module-name">RAPPORT</div>
+                            <div class="module-status"><span>[4]</span> AUTO-GEN</div>
+                        </div>
+                    </button>
+                </nav>
+                
+                <h2 class="category-title">ACCRÉDITATION NIVEAU 2 [TACTIQUE]</h2>
+                <nav class="grid-modules" aria-label="Menu tactique">
+                    <button onclick="accessModule('investigation.html', 2)" class="module-card status-restricted" style="text-align:left; background:none; font-family:inherit;">
+                        <div class="module-icon" aria-hidden="true">🔍</div>
+                        <div class="module-info">
+                            <div class="module-name">INVESTIGATION</div>
+                            <div class="module-status"><span>●</span> RESTRICTED</div>
+                        </div>
+                    </button>
+                    <button class="module-card status-danger" onclick="accessModule('#', 2)">
+                        <div class="module-icon" aria-hidden="true">🎯</div>
+                        <div class="module-info">
+                            <div class="module-name">VIP TARGETS</div>
+                            <div class="module-status"><span>●</span> HIGH PRIORITY</div>
+                        </div>
+                    </button>
+                    <button class="module-card status-online" onclick="accessModule('logistics.html', 1)">
+                        <div class="module-icon" aria-hidden="true">📦</div>
+                        <div class="module-info">
+                            <div class="module-name">LOGISTIQUE</div>
+                            <div class="module-status"><span>●</span> STOCK</div>
+                        </div>
+                    </button>
+                    <button class="module-card status-online" onclick="accessModule('missions.html', 1)">
+                        <div class="module-icon" aria-hidden="true">🗓️</div>
+                        <div class="module-info">
+                            <div class="module-name">MISSIONS</div>
+                            <div class="module-status"><span>●</span> ACTIVE</div>
+                        </div>
+                    </button>
+                </nav>
+            </section>
+
+            <aside class="sidebar-panel auth-content">
+                <header class="user-mini-header">
+                    <div class="avatar-small-frame">
+                        <img id="sidebar-avatar" src="assets/default.jpg" alt="Profil">
+                    </div>
+                    <div class="mini-info">
+                        <span id="mini-username" class="mini-user-text">AGENT</span>
+                        <span id="mini-rank" class="mini-rank-text">LVL-0</span>
+                    </div>
+                </header>
+                
+                <div class="separator-line" aria-hidden="true"></div>
+                
+                <div class="user-main-info">
+                    <button onclick="accessModule('profile.html', 1)" class="profile-link" style="background:none; border:none; padding:0; cursor:pointer;">[ ACCÉDER AU DOSSIER ]</button>
+                </div>
+                
+                <section class="sidebar-logs">
+                    <h3>ACTIVITÉ SYSTÈME</h3>
+                    <ul class="log-list" id="system-logs">
+                        <li class="log-item info">
+                            <span class="log-time">MAINTENANT</span>
+                            <span class="log-msg">Pont neuronal stable. Ondes Alpha synchronisées.</span>
+                        </li>
+                        <li class="log-item alert">
+                            <span class="log-time">- 2H 14M</span>
+                            <span class="log-msg">ALERTE : Anomalie détectée secteur 4.</span>
+                        </li>
+                    </ul>
+                </section>
+                
+                <footer class="sidebar-footer">
+                    <button onclick="logout()" class="btn-disconnect">⚠️ DÉCONNEXION</button>
+                </footer>
+            </aside>
+        </main>
+    </div>
+</div>
+
+<script src="js/script.js"></script>
+
+<script>
+const canvas = document.getElementById('neural-network');
+const ctx = canvas.getContext('2d');
+
+let width, height;
+let particles = [];
+const connectionDistance = 150;
+const neuronColor = '0, 255, 157';
+
+function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+}
+
+class Neuron {
+    constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+        this.radius = Math.random() * 2 + 1;
+    }
+
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x < 0 || this.x > width) this.vx *= -1;
+        if (this.y < 0 || this.y > height) this.vy *= -1;
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${neuronColor}, 0.8)`;
+        ctx.fill();
+    }
+}
+
+function initNeurons() {
+    particles = [];
+    const neuronCount = (width * height) / 15000;
+    for (let i = 0; i < neuronCount; i++) {
+        particles.push(new Neuron());
+    }
+}
+
+function animateNeurons() {
+    ctx.clearRect(0, 0, width, height);
+
+    particles.forEach(neuron => {
+        neuron.update();
+        neuron.draw();
+    });
+
+    for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < connectionDistance) {
+                ctx.beginPath();
+                ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                const opacity = 1 - (distance / connectionDistance);
+                ctx.strokeStyle = `rgba(${neuronColor}, ${opacity * 0.5})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        }
+    }
+    requestAnimationFrame(animateNeurons);
+}
+
+window.addEventListener('resize', () => {
+    resize();
+    initNeurons();
+});
+
+resize();
+initNeurons();
+animateNeurons();
+</script>
+
+</body>
+</html>
