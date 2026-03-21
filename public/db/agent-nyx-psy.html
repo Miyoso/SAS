@@ -24,20 +24,28 @@
             --font-display: 'Share Tech Mono', sans-serif;
         }
 
-        /* === GLOBAL SCROLL & BODY === */
+        /* === GLOBAL SCROLL & OVERRIDE EXTRÊME === */
         html, body {
             background-color: var(--bg-deep);
             color: #fff;
+            height: auto !important; /* Casse la limite de 100vh */
+            min-height: 100vh !important;
             overflow-y: auto !important; /* Force le scroll vertical */
-            min-height: 100vh;
+            overflow-x: hidden !important;
         }
 
-        /* Annule les restrictions de hauteur du CSS externe si elles existent */
-        .terminal-wrapper, .terminal {
+        /* DÉBLOQUE TOUS LES CONTENEURS PRINCIPAUX */
+        .terminal-wrapper, .terminal, .view-section, .modules-section, .sidebar-panel {
+            position: relative !important; /* Annule les positionnements fixes/absolus du CSS externe */
             height: auto !important; 
-            min-height: 100vh;
-            overflow: visible !important;
-            padding-bottom: 40px; /* Ajoute un peu d'espace en bas de page */
+            max-height: none !important;
+            min-height: min-content !important;
+            overflow: visible !important; /* Empêche de cacher ce qui dépasse */
+        }
+
+        .terminal-wrapper {
+            padding-bottom: 60px !important; /* Espace respirable en bas de page */
+            display: block !important;
         }
 
         /* === CUSTOM SCROLLBAR (Style Cyberpunk) === */
