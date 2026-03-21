@@ -61,7 +61,6 @@
             opacity: 0.6;
         }
 
-        /* --- ÉCRAN DE CONNEXION --- */
         #login-overlay {
             display: flex;
             flex-direction: column;
@@ -160,7 +159,6 @@
             transform: scale(1.05);
         }
 
-        /* --- DASHBOARD NEURONAL --- */
         .neural-dashboard {
             position: relative;
             width: 100vw;
@@ -172,7 +170,6 @@
             animation: fadeIn 2s ease-out;
         }
 
-        /* ORBITES D'ACCRÉDITATION */
         .orbit {
             position: absolute;
             top: 50%; left: 50%;
@@ -199,7 +196,6 @@
             border-radius: 10px;
         }
 
-        /* LIGNES SYNAPTIQUES */
         .synapse-lines {
             position: absolute;
             top: 50%; left: 50%;
@@ -218,7 +214,6 @@
         .synapse-lines line.restricted { stroke: rgba(255, 170, 0, 0.3); }
         .synapse-lines line.admin { stroke: rgba(255, 42, 42, 0.3); }
 
-        /* NOEUDS (BOUTONS) */
         .node {
             position: absolute;
             top: 50%; left: 50%;
@@ -272,7 +267,6 @@
         }
         .node:hover .label { opacity: 1; text-shadow: 0 0 10px var(--accent-primary); }
 
-        /* NOYAU CENTRAL */
         .node-core {
             width: clamp(120px, 20vmin, 180px); 
             height: clamp(120px, 20vmin, 180px);
@@ -298,7 +292,6 @@
         .node-core .icon { font-size: clamp(2rem, 5vmin, 3.5rem); }
         .node-core .label { font-weight: bold; opacity: 1;}
 
-        /* SOUS-NOEUDS */
         .node-sub { 
             width: clamp(75px, 14vmin, 110px); 
             height: clamp(75px, 14vmin, 110px); 
@@ -306,7 +299,6 @@
         }
         .node-sub:hover { animation-play-state: paused; }
         
-        /* PLACEMENT NIVEAU 1 (Rayon: 25vmin) */
         .pos-lvl1-1 { transform: translate(-50%, -50%) rotate(30deg) translateY(-25vmin) rotate(-30deg); animation-delay: 0.1s;}
         .pos-lvl1-2 { transform: translate(-50%, -50%) rotate(90deg) translateY(-25vmin) rotate(-90deg); animation-delay: 0.3s;}
         .pos-lvl1-3 { transform: translate(-50%, -50%) rotate(150deg) translateY(-25vmin) rotate(-150deg); animation-delay: 0.5s;}
@@ -314,24 +306,31 @@
         .pos-lvl1-5 { transform: translate(-50%, -50%) rotate(270deg) translateY(-25vmin) rotate(-270deg); animation-delay: 0.9s;}
         .pos-lvl1-6 { transform: translate(-50%, -50%) rotate(330deg) translateY(-25vmin) rotate(-330deg); animation-delay: 1.1s;}
 
-        /* PLACEMENT NIVEAU 2 (Rayon: 37.5vmin) */
         .pos-lvl2-1 { transform: translate(-50%, -50%) rotate(0deg) translateY(-37.5vmin) rotate(0deg); animation-delay: 0.2s;}
         .pos-lvl2-2 { transform: translate(-50%, -50%) rotate(180deg) translateY(-37.5vmin) rotate(-180deg); animation-delay: 0.8s;}
 
-        /* PLACEMENT NIVEAU 10 (Rayon: 47.5vmin) */
         .pos-lvl10-1 { transform: translate(-50%, -50%) rotate(45deg) translateY(-47.5vmin) rotate(-45deg); animation-delay: 0.4s;}
         .pos-lvl10-2 { transform: translate(-50%, -50%) rotate(315deg) translateY(-47.5vmin) rotate(-315deg); animation-delay: 1.0s;}
 
-        /* STYLES RESTREINTS & ADMIN */
+        .pos-lvl1-1:hover { transform: translate(-50%, -50%) rotate(30deg) translateY(-25vmin) rotate(-30deg) scale(1.15) !important; }
+        .pos-lvl1-2:hover { transform: translate(-50%, -50%) rotate(90deg) translateY(-25vmin) rotate(-90deg) scale(1.15) !important; }
+        .pos-lvl1-3:hover { transform: translate(-50%, -50%) rotate(150deg) translateY(-25vmin) rotate(-150deg) scale(1.15) !important; }
+        .pos-lvl1-4:hover { transform: translate(-50%, -50%) rotate(210deg) translateY(-25vmin) rotate(-210deg) scale(1.15) !important; }
+        .pos-lvl1-5:hover { transform: translate(-50%, -50%) rotate(270deg) translateY(-25vmin) rotate(-270deg) scale(1.15) !important; }
+        .pos-lvl1-6:hover { transform: translate(-50%, -50%) rotate(330deg) translateY(-25vmin) rotate(-330deg) scale(1.15) !important; }
+        .pos-lvl2-1:hover { transform: translate(-50%, -50%) rotate(0deg) translateY(-37.5vmin) rotate(0deg) scale(1.15) !important; }
+        .pos-lvl2-2:hover { transform: translate(-50%, -50%) rotate(180deg) translateY(-37.5vmin) rotate(-180deg) scale(1.15) !important; }
+        .pos-lvl10-1:hover { transform: translate(-50%, -50%) rotate(45deg) translateY(-47.5vmin) rotate(-45deg) scale(1.15) !important; }
+        .pos-lvl10-2:hover { transform: translate(-50%, -50%) rotate(315deg) translateY(-47.5vmin) rotate(-315deg) scale(1.15) !important; }
+
         .node.status-restricted { border-color: var(--accent-restricted); }
-        .node.status-restricted:hover { box-shadow: 0 0 35px rgba(255, 170, 0, 0.5), inset 0 0 20px rgba(255, 170, 0, 0.2); background: rgba(255, 170, 0, 0.15); transform: translate(-50%, -50%) rotate(var(--rot)) translateY(-37.5vmin) rotate(calc(var(--rot) * -1)) scale(1.15) !important; }
+        .node.status-restricted:hover { box-shadow: 0 0 35px rgba(255, 170, 0, 0.5), inset 0 0 20px rgba(255, 170, 0, 0.2); background: rgba(255, 170, 0, 0.15); }
         .node.status-restricted .icon { filter: drop-shadow(0 0 8px rgba(255, 170, 0, 0.6)); }
 
         .node.status-admin { border-color: var(--accent-danger); }
-        .node.status-admin:hover { box-shadow: 0 0 40px rgba(255, 42, 42, 0.6), inset 0 0 25px rgba(255, 42, 42, 0.3); background: rgba(255, 42, 42, 0.2); transform: translate(-50%, -50%) rotate(var(--rot)) translateY(-47.5vmin) rotate(calc(var(--rot) * -1)) scale(1.15) !important; }
+        .node.status-admin:hover { box-shadow: 0 0 40px rgba(255, 42, 42, 0.6), inset 0 0 25px rgba(255, 42, 42, 0.3); background: rgba(255, 42, 42, 0.2); }
         .node.status-admin .icon { filter: drop-shadow(0 0 10px rgba(255, 42, 42, 0.8)); }
         
-        /* HUD */
         .hud-overlay {
             position: fixed; top: 30px; left: 30px;
             pointer-events: none; z-index: 100;
@@ -346,7 +345,6 @@
             text-align: right; pointer-events: auto; z-index: 100;
         }
 
-        /* ANIMATIONS */
         @keyframes spinBg { 100% { transform: rotate(360deg); } }
         @keyframes floatAnim { 
             0%, 100% { margin-top: 0; } 
@@ -358,19 +356,6 @@
             100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
         }
         @keyframes fadeIn { from { opacity: 0; filter: blur(10px); } to { opacity: 1; filter: blur(0); } }
-
-        /* Ajustements hover pour garder la rotation correcte */
-        .pos-lvl1-1:hover { transform: translate(-50%, -50%) rotate(30deg) translateY(-25vmin) rotate(-30deg) scale(1.15) !important; }
-        .pos-lvl1-2:hover { transform: translate(-50%, -50%) rotate(90deg) translateY(-25vmin) rotate(-90deg) scale(1.15) !important; }
-        .pos-lvl1-3:hover { transform: translate(-50%, -50%) rotate(150deg) translateY(-25vmin) rotate(-150deg) scale(1.15) !important; }
-        .pos-lvl1-4:hover { transform: translate(-50%, -50%) rotate(210deg) translateY(-25vmin) rotate(-210deg) scale(1.15) !important; }
-        .pos-lvl1-5:hover { transform: translate(-50%, -50%) rotate(270deg) translateY(-25vmin) rotate(-270deg) scale(1.15) !important; }
-        .pos-lvl1-6:hover { transform: translate(-50%, -50%) rotate(330deg) translateY(-25vmin) rotate(-330deg) scale(1.15) !important; }
-        .pos-lvl2-1:hover { transform: translate(-50%, -50%) rotate(0deg) translateY(-37.5vmin) rotate(0deg) scale(1.15) !important; }
-        .pos-lvl2-2:hover { transform: translate(-50%, -50%) rotate(180deg) translateY(-37.5vmin) rotate(-180deg) scale(1.15) !important; }
-        .pos-lvl10-1:hover { transform: translate(-50%, -50%) rotate(45deg) translateY(-47.5vmin) rotate(-45deg) scale(1.15) !important; }
-        .pos-lvl10-2:hover { transform: translate(-50%, -50%) rotate(315deg) translateY(-47.5vmin) rotate(-315deg) scale(1.15) !important; }
-
     </style>
 </head>
 <body>
@@ -415,7 +400,20 @@
     <div class="orbit orbit-10"><span class="orbit-label" style="color: var(--accent-danger);">LVL-10 // CLASSIFIED</span></div>
 
     <svg class="synapse-lines">
-        <line x1="50%" y1="50%" x2="62.5%" y2="28.35%" /> <line x1="50%" y1="50%" x2="75%" y2="50%" /> <line x1="50%" y1="50%" x2="62.5%" y2="71.65%" /> <line x1="50%" y1="50%" x2="37.5%" y2="71.65%" /> <line x1="50%" y1="50%" x2="25%" y2="50%" /> <line x1="50%" y1="50%" x2="37.5%" y2="28.35%" /> <line x1="50%" y1="50%" x2="50%" y2="12.5%" class="restricted" /> <line x1="50%" y1="50%" x2="50%" y2="87.5%" class="restricted" /> <line x1="50%" y1="50%" x2="83.58%" y2="16.42%" class="admin" /> <line x1="50%" y1="50%" x2="16.42%" y2="16.42%" class="admin" /> <line x1="62.5%" y1="28.35%" x2="50%" y2="12.5%" class="restricted" />
+        <line x1="50%" y1="50%" x2="62.5%" y2="28.35%" />
+        <line x1="50%" y1="50%" x2="75%" y2="50%" />
+        <line x1="50%" y1="50%" x2="62.5%" y2="71.65%" />
+        <line x1="50%" y1="50%" x2="37.5%" y2="71.65%" />
+        <line x1="50%" y1="50%" x2="25%" y2="50%" />
+        <line x1="50%" y1="50%" x2="37.5%" y2="28.35%" />
+
+        <line x1="50%" y1="50%" x2="50%" y2="12.5%" class="restricted" />
+        <line x1="50%" y1="50%" x2="50%" y2="87.5%" class="restricted" />
+
+        <line x1="50%" y1="50%" x2="83.58%" y2="16.42%" class="admin" />
+        <line x1="50%" y1="50%" x2="16.42%" y2="16.42%" class="admin" />
+        
+        <line x1="62.5%" y1="28.35%" x2="50%" y2="12.5%" class="restricted" />
         <line x1="37.5%" y1="28.35%" x2="50%" y2="12.5%" class="restricted" />
         <line x1="62.5%" y1="28.35%" x2="83.58%" y2="16.42%" class="admin" />
         <line x1="37.5%" y1="28.35%" x2="16.42%" y2="16.42%" class="admin" />
