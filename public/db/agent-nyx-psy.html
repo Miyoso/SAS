@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="/css/stylele.css">
 
     <style>
-        /* === ROOT VARIABLES (Fallback & Security) === */
+        /* === ROOT VARIABLES === */
         :root {
             --accent-blue: #00f3ff;
             --accent-danger: #ff3333;
@@ -24,9 +24,37 @@
             --font-display: 'Share Tech Mono', sans-serif;
         }
 
-        body {
+        /* === GLOBAL SCROLL & BODY === */
+        html, body {
             background-color: var(--bg-deep);
             color: #fff;
+            overflow-y: auto !important; /* Force le scroll vertical */
+            min-height: 100vh;
+        }
+
+        /* Annule les restrictions de hauteur du CSS externe si elles existent */
+        .terminal-wrapper, .terminal {
+            height: auto !important; 
+            min-height: 100vh;
+            overflow: visible !important;
+            padding-bottom: 40px; /* Ajoute un peu d'espace en bas de page */
+        }
+
+        /* === CUSTOM SCROLLBAR (Style Cyberpunk) === */
+        ::-webkit-scrollbar {
+            width: 8px; /* Largeur de la barre */
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-deep);
+            border-left: 1px solid rgba(0, 243, 255, 0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 243, 255, 0.4);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-blue);
+            box-shadow: 0 0 10px var(--accent-blue);
         }
 
         /* === BOOT SCREEN === */
@@ -41,11 +69,11 @@
         .progress-fill { height: 100%; width: 0%; background: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); animation: load 1.2s ease forwards; }
         @keyframes load { to { width: 100%; } }
 
-        /* === ID CARD 3D (CORRIGÉ POUR ÊTRE RESPONSIVE) === */
+        /* === ID CARD 3D (RESPONSIVE) === */
         .id-card-container { perspective: 1000px; margin-bottom: 40px; display: flex; justify-content: center; }
         .id-card {
-            width: 100%; /* Modification ici */
-            max-width: 480px; /* Modification ici */
+            width: 100%;
+            max-width: 480px;
             min-height: 280px;
             background: linear-gradient(135deg, rgba(10, 15, 20, 0.95) 0%, rgba(15, 25, 35, 0.9) 100%);
             border: 1px solid var(--accent-blue);
@@ -185,7 +213,7 @@
         .log-entry { margin-bottom: 15px; font-family: var(--font-code); font-size: 0.85rem; line-height: 1.5; }
         .log-entry .label { color: var(--text-dim); font-size: 0.75rem; letter-spacing: 1px; }
         
-        /* FIX GRILLE POUR LES LOGS TCP/IP */
+        /* GRILLE POUR LES LOGS TCP/IP */
         .tcp-log-row {
             display: grid;
             grid-template-columns: 80px minmax(100px, 1fr) minmax(100px, 1fr) 60px;
@@ -249,7 +277,7 @@
 
             <main class="view-section" style="display: flex; flex-wrap: wrap; gap: 40px;">
                 
-                <section class="modules-section" style="flex: 1 1 500px; min-width: 300px; overflow-y: auto; overflow-x: hidden; padding-right: 15px;">
+                <section class="modules-section" style="flex: 1 1 500px; min-width: 300px; padding-right: 15px;">
                     
                     <div class="id-card-container">
                         <div class="id-card" id="card">
