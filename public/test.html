@@ -29,223 +29,123 @@
             font-family: var(--font-display);
         }
         .scanlines {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 999;
-            opacity: 0.6;
+            background-size: 100% 4px; pointer-events: none; z-index: 999; opacity: 0.6;
         }
         .vignette {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            box-shadow: 0 0 150px rgba(0,0,0,0.9) inset;
-            pointer-events: none;
-            z-index: 998;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            box-shadow: 0 0 150px rgba(0,0,0,0.9) inset; pointer-events: none; z-index: 998;
         }
         .auth-content { display: none !important; }
         body.logged-in .auth-content { display: flex !important; }
         body.logged-in #login-overlay { display: none !important; }
         #neural-network {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 0;
-            opacity: 0.6;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0; opacity: 0.6;
         }
         #login-overlay {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            width: 100vw;
-            position: relative;
-            z-index: 10;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; height: 100vh; width: 100vw;
+            position: relative; z-index: 10;
         }
         .login-box {
-            background: var(--bg-glass);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 255, 157, 0.3);
-            border-radius: 50%;
-            padding: 60px;
-            width: 380px;
-            height: 380px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            box-shadow: 0 0 40px rgba(0, 255, 157, 0.1), inset 0 0 20px rgba(0, 255, 157, 0.05);
+            background: var(--bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 255, 157, 0.3); border-radius: 50%;
+            padding: 60px; width: 380px; height: 380px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; box-shadow: 0 0 40px rgba(0, 255, 157, 0.1), inset 0 0 20px rgba(0, 255, 157, 0.05);
             animation: systemBoot 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards, floatAnim 6s ease-in-out infinite;
         }
         .login-box::before {
-            content: '';
-            position: absolute;
-            top: -2px; left: -2px; right: -2px; bottom: -2px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, transparent, var(--accent-primary), transparent, var(--accent-secondary));
-            z-index: -1;
-            animation: spinBg 4s linear infinite;
-            opacity: 0.5;
+            content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
+            border-radius: 50%; background: linear-gradient(45deg, transparent, var(--accent-primary), transparent, var(--accent-secondary));
+            z-index: -1; animation: spinBg 4s linear infinite; opacity: 0.5;
         }
         .login-title {
-            font-family: var(--font-code);
-            font-size: 1.3rem;
-            color: #fff;
-            text-align: center;
-            letter-spacing: 3px;
-            margin-bottom: 25px;
+            font-family: var(--font-code); font-size: 1.3rem; color: #fff;
+            text-align: center; letter-spacing: 3px; margin-bottom: 25px;
             text-shadow: 0 0 15px var(--accent-primary);
         }
-        .login-field {
-            margin-bottom: 18px;
-            width: 100%;
-            text-align: center;
-        }
+        .login-field { margin-bottom: 18px; width: 100%; text-align: center; }
         .login-field .cmd-input {
-            width: 85%;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(0, 255, 157, 0.2);
-            border-radius: 4px;
-            color: var(--accent-primary);
-            padding: 12px;
-            font-size: 1rem;
-            text-align: center;
-            font-family: var(--font-code);
-            outline: none;
-            transition: all 0.3s ease;
+            width: 85%; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(0, 255, 157, 0.2);
+            border-radius: 4px; color: var(--accent-primary); padding: 12px; font-size: 1rem;
+            text-align: center; font-family: var(--font-code); outline: none; transition: all 0.3s ease;
         }
         .login-field .cmd-input:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+            border-color: var(--accent-primary); box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
             background: rgba(0, 255, 157, 0.05);
         }
         .btn-connect {
-            background: rgba(0, 255, 157, 0.1);
-            color: var(--accent-primary);
-            border: 1px solid var(--accent-primary);
-            padding: 12px 25px;
-            font-family: var(--font-code);
-            font-weight: bold;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 15px;
-            border-radius: 30px;
-            text-transform: uppercase;
-            white-space: nowrap;
+            background: rgba(0, 255, 157, 0.1); color: var(--accent-primary);
+            border: 1px solid var(--accent-primary); padding: 12px 25px;
+            font-family: var(--font-code); font-weight: bold; letter-spacing: 1px;
+            cursor: pointer; transition: all 0.3s; margin-top: 15px; border-radius: 30px;
+            text-transform: uppercase; white-space: nowrap;
         }
         .btn-connect:hover {
-            background: var(--accent-primary);
-            color: #000;
-            box-shadow: 0 0 25px var(--accent-primary);
-            transform: scale(1.05);
+            background: var(--accent-primary); color: #000;
+            box-shadow: 0 0 25px var(--accent-primary); transform: scale(1.05);
         }
         .neural-dashboard {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 5;
-            animation: fadeIn 2s ease-out;
+            position: relative; width: 100vw; height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 5; animation: fadeIn 2s ease-out;
         }
         .orbit {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 1;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            border-radius: 50%; pointer-events: none; z-index: 1;
         }
         .orbit-1 { width: 50vmin; height: 50vmin; border: 1px dashed rgba(0, 255, 157, 0.15); }
         .orbit-2 { width: 75vmin; height: 75vmin; border: 1px dashed rgba(255, 170, 0, 0.15); }
         .orbit-10 { width: 95vmin; height: 95vmin; border: 1px dashed rgba(255, 42, 42, 0.15); }
         .orbit-label {
-            position: absolute;
-            bottom: -8px; left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg-glass);
-            padding: 0 10px;
-            font-family: var(--font-code);
-            font-size: 0.65rem;
-            color: rgba(255,255,255,0.4);
-            letter-spacing: 3px;
-            white-space: nowrap;
-            border-radius: 10px;
+            position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            background: var(--bg-glass); padding: 0 10px; font-family: var(--font-code);
+            font-size: 0.65rem; color: rgba(255,255,255,0.4); letter-spacing: 3px;
+            white-space: nowrap; border-radius: 10px;
         }
         .synapse-lines {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100vmin; height: 100vmin;
-            z-index: 1;
-            pointer-events: none;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 100vmin; height: 100vmin; z-index: 1; pointer-events: none;
         }
         .synapse-lines line {
-            stroke: rgba(0, 255, 157, 0.25);
-            stroke-width: 1.5;
-            stroke-dasharray: 6 4;
+            stroke: rgba(0, 255, 157, 0.25); stroke-width: 1.5; stroke-dasharray: 6 4;
             animation: dataFlow 30s linear infinite reverse;
         }
         .synapse-lines line.restricted { stroke: rgba(255, 170, 0, 0.3); }
         .synapse-lines line.admin { stroke: rgba(255, 42, 42, 0.3); }
         .node {
-            position: absolute;
-            top: 50%; left: 50%;
-            border-radius: 50%;
-            background: var(--bg-glass);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(0, 255, 157, 0.4);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 10;
-            text-decoration: none;
-            color: #fff;
-            padding: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            position: absolute; top: 50%; left: 50%; border-radius: 50%;
+            background: var(--bg-glass); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 255, 157, 0.4); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10;
+            text-decoration: none; color: #fff; padding: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
         .node::after {
-            content: ''; position: absolute;
-            top: 5px; left: 5px; right: 5px; bottom: 5px;
-            border-radius: 50%; border: 1px solid rgba(255,255,255,0.05);
-            pointer-events: none;
+            content: ''; position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px;
+            border-radius: 50%; border: 1px solid rgba(255,255,255,0.05); pointer-events: none;
         }
         .node:hover {
             border-color: var(--accent-primary);
             box-shadow: 0 0 35px rgba(0, 255, 157, 0.4), inset 0 0 20px rgba(0, 255, 157, 0.2);
-            z-index: 20;
-            background: rgba(0, 255, 157, 0.15);
+            z-index: 20; background: rgba(0, 255, 157, 0.15);
         }
         .node .icon {
-            font-size: clamp(1.2rem, 3vmin, 1.8rem);
-            margin-bottom: 5px;
-            filter: drop-shadow(0 0 8px rgba(0, 255, 157, 0.6));
-            transition: transform 0.3s;
+            font-size: clamp(1.2rem, 3vmin, 1.8rem); margin-bottom: 5px;
+            filter: drop-shadow(0 0 8px rgba(0, 255, 157, 0.6)); transition: transform 0.3s;
         }
         .node:hover .icon { transform: scale(1.1); }
         .node .label {
-            font-family: var(--font-code);
-            font-size: clamp(0.55rem, 1.2vmin, 0.7rem);
-            text-align: center;
-            letter-spacing: 2px;
-            opacity: 0.7;
-            transition: opacity 0.3s;
+            font-family: var(--font-code); font-size: clamp(0.55rem, 1.2vmin, 0.7rem);
+            text-align: center; letter-spacing: 2px; opacity: 0.7; transition: opacity 0.3s;
         }
         .node:hover .label { opacity: 1; text-shadow: 0 0 10px var(--accent-primary); }
         .node-core {
-            width: clamp(120px, 20vmin, 180px); 
-            height: clamp(120px, 20vmin, 180px);
-            transform: translate(-50%, -50%);
-            border: 2px solid var(--accent-primary);
+            width: clamp(120px, 20vmin, 180px); height: clamp(120px, 20vmin, 180px);
+            transform: translate(-50%, -50%); border: 2px solid var(--accent-primary);
             box-shadow: 0 0 40px rgba(0, 255, 157, 0.2), inset 0 0 30px rgba(0, 255, 157, 0.1);
             background: rgba(6, 10, 15, 0.85);
         }
@@ -263,8 +163,7 @@
         .node-core .icon { font-size: clamp(2rem, 5vmin, 3.5rem); }
         .node-core .label { font-weight: bold; opacity: 1;}
         .node-sub { 
-            width: clamp(75px, 14vmin, 110px); 
-            height: clamp(75px, 14vmin, 110px); 
+            width: clamp(75px, 14vmin, 110px); height: clamp(75px, 14vmin, 110px); 
             animation: floatAnim 4s ease-in-out infinite;
         }
         .node-sub:hover { animation-play-state: paused; }
@@ -294,45 +193,69 @@
         .node.status-admin { border-color: var(--accent-danger); }
         .node.status-admin:hover { box-shadow: 0 0 40px rgba(255, 42, 42, 0.6), inset 0 0 25px rgba(255, 42, 42, 0.3); background: rgba(255, 42, 42, 0.2); }
         .node.status-admin .icon { filter: drop-shadow(0 0 10px rgba(255, 42, 42, 0.8)); }
+        
         .hud-overlay {
-            position: fixed; top: 30px; left: 30px;
-            pointer-events: none; z-index: 100;
-            border-left: 3px solid var(--accent-primary);
-            padding-left: 15px;
+            position: fixed; top: 30px; left: 30px; pointer-events: none; z-index: 100;
+            border-left: 3px solid var(--accent-primary); padding-left: 15px;
             background: linear-gradient(90deg, rgba(0,255,157,0.1) 0%, transparent 100%);
             padding: 10px 20px;
         }
         .hud-top-right {
-            position: fixed; top: 30px; right: 30px;
-            text-align: right; pointer-events: auto; z-index: 100;
+            position: fixed; top: 30px; right: 30px; text-align: right; pointer-events: auto; z-index: 100;
+            display: flex; align-items: center; gap: 15px;
         }
+        .system-logs-container {
+            position: fixed; bottom: 30px; left: 30px; width: 300px; z-index: 100;
+            font-family: var(--font-code); font-size: 0.65rem;
+        }
+        .log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column-reverse; gap: 6px; }
+        .log-item { background: rgba(0, 255, 157, 0.05); border-left: 2px solid var(--accent-primary); padding: 5px 10px; opacity: 0; animation: logIn 0.3s forwards; }
+        .log-item.alert { border-color: var(--accent-danger); background: rgba(255, 42, 42, 0.05); color: var(--accent-danger); }
+        .log-time { opacity: 0.5; margin-right: 8px; font-size: 0.55rem; }
+
+        /* Animations utiles pour script.js */
+        .glitch-anim {
+            animation: glitchError 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+            border-color: var(--accent-danger) !important;
+            box-shadow: 0 0 15px rgba(255, 42, 42, 0.4), inset 0 0 15px rgba(255, 42, 42, 0.4) !important;
+        }
+        @keyframes glitchError {
+            0% { transform: translate(0) }
+            20% { transform: translate(-4px, 2px) }
+            40% { transform: translate(-4px, -2px) }
+            60% { transform: translate(4px, 2px) }
+            80% { transform: translate(4px, -2px) }
+            100% { transform: translate(0) }
+        }
+        .term-error { color: var(--accent-danger); text-shadow: 0 0 5px var(--accent-danger); }
+        .term-info { color: var(--accent-secondary); text-shadow: 0 0 5px var(--accent-secondary); }
+        .term-dim { color: rgba(255,255,255,0.5); }
+        .blink { animation: blinkAnim 1s infinite; }
+        @keyframes blinkAnim { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes logIn { to { opacity: 1; transform: translateX(0); } from { opacity: 0; transform: translateX(-10px); } }
         @keyframes spinBg { 100% { transform: rotate(360deg); } }
-        @keyframes floatAnim { 
-            0%, 100% { margin-top: 0; } 
-            50% { margin-top: -8px; } 
-        }
+        @keyframes floatAnim { 0%, 100% { margin-top: 0; } 50% { margin-top: -8px; } }
         @keyframes dataFlow { to { stroke-dashoffset: 1000; } }
-        @keyframes systemBoot {
-            0% { opacity: 0; transform: scale(0.8) translateY(30px); filter: blur(20px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
-        }
+        @keyframes systemBoot { 0% { opacity: 0; transform: scale(0.8) translateY(30px); filter: blur(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); } }
         @keyframes fadeIn { from { opacity: 0; filter: blur(10px); } to { opacity: 1; filter: blur(0); } }
+
         @media (max-width: 768px) {
-            .hud-top-right {
-                top: 15px;
-                right: 15px;
-            }
+            .hud-top-right { top: 15px; right: 15px; }
             .node-core { width: 130px; height: 130px; }
             .node-sub { width: 85px; height: 85px; }
             .node .icon { font-size: 1.4rem; }
             .node .label { font-size: 0.6rem; }
+            .system-logs-container { display: none; }
         }
     </style>
 </head>
 <body>
+
 <div class="scanlines"></div>
 <div class="vignette"></div>
+
 <canvas id="neural-network" aria-hidden="true"></canvas>
+
 <section id="login-overlay">
     <div class="login-box" id="login-box">
         <div class="login-title">>_ LIAISON SYNAPTIQUE</div>
@@ -342,22 +265,34 @@
         <div class="login-field">
             <input type="password" id="login-password" class="cmd-input" placeholder="[ SOUCHE_MÉMORIELLE ]">
         </div>
-        <div id="login-msg" class="term-line" style="color: var(--accent-danger); min-height: 20px; font-family: var(--font-code); font-size: 0.8rem; margin-bottom: 10px; text-shadow: 0 0 5px red;"></div>
-        <button class="btn-connect" onclick="simulateLogin()">INITIER L'UPLINK</button>
+        
+        <div id="login-msg" class="term-line" style="min-height: 20px; font-family: var(--font-code); font-size: 0.8rem; margin-bottom: 10px;"></div>
+        
+        <button class="btn-connect" onclick="handleLogin()">INITIER L'UPLINK</button>
     </div>
 </section>
+
 <div class="hud-overlay auth-content">
     <div style="font-family: var(--font-code); font-size: 1.2rem; letter-spacing: 2px;">SAS // <span style="color: var(--accent-primary)">MAINFRAME</span></div>
-    <div style="font-size:0.8rem; color: var(--accent-primary); margin-top: 5px;">> ÉTAT: SYNCHRONISÉ</div>
-    <div style="font-size:0.7rem; opacity:0.6;">> ONDES ALPHA: STABLES</div>
+    <div style="font-size:0.8rem; color: var(--accent-primary); margin-top: 5px;" id="conn-status">> CONNEXION ÉTABLIE</div>
+    <div style="font-size:0.7rem; opacity:0.8; margin-top: 5px; font-family: var(--font-code);">AGENT: <span id="mini-username" style="color: #fff;">ANONYME</span></div>
+    <div style="font-size:0.7rem; opacity:0.6; font-family: var(--font-code);">ACCRÉDITATION: <span id="mini-rank">LVL-0</span></div>
 </div>
+
 <div class="hud-top-right auth-content">
-    <button class="btn-connect" style="font-size: 0.7rem; padding: 8px 15px; border-color: rgba(255,255,255,0.3); color: #fff;" onclick="simulateLogout()">DÉCONNEXION ⏏</button>
+    <img id="sidebar-avatar" src="assets/default.jpg" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--accent-primary);">
+    <button class="btn-connect" style="font-size: 0.7rem; padding: 8px 15px; border-color: rgba(255,255,255,0.3); color: #fff; margin-top: 0;" onclick="logout()">DÉCONNEXION ⏏</button>
 </div>
+
+<div class="system-logs-container auth-content">
+    <ul id="system-logs" class="log-list"></ul>
+</div>
+
 <div class="neural-dashboard auth-content">
     <div class="orbit orbit-1"><span class="orbit-label">LVL-1 // PUBLIC</span></div>
     <div class="orbit orbit-2"><span class="orbit-label">LVL-2 // RESTRICTED</span></div>
     <div class="orbit orbit-10"><span class="orbit-label" style="color: var(--accent-danger);">LVL-10 // CLASSIFIED</span></div>
+
     <svg class="synapse-lines">
         <line x1="50%" y1="50%" x2="62.5%" y2="28.35%" />
         <line x1="50%" y1="50%" x2="75%" y2="50%" />
@@ -374,10 +309,12 @@
         <line x1="62.5%" y1="28.35%" x2="83.58%" y2="16.42%" class="admin" />
         <line x1="37.5%" y1="28.35%" x2="16.42%" y2="16.42%" class="admin" />
     </svg>
+
     <button class="node node-core" onclick="accessModule('profile.html', 1)">
         <span class="icon">🧠</span>
         <span class="label">NOYAU CENTRAL</span>
     </button>
+
     <button class="node node-sub pos-lvl1-1" onclick="accessModule('database.html', 1)">
         <span class="icon">👥</span><span class="label">AGENTS</span>
     </button>
@@ -396,12 +333,14 @@
     <button class="node node-sub pos-lvl1-6" onclick="accessModule('logistics.html', 1)">
         <span class="icon">📦</span><span class="label">MATÉRIEL</span>
     </button>
+
     <button class="node node-sub status-restricted pos-lvl2-1" onclick="accessModule('investigation.html', 2)">
         <span class="icon">🔍</span><span class="label">ENQUÊTES</span>
     </button>
     <button class="node node-sub status-restricted pos-lvl2-2" onclick="accessModule('#', 2)">
         <span class="icon">🎯</span><span class="label">CIBLES VIP</span>
     </button>
+
     <button class="node node-sub status-admin pos-lvl10-1" onclick="accessModule('medical.html', 10)">
         <span class="icon">🧬</span><span class="label">MÉDICAL</span>
     </button>
@@ -409,6 +348,9 @@
         <span class="icon">👁️</span><span class="label">SYSTÈME ADMIN</span>
     </button>
 </div>
+
+<script src="js/script.js"></script>
+
 <script>
 const canvas = document.getElementById('neural-network');
 const ctx = canvas.getContext('2d');
@@ -418,6 +360,7 @@ const connectionDistance = 180;
 const neuronColor = '0, 255, 157';
 const mouseColor = '0, 184, 255';
 let mouse = { x: null, y: null, radius: 200 };
+
 window.addEventListener('mousemove', (e) => {
     mouse.x = e.x;
     mouse.y = e.y;
@@ -426,12 +369,14 @@ window.addEventListener('mouseout', () => {
     mouse.x = null;
     mouse.y = null;
 });
+
 function resize() {
     width = window.innerWidth;
     height = window.innerHeight;
     canvas.width = width;
     canvas.height = height;
 }
+
 class Neuron {
     constructor() {
         this.x = Math.random() * width;
@@ -465,6 +410,7 @@ class Neuron {
         ctx.fill();
     }
 }
+
 function initNeurons() {
     particles = [];
     const neuronCount = (width * height) / 10000;
@@ -472,6 +418,7 @@ function initNeurons() {
         particles.push(new Neuron());
     }
 }
+
 function animateNeurons() {
     ctx.clearRect(0, 0, width, height);
     particles.forEach(neuron => {
@@ -510,6 +457,7 @@ function animateNeurons() {
     }
     requestAnimationFrame(animateNeurons);
 }
+
 window.addEventListener('resize', () => {
     resize();
     initNeurons();
@@ -517,24 +465,6 @@ window.addEventListener('resize', () => {
 resize();
 initNeurons();
 animateNeurons();
-function simulateLogin() {
-    const userInput = document.getElementById('login-username').value;
-    if(userInput.trim() === '') {
-        document.getElementById('login-msg').innerText = "ERREUR: EMPREINTE MANQUANTE";
-        return;
-    }
-    document.body.classList.add('logged-in');
-}
-function simulateLogout() {
-    document.body.classList.remove('logged-in');
-    document.getElementById('login-username').value = '';
-    document.getElementById('login-password').value = '';
-    document.getElementById('login-msg').innerText = '';
-}
-function accessModule(url, level) {
-    console.log("Accès au module : " + url + " (Niveau " + level + ")");
-    window.location.href = url;
-}
 </script>
 </body>
 </html>
