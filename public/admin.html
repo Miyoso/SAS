@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAS - COMMAND CENTER [ADMIN]</title>
 
-    <script>
-        const session = JSON.parse(localStorage.getItem('sas_session'));
-        if (!session || parseInt(session.rank) < 10) {
-            alert("⛔ VIOLATION DE SÉCURITÉ : ACCÈS NIVEAU 10 REQUIS.");
-            window.location.href = 'index.html';
-        }
-    </script>
+    <script src="js/auth-guard.js"></script>
+<script>
+    SAS_AUTH.guard(10);         // admin.html — redirige si rang < 10
+    SAS_AUTH.injectHUD();       // affiche le badge agent en haut à droite
+</script>
 
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style-mo.css">

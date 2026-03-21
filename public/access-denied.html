@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS MAINFRAME :: ACCÈS REFUSÉ</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary:  #00ff9d;
+            --danger:   #ff3333;
+            --warning:  #eebb00;
+            --secondary:#00f3ff;
+            --dim:      #445566;
+            --bg:       #020406;
+            --font-code:'JetBrains Mono', monospace;
+            --font-ui:  'Share Tech Mono', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            font-family: var(--font-ui);
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* ── Grille tactique ── */
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -2;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
+        }
+
+        /* ── Vignette ── */
+        body::after {
+            content: '';
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at 50% 50%, transparent 50%, #000 100%);
+            z-index: -1; pointer-events: none;
+        }
+
+        /* ── Scanlines rouges ── */
+        .scanline {
+            position: fixed; top: 0; left: 0; width: 100%; height: 5px;
+            background: rgba(255, 51, 51, .35);
+            box-shadow: 0 0 15px rgba(255, 51, 51, .5);
+            animation: scan 6s linear infinite;
+            opacity: .4; pointer-events: none; z-index: 0;
+        }
+        @keyframes scan { 0%{top:-5%;} 100%{top:110%;} }
+
+        /* ── Ruban alerte ── */
+        .tape {
+            position: fixed; top: 0; left: 0; width: 100%; height: 8px;
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(255,51,51,.6)  0, rgba(255,51,51,.6)  20px,
+                rgba(0,0,0,.4)     20px, rgba(0,0,0,.4)     40px
+            );
+            animation: tapemove 1s linear infinite;
+        }
+        .tape.bottom { top: auto; bottom: 0; }
+        @keyframes tapemove { from{background-position:0 0} to{background-position:56px 0} }
+
+        /* ── Container principal ── */
+        .container {
+            position: relative; z-index: 10;
+            width: 600px; max-width: 92vw;
+            display: flex; flex-direction: column; gap: 0;
+        }
+
+        /* ── Header rouge ── */
+        .panel-header {
+            background: rgba(255,51,51,.12);
+            border: 1px solid var(--danger);
+            border-bottom: none;
+            padding: 18px 28px;
+            display: flex; align-items: center; gap: 16px;
+        }
+
+        .icon-circle {
+            width: 44px; height: 44px; border-radius: 50%;
+            border: 2px solid var(--danger);
+            background: rgba(255,51,51,.15);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; flex-shrink: 0;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(255,51,51,.3); }
+            50%      { box-shadow: 0 0 0 12px rgba(255,51,51,.0); }
+        }
+
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: var(--danger);
+            text-shadow: 0 0 12px rgba(255,51,51,.5);
+        }
+        .panel-sub {
+            font-size: .7rem;
+            color: #667788;
+            margin-top: 3px;
+            letter-spacing: 1px;
+        }
+
+        /* ── Corps du panneau ── */
+        .panel-body {
+            background: rgba(8,12,16,.92);
+            border: 1px solid var(--danger);
+            border-top: 1px dashed rgba(255,51,51,.3);
+            padding: 28px;
+            display: flex; flex-direction: column; gap: 20px;
+            backdrop-filter: blur(8px);
+        }
+
+        /* ── Raison / code erreur ── */
+        .reason-block {
+            border-left: 3px solid var(--danger);
+            padding: 10px 16px;
+            background: rgba(255,51,51,.06);
+        }
+        .reason-label {
+            font-size: .65rem; color: var(--danger); letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+        .reason-text {
+            font-family: var(--font-code);
+            font-size: 1rem; color: #fff;
+        }
+
+        /* ── Infos agent ── */
+        .agent-block {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .info-row {
+            display: flex; flex-direction: column;
+            border: 1px solid rgba(255,255,255,.07);
+            padding: 10px 14px;
+            background: rgba(255,255,255,.02);
+        }
+        .info-label {
+            font-size: .6rem; color: #667788; letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
+        .info-val {
+            font-family: var(--font-code); font-size: .9rem;
+        }
+
+        /* ── Barre de clearance ── */
+        .clearance-track {
+            height: 6px;
+            background: rgba(255,255,255,.07);
+            border-radius: 3px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        .clearance-fill {
+            height: 100%; border-radius: 3px;
+            background: var(--danger);
+            box-shadow: 0 0 8px var(--danger);
+            transition: width .8s ease;
+        }
+
+        /* ── Actions ── */
+        .actions {
+            display: flex; gap: 12px; flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 11px 20px;
+            font-family: var(--font-ui);
+            font-size: .85rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-transform: uppercase;
+            text-align: center;
+            text-decoration: none;
+            transition: .2s;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        .btn-primary:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 15px var(--primary);
+        }
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid #444;
+            color: #888;
+        }
+        .btn-ghost:hover { border-color: #888; color: #fff; }
+
+        /* ── Log terminal ── */
+        .terminal-log {
+            background: rgba(0,0,0,.5);
+            border: 1px solid rgba(255,255,255,.08);
+            padding: 12px 16px;
+            font-family: var(--font-code);
+            font-size: .72rem;
+            color: #556677;
+            line-height: 1.6;
+            max-height: 90px;
+            overflow: hidden;
+        }
+        .log-line { display: flex; gap: 8px; }
+        .log-ts  { color: #334; }
+        .log-ok  { color: var(--primary); }
+        .log-err { color: var(--danger); }
+        .log-dim { color: #445; }
+
+        /* ── Clignotant ── */
+        .blink { animation: bk 1s step-end infinite; }
+        @keyframes bk { 0%,100%{opacity:1} 50%{opacity:0} }
+
+        /* ── ID aléatoire ── */
+        .ref-id { font-size: .6rem; color: #445566; letter-spacing: 2px; text-align: right; }
+    </style>
+</head>
+<body>
+
+<div class="tape"></div>
+<div class="tape bottom"></div>
+<div class="scanline"></div>
+
+<div class="container">
+
+    <div class="panel-header">
+        <div class="icon-circle">⛔</div>
+        <div>
+            <div class="panel-title">ACCÈS REFUSÉ</div>
+            <div class="panel-sub">SHADOW COMPANY // SECURITY MODULE V.4.0</div>
+        </div>
+    </div>
+
+    <div class="panel-body">
+
+        <div class="reason-block">
+            <div class="reason-label">MOTIF DE REJET</div>
+            <div class="reason-text" id="reason-text">ACCRÉDITATION INSUFFISANTE</div>
+        </div>
+
+        <div class="agent-block" id="agent-block">
+            <div class="info-row">
+                <span class="info-label">AGENT DÉTECTÉ</span>
+                <span class="info-val" id="agent-name" style="color:#fff">INCONNU</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">NIVEAU ACTUEL</span>
+                <span class="info-val" id="agent-level" style="color:var(--danger)">LVL-0</span>
+                <div class="clearance-track">
+                    <div class="clearance-fill" id="level-bar" style="width:0%"></div>
+                </div>
+            </div>
+            <div class="info-row">
+                <span class="info-label">NIVEAU REQUIS</span>
+                <span class="info-val" id="req-level" style="color:var(--warning)">—</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">MODULE VISÉ</span>
+                <span class="info-val" id="target-module" style="color:#aaa; font-size:.8rem">—</span>
+            </div>
+        </div>
+
+        <div class="terminal-log" id="term-log">
+            <div class="log-line"><span class="log-ts">[SYS]</span><span class="log-dim">Vérification des accréditations...</span></div>
+            <div class="log-line"><span class="log-ts">[AUTH]</span><span class="log-err">REJET — Niveau d'accès insuffisant</span></div>
+            <div class="log-line"><span class="log-ts">[SEC]</span><span class="log-dim">Incident consigné dans le registre.</span></div>
+            <div class="log-line"><span class="log-ts">[SYS]</span><span class="log-ok">En attente d'action opérateur<span class="blink">_</span></span></div>
+        </div>
+
+        <div class="actions">
+            <a href="index.html" class="btn btn-primary">[ RETOUR MAINFRAME ]</a>
+            <a href="javascript:history.back()" class="btn btn-ghost">[ PAGE PRÉCÉDENTE ]</a>
+        </div>
+
+        <div class="ref-id" id="ref-id">REF: ...</div>
+
+    </div>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const reason    = params.get('reason')   || 'UNKNOWN';
+    const required  = params.get('required') || null;
+    const fromPage  = params.get('from')     || '/';
+
+    let session = null;
+    try { session = JSON.parse(localStorage.getItem('sas_session')); } catch {}
+
+    const level    = session ? parseInt(session.rank) || 0 : 0;
+    const username = session ? session.username.toUpperCase() : 'NON CONNECTÉ';
+
+    const reasonTexts = {
+        NOT_LOGGED_IN:       'SESSION INEXISTANTE — AUTHENTIFICATION REQUISE',
+        INSUFFICIENT_RANK:   'NIVEAU D\'ACCRÉDITATION INSUFFISANT',
+        ACCESS_RESTRICTED:   'ACCÈS RESTREINT — DOSSIER CLASSIFIÉ',
+        UNKNOWN:             'VIOLATION PROTOCOLE SÉCURITÉ'
+    };
+
+    document.getElementById('reason-text').textContent =
+        reasonTexts[reason] || reasonTexts.UNKNOWN;
+
+    document.getElementById('agent-name').textContent  = username;
+    document.getElementById('agent-level').textContent = `LVL-${level}`;
+
+    const barColor = level >= 10 ? '#ff3333' : level >= 5 ? '#eebb00' : '#00ff9d';
+    const bar = document.getElementById('level-bar');
+    bar.style.background    = barColor;
+    bar.style.boxShadow     = `0 0 8px ${barColor}`;
+    setTimeout(() => { bar.style.width = Math.min(level * 10, 100) + '%'; }, 200);
+
+    if (required) {
+        document.getElementById('req-level').textContent = `LVL-${required}`;
+    } else {
+        document.getElementById('req-level').closest('.info-row').style.display = 'none';
+    }
+
+    const moduleMap = {
+        '/admin.html':         'COMMAND ADMIN',
+        '/medical.html':       'MÉDICAL',
+        '/investigation.html': 'INVESTIGATION [N2]',
+        '/admin':              'COMMAND ADMIN',
+    };
+    document.getElementById('target-module').textContent =
+        moduleMap[fromPage] || fromPage.replace(/^\//, '').replace('.html','').toUpperCase() || '—';
+
+    if (reason === 'NOT_LOGGED_IN') {
+        document.getElementById('agent-block').style.opacity = '.4';
+    }
+
+    document.getElementById('ref-id').textContent =
+        'REF: SAS-' + Date.now().toString(36).toUpperCase().slice(-8);
+</script>
+</body>
+</html>
