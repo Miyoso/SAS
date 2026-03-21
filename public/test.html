@@ -8,23 +8,47 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/stylele.css">
     
     <style>
         :root {
             --accent-primary: #00ff9d;
-            --accent-danger: #ff3333;
+            --accent-secondary: #00b8ff;
+            --accent-danger: #ff2a2a;
             --accent-restricted: #ffaa00;
             --font-code: 'JetBrains Mono', monospace;
-            --bg-dark: rgba(10, 14, 18, 0.95);
+            --font-display: 'Share Tech Mono', monospace;
+            --bg-glass: rgba(6, 10, 15, 0.65);
         }
 
-        body {
+        body, html {
             margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
-            background-color: #050709;
+            background-color: #020406;
+            background: radial-gradient(circle at center, #050914 0%, #010203 100%);
             color: #fff;
-            font-family: 'Share Tech Mono', monospace;
+            font-family: var(--font-display);
+        }
+
+        /* --- EFFETS SYSTÈME (SCANLINES & VIGNETTE) --- */
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.6;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            box-shadow: 0 0 150px rgba(0,0,0,0.9) inset;
+            pointer-events: none;
+            z-index: 998;
         }
 
         .auth-content { display: none !important; }
@@ -33,15 +57,12 @@
         
         #neural-network {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -1;
-            opacity: 0.4;
-            pointer-events: none;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0;
+            opacity: 0.6;
         }
 
+        /* --- ÉCRAN DE CONNEXION --- */
         #login-overlay {
             display: flex;
             flex-direction: column;
@@ -49,85 +70,99 @@
             justify-content: center;
             height: 100vh;
             width: 100vw;
+            position: relative;
+            z-index: 10;
         }
 
         .login-box {
-            background: var(--bg-dark);
-            border: 1px solid var(--accent-primary);
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 255, 157, 0.3);
             border-radius: 50%;
             padding: 60px;
-            width: 350px;
-            height: 350px;
+            width: 380px;
+            height: 380px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             position: relative;
-            animation: systemBoot 1.5s ease-out forwards, neuralPulse 4s infinite alternate;
+            box-shadow: 0 0 40px rgba(0, 255, 157, 0.1), inset 0 0 20px rgba(0, 255, 157, 0.05);
+            animation: systemBoot 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards, floatAnim 6s ease-in-out infinite;
         }
 
-        @keyframes neuralPulse {
-            0% { box-shadow: 0 0 20px rgba(0, 255, 157, 0.1), inset 0 0 10px rgba(0, 255, 157, 0.05); }
-            50% { box-shadow: 0 0 50px rgba(0, 255, 157, 0.4), inset 0 0 30px rgba(0, 255, 157, 0.2); }
-            100% { box-shadow: 0 0 20px rgba(0, 255, 157, 0.1), inset 0 0 10px rgba(0, 255, 157, 0.05); }
+        .login-box::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, transparent, var(--accent-primary), transparent, var(--accent-secondary));
+            z-index: -1;
+            animation: spinBg 4s linear infinite;
+            opacity: 0.5;
         }
 
         .login-title {
             font-family: var(--font-code);
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             color: #fff;
             text-align: center;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px var(--accent-primary);
+            letter-spacing: 3px;
+            margin-bottom: 25px;
+            text-shadow: 0 0 15px var(--accent-primary);
         }
 
         .login-field {
-            margin-bottom: 15px;
+            margin-bottom: 18px;
             width: 100%;
             text-align: center;
+            position: relative;
         }
 
         .login-field .cmd-input {
-            width: 80%;
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid var(--accent-primary);
+            width: 85%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 255, 157, 0.2);
+            border-radius: 4px;
             color: var(--accent-primary);
-            padding: 8px;
+            padding: 12px;
             font-size: 1rem;
             text-align: center;
             font-family: var(--font-code);
             outline: none;
+            transition: all 0.3s ease;
         }
 
-        .login-field .cmd-input::placeholder {
-            color: rgba(0, 255, 157, 0.3);
+        .login-field .cmd-input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+            background: rgba(0, 255, 157, 0.05);
         }
 
         .btn-connect {
-            background: transparent;
+            background: rgba(0, 255, 157, 0.1);
             color: var(--accent-primary);
             border: 1px solid var(--accent-primary);
-            padding: 10px 20px;
+            padding: 12px 25px;
             font-family: var(--font-code);
+            font-weight: bold;
+            letter-spacing: 1px;
             cursor: pointer;
             transition: all 0.3s;
-            margin-top: 10px;
-            border-radius: 20px;
+            margin-top: 15px;
+            border-radius: 30px;
+            text-transform: uppercase;
         }
 
         .btn-connect:hover {
             background: var(--accent-primary);
             color: #000;
-            box-shadow: 0 0 15px var(--accent-primary);
+            box-shadow: 0 0 25px var(--accent-primary);
+            transform: scale(1.05);
         }
 
-        @keyframes systemBoot {
-            0% { opacity: 0; transform: scale(0.5); filter: blur(10px); }
-            100% { opacity: 1; transform: scale(1); filter: blur(0); }
-        }
-
+        /* --- DASHBOARD NEURONAL --- */
         .neural-dashboard {
             position: relative;
             width: 100vw;
@@ -135,43 +170,33 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 5;
             animation: fadeIn 2s ease-out;
         }
 
         .synapse-lines {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             z-index: 1;
             pointer-events: none;
         }
 
         .synapse-lines line {
-            stroke: rgba(0, 255, 157, 0.3);
-            stroke-width: 2;
-            stroke-dasharray: 10;
-            animation: flow 20s linear infinite;
+            stroke: rgba(0, 255, 157, 0.25);
+            stroke-width: 1.5;
+            stroke-dasharray: 6 4;
+            animation: dataFlow 30s linear infinite reverse;
         }
-
-        .synapse-lines line.restricted {
-            stroke: rgba(255, 170, 0, 0.3);
-        }
-
-        .synapse-lines line.danger {
-            stroke: rgba(255, 51, 51, 0.3);
-        }
-
-        @keyframes flow {
-            to { stroke-dashoffset: -1000; }
-        }
+        .synapse-lines line.restricted { stroke: rgba(255, 170, 0, 0.3); }
+        .synapse-lines line.danger { stroke: rgba(255, 42, 42, 0.3); }
 
         .node {
             position: absolute;
             border-radius: 50%;
-            background: var(--bg-dark);
-            border: 2px solid var(--accent-primary);
+            background: var(--bg-glass);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 255, 157, 0.4);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -182,103 +207,142 @@
             text-decoration: none;
             color: #fff;
             padding: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .node::after {
+            content: ''; position: absolute;
+            top: 5px; left: 5px; right: 5px; bottom: 5px;
+            border-radius: 50%; border: 1px solid rgba(255,255,255,0.05);
+            pointer-events: none;
         }
 
         .node:hover {
-            transform: scale(1.2);
-            box-shadow: 0 0 30px rgba(0, 255, 157, 0.6), inset 0 0 15px rgba(0, 255, 157, 0.4);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 35px rgba(0, 255, 157, 0.4), inset 0 0 20px rgba(0, 255, 157, 0.2);
             z-index: 20;
-            background: rgba(0, 255, 157, 0.1);
+            background: rgba(0, 255, 157, 0.15);
         }
 
         .node .icon {
-            font-size: 2rem;
+            font-size: 1.8rem;
             margin-bottom: 5px;
-            filter: drop-shadow(0 0 5px var(--accent-primary));
+            filter: drop-shadow(0 0 8px rgba(0, 255, 157, 0.6));
+            transition: transform 0.3s;
         }
+
+        .node:hover .icon { transform: scale(1.1); }
 
         .node .label {
             font-family: var(--font-code);
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             text-align: center;
-            letter-spacing: 1px;
-            opacity: 0.8;
+            letter-spacing: 2px;
+            opacity: 0.7;
             transition: opacity 0.3s;
         }
+        .node:hover .label { opacity: 1; text-shadow: 0 0 10px var(--accent-primary); }
 
-        .node:hover .label {
-            opacity: 1;
-            text-shadow: 0 0 8px var(--accent-primary);
-        }
-
+        /* NOYAU CENTRAL (Effet complexe) */
         .node-core {
-            width: 160px;
-            height: 160px;
-            top: 50%;
-            left: 50%;
+            width: 180px; height: 180px;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            border-width: 3px;
-            animation: neuralPulse 3s infinite alternate;
+            border: 2px solid var(--accent-primary);
+            box-shadow: 0 0 40px rgba(0, 255, 157, 0.2), inset 0 0 30px rgba(0, 255, 157, 0.1);
+            background: rgba(6, 10, 15, 0.85);
         }
-        .node-core:hover { transform: translate(-50%, -50%) scale(1.1); }
-        .node-core .icon { font-size: 3rem; }
-        .node-core .label { font-size: 1rem; font-weight: bold; }
 
-        .node-sub { width: 100px; height: 100px; }
-        .node-sub:hover { transform: translate(-50%, -50%) scale(1.2); }
+        .node-core::before {
+            content: ''; position: absolute;
+            top: -15px; left: -15px; right: -15px; bottom: -15px;
+            border-radius: 50%;
+            border: 2px dashed rgba(0, 184, 255, 0.5);
+            animation: spinBg 15s linear infinite;
+            pointer-events: none;
+        }
+
+        .node-core::after {
+            content: ''; position: absolute;
+            top: -25px; left: -25px; right: -25px; bottom: -25px;
+            border-radius: 50%;
+            border: 1px dotted rgba(0, 255, 157, 0.3);
+            animation: spinBg 25s linear infinite reverse;
+            pointer-events: none;
+        }
+
+        .node-core:hover { transform: translate(-50%, -50%) scale(1.05); }
+        .node-core .icon { font-size: 3.5rem; }
+        .node-core .label { font-size: 1rem; font-weight: bold; opacity: 1;}
+
+        /* SOUS-NOEUDS AVEC ANIMATION FLOTTAISON */
+        .node-sub { 
+            width: 110px; height: 110px; 
+            animation: floatAnim 4s ease-in-out infinite;
+        }
+        .node-sub:hover { transform: translate(-50%, -50%) scale(1.15) !important; animation-play-state: paused; }
         
-        .pos-1 { top: 15%; left: 50%; transform: translate(-50%, -50%); }
-        .pos-2 { top: 85%; left: 50%; transform: translate(-50%, -50%); }
-        .pos-3 { top: 50%; left: 15%; transform: translate(-50%, -50%); }
-        .pos-4 { top: 50%; left: 85%; transform: translate(-50%, -50%); }
-        .pos-5 { top: 25%; left: 25%; transform: translate(-50%, -50%); }
-        .pos-6 { top: 25%; left: 75%; transform: translate(-50%, -50%); }
-        .pos-7 { top: 75%; left: 25%; transform: translate(-50%, -50%); }
-        .pos-8 { top: 75%; left: 75%; transform: translate(-50%, -50%); }
+        .pos-1 { top: 15%; left: 50%; transform: translate(-50%, -50%); animation-delay: 0s; }
+        .pos-2 { top: 85%; left: 50%; transform: translate(-50%, -50%); animation-delay: 0.5s;}
+        .pos-3 { top: 50%; left: 15%; transform: translate(-50%, -50%); animation-delay: 1s;}
+        .pos-4 { top: 50%; left: 85%; transform: translate(-50%, -50%); animation-delay: 1.5s;}
+        .pos-5 { top: 25%; left: 25%; transform: translate(-50%, -50%); animation-delay: 0.2s;}
+        .pos-6 { top: 25%; left: 75%; transform: translate(-50%, -50%); animation-delay: 0.7s;}
+        .pos-7 { top: 75%; left: 25%; transform: translate(-50%, -50%); animation-delay: 1.2s;}
+        .pos-8 { top: 75%; left: 75%; transform: translate(-50%, -50%); animation-delay: 1.7s;}
 
         .node.status-restricted { border-color: var(--accent-restricted); }
-        .node.status-restricted:hover { box-shadow: 0 0 30px rgba(255, 170, 0, 0.6), inset 0 0 15px rgba(255, 170, 0, 0.4); background: rgba(255, 170, 0, 0.1); }
-        .node.status-restricted .icon { filter: drop-shadow(0 0 5px var(--accent-restricted)); }
+        .node.status-restricted:hover { box-shadow: 0 0 35px rgba(255, 170, 0, 0.5), inset 0 0 20px rgba(255, 170, 0, 0.2); background: rgba(255, 170, 0, 0.15); }
+        .node.status-restricted .icon { filter: drop-shadow(0 0 8px rgba(255, 170, 0, 0.6)); }
 
         .node.status-danger { border-color: var(--accent-danger); }
-        .node.status-danger:hover { box-shadow: 0 0 30px rgba(255, 51, 51, 0.6), inset 0 0 15px rgba(255, 51, 51, 0.4); background: rgba(255, 51, 51, 0.1); }
-        .node.status-danger .icon { filter: drop-shadow(0 0 5px var(--accent-danger)); }
+        .node.status-danger:hover { box-shadow: 0 0 35px rgba(255, 42, 42, 0.5), inset 0 0 20px rgba(255, 42, 42, 0.2); background: rgba(255, 42, 42, 0.15); }
+        .node.status-danger .icon { filter: drop-shadow(0 0 8px rgba(255, 42, 42, 0.6)); }
 
+        /* HUD */
         .hud-overlay {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            pointer-events: none;
-            z-index: 100;
+            position: fixed; top: 30px; left: 30px;
+            pointer-events: none; z-index: 100;
+            border-left: 3px solid var(--accent-primary);
+            padding-left: 15px;
+            background: linear-gradient(90deg, rgba(0,255,157,0.1) 0%, transparent 100%);
+            padding: 10px 20px;
         }
 
         .hud-top-right {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            text-align: right;
-            pointer-events: auto;
-            z-index: 100;
+            position: fixed; top: 30px; right: 30px;
+            text-align: right; pointer-events: auto; z-index: 100;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        /* ANIMATIONS */
+        @keyframes spinBg { 100% { transform: rotate(360deg); } }
+        @keyframes floatAnim { 
+            0%, 100% { margin-top: 0; } 
+            50% { margin-top: -12px; } 
         }
+        @keyframes dataFlow { to { stroke-dashoffset: 1000; } }
+        @keyframes systemBoot {
+            0% { opacity: 0; transform: scale(0.8) translateY(30px); filter: blur(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+        }
+        @keyframes fadeIn { from { opacity: 0; filter: blur(10px); } to { opacity: 1; filter: blur(0); } }
 
         @media (max-width: 768px) {
-            .node-core { width: 120px; height: 120px; }
-            .node-sub { width: 80px; height: 80px; }
-            .node .icon { font-size: 1.5rem; }
+            .node-core { width: 130px; height: 130px; }
+            .node-sub { width: 85px; height: 85px; }
+            .node .icon { font-size: 1.4rem; }
             .node .label { font-size: 0.6rem; }
-            .pos-1 { top: 10%; } .pos-2 { top: 90%; }
-            .pos-3 { left: 10%; } .pos-4 { left: 90%; }
-            .pos-5 { top: 20%; left: 20%; } .pos-6 { top: 20%; left: 80%; }
-            .pos-7 { top: 80%; left: 20%; } .pos-8 { top: 80%; left: 80%; }
+            .pos-1 { top: 12%; } .pos-2 { top: 88%; }
+            .pos-3 { left: 15%; } .pos-4 { left: 85%; }
+            .pos-5 { top: 22%; left: 22%; } .pos-6 { top: 22%; left: 78%; }
+            .pos-7 { top: 78%; left: 22%; } .pos-8 { top: 78%; left: 78%; }
         }
     </style>
 </head>
 <body>
+
+<div class="scanlines"></div>
+<div class="vignette"></div>
 
 <canvas id="neural-network" aria-hidden="true"></canvas>
 
@@ -287,27 +351,27 @@
         <div class="login-title">>_ LIAISON SYNAPTIQUE</div>
         
         <div class="login-field">
-            <input type="text" id="login-username" class="cmd-input" placeholder="EMPREINTE_CORTICALE" autocomplete="off" autofocus>
+            <input type="text" id="login-username" class="cmd-input" placeholder="[ EMPREINTE_CORTICALE ]" autocomplete="off" autofocus>
         </div>
         
         <div class="login-field">
-            <input type="password" id="login-password" class="cmd-input" placeholder="SOUCHE_MÉMORIELLE">
+            <input type="password" id="login-password" class="cmd-input" placeholder="[ SOUCHE_MÉMORIELLE ]">
         </div>
         
-        <div id="login-msg" class="term-line term-error" style="min-height: 20px; font-family: var(--font-code); font-size: 0.8rem; margin-bottom: 10px;"></div>
+        <div id="login-msg" class="term-line" style="color: var(--accent-danger); min-height: 20px; font-family: var(--font-code); font-size: 0.8rem; margin-bottom: 10px; text-shadow: 0 0 5px red;"></div>
         
-        <button class="btn-connect" onclick="simulateLogin()">[ SYNCHRONISER ]</button>
+        <button class="btn-connect" onclick="simulateLogin()">INITIER L'UPLINK</button>
     </div>
 </section>
 
 <div class="hud-overlay auth-content">
-    <div>SAS // <span>MAINFRAME</span></div>
-    <div style="font-size:0.7rem; color: var(--accent-primary);">ÉTAT: SYNCHRONISÉ</div>
-    <div style="font-size:0.6rem; opacity:0.7;">ONDES ALPHA STABLES</div>
+    <div style="font-family: var(--font-code); font-size: 1.2rem; letter-spacing: 2px;">SAS // <span style="color: var(--accent-primary)">MAINFRAME</span></div>
+    <div style="font-size:0.8rem; color: var(--accent-primary); margin-top: 5px;">> ÉTAT: SYNCHRONISÉ</div>
+    <div style="font-size:0.7rem; opacity:0.6;">> ONDES ALPHA: STABLES</div>
 </div>
 
 <div class="hud-top-right auth-content">
-    <button class="btn-connect" style="font-size: 0.7rem; padding: 5px 10px;" onclick="simulateLogout()">DÉCONNEXION</button>
+    <button class="btn-connect" style="font-size: 0.7rem; padding: 8px 15px; border-color: rgba(255,255,255,0.3); color: #fff;" onclick="simulateLogout()">DÉCONNEXION ⏏</button>
 </div>
 
 <div class="neural-dashboard auth-content">
@@ -329,7 +393,7 @@
 
     <button class="node node-sub pos-1" onclick="accessModule('database.html', 1)">
         <span class="icon">👥</span>
-        <span class="label">BASE AGENTS</span>
+        <span class="label">AGENTS</span>
     </button>
 
     <button class="node node-sub pos-2" onclick="accessModule('missions.html', 1)">
@@ -369,6 +433,7 @@
 </div>
 
 <script>
+// --- GESTION DU CANVAS RÉSEAU NEURONAL ---
 const canvas = document.getElementById('neural-network');
 const ctx = canvas.getContext('2d');
 
@@ -376,6 +441,19 @@ let width, height;
 let particles = [];
 const connectionDistance = 180;
 const neuronColor = '0, 255, 157';
+const mouseColor = '0, 184, 255'; // Couleur de l'interaction souris
+
+// Suivi de la souris
+let mouse = { x: null, y: null, radius: 200 };
+
+window.addEventListener('mousemove', (e) => {
+    mouse.x = e.x;
+    mouse.y = e.y;
+});
+window.addEventListener('mouseout', () => {
+    mouse.x = null;
+    mouse.y = null;
+});
 
 function resize() {
     width = window.innerWidth;
@@ -388,16 +466,34 @@ class Neuron {
     constructor() {
         this.x = Math.random() * width;
         this.y = Math.random() * height;
-        this.vx = (Math.random() - 0.5) * 0.4;
-        this.vy = (Math.random() - 0.5) * 0.4;
+        this.vx = (Math.random() - 0.5) * 0.5; // Légèrement plus rapide
+        this.vy = (Math.random() - 0.5) * 0.5;
         this.radius = Math.random() * 2 + 1;
+        this.baseX = this.x;
+        this.baseY = this.y;
     }
 
     update() {
         this.x += this.vx;
         this.y += this.vy;
+        
+        // Rebond
         if (this.x < 0 || this.x > width) this.vx *= -1;
         if (this.y < 0 || this.y > height) this.vy *= -1;
+
+        // Interaction avec la souris (répulsion douce)
+        if (mouse.x != null) {
+            let dx = mouse.x - this.x;
+            let dy = mouse.y - this.y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < mouse.radius) {
+                const forceDirectionX = dx / distance;
+                const forceDirectionY = dy / distance;
+                const force = (mouse.radius - distance) / mouse.radius;
+                this.x -= forceDirectionX * force * 2;
+                this.y -= forceDirectionY * force * 2;
+            }
+        }
     }
 
     draw() {
@@ -410,7 +506,7 @@ class Neuron {
 
 function initNeurons() {
     particles = [];
-    const neuronCount = (width * height) / 12000;
+    const neuronCount = (width * height) / 10000; // Un peu plus dense
     for (let i = 0; i < neuronCount; i++) {
         particles.push(new Neuron());
     }
@@ -425,6 +521,7 @@ function animateNeurons() {
     });
 
     for (let i = 0; i < particles.length; i++) {
+        // Connexions neurone-neurone
         for (let j = i + 1; j < particles.length; j++) {
             const dx = particles[i].x - particles[j].x;
             const dy = particles[i].y - particles[j].y;
@@ -437,6 +534,22 @@ function animateNeurons() {
                 const opacity = 1 - (distance / connectionDistance);
                 ctx.strokeStyle = `rgba(${neuronColor}, ${opacity * 0.4})`;
                 ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        }
+        
+        // Connexion neurone-souris
+        if (mouse.x != null) {
+            const dxm = particles[i].x - mouse.x;
+            const dym = particles[i].y - mouse.y;
+            const distanceMouse = Math.sqrt(dxm * dxm + dym * dym);
+            if (distanceMouse < mouse.radius) {
+                ctx.beginPath();
+                ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(mouse.x, mouse.y);
+                const opacityM = 1 - (distanceMouse / mouse.radius);
+                ctx.strokeStyle = `rgba(${mouseColor}, ${opacityM * 0.6})`;
+                ctx.lineWidth = 1.5;
                 ctx.stroke();
             }
         }
@@ -453,6 +566,7 @@ resize();
 initNeurons();
 animateNeurons();
 
+// --- GESTION DES CLICS ---
 function simulateLogin() {
     const userInput = document.getElementById('login-username').value;
     if(userInput.trim() === '') {
