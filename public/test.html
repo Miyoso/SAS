@@ -32,7 +32,6 @@
             font-family: var(--font-display);
         }
 
-        /* --- EFFETS SYSTÈME (SCANLINES & VIGNETTE) --- */
         .scanlines {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -117,7 +116,6 @@
             margin-bottom: 18px;
             width: 100%;
             text-align: center;
-            position: relative;
         }
 
         .login-field .cmd-input {
@@ -174,9 +172,39 @@
             animation: fadeIn 2s ease-out;
         }
 
+        /* ORBITES D'ACCRÉDITATION */
+        .orbit {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .orbit-1 { width: 50vmin; height: 50vmin; border: 1px dashed rgba(0, 255, 157, 0.15); }
+        .orbit-2 { width: 75vmin; height: 75vmin; border: 1px dashed rgba(255, 170, 0, 0.15); }
+        .orbit-10 { width: 95vmin; height: 95vmin; border: 1px dashed rgba(255, 42, 42, 0.15); }
+
+        .orbit-label {
+            position: absolute;
+            bottom: -8px; left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-glass);
+            padding: 0 10px;
+            font-family: var(--font-code);
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 3px;
+            white-space: nowrap;
+            border-radius: 10px;
+        }
+
+        /* LIGNES SYNAPTIQUES */
         .synapse-lines {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100vmin; height: 100vmin;
             z-index: 1;
             pointer-events: none;
         }
@@ -188,10 +216,12 @@
             animation: dataFlow 30s linear infinite reverse;
         }
         .synapse-lines line.restricted { stroke: rgba(255, 170, 0, 0.3); }
-        .synapse-lines line.danger { stroke: rgba(255, 42, 42, 0.3); }
+        .synapse-lines line.admin { stroke: rgba(255, 42, 42, 0.3); }
 
+        /* NOEUDS (BOUTONS) */
         .node {
             position: absolute;
+            top: 50%; left: 50%;
             border-radius: 50%;
             background: var(--bg-glass);
             backdrop-filter: blur(8px);
@@ -225,17 +255,16 @@
         }
 
         .node .icon {
-            font-size: 1.8rem;
+            font-size: clamp(1.2rem, 3vmin, 1.8rem);
             margin-bottom: 5px;
             filter: drop-shadow(0 0 8px rgba(0, 255, 157, 0.6));
             transition: transform 0.3s;
         }
-
         .node:hover .icon { transform: scale(1.1); }
 
         .node .label {
             font-family: var(--font-code);
-            font-size: 0.7rem;
+            font-size: clamp(0.55rem, 1.2vmin, 0.7rem);
             text-align: center;
             letter-spacing: 2px;
             opacity: 0.7;
@@ -243,10 +272,10 @@
         }
         .node:hover .label { opacity: 1; text-shadow: 0 0 10px var(--accent-primary); }
 
-        /* NOYAU CENTRAL (Effet complexe) */
+        /* NOYAU CENTRAL */
         .node-core {
-            width: 180px; height: 180px;
-            top: 50%; left: 50%;
+            width: clamp(120px, 20vmin, 180px); 
+            height: clamp(120px, 20vmin, 180px);
             transform: translate(-50%, -50%);
             border: 2px solid var(--accent-primary);
             box-shadow: 0 0 40px rgba(0, 255, 157, 0.2), inset 0 0 30px rgba(0, 255, 157, 0.1);
@@ -254,51 +283,54 @@
         }
 
         .node-core::before {
-            content: ''; position: absolute;
-            top: -15px; left: -15px; right: -15px; bottom: -15px;
-            border-radius: 50%;
-            border: 2px dashed rgba(0, 184, 255, 0.5);
-            animation: spinBg 15s linear infinite;
-            pointer-events: none;
+            content: ''; position: absolute; top: -15px; left: -15px; right: -15px; bottom: -15px;
+            border-radius: 50%; border: 2px dashed rgba(0, 184, 255, 0.5);
+            animation: spinBg 15s linear infinite; pointer-events: none;
         }
 
         .node-core::after {
-            content: ''; position: absolute;
-            top: -25px; left: -25px; right: -25px; bottom: -25px;
-            border-radius: 50%;
-            border: 1px dotted rgba(0, 255, 157, 0.3);
-            animation: spinBg 25s linear infinite reverse;
-            pointer-events: none;
+            content: ''; position: absolute; top: -25px; left: -25px; right: -25px; bottom: -25px;
+            border-radius: 50%; border: 1px dotted rgba(0, 255, 157, 0.3);
+            animation: spinBg 25s linear infinite reverse; pointer-events: none;
         }
 
         .node-core:hover { transform: translate(-50%, -50%) scale(1.05); }
-        .node-core .icon { font-size: 3.5rem; }
-        .node-core .label { font-size: 1rem; font-weight: bold; opacity: 1;}
+        .node-core .icon { font-size: clamp(2rem, 5vmin, 3.5rem); }
+        .node-core .label { font-weight: bold; opacity: 1;}
 
-        /* SOUS-NOEUDS AVEC ANIMATION FLOTTAISON */
+        /* SOUS-NOEUDS */
         .node-sub { 
-            width: 110px; height: 110px; 
+            width: clamp(75px, 14vmin, 110px); 
+            height: clamp(75px, 14vmin, 110px); 
             animation: floatAnim 4s ease-in-out infinite;
         }
-        .node-sub:hover { transform: translate(-50%, -50%) scale(1.15) !important; animation-play-state: paused; }
+        .node-sub:hover { animation-play-state: paused; }
         
-        .pos-1 { top: 15%; left: 50%; transform: translate(-50%, -50%); animation-delay: 0s; }
-        .pos-2 { top: 85%; left: 50%; transform: translate(-50%, -50%); animation-delay: 0.5s;}
-        .pos-3 { top: 50%; left: 15%; transform: translate(-50%, -50%); animation-delay: 1s;}
-        .pos-4 { top: 50%; left: 85%; transform: translate(-50%, -50%); animation-delay: 1.5s;}
-        .pos-5 { top: 25%; left: 25%; transform: translate(-50%, -50%); animation-delay: 0.2s;}
-        .pos-6 { top: 25%; left: 75%; transform: translate(-50%, -50%); animation-delay: 0.7s;}
-        .pos-7 { top: 75%; left: 25%; transform: translate(-50%, -50%); animation-delay: 1.2s;}
-        .pos-8 { top: 75%; left: 75%; transform: translate(-50%, -50%); animation-delay: 1.7s;}
+        /* PLACEMENT NIVEAU 1 (Rayon: 25vmin) */
+        .pos-lvl1-1 { transform: translate(-50%, -50%) rotate(30deg) translateY(-25vmin) rotate(-30deg); animation-delay: 0.1s;}
+        .pos-lvl1-2 { transform: translate(-50%, -50%) rotate(90deg) translateY(-25vmin) rotate(-90deg); animation-delay: 0.3s;}
+        .pos-lvl1-3 { transform: translate(-50%, -50%) rotate(150deg) translateY(-25vmin) rotate(-150deg); animation-delay: 0.5s;}
+        .pos-lvl1-4 { transform: translate(-50%, -50%) rotate(210deg) translateY(-25vmin) rotate(-210deg); animation-delay: 0.7s;}
+        .pos-lvl1-5 { transform: translate(-50%, -50%) rotate(270deg) translateY(-25vmin) rotate(-270deg); animation-delay: 0.9s;}
+        .pos-lvl1-6 { transform: translate(-50%, -50%) rotate(330deg) translateY(-25vmin) rotate(-330deg); animation-delay: 1.1s;}
 
+        /* PLACEMENT NIVEAU 2 (Rayon: 37.5vmin) */
+        .pos-lvl2-1 { transform: translate(-50%, -50%) rotate(0deg) translateY(-37.5vmin) rotate(0deg); animation-delay: 0.2s;}
+        .pos-lvl2-2 { transform: translate(-50%, -50%) rotate(180deg) translateY(-37.5vmin) rotate(-180deg); animation-delay: 0.8s;}
+
+        /* PLACEMENT NIVEAU 10 (Rayon: 47.5vmin) */
+        .pos-lvl10-1 { transform: translate(-50%, -50%) rotate(45deg) translateY(-47.5vmin) rotate(-45deg); animation-delay: 0.4s;}
+        .pos-lvl10-2 { transform: translate(-50%, -50%) rotate(315deg) translateY(-47.5vmin) rotate(-315deg); animation-delay: 1.0s;}
+
+        /* STYLES RESTREINTS & ADMIN */
         .node.status-restricted { border-color: var(--accent-restricted); }
-        .node.status-restricted:hover { box-shadow: 0 0 35px rgba(255, 170, 0, 0.5), inset 0 0 20px rgba(255, 170, 0, 0.2); background: rgba(255, 170, 0, 0.15); }
+        .node.status-restricted:hover { box-shadow: 0 0 35px rgba(255, 170, 0, 0.5), inset 0 0 20px rgba(255, 170, 0, 0.2); background: rgba(255, 170, 0, 0.15); transform: translate(-50%, -50%) rotate(var(--rot)) translateY(-37.5vmin) rotate(calc(var(--rot) * -1)) scale(1.15) !important; }
         .node.status-restricted .icon { filter: drop-shadow(0 0 8px rgba(255, 170, 0, 0.6)); }
 
-        .node.status-danger { border-color: var(--accent-danger); }
-        .node.status-danger:hover { box-shadow: 0 0 35px rgba(255, 42, 42, 0.5), inset 0 0 20px rgba(255, 42, 42, 0.2); background: rgba(255, 42, 42, 0.15); }
-        .node.status-danger .icon { filter: drop-shadow(0 0 8px rgba(255, 42, 42, 0.6)); }
-
+        .node.status-admin { border-color: var(--accent-danger); }
+        .node.status-admin:hover { box-shadow: 0 0 40px rgba(255, 42, 42, 0.6), inset 0 0 25px rgba(255, 42, 42, 0.3); background: rgba(255, 42, 42, 0.2); transform: translate(-50%, -50%) rotate(var(--rot)) translateY(-47.5vmin) rotate(calc(var(--rot) * -1)) scale(1.15) !important; }
+        .node.status-admin .icon { filter: drop-shadow(0 0 10px rgba(255, 42, 42, 0.8)); }
+        
         /* HUD */
         .hud-overlay {
             position: fixed; top: 30px; left: 30px;
@@ -318,7 +350,7 @@
         @keyframes spinBg { 100% { transform: rotate(360deg); } }
         @keyframes floatAnim { 
             0%, 100% { margin-top: 0; } 
-            50% { margin-top: -12px; } 
+            50% { margin-top: -8px; } 
         }
         @keyframes dataFlow { to { stroke-dashoffset: 1000; } }
         @keyframes systemBoot {
@@ -327,16 +359,18 @@
         }
         @keyframes fadeIn { from { opacity: 0; filter: blur(10px); } to { opacity: 1; filter: blur(0); } }
 
-        @media (max-width: 768px) {
-            .node-core { width: 130px; height: 130px; }
-            .node-sub { width: 85px; height: 85px; }
-            .node .icon { font-size: 1.4rem; }
-            .node .label { font-size: 0.6rem; }
-            .pos-1 { top: 12%; } .pos-2 { top: 88%; }
-            .pos-3 { left: 15%; } .pos-4 { left: 85%; }
-            .pos-5 { top: 22%; left: 22%; } .pos-6 { top: 22%; left: 78%; }
-            .pos-7 { top: 78%; left: 22%; } .pos-8 { top: 78%; left: 78%; }
-        }
+        /* Ajustements hover pour garder la rotation correcte */
+        .pos-lvl1-1:hover { transform: translate(-50%, -50%) rotate(30deg) translateY(-25vmin) rotate(-30deg) scale(1.15) !important; }
+        .pos-lvl1-2:hover { transform: translate(-50%, -50%) rotate(90deg) translateY(-25vmin) rotate(-90deg) scale(1.15) !important; }
+        .pos-lvl1-3:hover { transform: translate(-50%, -50%) rotate(150deg) translateY(-25vmin) rotate(-150deg) scale(1.15) !important; }
+        .pos-lvl1-4:hover { transform: translate(-50%, -50%) rotate(210deg) translateY(-25vmin) rotate(-210deg) scale(1.15) !important; }
+        .pos-lvl1-5:hover { transform: translate(-50%, -50%) rotate(270deg) translateY(-25vmin) rotate(-270deg) scale(1.15) !important; }
+        .pos-lvl1-6:hover { transform: translate(-50%, -50%) rotate(330deg) translateY(-25vmin) rotate(-330deg) scale(1.15) !important; }
+        .pos-lvl2-1:hover { transform: translate(-50%, -50%) rotate(0deg) translateY(-37.5vmin) rotate(0deg) scale(1.15) !important; }
+        .pos-lvl2-2:hover { transform: translate(-50%, -50%) rotate(180deg) translateY(-37.5vmin) rotate(-180deg) scale(1.15) !important; }
+        .pos-lvl10-1:hover { transform: translate(-50%, -50%) rotate(45deg) translateY(-47.5vmin) rotate(-45deg) scale(1.15) !important; }
+        .pos-lvl10-2:hover { transform: translate(-50%, -50%) rotate(315deg) translateY(-47.5vmin) rotate(-315deg) scale(1.15) !important; }
+
     </style>
 </head>
 <body>
@@ -375,15 +409,16 @@
 </div>
 
 <div class="neural-dashboard auth-content">
+    
+    <div class="orbit orbit-1"><span class="orbit-label">LVL-1 // PUBLIC</span></div>
+    <div class="orbit orbit-2"><span class="orbit-label">LVL-2 // RESTRICTED</span></div>
+    <div class="orbit orbit-10"><span class="orbit-label" style="color: var(--accent-danger);">LVL-10 // CLASSIFIED</span></div>
+
     <svg class="synapse-lines">
-        <line x1="50%" y1="50%" x2="50%" y2="15%" />
-        <line x1="50%" y1="50%" x2="50%" y2="85%" />
-        <line x1="50%" y1="50%" x2="15%" y2="50%" />
-        <line x1="50%" y1="50%" x2="85%" y2="50%" />
-        <line x1="50%" y1="50%" x2="25%" y2="25%" />
-        <line x1="50%" y1="50%" x2="75%" y2="25%" />
-        <line x1="50%" y1="50%" x2="25%" y2="75%" class="restricted" />
-        <line x1="50%" y1="50%" x2="75%" y2="75%" class="danger" />
+        <line x1="50%" y1="50%" x2="62.5%" y2="28.35%" /> <line x1="50%" y1="50%" x2="75%" y2="50%" /> <line x1="50%" y1="50%" x2="62.5%" y2="71.65%" /> <line x1="50%" y1="50%" x2="37.5%" y2="71.65%" /> <line x1="50%" y1="50%" x2="25%" y2="50%" /> <line x1="50%" y1="50%" x2="37.5%" y2="28.35%" /> <line x1="50%" y1="50%" x2="50%" y2="12.5%" class="restricted" /> <line x1="50%" y1="50%" x2="50%" y2="87.5%" class="restricted" /> <line x1="50%" y1="50%" x2="83.58%" y2="16.42%" class="admin" /> <line x1="50%" y1="50%" x2="16.42%" y2="16.42%" class="admin" /> <line x1="62.5%" y1="28.35%" x2="50%" y2="12.5%" class="restricted" />
+        <line x1="37.5%" y1="28.35%" x2="50%" y2="12.5%" class="restricted" />
+        <line x1="62.5%" y1="28.35%" x2="83.58%" y2="16.42%" class="admin" />
+        <line x1="37.5%" y1="28.35%" x2="16.42%" y2="16.42%" class="admin" />
     </svg>
 
     <button class="node node-core" onclick="accessModule('profile.html', 1)">
@@ -391,49 +426,42 @@
         <span class="label">NOYAU CENTRAL</span>
     </button>
 
-    <button class="node node-sub pos-1" onclick="accessModule('database.html', 1)">
-        <span class="icon">👥</span>
-        <span class="label">AGENTS</span>
+    <button class="node node-sub pos-lvl1-1" onclick="accessModule('database.html', 1)">
+        <span class="icon">👥</span><span class="label">AGENTS</span>
+    </button>
+    <button class="node node-sub pos-lvl1-2" onclick="accessModule('missions.html', 1)">
+        <span class="icon">🗓️</span><span class="label">MISSIONS</span>
+    </button>
+    <button class="node node-sub pos-lvl1-3" onclick="accessModule('map.html', 1)">
+        <span class="icon">🗺️</span><span class="label">CARTE LIVE</span>
+    </button>
+    <button class="node node-sub pos-lvl1-4" onclick="accessModule('report.html', 1)">
+        <span class="icon">📝</span><span class="label">RAPPORTS</span>
+    </button>
+    <button class="node node-sub pos-lvl1-5" onclick="accessModule('reglement.html', 1)">
+        <span class="icon">📜</span><span class="label">ARCHIVES</span>
+    </button>
+    <button class="node node-sub pos-lvl1-6" onclick="accessModule('logistics.html', 1)">
+        <span class="icon">📦</span><span class="label">MATÉRIEL</span>
     </button>
 
-    <button class="node node-sub pos-2" onclick="accessModule('missions.html', 1)">
-        <span class="icon">🗓️</span>
-        <span class="label">MISSIONS</span>
+    <button class="node node-sub status-restricted pos-lvl2-1" onclick="accessModule('investigation.html', 2)">
+        <span class="icon">🔍</span><span class="label">ENQUÊTES</span>
+    </button>
+    <button class="node node-sub status-restricted pos-lvl2-2" onclick="accessModule('#', 2)">
+        <span class="icon">🎯</span><span class="label">CIBLES VIP</span>
     </button>
 
-    <button class="node node-sub pos-3" onclick="accessModule('map.html', 1)">
-        <span class="icon">🗺️</span>
-        <span class="label">CARTE LIVE</span>
+    <button class="node node-sub status-admin pos-lvl10-1" onclick="accessModule('medical.html', 10)">
+        <span class="icon">🧬</span><span class="label">MÉDICAL</span>
+    </button>
+    <button class="node node-sub status-admin pos-lvl10-2" onclick="accessModule('admin.html', 10)">
+        <span class="icon">👁️</span><span class="label">SYSTÈME ADMIN</span>
     </button>
 
-    <button class="node node-sub pos-4" onclick="accessModule('report.html', 1)">
-        <span class="icon">📝</span>
-        <span class="label">RAPPORTS</span>
-    </button>
-
-    <button class="node node-sub pos-5" onclick="accessModule('reglement.html', 1)">
-        <span class="icon">📜</span>
-        <span class="label">ARCHIVES</span>
-    </button>
-
-    <button class="node node-sub pos-6" onclick="accessModule('logistics.html', 1)">
-        <span class="icon">📦</span>
-        <span class="label">MATÉRIEL</span>
-    </button>
-
-    <button class="node node-sub pos-7 status-restricted" onclick="accessModule('investigation.html', 2)">
-        <span class="icon">🔍</span>
-        <span class="label">ENQUÊTES</span>
-    </button>
-
-    <button class="node node-sub pos-8 status-danger" onclick="accessModule('#', 2)">
-        <span class="icon">🎯</span>
-        <span class="label">CIBLES VIP</span>
-    </button>
 </div>
 
 <script>
-// --- GESTION DU CANVAS RÉSEAU NEURONAL ---
 const canvas = document.getElementById('neural-network');
 const ctx = canvas.getContext('2d');
 
@@ -441,9 +469,8 @@ let width, height;
 let particles = [];
 const connectionDistance = 180;
 const neuronColor = '0, 255, 157';
-const mouseColor = '0, 184, 255'; // Couleur de l'interaction souris
+const mouseColor = '0, 184, 255';
 
-// Suivi de la souris
 let mouse = { x: null, y: null, radius: 200 };
 
 window.addEventListener('mousemove', (e) => {
@@ -466,22 +493,18 @@ class Neuron {
     constructor() {
         this.x = Math.random() * width;
         this.y = Math.random() * height;
-        this.vx = (Math.random() - 0.5) * 0.5; // Légèrement plus rapide
+        this.vx = (Math.random() - 0.5) * 0.5;
         this.vy = (Math.random() - 0.5) * 0.5;
         this.radius = Math.random() * 2 + 1;
-        this.baseX = this.x;
-        this.baseY = this.y;
     }
 
     update() {
         this.x += this.vx;
         this.y += this.vy;
         
-        // Rebond
         if (this.x < 0 || this.x > width) this.vx *= -1;
         if (this.y < 0 || this.y > height) this.vy *= -1;
 
-        // Interaction avec la souris (répulsion douce)
         if (mouse.x != null) {
             let dx = mouse.x - this.x;
             let dy = mouse.y - this.y;
@@ -506,7 +529,7 @@ class Neuron {
 
 function initNeurons() {
     particles = [];
-    const neuronCount = (width * height) / 10000; // Un peu plus dense
+    const neuronCount = (width * height) / 10000;
     for (let i = 0; i < neuronCount; i++) {
         particles.push(new Neuron());
     }
@@ -521,7 +544,6 @@ function animateNeurons() {
     });
 
     for (let i = 0; i < particles.length; i++) {
-        // Connexions neurone-neurone
         for (let j = i + 1; j < particles.length; j++) {
             const dx = particles[i].x - particles[j].x;
             const dy = particles[i].y - particles[j].y;
@@ -538,7 +560,6 @@ function animateNeurons() {
             }
         }
         
-        // Connexion neurone-souris
         if (mouse.x != null) {
             const dxm = particles[i].x - mouse.x;
             const dym = particles[i].y - mouse.y;
@@ -566,7 +587,6 @@ resize();
 initNeurons();
 animateNeurons();
 
-// --- GESTION DES CLICS ---
 function simulateLogin() {
     const userInput = document.getElementById('login-username').value;
     if(userInput.trim() === '') {
