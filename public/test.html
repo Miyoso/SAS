@@ -8,125 +8,268 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
+        /* ================================================
+           VARIABLES
+           ================================================ */
         :root {
-            --accent-primary: #00ff9d;
-            --accent-secondary: #00b8ff;
-            --accent-danger: #ff2a2a;
+            --accent-primary:    #00ff9d;
+            --accent-secondary:  #00b8ff;
+            --accent-danger:     #ff2a2a;
             --accent-restricted: #ffaa00;
-            --font-code: 'JetBrains Mono', monospace;
+            --font-code:    'JetBrains Mono', monospace;
             --font-display: 'Share Tech Mono', monospace;
-            --bg-glass: rgba(6, 10, 15, 0.65);
+            --bg-glass:     rgba(6, 10, 15, 0.65);
         }
+
+        /* ================================================
+           BASE
+           ================================================ */
+        *, *::before, *::after { box-sizing: border-box; }
+
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
             overflow: hidden;
-            background-color: #020406;
             background: radial-gradient(circle at center, #050914 0%, #010203 100%);
             color: #fff;
             font-family: var(--font-display);
         }
         .scanlines {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
-            background-size: 100% 4px; pointer-events: none; z-index: 999; opacity: 0.6;
+            position: fixed; inset: 0;
+            background: linear-gradient(to bottom,
+                rgba(255,255,255,0), rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+            pointer-events: none; z-index: 999; opacity: 0.6;
         }
         .vignette {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            box-shadow: 0 0 150px rgba(0,0,0,0.9) inset; pointer-events: none; z-index: 998;
+            position: fixed; inset: 0;
+            box-shadow: 0 0 150px rgba(0,0,0,0.9) inset;
+            pointer-events: none; z-index: 998;
         }
-        .auth-content { display: none !important; }
+
+        /* ================================================
+           AUTH VISIBILITY
+           ================================================ */
+        .auth-content                { display: none !important; }
         body.logged-in .auth-content { display: flex !important; }
         body.logged-in #login-overlay { display: none !important; }
+
+        /* ================================================
+           CANVAS
+           ================================================ */
         #neural-network {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            position: fixed; inset: 0;
             z-index: 0; opacity: 0.6;
         }
+
+        /* ================================================
+           ACCESSIBILITY HELPER
+           ================================================ */
+        .sr-only {
+            position: absolute; width: 1px; height: 1px;
+            padding: 0; margin: -1px; overflow: hidden;
+            clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+        }
+
+        /* ================================================
+           LOGIN
+           ================================================ */
         #login-overlay {
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; height: 100vh; width: 100vw;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            height: 100vh; width: 100vw;
             position: relative; z-index: 10;
         }
         .login-box {
-            background: var(--bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 255, 157, 0.3); border-radius: 50%;
-            padding: 60px; width: 380px; height: 380px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative; box-shadow: 0 0 40px rgba(0, 255, 157, 0.1), inset 0 0 20px rgba(0, 255, 157, 0.05);
-            animation: systemBoot 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards, floatAnim 6s ease-in-out infinite;
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 255, 157, 0.3);
+            border-radius: 50%;
+            /* Responsive: no overflow on small screens */
+            width: min(380px, 88vw); height: min(380px, 88vw);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0, 255, 157, 0.1), inset 0 0 20px rgba(0, 255, 157, 0.05);
+            animation: systemBoot 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+                       floatAnim 6s ease-in-out 1.5s infinite;
+            will-change: transform;
         }
         .login-box::before {
-            content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
-            border-radius: 50%; background: linear-gradient(45deg, transparent, var(--accent-primary), transparent, var(--accent-secondary));
+            content: ''; position: absolute; inset: -2px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, transparent, var(--accent-primary), transparent, var(--accent-secondary));
             z-index: -1; animation: spinBg 4s linear infinite; opacity: 0.5;
         }
         .login-title {
-            font-family: var(--font-code); font-size: 1.3rem; color: #fff;
-            text-align: center; letter-spacing: 3px; margin-bottom: 25px;
+            font-family: var(--font-code);
+            font-size: clamp(0.85rem, 3vw, 1.3rem);
+            color: #fff; text-align: center;
+            letter-spacing: 3px; margin-bottom: 20px;
             text-shadow: 0 0 15px var(--accent-primary);
         }
-        .login-field { margin-bottom: 18px; width: 100%; text-align: center; }
+        .login-field { margin-bottom: 14px; width: 100%; text-align: center; }
         .login-field .cmd-input {
-            width: 85%; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(0, 255, 157, 0.2);
-            border-radius: 4px; color: var(--accent-primary); padding: 12px; font-size: 1rem;
-            text-align: center; font-family: var(--font-code); outline: none; transition: all 0.3s ease;
+            width: 82%; background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 255, 157, 0.2);
+            border-radius: 4px; color: var(--accent-primary);
+            padding: 10px; font-size: clamp(0.75rem, 2.5vw, 1rem);
+            text-align: center; font-family: var(--font-code);
+            outline: none; transition: all 0.3s ease;
         }
         .login-field .cmd-input:focus {
-            border-color: var(--accent-primary); box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
             background: rgba(0, 255, 157, 0.05);
         }
+        #login-msg {
+            min-height: 20px;
+            font-family: var(--font-code);
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        /* ================================================
+           BUTTONS
+           ================================================ */
         .btn-connect {
-            background: rgba(0, 255, 157, 0.1); color: var(--accent-primary);
-            border: 1px solid var(--accent-primary); padding: 12px 25px;
-            font-family: var(--font-code); font-weight: bold; letter-spacing: 1px;
-            cursor: pointer; transition: all 0.3s; margin-top: 15px; border-radius: 30px;
-            text-transform: uppercase; white-space: nowrap;
+            background: rgba(0, 255, 157, 0.1);
+            color: var(--accent-primary);
+            border: 1px solid var(--accent-primary);
+            padding: 12px 25px;
+            font-family: var(--font-code); font-weight: bold;
+            letter-spacing: 1px; cursor: pointer;
+            transition: all 0.3s; margin-top: 15px;
+            border-radius: 30px; text-transform: uppercase; white-space: nowrap;
         }
         .btn-connect:hover {
             background: var(--accent-primary); color: #000;
-            box-shadow: 0 0 25px var(--accent-primary); transform: scale(1.05);
+            box-shadow: 0 0 25px var(--accent-primary); scale: 1.05;
         }
+        /* Variant: bouton déconnexion */
+        .btn-logout {
+            font-size: 0.7rem; padding: 8px 15px;
+            border-color: rgba(255,255,255,0.3);
+            color: #fff; margin-top: 0;
+        }
+        .btn-logout:hover { background: rgba(255,255,255,0.15); color: #fff; scale: 1.05; }
+
+        /* ================================================
+           HUD — TOP LEFT
+           ================================================ */
+        .hud-overlay {
+            position: fixed; top: 30px; left: 30px;
+            pointer-events: none; z-index: 100;
+            border-left: 3px solid var(--accent-primary);
+            padding: 10px 20px;
+            background: linear-gradient(90deg, rgba(0,255,157,0.1) 0%, transparent 100%);
+        }
+        .hud-title {
+            font-family: var(--font-code); font-size: 1.2rem; letter-spacing: 2px;
+        }
+        .hud-title-accent  { color: var(--accent-primary); }
+        .hud-status        { font-size: 0.8rem; color: var(--accent-primary); margin-top: 5px; }
+        .hud-meta          { font-size: 0.7rem; font-family: var(--font-code); margin-top: 5px; }
+        .hud-meta-dim      { opacity: 0.8; }
+        .hud-meta-dimmer   { opacity: 0.6; }
+
+        /* HUD — TOP RIGHT */
+        .hud-top-right {
+            position: fixed; top: 30px; right: 30px;
+            text-align: right; pointer-events: auto; z-index: 100;
+            display: flex; align-items: center; gap: 15px;
+        }
+        .hud-avatar {
+            width: 40px; height: 40px;
+            border-radius: 50%; border: 1px solid var(--accent-primary);
+        }
+
+        /* ================================================
+           SYSTEM LOGS
+           ================================================ */
+        .system-logs-container {
+            position: fixed; bottom: 30px; left: 30px;
+            width: 300px; z-index: 100;
+            font-family: var(--font-code); font-size: 0.65rem;
+        }
+        .log-list {
+            list-style: none; padding: 0; margin: 0;
+            display: flex; flex-direction: column-reverse; gap: 6px;
+        }
+        .log-item {
+            background: rgba(0, 255, 157, 0.05);
+            border-left: 2px solid var(--accent-primary);
+            padding: 5px 10px; opacity: 0;
+            animation: logIn 0.3s forwards;
+        }
+        .log-item.alert {
+            border-color: var(--accent-danger);
+            background: rgba(255, 42, 42, 0.05);
+            color: var(--accent-danger);
+        }
+        .log-time { opacity: 0.5; margin-right: 8px; font-size: 0.55rem; }
+
+        /* ================================================
+           DASHBOARD
+           ================================================ */
         .neural-dashboard {
             position: relative; width: 100vw; height: 100vh;
             display: flex; align-items: center; justify-content: center;
             z-index: 5; animation: fadeIn 2s ease-out;
         }
         .orbit {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            position: absolute; top: 50%; left: 50%;
+            translate: -50% -50%;
             border-radius: 50%; pointer-events: none; z-index: 1;
         }
-        .orbit-1 { width: 50vmin; height: 50vmin; border: 1px dashed rgba(0, 255, 157, 0.15); }
-        .orbit-2 { width: 75vmin; height: 75vmin; border: 1px dashed rgba(255, 170, 0, 0.15); }
-        .orbit-10 { width: 95vmin; height: 95vmin; border: 1px dashed rgba(255, 42, 42, 0.15); }
+        .orbit-1  { width: 50vmin; height: 50vmin;  border: 1px dashed rgba(0, 255, 157, 0.15); }
+        .orbit-2  { width: 75vmin; height: 75vmin;  border: 1px dashed rgba(255, 170, 0, 0.15); }
+        .orbit-10 { width: 95vmin; height: 95vmin;  border: 1px dashed rgba(255, 42, 42, 0.15); }
         .orbit-label {
-            position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-            background: var(--bg-glass); padding: 0 10px; font-family: var(--font-code);
-            font-size: 0.65rem; color: rgba(255,255,255,0.4); letter-spacing: 3px;
+            position: absolute; bottom: -8px; left: 50%;
+            translate: -50% 0;
+            background: var(--bg-glass); padding: 0 10px;
+            font-family: var(--font-code); font-size: 0.65rem;
+            color: rgba(255,255,255,0.4); letter-spacing: 3px;
             white-space: nowrap; border-radius: 10px;
         }
+        .orbit-label-classified { color: var(--accent-danger); }
+
         .synapse-lines {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            position: absolute; top: 50%; left: 50%;
+            translate: -50% -50%;
             width: 100vmin; height: 100vmin; z-index: 1; pointer-events: none;
         }
         .synapse-lines line {
-            stroke: rgba(0, 255, 157, 0.25); stroke-width: 1.5; stroke-dasharray: 6 4;
-            animation: dataFlow 30s linear infinite reverse;
+            stroke: rgba(0, 255, 157, 0.25); stroke-width: 1.5;
+            stroke-dasharray: 6 4; animation: dataFlow 30s linear infinite reverse;
         }
         .synapse-lines line.restricted { stroke: rgba(255, 170, 0, 0.3); }
-        .synapse-lines line.admin { stroke: rgba(255, 42, 42, 0.3); }
+        .synapse-lines line.admin      { stroke: rgba(255, 42, 42, 0.3); }
+
+        /* ================================================
+           NODES — BASE
+           ================================================ */
         .node {
-            position: absolute; top: 50%; left: 50%; border-radius: 50%;
-            background: var(--bg-glass); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(0, 255, 157, 0.4); display: flex; flex-direction: column;
-            align-items: center; justify-content: center; cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10;
-            text-decoration: none; color: #fff; padding: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            position: absolute; top: 50%; left: 50%;
+            border-radius: 50%;
+            background: var(--bg-glass);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 255, 157, 0.4);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: box-shadow 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                        background 0.4s, border-color 0.4s, opacity 0.3s, filter 0.3s;
+            z-index: 10; color: #fff; padding: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
         .node::after {
-            content: ''; position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px;
-            border-radius: 50%; border: 1px solid rgba(255,255,255,0.05); pointer-events: none;
+            content: ''; position: absolute; inset: 5px;
+            border-radius: 50%; border: 1px solid rgba(255,255,255,0.05);
+            pointer-events: none;
         }
         .node:hover {
             border-color: var(--accent-primary);
@@ -135,117 +278,196 @@
         }
         .node .icon {
             font-size: clamp(1.2rem, 3vmin, 1.8rem); margin-bottom: 5px;
-            filter: drop-shadow(0 0 8px rgba(0, 255, 157, 0.6)); transition: transform 0.3s;
+            filter: drop-shadow(0 0 8px rgba(0, 255, 157, 0.6));
+            transition: scale 0.3s;
         }
-        .node:hover .icon { transform: scale(1.1); }
+        .node:hover .icon { scale: 1.1; }
         .node .label {
-            font-family: var(--font-code); font-size: clamp(0.55rem, 1.2vmin, 0.7rem);
-            text-align: center; letter-spacing: 2px; opacity: 0.7; transition: opacity 0.3s;
+            font-family: var(--font-code);
+            font-size: clamp(0.55rem, 1.2vmin, 0.7rem);
+            text-align: center; letter-spacing: 2px;
+            opacity: 0.7; transition: opacity 0.3s;
         }
         .node:hover .label { opacity: 1; text-shadow: 0 0 10px var(--accent-primary); }
+
+        /* ================================================
+           NODE — CORE
+           ================================================ */
         .node-core {
-            width: clamp(120px, 20vmin, 180px); height: clamp(120px, 20vmin, 180px);
-            transform: translate(-50%, -50%); border: 2px solid var(--accent-primary);
+            width: clamp(120px, 20vmin, 180px);
+            height: clamp(120px, 20vmin, 180px);
+            translate: -50% -50%;
+            border: 2px solid var(--accent-primary);
             box-shadow: 0 0 40px rgba(0, 255, 157, 0.2), inset 0 0 30px rgba(0, 255, 157, 0.1);
             background: rgba(6, 10, 15, 0.85);
+            will-change: transform, box-shadow;
         }
         .node-core::before {
-            content: ''; position: absolute; top: -15px; left: -15px; right: -15px; bottom: -15px;
+            content: ''; position: absolute; inset: -15px;
             border-radius: 50%; border: 2px dashed rgba(0, 184, 255, 0.5);
             animation: spinBg 15s linear infinite; pointer-events: none;
         }
         .node-core::after {
-            content: ''; position: absolute; top: -25px; left: -25px; right: -25px; bottom: -25px;
+            content: ''; position: absolute; inset: -25px;
             border-radius: 50%; border: 1px dotted rgba(0, 255, 157, 0.3);
             animation: spinBg 25s linear infinite reverse; pointer-events: none;
         }
-        .node-core:hover { transform: translate(-50%, -50%) scale(1.05); }
-        .node-core .icon { font-size: clamp(2rem, 5vmin, 3.5rem); }
-        .node-core .label { font-weight: bold; opacity: 1;}
-        .node-sub { 
-            width: clamp(75px, 14vmin, 110px); height: clamp(75px, 14vmin, 110px); 
-            animation: floatAnim 4s ease-in-out infinite;
-        }
-        .node-sub:hover { animation-play-state: paused; }
-        .pos-lvl1-1 { transform: translate(-50%, -50%) rotate(30deg) translateY(-25vmin) rotate(-30deg); animation-delay: 0.1s;}
-        .pos-lvl1-2 { transform: translate(-50%, -50%) rotate(90deg) translateY(-25vmin) rotate(-90deg); animation-delay: 0.3s;}
-        .pos-lvl1-3 { transform: translate(-50%, -50%) rotate(150deg) translateY(-25vmin) rotate(-150deg); animation-delay: 0.5s;}
-        .pos-lvl1-4 { transform: translate(-50%, -50%) rotate(210deg) translateY(-25vmin) rotate(-210deg); animation-delay: 0.7s;}
-        .pos-lvl1-5 { transform: translate(-50%, -50%) rotate(270deg) translateY(-25vmin) rotate(-270deg); animation-delay: 0.9s;}
-        .pos-lvl1-6 { transform: translate(-50%, -50%) rotate(330deg) translateY(-25vmin) rotate(-330deg); animation-delay: 1.1s;}
-        .pos-lvl2-1 { transform: translate(-50%, -50%) rotate(0deg) translateY(-37.5vmin) rotate(0deg); animation-delay: 0.2s;}
-        .pos-lvl2-2 { transform: translate(-50%, -50%) rotate(180deg) translateY(-37.5vmin) rotate(-180deg); animation-delay: 0.8s;}
-        .pos-lvl10-1 { transform: translate(-50%, -50%) rotate(45deg) translateY(-47.5vmin) rotate(-45deg); animation-delay: 0.4s;}
-        .pos-lvl10-2 { transform: translate(-50%, -50%) rotate(315deg) translateY(-47.5vmin) rotate(-315deg); animation-delay: 1.0s;}
-        .pos-lvl1-1:hover { transform: translate(-50%, -50%) rotate(30deg) translateY(-25vmin) rotate(-30deg) scale(1.15) !important; }
-        .pos-lvl1-2:hover { transform: translate(-50%, -50%) rotate(90deg) translateY(-25vmin) rotate(-90deg) scale(1.15) !important; }
-        .pos-lvl1-3:hover { transform: translate(-50%, -50%) rotate(150deg) translateY(-25vmin) rotate(-150deg) scale(1.15) !important; }
-        .pos-lvl1-4:hover { transform: translate(-50%, -50%) rotate(210deg) translateY(-25vmin) rotate(-210deg) scale(1.15) !important; }
-        .pos-lvl1-5:hover { transform: translate(-50%, -50%) rotate(270deg) translateY(-25vmin) rotate(-270deg) scale(1.15) !important; }
-        .pos-lvl1-6:hover { transform: translate(-50%, -50%) rotate(330deg) translateY(-25vmin) rotate(-330deg) scale(1.15) !important; }
-        .pos-lvl2-1:hover { transform: translate(-50%, -50%) rotate(0deg) translateY(-37.5vmin) rotate(0deg) scale(1.15) !important; }
-        .pos-lvl2-2:hover { transform: translate(-50%, -50%) rotate(180deg) translateY(-37.5vmin) rotate(-180deg) scale(1.15) !important; }
-        .pos-lvl10-1:hover { transform: translate(-50%, -50%) rotate(45deg) translateY(-47.5vmin) rotate(-45deg) scale(1.15) !important; }
-        .pos-lvl10-2:hover { transform: translate(-50%, -50%) rotate(315deg) translateY(-47.5vmin) rotate(-315deg) scale(1.15) !important; }
-        .node.status-restricted { border-color: var(--accent-restricted); }
-        .node.status-restricted:hover { box-shadow: 0 0 35px rgba(255, 170, 0, 0.5), inset 0 0 20px rgba(255, 170, 0, 0.2); background: rgba(255, 170, 0, 0.15); }
-        .node.status-restricted .icon { filter: drop-shadow(0 0 8px rgba(255, 170, 0, 0.6)); }
-        .node.status-admin { border-color: var(--accent-danger); }
-        .node.status-admin:hover { box-shadow: 0 0 40px rgba(255, 42, 42, 0.6), inset 0 0 25px rgba(255, 42, 42, 0.3); background: rgba(255, 42, 42, 0.2); }
-        .node.status-admin .icon { filter: drop-shadow(0 0 10px rgba(255, 42, 42, 0.8)); }
-        
-        .hud-overlay {
-            position: fixed; top: 30px; left: 30px; pointer-events: none; z-index: 100;
-            border-left: 3px solid var(--accent-primary); padding-left: 15px;
-            background: linear-gradient(90deg, rgba(0,255,157,0.1) 0%, transparent 100%);
-            padding: 10px 20px;
-        }
-        .hud-top-right {
-            position: fixed; top: 30px; right: 30px; text-align: right; pointer-events: auto; z-index: 100;
-            display: flex; align-items: center; gap: 15px;
-        }
-        .system-logs-container {
-            position: fixed; bottom: 30px; left: 30px; width: 300px; z-index: 100;
-            font-family: var(--font-code); font-size: 0.65rem;
-        }
-        .log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column-reverse; gap: 6px; }
-        .log-item { background: rgba(0, 255, 157, 0.05); border-left: 2px solid var(--accent-primary); padding: 5px 10px; opacity: 0; animation: logIn 0.3s forwards; }
-        .log-item.alert { border-color: var(--accent-danger); background: rgba(255, 42, 42, 0.05); color: var(--accent-danger); }
-        .log-time { opacity: 0.5; margin-right: 8px; font-size: 0.55rem; }
+        .node-core:hover { scale: 1.05; }
+        .node-core .icon  { font-size: clamp(2rem, 5vmin, 3.5rem); }
+        .node-core .label { font-weight: bold; opacity: 1; }
 
-        /* Animations utiles pour script.js */
-        .glitch-anim {
-            animation: glitchError 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
-            border-color: var(--accent-danger) !important;
-            box-shadow: 0 0 15px rgba(255, 42, 42, 0.4), inset 0 0 15px rgba(255, 42, 42, 0.4) !important;
+        /* ================================================
+           NODE — SUB
+           Positions calculées via CSS sin()/cos().
+           Chaque nœud déclare --angle et --orbit dans son style inline.
+           Requiert Chrome 111+, Firefox 108+, Safari 15.4+.
+           ================================================ */
+        .node-sub {
+            width:  clamp(75px, 14vmin, 110px);
+            height: clamp(75px, 14vmin, 110px);
+            /* Position polaire → cartésienne */
+            translate:
+                calc(-50% + sin(var(--angle, 0deg)) * var(--orbit, 25vmin))
+                calc(-50% - cos(var(--angle, 0deg)) * var(--orbit, 25vmin));
+            animation: floatAnim 4s ease-in-out infinite;
+            animation-delay: var(--float-delay, 0s);
+            will-change: transform, box-shadow;
         }
+        .node-sub:hover {
+            scale: 1.15;
+            animation-play-state: paused;
+        }
+
+        /* ================================================
+           NODE — STATUTS
+           ================================================ */
+        .node.status-restricted { border-color: var(--accent-restricted); }
+        .node.status-restricted:hover {
+            box-shadow: 0 0 35px rgba(255, 170, 0, 0.5), inset 0 0 20px rgba(255, 170, 0, 0.2);
+            background: rgba(255, 170, 0, 0.15); border-color: var(--accent-restricted);
+        }
+        .node.status-restricted .icon {
+            filter: drop-shadow(0 0 8px rgba(255, 170, 0, 0.6));
+        }
+        .node.status-admin { border-color: var(--accent-danger); }
+        .node.status-admin:hover {
+            box-shadow: 0 0 40px rgba(255, 42, 42, 0.6), inset 0 0 25px rgba(255, 42, 42, 0.3);
+            background: rgba(255, 42, 42, 0.2); border-color: var(--accent-danger);
+        }
+        .node.status-admin .icon {
+            filter: drop-shadow(0 0 10px rgba(255, 42, 42, 0.8));
+        }
+
+        /* ================================================
+           NODE — VERROUILLÉ (appliqué dynamiquement après login)
+           ================================================ */
+        .node.node-locked {
+            opacity: 0.42;
+            filter: saturate(0.25);
+            cursor: not-allowed;
+        }
+        .node.node-locked:hover {
+            scale: 1; /* bloquer le zoom hover */
+        }
+        /* Badge cadenas (caché par défaut, visible si node-locked) */
+        .lock-badge {
+            display: none;
+            position: absolute; top: 5px; right: 5px;
+            font-size: 0.6rem;
+            background: rgba(0,0,0,0.65);
+            border-radius: 50%; width: 17px; height: 17px;
+            align-items: center; justify-content: center;
+            z-index: 2;
+        }
+        .node.node-locked .lock-badge { display: flex; }
+
+        /* ================================================
+           TOOLTIP FLOTTANT
+           ================================================ */
+        #node-tooltip {
+            position: fixed;
+            background: rgba(4, 8, 12, 0.97);
+            border: 1px solid var(--accent-restricted);
+            color: var(--accent-restricted);
+            font-family: var(--font-code); font-size: 0.65rem;
+            letter-spacing: 1px; padding: 6px 12px;
+            border-radius: 4px; pointer-events: none; z-index: 1001;
+            opacity: 0; translate: 0 5px;
+            transition: opacity 0.15s ease, translate 0.15s ease;
+            white-space: nowrap;
+            box-shadow: 0 0 12px rgba(255,170,0,0.25);
+        }
+        #node-tooltip.visible   { opacity: 1; translate: 0 0; }
+        #node-tooltip.admin-tip {
+            border-color: var(--accent-danger);
+            color: var(--accent-danger);
+            box-shadow: 0 0 12px rgba(255,42,42,0.3);
+        }
+
+        /* ================================================
+           UTILITAIRES (pour script.js)
+           ================================================ */
+        .glitch-anim {
+            animation: glitchError 0.3s cubic-bezier(.25,.46,.45,.94) both infinite;
+            border-color: var(--accent-danger) !important;
+            box-shadow: 0 0 15px rgba(255,42,42,0.4), inset 0 0 15px rgba(255,42,42,0.4) !important;
+        }
+        .term-error { color: var(--accent-danger);   text-shadow: 0 0 5px var(--accent-danger); }
+        .term-info  { color: var(--accent-secondary); text-shadow: 0 0 5px var(--accent-secondary); }
+        .term-dim   { color: rgba(255,255,255,0.5); }
+        .blink      { animation: blinkAnim 1s infinite; }
+
+        /* ================================================
+           ANIMATIONS
+           ================================================ */
         @keyframes glitchError {
-            0% { transform: translate(0) }
-            20% { transform: translate(-4px, 2px) }
-            40% { transform: translate(-4px, -2px) }
-            60% { transform: translate(4px, 2px) }
-            80% { transform: translate(4px, -2px) }
+            0%   { transform: translate(0) }
+            20%  { transform: translate(-4px,  2px) }
+            40%  { transform: translate(-4px, -2px) }
+            60%  { transform: translate( 4px,  2px) }
+            80%  { transform: translate( 4px, -2px) }
             100% { transform: translate(0) }
         }
-        .term-error { color: var(--accent-danger); text-shadow: 0 0 5px var(--accent-danger); }
-        .term-info { color: var(--accent-secondary); text-shadow: 0 0 5px var(--accent-secondary); }
-        .term-dim { color: rgba(255,255,255,0.5); }
-        .blink { animation: blinkAnim 1s infinite; }
-        @keyframes blinkAnim { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        @keyframes logIn { to { opacity: 1; transform: translateX(0); } from { opacity: 0; transform: translateX(-10px); } }
-        @keyframes spinBg { 100% { transform: rotate(360deg); } }
-        @keyframes floatAnim { 0%, 100% { margin-top: 0; } 50% { margin-top: -8px; } }
-        @keyframes dataFlow { to { stroke-dashoffset: 1000; } }
-        @keyframes systemBoot { 0% { opacity: 0; transform: scale(0.8) translateY(30px); filter: blur(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); } }
-        @keyframes fadeIn { from { opacity: 0; filter: blur(10px); } to { opacity: 1; filter: blur(0); } }
+        @keyframes blinkAnim  { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes logIn      {
+            from { opacity: 0; transform: translateX(-10px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes spinBg     { to { rotate: 360deg; } }
+        @keyframes floatAnim  { 0%, 100% { margin-top: 0; } 50% { margin-top: -8px; } }
+        @keyframes dataFlow   { to { stroke-dashoffset: 1000; } }
+        @keyframes systemBoot {
+            0%   { opacity: 0; transform: scale(0.8) translateY(30px); filter: blur(20px); }
+            100% { opacity: 1; transform: scale(1)   translateY(0);    filter: blur(0);   }
+        }
+        @keyframes fadeIn     {
+            from { opacity: 0; filter: blur(10px); }
+            to   { opacity: 1; filter: blur(0); }
+        }
 
+        /* ================================================
+           RESPONSIVE
+           ================================================ */
         @media (max-width: 768px) {
-            .hud-top-right { top: 15px; right: 15px; }
-            .node-core { width: 130px; height: 130px; }
-            .node-sub { width: 85px; height: 85px; }
-            .node .icon { font-size: 1.4rem; }
-            .node .label { font-size: 0.6rem; }
+            .hud-overlay         { top: 12px; left: 12px; padding: 8px 14px; }
+            .hud-top-right       { top: 12px; right: 12px; }
             .system-logs-container { display: none; }
+
+            /* Réduire les rayons d'orbite pour tenir dans l'écran */
+            .node-sub[data-orbit="1"]  { --orbit: 23vmin; }
+            .node-sub[data-orbit="2"]  { --orbit: 35vmin; }
+            .node-sub[data-orbit="10"] { --orbit: 43vmin; }
+
+            /* Réduire les anneaux en proportion */
+            .orbit-1  { width: 46vmin; height: 46vmin; }
+            .orbit-2  { width: 70vmin; height: 70vmin; }
+            .orbit-10 { width: 88vmin; height: 88vmin; }
+        }
+        @media (max-width: 480px) {
+            .node-sub  { width: clamp(58px, 11vmin, 80px); height: clamp(58px, 11vmin, 80px); }
+            .node .icon  { font-size: 1.2rem; }
+            .node .label { font-size: 0.5rem; }
+            .hud-title   { font-size: 0.95rem; }
         }
     </style>
 </head>
@@ -254,217 +476,434 @@
 <div class="scanlines"></div>
 <div class="vignette"></div>
 
-<canvas id="neural-network" aria-hidden="true"></canvas>
+<!-- Canvas réseau neuronal -->
+<canvas id="neural-network" role="presentation" aria-hidden="true"></canvas>
 
-<section id="login-overlay">
+<!-- Tooltip flottant pour nœuds verrouillés -->
+<div id="node-tooltip" role="tooltip" aria-hidden="true"></div>
+
+<!-- ================================================
+     LOGIN
+     ================================================ -->
+<section id="login-overlay" aria-label="Authentification système">
     <div class="login-box" id="login-box">
-        <div class="login-title">>_ LIAISON SYNAPTIQUE</div>
+        <div class="login-title">&gt;_ LIAISON SYNAPTIQUE</div>
+
         <div class="login-field">
-            <input type="text" id="login-username" class="cmd-input" placeholder="[ EMPREINTE_CORTICALE ]" autocomplete="off" autofocus>
+            <label for="login-username" class="sr-only">Empreinte corticale — identifiant agent</label>
+            <input type="text" id="login-username" class="cmd-input"
+                   placeholder="[ EMPREINTE_CORTICALE ]"
+                   autocomplete="off" autofocus
+                   aria-label="Identifiant agent">
         </div>
+
         <div class="login-field">
-            <input type="password" id="login-password" class="cmd-input" placeholder="[ SOUCHE_MÉMORIELLE ]">
+            <label for="login-password" class="sr-only">Souche mémorielle — mot de passe</label>
+            <input type="password" id="login-password" class="cmd-input"
+                   placeholder="[ SOUCHE_MÉMORIELLE ]"
+                   aria-label="Mot de passe">
         </div>
-        
-        <div id="login-msg" class="term-line" style="min-height: 20px; font-family: var(--font-code); font-size: 0.8rem; margin-bottom: 10px;"></div>
-        
-        <button class="btn-connect" onclick="handleLogin()">INITIER L'UPLINK</button>
+
+        <div id="login-msg" aria-live="assertive" aria-atomic="true"></div>
+
+        <button class="btn-connect" onclick="handleLogin()" aria-label="Initier la connexion">
+            INITIER L'UPLINK
+        </button>
     </div>
 </section>
 
-<div class="hud-overlay auth-content">
-    <div style="font-family: var(--font-code); font-size: 1.2rem; letter-spacing: 2px;">SAS // <span style="color: var(--accent-primary)">MAINFRAME</span></div>
-    <div style="font-size:0.8rem; color: var(--accent-primary); margin-top: 5px;" id="conn-status">> CONNEXION ÉTABLIE</div>
-    <div style="font-size:0.7rem; opacity:0.8; margin-top: 5px; font-family: var(--font-code);">AGENT: <span id="mini-username" style="color: #fff;">ANONYME</span></div>
-    <div style="font-size:0.7rem; opacity:0.6; font-family: var(--font-code);">ACCRÉDITATION: <span id="mini-rank">LVL-0</span></div>
+<!-- ================================================
+     HUD — TOP LEFT
+     ================================================ -->
+<div class="hud-overlay auth-content" aria-label="Informations de session" role="status">
+    <div class="hud-title">SAS // <span class="hud-title-accent">MAINFRAME</span></div>
+    <div class="hud-status" id="conn-status">&gt; CONNEXION ÉTABLIE</div>
+    <div class="hud-meta hud-meta-dim">
+        AGENT: <span id="mini-username" style="color:#fff;">ANONYME</span>
+    </div>
+    <div class="hud-meta hud-meta-dimmer">
+        ACCRÉDITATION: <span id="mini-rank">LVL-0</span>
+    </div>
 </div>
 
+<!-- ================================================
+     HUD — TOP RIGHT
+     ================================================ -->
 <div class="hud-top-right auth-content">
-    <img id="sidebar-avatar" src="assets/default.jpg" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--accent-primary);">
-    <button class="btn-connect" style="font-size: 0.7rem; padding: 8px 15px; border-color: rgba(255,255,255,0.3); color: #fff; margin-top: 0;" onclick="logout()">DÉCONNEXION ⏏</button>
+    <img id="sidebar-avatar" src="assets/default.jpg" alt="Avatar agent"
+         class="hud-avatar">
+    <button class="btn-connect btn-logout" onclick="logout()" aria-label="Se déconnecter">
+        DÉCONNEXION ⏏
+    </button>
 </div>
 
-<div class="system-logs-container auth-content">
+<!-- ================================================
+     SYSTEM LOGS
+     ================================================ -->
+<div class="system-logs-container auth-content" aria-label="Journaux système" role="log" aria-live="polite">
     <ul id="system-logs" class="log-list"></ul>
 </div>
 
-<div class="neural-dashboard auth-content">
-    <div class="orbit orbit-1"><span class="orbit-label">LVL-1 // PUBLIC</span></div>
-    <div class="orbit orbit-2"><span class="orbit-label">LVL-2 // RESTRICTED</span></div>
-    <div class="orbit orbit-10"><span class="orbit-label" style="color: var(--accent-danger);">LVL-10 // CLASSIFIED</span></div>
+<!-- ================================================
+     NEURAL DASHBOARD
+     ================================================ -->
+<div class="neural-dashboard auth-content" role="navigation" aria-label="Modules du système">
 
-    <svg class="synapse-lines">
-        <line x1="50%" y1="50%" x2="62.5%" y2="28.35%" />
-        <line x1="50%" y1="50%" x2="75%" y2="50%" />
-        <line x1="50%" y1="50%" x2="62.5%" y2="71.65%" />
-        <line x1="50%" y1="50%" x2="37.5%" y2="71.65%" />
-        <line x1="50%" y1="50%" x2="25%" y2="50%" />
-        <line x1="50%" y1="50%" x2="37.5%" y2="28.35%" />
-        <line x1="50%" y1="50%" x2="50%" y2="12.5%" class="restricted" />
-        <line x1="50%" y1="50%" x2="50%" y2="87.5%" class="restricted" />
-        <line x1="50%" y1="50%" x2="83.58%" y2="16.42%" class="admin" />
-        <line x1="50%" y1="50%" x2="16.42%" y2="16.42%" class="admin" />
-        <line x1="62.5%" y1="28.35%" x2="50%" y2="12.5%" class="restricted" />
-        <line x1="37.5%" y1="28.35%" x2="50%" y2="12.5%" class="restricted" />
-        <line x1="62.5%" y1="28.35%" x2="83.58%" y2="16.42%" class="admin" />
-        <line x1="37.5%" y1="28.35%" x2="16.42%" y2="16.42%" class="admin" />
+    <!-- Anneaux d'orbite -->
+    <div class="orbit orbit-1" aria-hidden="true">
+        <span class="orbit-label">LVL-1 // PUBLIC</span>
+    </div>
+    <div class="orbit orbit-2" aria-hidden="true">
+        <span class="orbit-label">LVL-2 // RESTRICTED</span>
+    </div>
+    <div class="orbit orbit-10" aria-hidden="true">
+        <span class="orbit-label orbit-label-classified">LVL-10 // CLASSIFIED</span>
+    </div>
+
+    <!-- Lignes synaptiques -->
+    <svg class="synapse-lines" aria-hidden="true">
+        <line x1="50%" y1="50%" x2="62.5%"  y2="28.35%"/>
+        <line x1="50%" y1="50%" x2="75%"    y2="50%"   />
+        <line x1="50%" y1="50%" x2="62.5%"  y2="71.65%"/>
+        <line x1="50%" y1="50%" x2="37.5%"  y2="71.65%"/>
+        <line x1="50%" y1="50%" x2="25%"    y2="50%"   />
+        <line x1="50%" y1="50%" x2="37.5%"  y2="28.35%"/>
+        <line x1="50%" y1="50%" x2="50%"    y2="12.5%"  class="restricted"/>
+        <line x1="50%" y1="50%" x2="50%"    y2="87.5%"  class="restricted"/>
+        <line x1="50%" y1="50%" x2="83.58%" y2="16.42%" class="admin"/>
+        <line x1="50%" y1="50%" x2="16.42%" y2="16.42%" class="admin"/>
+        <line x1="62.5%"  y1="28.35%" x2="50%"    y2="12.5%"  class="restricted"/>
+        <line x1="37.5%"  y1="28.35%" x2="50%"    y2="12.5%"  class="restricted"/>
+        <line x1="62.5%"  y1="28.35%" x2="83.58%" y2="16.42%" class="admin"/>
+        <line x1="37.5%"  y1="28.35%" x2="16.42%" y2="16.42%" class="admin"/>
     </svg>
 
-    <button class="node node-core" onclick="accessModule('profile.html', 1)">
-        <span class="icon">🧠</span>
+    <!-- Nœud central -->
+    <button class="node node-core"
+            onclick="accessModule('profile.html', 1)"
+            aria-label="Accéder au noyau central — Profil">
+        <span class="icon" aria-hidden="true">🧠</span>
         <span class="label">NOYAU CENTRAL</span>
     </button>
 
-    <button class="node node-sub pos-lvl1-1" onclick="accessModule('database.html', 1)">
-        <span class="icon">👥</span><span class="label">AGENTS</span>
-    </button>
-    <button class="node node-sub pos-lvl1-2" onclick="accessModule('missions.html', 1)">
-        <span class="icon">🗓️</span><span class="label">MISSIONS</span>
-    </button>
-    <button class="node node-sub pos-lvl1-3" onclick="accessModule('map.html', 1)">
-        <span class="icon">🗺️</span><span class="label">CARTE LIVE</span>
-    </button>
-    <button class="node node-sub pos-lvl1-4" onclick="accessModule('report.html', 1)">
-        <span class="icon">📝</span><span class="label">RAPPORTS</span>
-    </button>
-    <button class="node node-sub pos-lvl1-5" onclick="accessModule('reglement.html', 1)">
-        <span class="icon">📜</span><span class="label">ARCHIVES</span>
-    </button>
-    <button class="node node-sub pos-lvl1-6" onclick="accessModule('logistics.html', 1)">
-        <span class="icon">📦</span><span class="label">MATÉRIEL</span>
+    <!-- ── LVL-1 — orbit 25vmin ── -->
+    <button class="node node-sub" data-orbit="1"
+            style="--angle:30deg;  --orbit:25vmin; --float-delay:0.1s"
+            onclick="accessModule('database.html', 1)"
+            data-required-level="1"
+            aria-label="Module Agents (LVL-1)">
+        <span class="lock-badge" aria-hidden="true">🔒</span>
+        <span class="icon" aria-hidden="true">👥</span>
+        <span class="label">AGENTS</span>
     </button>
 
-    <button class="node node-sub status-restricted pos-lvl2-1" onclick="accessModule('investigation.html', 2)">
-        <span class="icon">🔍</span><span class="label">ENQUÊTES</span>
-    </button>
-    <button class="node node-sub status-restricted pos-lvl2-2" onclick="accessModule('#', 2)">
-        <span class="icon">🎯</span><span class="label">CIBLES VIP</span>
+    <button class="node node-sub" data-orbit="1"
+            style="--angle:90deg;  --orbit:25vmin; --float-delay:0.3s"
+            onclick="accessModule('missions.html', 1)"
+            data-required-level="1"
+            aria-label="Module Missions (LVL-1)">
+        <span class="lock-badge" aria-hidden="true">🔒</span>
+        <span class="icon" aria-hidden="true">🗓️</span>
+        <span class="label">MISSIONS</span>
     </button>
 
-    <button class="node node-sub status-admin pos-lvl10-1" onclick="accessModule('medical.html', 10)">
-        <span class="icon">🧬</span><span class="label">MÉDICAL</span>
+    <button class="node node-sub" data-orbit="1"
+            style="--angle:150deg; --orbit:25vmin; --float-delay:0.5s"
+            onclick="accessModule('map.html', 1)"
+            data-required-level="1"
+            aria-label="Module Carte live (LVL-1)">
+        <span class="lock-badge" aria-hidden="true">🔒</span>
+        <span class="icon" aria-hidden="true">🗺️</span>
+        <span class="label">CARTE LIVE</span>
     </button>
-    <button class="node node-sub status-admin pos-lvl10-2" onclick="accessModule('admin.html', 10)">
-        <span class="icon">👁️</span><span class="label">SYSTÈME ADMIN</span>
-    </button>
-</div>
 
-<script src="js/script.js"></script>
+    <button class="node node-sub" data-orbit="1"
+            style="--angle:210deg; --orbit:25vmin; --float-delay:0.7s"
+            onclick="accessModule('report.html', 1)"
+            data-required-level="1"
+            aria-label="Module Rapports (LVL-1)">
+        <span class="lock-badge" aria-hidden="true">🔒</span>
+        <span class="icon" aria-hidden="true">📝</span>
+        <span class="label">RAPPORTS</span>
+    </button>
+
+    <button class="node node-sub" data-orbit="1"
+            style="--angle:270deg; --orbit:25vmin; --float-delay:0.9s"
+            onclick="accessModule('reglement.html', 1)"
+            data-required-level="1"
+            aria-label="Module Archives (LVL-1)">
+        <span class="lock-badge" aria-hidden="true">🔒</span>
+        <span class="icon" aria-hidden="true">📜</span>
+        <span class="label">ARCHIVES</span>
+    </button>
+
+    <button class="node node-sub" data-orbit="1"
+            style="--angle:330deg; --orbit:25vmin; --float-delay:1.1s"
+            onclick="accessModule('logistics.html', 1)"
+            data-required-level="1"
+            aria-label="Module Matériel (LVL-1)">
+        <span class="lock-badge" aria-hidden="true">🔒</span>
+        <span class="icon" aria-hidden="true">📦</span>
+        <span class="label">MATÉRIEL</span>
+    </button>
+
+    <!-- ── LVL-2 — orbit 37.5vmin ── -->
+    <button class="node node-sub status-restricted" data-orbit="2"
+            style="--angle:0deg;   --orbit:37.5vmin; --float-delay:0.2s"
+            onclick="accessModule('investigation.html', 2)"
+            data-required-level="2"
+            data-tooltip="⚠ Accréditation LVL-2 requise"
+            aria-label="Module Enquêtes — LVL-2 requis">
+        <span class="lock-badge" aria-hidden="true">🔒</span>
+        <span class="icon" aria-hidden="true">🔍</span>
+        <span class="label">ENQUÊTES</span>
+    </button>
+
+    <button class="node node-sub status-restricted" data-orbit="2"
+            style="--angle:180deg; --orbit:37.5vmin; --float-delay:0.8s"
+            onclick="accessModule('#', 2)"
+            data-required-level="2"
+            data-tooltip="⚠ Accréditation LVL-2 requise"
+            aria-label="Module Cibles VIP — LVL-2 requis">
+        <span class="lock-badge" aria-hidden="true">🔒</span>
+        <span class="icon" aria-hidden="true">🎯</span>
+        <span class="label">CIBLES VIP</span>
+    </button>
+
+    <!-- ── LVL-10 — orbit 47.5vmin ── -->
+    <button class="node node-sub status-admin" data-orbit="10"
+            style="--angle:45deg;  --orbit:47.5vmin; --float-delay:0.4s"
+            onclick="accessModule('medical.html', 10)"
+            data-required-level="10"
+            data-tooltip="⛔ CLASSIFIED — LVL-10 requis"
+            aria-label="Module Médical — LVL-10 requis">
+        <span class="lock-badge" aria-hidden="true">🔒</span>
+        <span class="icon" aria-hidden="true">🧬</span>
+        <span class="label">MÉDICAL</span>
+    </button>
+
+    <button class="node node-sub status-admin" data-orbit="10"
+            style="--angle:315deg; --orbit:47.5vmin; --float-delay:1.0s"
+            onclick="accessModule('admin.html', 10)"
+            data-required-level="10"
+            data-tooltip="⛔ CLASSIFIED — LVL-10 requis"
+            aria-label="Module Système Admin — LVL-10 requis">
+        <span class="lock-badge" aria-hidden="true">🔒</span>
+        <span class="icon" aria-hidden="true">👁️</span>
+        <span class="label">SYSTÈME ADMIN</span>
+    </button>
+
+</div><!-- /.neural-dashboard -->
+
+<!-- Script externe avec defer pour ne pas bloquer le parsing -->
+<script src="js/script.js" defer></script>
 
 <script>
+/* ================================================================
+   CANVAS — Réseau neuronal avec spatial hashing (O(n) vs O(n²))
+   ================================================================ */
 const canvas = document.getElementById('neural-network');
-const ctx = canvas.getContext('2d');
-let width, height;
-let particles = [];
-const connectionDistance = 180;
-const neuronColor = '0, 255, 157';
-const mouseColor = '0, 184, 255';
+const ctx    = canvas.getContext('2d');
+let width, height, particles = [];
+
+const CONNECT_DIST = 180;
+const CELL_SIZE    = CONNECT_DIST; /* cellules de la taille de la distance de connexion */
+const NEURON_COLOR = '0, 255, 157';
+const MOUSE_COLOR  = '0, 184, 255';
 let mouse = { x: null, y: null, radius: 200 };
 
-window.addEventListener('mousemove', (e) => {
-    mouse.x = e.x;
-    mouse.y = e.y;
-});
-window.addEventListener('mouseout', () => {
-    mouse.x = null;
-    mouse.y = null;
-});
+window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+window.addEventListener('mouseout',  () => { mouse.x = null; mouse.y = null; });
 
-function resize() {
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
-}
-
+/* ---- Classe Neuron ---- */
 class Neuron {
     constructor() {
-        this.x = Math.random() * width;
-        this.y = Math.random() * height;
-        this.vx = (Math.random() - 0.5) * 0.5;
-        this.vy = (Math.random() - 0.5) * 0.5;
+        this.x      = Math.random() * width;
+        this.y      = Math.random() * height;
+        this.vx     = (Math.random() - 0.5) * 0.5;
+        this.vy     = (Math.random() - 0.5) * 0.5;
         this.radius = Math.random() * 2 + 1;
     }
     update() {
         this.x += this.vx;
         this.y += this.vy;
-        if (this.x < 0 || this.x > width) this.vx *= -1;
-        if (this.y < 0 || this.y > height) this.vy *= -1;
+        if (this.x < 0 || this.x > width)  this.vx *= -1;
+        if (this.y < 0 || this.y > height)  this.vy *= -1;
         if (mouse.x != null) {
-            let dx = mouse.x - this.x;
-            let dy = mouse.y - this.y;
-            let distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance < mouse.radius) {
-                const forceDirectionX = dx / distance;
-                const forceDirectionY = dy / distance;
-                const force = (mouse.radius - distance) / mouse.radius;
-                this.x -= forceDirectionX * force * 2;
-                this.y -= forceDirectionY * force * 2;
+            const dx = mouse.x - this.x;
+            const dy = mouse.y - this.y;
+            const d  = Math.sqrt(dx * dx + dy * dy);
+            if (d < mouse.radius && d > 0) {
+                const f = (mouse.radius - d) / mouse.radius;
+                this.x -= (dx / d) * f * 2;
+                this.y -= (dy / d) * f * 2;
             }
         }
     }
     draw() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${neuronColor}, 0.8)`;
+        ctx.fillStyle = `rgba(${NEURON_COLOR}, 0.8)`;
         ctx.fill();
     }
 }
 
-function initNeurons() {
-    particles = [];
-    const neuronCount = (width * height) / 10000;
-    for (let i = 0; i < neuronCount; i++) {
-        particles.push(new Neuron());
-    }
+/* ---- Grille spatiale ---- */
+function buildGrid() {
+    const grid = new Map();
+    particles.forEach((p, i) => {
+        const key = `${Math.floor(p.x / CELL_SIZE)},${Math.floor(p.y / CELL_SIZE)}`;
+        if (!grid.has(key)) grid.set(key, []);
+        grid.get(key).push(i);
+    });
+    return grid;
 }
 
-function animateNeurons() {
-    ctx.clearRect(0, 0, width, height);
-    particles.forEach(neuron => {
-        neuron.update();
-        neuron.draw();
-    });
-    for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-            const dx = particles[i].x - particles[j].x;
-            const dy = particles[i].y - particles[j].y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance < connectionDistance) {
-                ctx.beginPath();
-                ctx.moveTo(particles[i].x, particles[i].y);
-                ctx.lineTo(particles[j].x, particles[j].y);
-                const opacity = 1 - (distance / connectionDistance);
-                ctx.strokeStyle = `rgba(${neuronColor}, ${opacity * 0.4})`;
-                ctx.lineWidth = 1;
-                ctx.stroke();
+/* ---- Dessiner connexions via voisins de cellule ---- */
+function drawConnections(grid) {
+    particles.forEach((p, i) => {
+        const cx = Math.floor(p.x / CELL_SIZE);
+        const cy = Math.floor(p.y / CELL_SIZE);
+
+        /* Vérifier uniquement les 9 cellules autour */
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                const neighbors = grid.get(`${cx + dx},${cy + dy}`);
+                if (!neighbors) continue;
+                for (const j of neighbors) {
+                    if (j <= i) continue; /* éviter doublons */
+                    const ddx  = p.x - particles[j].x;
+                    const ddy  = p.y - particles[j].y;
+                    const dist = Math.sqrt(ddx * ddx + ddy * ddy);
+                    if (dist < CONNECT_DIST) {
+                        const alpha = (1 - dist / CONNECT_DIST) * 0.4;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(${NEURON_COLOR}, ${alpha})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
             }
         }
+
+        /* Connexion souris */
         if (mouse.x != null) {
-            const dxm = particles[i].x - mouse.x;
-            const dym = particles[i].y - mouse.y;
-            const distanceMouse = Math.sqrt(dxm * dxm + dym * dym);
-            if (distanceMouse < mouse.radius) {
+            const dm = Math.sqrt((p.x - mouse.x) ** 2 + (p.y - mouse.y) ** 2);
+            if (dm < mouse.radius) {
                 ctx.beginPath();
-                ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.moveTo(p.x, p.y);
                 ctx.lineTo(mouse.x, mouse.y);
-                const opacityM = 1 - (distanceMouse / mouse.radius);
-                ctx.strokeStyle = `rgba(${mouseColor}, ${opacityM * 0.6})`;
+                ctx.strokeStyle = `rgba(${MOUSE_COLOR}, ${(1 - dm / mouse.radius) * 0.6})`;
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
             }
         }
-    }
+    });
+}
+
+function initNeurons() {
+    particles = [];
+    /* Plafond à 200 pour les très grands écrans */
+    const count = Math.min(Math.floor((width * height) / 10000), 200);
+    for (let i = 0; i < count; i++) particles.push(new Neuron());
+}
+
+function animateNeurons() {
+    ctx.clearRect(0, 0, width, height);
+    particles.forEach(n => { n.update(); n.draw(); });
+    drawConnections(buildGrid());
     requestAnimationFrame(animateNeurons);
 }
 
-window.addEventListener('resize', () => {
-    resize();
-    initNeurons();
+function resize() {
+    width  = canvas.width  = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+}
+
+window.addEventListener('resize', () => { resize(); initNeurons(); });
+resize(); initNeurons(); animateNeurons();
+
+
+/* ================================================================
+   TOOLTIP — nœuds avec data-tooltip
+   ================================================================ */
+const tooltip = document.getElementById('node-tooltip');
+
+document.querySelectorAll('.node[data-tooltip]').forEach(node => {
+    node.addEventListener('mouseenter', () => {
+        tooltip.textContent = node.dataset.tooltip;
+        tooltip.setAttribute('aria-hidden', 'false');
+        tooltip.classList.toggle('admin-tip', node.classList.contains('status-admin'));
+        tooltip.classList.add('visible');
+    });
+    node.addEventListener('mousemove', e => {
+        const x = Math.min(e.clientX + 18, window.innerWidth  - 250);
+        const y = Math.max(e.clientY - 44, 6);
+        tooltip.style.left = x + 'px';
+        tooltip.style.top  = y + 'px';
+    });
+    node.addEventListener('mouseleave', () => {
+        tooltip.classList.remove('visible');
+        tooltip.setAttribute('aria-hidden', 'true');
+    });
 });
-resize();
-initNeurons();
-animateNeurons();
+
+
+/* ================================================================
+   HOOK LOGIN — cascade d'entrée + verrouillage dynamique
+   ================================================================ */
+
+/* Observer la classe 'logged-in' sur body */
+const bodyObserver = new MutationObserver(() => {
+    if (document.body.classList.contains('logged-in')) onLogin();
+});
+bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+function onLogin() {
+    /* Petit délai pour que script.js ait le temps de renseigner mini-rank */
+    setTimeout(() => {
+        const rankText  = document.getElementById('mini-rank')?.textContent ?? 'LVL-1';
+        const match     = rankText.match(/(\d+)/);
+        const userLevel = match ? parseInt(match[1]) : 1;
+
+        updateNodeAccess(userLevel);
+        cascadeNodes();
+    }, 60);
+}
+
+/**
+ * Marque les nœuds inaccessibles avec la classe node-locked.
+ * @param {number} userLevel  Niveau de l'agent connecté
+ */
+function updateNodeAccess(userLevel) {
+    document.querySelectorAll('.node[data-required-level]').forEach(node => {
+        const required = parseInt(node.dataset.requiredLevel);
+        node.classList.toggle('node-locked', userLevel < required);
+    });
+}
+
+/**
+ * Animation en cascade des nœuds secondaires au moment du login.
+ * Utilise Web Animations API — se compose avec la propriété translate CSS.
+ */
+function cascadeNodes() {
+    document.querySelectorAll('.node-sub').forEach((node, i) => {
+        node.animate(
+            [
+                { opacity: 0, scale: '0.1' },
+                { opacity: 1, scale: '1'   }
+            ],
+            {
+                duration: 600,
+                delay:    200 + i * 140,
+                easing:   'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                fill:     'backwards'
+            }
+        );
+    });
+}
 </script>
 </body>
 </html>
