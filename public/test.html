@@ -855,38 +855,46 @@ document.querySelectorAll('.node[data-tooltip]').forEach(node => {
    HOOK LOGIN — cascade d'entrée + verrouillage dynamique
    ================================================================ */
 
-/* Observer la classe 'logged-in' sur body */
-const bodyObserver = new MutationObserver(() => {
-    if (document.body.classList.contains('logged-in')) onLogin();
-});
-bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-
-function onLogin() {
-    /* Petit délai pour que script.js ait le temps de renseigner mini-rank */
-    setTimeout(() => {
-        const rankText  = document.getElementById('mini-rank')?.textContent ?? 'LVL-1';
-        const match     = rankText.match(/(\d+)/);
-        const userLevel = match ? parseInt(match[1]) : 1;
-
-        updateNodeAccess(userLevel);
-        cascadeNodes();
-    }, 60);
-}
-
 /**
- * Marque les nœuds inaccessibles avec la classe node-locked.
- * @param {number} userLevel  Niveau de l'agent connecté
+ * Lit le niveau actuel et met à jour les cadenas
  */
-function updateNodeAccess(userLevel) {
+function updateNodeAccess() {
+    // On récupère le texte du rang (ex: "LVL-94") et on extrait le nombre
+    const rankText  = document.getElementById('mini-rank')?.textContent ?? 'LVL-1';
+    const match     = rankText.match(/(\d+)/);
+    const userLevel = match ? parseInt(match[1]) : 1;
+
+    // On parcourt tous les nœuds pour voir s'ils nécessitent un niveau précis
     document.querySelectorAll('.node[data-required-level]').forEach(node => {
         const required = parseInt(node.dataset.requiredLevel);
+        // Si le niveau de l'utilisateur est strictement inférieur, on verrouille
         node.classList.toggle('node-locked', userLevel < required);
     });
 }
 
+/* 1. Observer la classe 'logged-in' sur le body pour l'animation de départ */
+const bodyObserver = new MutationObserver(() => {
+    if (document.body.classList.contains('logged-in')) {
+        updateNodeAccess(); // Vérification immédiate au cas où
+        cascadeNodes();
+    }
+});
+bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+/* 2. LE CORRECTIF EST ICI : Observer dynamiquement le changement du niveau ! */
+const rankObserver = new MutationObserver(() => {
+    if (document.body.classList.contains('logged-in')) {
+        updateNodeAccess(); // Mise à jour des cadenas DÈS QUE script.js affiche le "LVL-94"
+    }
+});
+const miniRankEl = document.getElementById('mini-rank');
+if (miniRankEl) {
+    // On surveille toute modification du texte à l'intérieur de la balise
+    rankObserver.observe(miniRankEl, { childList: true, characterData: true, subtree: true });
+}
+
 /**
  * Animation en cascade des nœuds secondaires au moment du login.
- * Utilise Web Animations API — se compose avec la propriété translate CSS.
  */
 function cascadeNodes() {
     document.querySelectorAll('.node-sub').forEach((node, i) => {
