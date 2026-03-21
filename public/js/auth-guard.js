@@ -1,8 +1,3 @@
-/* public/js/auth-guard.js
-   Système d'accréditation centralisé — SAS MAINFRAME
-   Inclure AVANT tout autre script sur chaque page protégée.
-*/
-
 const SAS_AUTH = (() => {
 
     /* ─── Lecture de session ─────────────────────────────────────────── */
@@ -40,7 +35,7 @@ const SAS_AUTH = (() => {
         const params = new URLSearchParams({
             from: window.location.pathname,
             reason: reason,
-            required: minLevel ?? ''
+            required: minLevel !== null && minLevel !== undefined ? minLevel : ''
         });
         window.location.replace('/access-denied.html?' + params.toString());
     }
@@ -77,7 +72,7 @@ const SAS_AUTH = (() => {
             _redirect('NOT_LOGGED_IN', null);
             return false;
         }
-        const username = getUsername()?.toLowerCase();
+        const username = getUsername()?.toLowerCase() || '';
         const allowed = allowedUsernames.map(u => u.toLowerCase());
         const level   = getLevel();
 
@@ -107,6 +102,7 @@ const SAS_AUTH = (() => {
         if (!s) return;
 
         const color = opts.color || '#00ff9d';
+        const level = getLevel();
 
         const hud = document.createElement('div');
         hud.id = 'sas-auth-hud';
@@ -119,17 +115,20 @@ const SAS_AUTH = (() => {
             backdrop-filter: blur(6px); pointer-events: none;
         `;
 
-        const rankColor = getLevel() >= 10 ? '#ff3333'
-                        : getLevel() >= 5  ? '#eebb00'
-                        : getLevel() >= 3  ? '#00f3ff'
+        const rankColor = level >= 10 ? '#ff3333'
+                        : level >= 5  ? '#eebb00'
+                        : level >= 3  ? '#00f3ff'
                         : '#00ff9d';
+
+        const safeUsername = (s.username || 'INCONNU').toUpperCase();
+        const safeRank = s.rank || '0';
 
         hud.innerHTML = `
             <span style="color:#667788">AGENT:</span>
-            <span style="font-weight:bold">${s.username.toUpperCase()}</span>
+            <span style="font-weight:bold">${safeUsername}</span>
             <span style="color:#334455">|</span>
             <span style="color:#667788">CLEARANCE:</span>
-            <span style="color:${rankColor}; font-weight:bold">LVL-${s.rank}</span>
+            <span style="color:${rankColor}; font-weight:bold">LVL-${safeRank}</span>
         `;
         document.body.appendChild(hud);
     }
