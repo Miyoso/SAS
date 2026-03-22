@@ -6,16 +6,15 @@
     <title>SAS - COMMAND CENTER [ADMIN]</title>
 
     <script src="js/auth-guard.js"></script>
-<script>
-    SAS_AUTH.guard(10);         
-    SAS_AUTH.injectHUD();       
-</script>
+    <script>
+        SAS_AUTH.guard(10);         
+        SAS_AUTH.injectHUD();       
+    </script>
 
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style-mo.css">
 
     <style>
-        /* Styles spécifiques Admin */
         .admin-table {
             width: 100%; border-collapse: collapse; margin-top: 20px;
             font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
@@ -58,34 +57,33 @@
         }
         .btn-warn:hover { background: var(--warning); color: #000; }
 
-        /* --- STYLES MODALE CORRIGÉS --- */
         .modal-overlay {
-            position: fixed; /* Fixe par rapport à la fenêtre */
+            position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.85); /* Fond sombre semi-transparent */
-            backdrop-filter: blur(5px); /* Flou d'arrière-plan */
-            z-index: 10000; /* Très haut pour être au-dessus de tout */
-            display: flex; /* Utilise Flexbox pour centrer */
-            justify-content: center; /* Centre horizontalement */
-            align-items: center; /* Centre verticalement */
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .hidden { display: none !important; }
 
         .modal-box {
             background: #0b0e11;
-            border: 2px solid var(--danger); /* Bordure rouge pour l'admin */
-            box-shadow: 0 0 50px rgba(255, 51, 51, 0.2); /* Ombre rouge */
-            width: 500px; /* Largeur fixe */
+            border: 2px solid var(--danger);
+            box-shadow: 0 0 50px rgba(255, 51, 51, 0.2);
+            width: 500px;
             max-width: 90%;
             display: flex; flex-direction: column;
-            position: relative; /* Pour le positionnement interne */
+            position: relative;
         }
 
         .modal-top {
             padding: 15px 25px;
             border-bottom: 1px solid #333;
-            background: rgba(255, 51, 51, 0.1); /* Fond rouge très léger pour l'en-tête */
+            background: rgba(255, 51, 51, 0.1);
             display: flex; justify-content: space-between; align-items: center;
         }
 
@@ -97,7 +95,6 @@
             font-size: 1.1rem;
         }
 
-        /* Formulaire dans la modale */
         .form-group { margin-bottom: 15px; }
         .form-group label {
             display: block; color: var(--secondary); font-size: 0.7rem; margin-bottom: 5px;
@@ -205,8 +202,10 @@
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
-            if (res.status === 403) {
-                alert("ACCÈS REFUSÉ");
+            if (res.status === 403 || res.status === 401) {
+                alert("ALERTE DE SÉCURITÉ : ACCÈS REFUSÉ. DÉCONNEXION EN COURS.");
+                localStorage.removeItem('sas_session');
+                localStorage.removeItem('sas_token');
                 window.location.href = 'index.html';
                 return;
             }
@@ -282,23 +281,20 @@
         } catch(e) { console.error(e); }
     }
 
-
     function openWarnModal(id, username) {
         document.getElementById('warn-agent-id').value = id;
         document.getElementById('warn-agent-name').value = username.toUpperCase();
         document.getElementById('warn-reason').value = '';
 
-        // On s'assure que la classe hidden est bien retirée
         const modal = document.getElementById('warn-modal');
         modal.classList.remove('hidden');
-        // Force le style flex si le CSS a du mal à prendre le dessus
         modal.style.display = 'flex';
     }
 
     function closeWarnModal() {
         const modal = document.getElementById('warn-modal');
         modal.classList.add('hidden');
-        modal.style.display = 'none'; // Sécurité supplémentaire
+        modal.style.display = 'none';
     }
 
     document.getElementById('warn-form').addEventListener('submit', async (e) => {
