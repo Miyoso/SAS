@@ -3,1020 +3,1151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS MAINFRAME // LIAISON NEURONALE</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <title>SAS — DOSSIER AGENT</title>
+
+    <script>
+        if (!localStorage.getItem('sas_session')) window.location.href = 'index.html';
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
+
     <style>
-        
         :root {
-            --accent-primary:    #00ff9d;
-            --accent-secondary:  #00b8ff;
-            --accent-danger:     #ff2a2a;
-            --accent-restricted: #ffaa00;
-            --font-code:    'JetBrains Mono', monospace;
-            --font-display: 'Share Tech Mono', monospace;
-            --bg-glass:     rgba(6, 10, 15, 0.65);
+            --primary:   #00ff9d;
+            --secondary: #00f3ff;
+            --danger:    #ff3333;
+            --warning:   #eebb00;
+            --dim:       #445566;
+            --bg:        #020406;
+            --panel:     rgba(8, 12, 16, 0.92);
+            --font-ui:   'Share Tech Mono', monospace;
+            --font-code: 'JetBrains Mono', monospace;
         }
 
-        
-        *, *::before, *::after { box-sizing: border-box; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body, html {
-            margin: 0; padding: 0;
-            width: 100%; height: 100%;
+        body {
+            background: var(--bg);
+            color: #eee;
+            font-family: var(--font-ui);
+            height: 100vh;
             overflow: hidden;
-            background: radial-gradient(circle at center, #050914 0%, #010203 100%);
-            color: #fff;
-            font-family: var(--font-display);
-        }
-        .scanlines {
-            position: fixed; inset: 0;
-            background: linear-gradient(to bottom,
-                rgba(255,255,255,0), rgba(255,255,255,0) 50%,
-                rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
-            background-size: 100% 4px;
-            pointer-events: none; z-index: 999; opacity: 0.6;
-        }
-        .vignette {
-            position: fixed; inset: 0;
-            box-shadow: 0 0 150px rgba(0,0,0,0.9) inset;
-            pointer-events: none; z-index: 998;
+            background-image:
+                linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+            background-size: 40px 40px;
         }
 
-        
-        .auth-content                { display: none !important; }
-        body.logged-in .auth-content { display: flex !important; }
-        body.logged-in #login-overlay { display: none !important; }
+        /* ── SCAN LINE ── */
+        .scanline {
+            position: fixed; left: 0; width: 100%; height: 3px;
+            background: rgba(0,255,157,.15);
+            box-shadow: 0 0 12px rgba(0,255,157,.3);
+            animation: scan 10s linear infinite;
+            pointer-events: none; z-index: 9999;
+        }
+        @keyframes scan { 0%{top:-1%} 100%{top:101%} }
 
-        #neural-network {
-            position: fixed; inset: 0;
-            z-index: 0; opacity: 0.6;
-        }
-
-        
-        .sr-only {
-            position: absolute; width: 1px; height: 1px;
-            padding: 0; margin: -1px; overflow: hidden;
-            clip: rect(0,0,0,0); white-space: nowrap; border: 0;
-        }
-
-        #login-overlay {
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            height: 100vh; width: 100vw;
-            position: relative; z-index: 10;
-        }
-        .login-box {
-            background: var(--bg-glass);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 255, 157, 0.3);
-            border-radius: 50%;
-            
-            width: min(380px, 88vw); height: min(380px, 88vw);
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            position: relative;
-            box-shadow: 0 0 40px rgba(0, 255, 157, 0.1), inset 0 0 20px rgba(0, 255, 157, 0.05);
-            animation: systemBoot 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards,
-                       floatAnim 6s ease-in-out 1.5s infinite;
-            will-change: transform;
-        }
-        .login-box::before {
-            content: ''; position: absolute; inset: -2px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, transparent, var(--accent-primary), transparent, var(--accent-secondary));
-            z-index: -1; animation: spinBg 4s linear infinite; opacity: 0.5;
-        }
-        .login-title {
-            font-family: var(--font-code);
-            font-size: clamp(0.85rem, 3vw, 1.3rem);
-            color: #fff; text-align: center;
-            letter-spacing: 3px; margin-bottom: 20px;
-            text-shadow: 0 0 15px var(--accent-primary);
-        }
-        .login-field { margin-bottom: 14px; width: 100%; text-align: center; }
-        .login-field .cmd-input {
-            width: 82%; background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(0, 255, 157, 0.2);
-            border-radius: 4px; color: var(--accent-primary);
-            padding: 10px; font-size: clamp(0.75rem, 2.5vw, 1rem);
-            text-align: center; font-family: var(--font-code);
-            outline: none; transition: all 0.3s ease;
-        }
-        .login-field .cmd-input:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
-            background: rgba(0, 255, 157, 0.05);
-        }
-        #login-msg {
-            min-height: 20px;
-            font-family: var(--font-code);
-            font-size: 0.8rem;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-      
-        .btn-connect {
-            background: rgba(0, 255, 157, 0.1);
-            color: var(--accent-primary);
-            border: 1px solid var(--accent-primary);
-            padding: 12px 25px;
-            font-family: var(--font-code); font-weight: bold;
-            letter-spacing: 1px; cursor: pointer;
-            transition: all 0.3s; margin-top: 15px;
-            border-radius: 30px; text-transform: uppercase; white-space: nowrap;
-        }
-        .btn-connect:hover {
-            background: var(--accent-primary); color: #000;
-            box-shadow: 0 0 25px var(--accent-primary); scale: 1.05;
-        }
-   
-        .btn-logout {
-            font-size: 0.7rem; padding: 8px 15px;
-            border-color: rgba(255,255,255,0.3);
-            color: #fff; margin-top: 0;
-        }
-        .btn-logout:hover { background: rgba(255,255,255,0.15); color: #fff; scale: 1.05; }
-
-       
-        .hud-overlay {
-            position: fixed; top: 30px; left: 30px;
-            pointer-events: none; z-index: 100;
-            border-left: 3px solid var(--accent-primary);
-            padding: 10px 20px;
-            background: linear-gradient(90deg, rgba(0,255,157,0.1) 0%, transparent 100%);
-        }
-        .hud-title {
-            font-family: var(--font-code); font-size: 1.2rem; letter-spacing: 2px;
-        }
-        .hud-title-accent  { color: var(--accent-primary); }
-        .hud-status        { font-size: 0.8rem; color: var(--accent-primary); margin-top: 5px; }
-        .hud-meta          { font-size: 0.7rem; font-family: var(--font-code); margin-top: 5px; }
-        .hud-meta-dim      { opacity: 0.8; }
-        .hud-meta-dimmer   { opacity: 0.6; }
-
-        /* HUD — TOP RIGHT */
-        .hud-top-right {
-            position: fixed; top: 30px; right: 30px;
-            text-align: right; pointer-events: auto; z-index: 100;
-            display: flex; align-items: center; gap: 15px;
-        }
-        .hud-avatar {
-            width: 40px; height: 40px;
-            border-radius: 50%; border: 1px solid var(--accent-primary);
-        }
-
-        
-        .system-logs-container {
-            position: fixed; bottom: 30px; left: 30px;
-            width: 300px; z-index: 100;
-            font-family: var(--font-code); font-size: 0.65rem;
-        }
-        .log-list {
-            list-style: none; padding: 0; margin: 0;
-            display: flex; flex-direction: column-reverse; gap: 6px;
-        }
-        .log-item {
-            background: rgba(0, 255, 157, 0.05);
-            border-left: 2px solid var(--accent-primary);
-            padding: 5px 10px; opacity: 0;
-            animation: logIn 0.3s forwards;
-        }
-        .log-item.alert {
-            border-color: var(--accent-danger);
-            background: rgba(255, 42, 42, 0.05);
-            color: var(--accent-danger);
-        }
-        .log-time { opacity: 0.5; margin-right: 8px; font-size: 0.55rem; }
-
-      
-        .neural-dashboard {
-            position: relative; width: 100vw; height: 100vh;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 5; animation: fadeIn 2s ease-out;
-        }
-        .orbit {
-            position: absolute; top: 50%; left: 50%;
-            translate: -50% -50%;
-            border-radius: 50%; pointer-events: none; z-index: 1;
-        }
-        .orbit-1  { width: 50vmin; height: 50vmin;  border: 1px dashed rgba(0, 255, 157, 0.15); }
-        .orbit-2  { width: 75vmin; height: 75vmin;  border: 1px dashed rgba(255, 170, 0, 0.15); }
-        .orbit-10 { width: 95vmin; height: 95vmin;  border: 1px dashed rgba(255, 42, 42, 0.15); }
-        .orbit-label {
-            position: absolute; bottom: -8px; left: 50%;
-            translate: -50% 0;
-            background: var(--bg-glass); padding: 0 10px;
-            font-family: var(--font-code); font-size: 0.65rem;
-            color: rgba(255,255,255,0.4); letter-spacing: 3px;
-            white-space: nowrap; border-radius: 10px;
-        }
-        .orbit-label-classified { color: var(--accent-danger); }
-
-        .synapse-lines {
-            position: absolute; top: 50%; left: 50%;
-            translate: -50% -50%;
-            width: 100vmin; height: 100vmin; z-index: 1; pointer-events: none;
-        }
-        .synapse-lines line {
-            stroke: rgba(0, 255, 157, 0.25); stroke-width: 1.5;
-            stroke-dasharray: 6 4; animation: dataFlow 30s linear infinite reverse;
-        }
-        .synapse-lines line.restricted { stroke: rgba(255, 170, 0, 0.3); }
-        .synapse-lines line.admin      { stroke: rgba(255, 42, 42, 0.3); }
-
-       
-        .node {
-            position: absolute; top: 50%; left: 50%;
-            border-radius: 50%;
-            background: var(--bg-glass);
-            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(0, 255, 157, 0.4);
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            cursor: pointer;
-            transition: box-shadow 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-                        background 0.4s, border-color 0.4s, opacity 0.3s, filter 0.3s;
-            z-index: 10; color: #fff; padding: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-        .node::after {
-            content: ''; position: absolute; inset: 5px;
-            border-radius: 50%; border: 1px solid rgba(255,255,255,0.05);
-            pointer-events: none;
-        }
-        .node:hover {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 35px rgba(0, 255, 157, 0.4), inset 0 0 20px rgba(0, 255, 157, 0.2);
-            z-index: 20; background: rgba(0, 255, 157, 0.15);
-        }
-        .node .icon {
-            font-size: clamp(1.2rem, 3vmin, 1.8rem); margin-bottom: 5px;
-            filter: drop-shadow(0 0 8px rgba(0, 255, 157, 0.6));
-            transition: scale 0.3s;
-        }
-        .node:hover .icon { scale: 1.1; }
-        .node .label {
-            font-family: var(--font-code);
-            font-size: clamp(0.55rem, 1.2vmin, 0.7rem);
-            text-align: center; letter-spacing: 2px;
-            opacity: 0.7; transition: opacity 0.3s;
-        }
-        .node:hover .label { opacity: 1; text-shadow: 0 0 10px var(--accent-primary); }
-
-        .node-core {
-            width: clamp(120px, 20vmin, 180px);
-            height: clamp(120px, 20vmin, 180px);
-            translate: -50% -50%;
-            border: 2px solid var(--accent-primary);
-            box-shadow: 0 0 40px rgba(0, 255, 157, 0.2), inset 0 0 30px rgba(0, 255, 157, 0.1);
-            background: rgba(6, 10, 15, 0.85);
-            will-change: transform, box-shadow;
-        }
-        .node-core::before {
-            content: ''; position: absolute; inset: -15px;
-            border-radius: 50%; border: 2px dashed rgba(0, 184, 255, 0.5);
-            animation: spinBg 15s linear infinite; pointer-events: none;
-        }
-        .node-core::after {
-            content: ''; position: absolute; inset: -25px;
-            border-radius: 50%; border: 1px dotted rgba(0, 255, 157, 0.3);
-            animation: spinBg 25s linear infinite reverse; pointer-events: none;
-        }
-        .node-core:hover { scale: 1.05; }
-        .node-core .icon  { font-size: clamp(2rem, 5vmin, 3.5rem); }
-        .node-core .label { font-weight: bold; opacity: 1; }
-
-        
-        .node-sub {
-            width:  clamp(75px, 14vmin, 110px);
-            height: clamp(75px, 14vmin, 110px);
-       
-            translate:
-                calc(-50% + sin(var(--angle, 0deg)) * var(--orbit, 25vmin))
-                calc(-50% - cos(var(--angle, 0deg)) * var(--orbit, 25vmin));
-            animation: floatAnim 4s ease-in-out infinite;
-            animation-delay: var(--float-delay, 0s);
-            will-change: transform, box-shadow;
-        }
-        .node-sub:hover {
-            scale: 1.15;
-            animation-play-state: paused;
-        }
-
-        .node.status-restricted { border-color: var(--accent-restricted); }
-        .node.status-restricted:hover {
-            box-shadow: 0 0 35px rgba(255, 170, 0, 0.5), inset 0 0 20px rgba(255, 170, 0, 0.2);
-            background: rgba(255, 170, 0, 0.15); border-color: var(--accent-restricted);
-        }
-        .node.status-restricted .icon {
-            filter: drop-shadow(0 0 8px rgba(255, 170, 0, 0.6));
-        }
-        .node.status-admin { border-color: var(--accent-danger); }
-        .node.status-admin:hover {
-            box-shadow: 0 0 40px rgba(255, 42, 42, 0.6), inset 0 0 25px rgba(255, 42, 42, 0.3);
-            background: rgba(255, 42, 42, 0.2); border-color: var(--accent-danger);
-        }
-        .node.status-admin .icon {
-            filter: drop-shadow(0 0 10px rgba(255, 42, 42, 0.8));
-        }
-
-        
-        .node.node-locked {
-            opacity: 0.42;
-            filter: saturate(0.25);
-            cursor: not-allowed;
-        }
-        .node.node-locked:hover {
-            scale: 1; /* bloquer le zoom hover */
-        }
-        
-        .lock-badge {
-            display: none;
-            position: absolute; top: 5px; right: 5px;
-            font-size: 0.6rem;
-            background: rgba(0,0,0,0.65);
-            border-radius: 50%; width: 17px; height: 17px;
-            align-items: center; justify-content: center;
-            z-index: 2;
-        }
-        .node.node-locked .lock-badge { display: flex; }
-
-        
-        #node-tooltip {
-            position: fixed;
-            background: rgba(4, 8, 12, 0.97);
-            border: 1px solid var(--accent-restricted);
-            color: var(--accent-restricted);
-            font-family: var(--font-code); font-size: 0.65rem;
-            letter-spacing: 1px; padding: 6px 12px;
-            border-radius: 4px; pointer-events: none; z-index: 1001;
-            opacity: 0; translate: 0 5px;
-            transition: opacity 0.15s ease, translate 0.15s ease;
-            white-space: nowrap;
-            box-shadow: 0 0 12px rgba(255,170,0,0.25);
-        }
-        #node-tooltip.visible   { opacity: 1; translate: 0 0; }
-        #node-tooltip.admin-tip {
-            border-color: var(--accent-danger);
-            color: var(--accent-danger);
-            box-shadow: 0 0 12px rgba(255,42,42,0.3);
-        }
-
-    
-        .glitch-anim {
-            animation: glitchError 0.3s cubic-bezier(.25,.46,.45,.94) both infinite;
-            border-color: var(--accent-danger) !important;
-            box-shadow: 0 0 15px rgba(255,42,42,0.4), inset 0 0 15px rgba(255,42,42,0.4) !important;
-        }
-        .term-error { color: var(--accent-danger);   text-shadow: 0 0 5px var(--accent-danger); }
-        .term-info  { color: var(--accent-secondary); text-shadow: 0 0 5px var(--accent-secondary); }
-        .term-dim   { color: rgba(255,255,255,0.5); }
-        .blink      { animation: blinkAnim 1s infinite; }
-
-    
-        @keyframes glitchError {
-            0%   { transform: translate(0) }
-            20%  { transform: translate(-4px,  2px) }
-            40%  { transform: translate(-4px, -2px) }
-            60%  { transform: translate( 4px,  2px) }
-            80%  { transform: translate( 4px, -2px) }
-            100% { transform: translate(0) }
-        }
-        @keyframes blinkAnim  { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        @keyframes logIn      {
-            from { opacity: 0; transform: translateX(-10px); }
-            to   { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes spinBg     { to { rotate: 360deg; } }
-        @keyframes floatAnim  { 0%, 100% { margin-top: 0; } 50% { margin-top: -8px; } }
-        @keyframes dataFlow   { to { stroke-dashoffset: 1000; } }
-        @keyframes systemBoot {
-            0%   { opacity: 0; transform: scale(0.8) translateY(30px); filter: blur(20px); }
-            100% { opacity: 1; transform: scale(1)   translateY(0);    filter: blur(0);   }
-        }
-        @keyframes fadeIn     {
-            from { opacity: 0; filter: blur(10px); }
-            to   { opacity: 1; filter: blur(0); }
-        }
-
-        
-        @media (max-width: 768px) {
-            .hud-overlay         { top: 12px; left: 12px; padding: 8px 14px; }
-            .hud-top-right       { top: 12px; right: 12px; }
-            .system-logs-container { display: none; }
-
-            /* Réduire les rayons d'orbite pour tenir dans l'écran */
-            .node-sub[data-orbit="1"]  { --orbit: 23vmin; }
-            .node-sub[data-orbit="2"]  { --orbit: 35vmin; }
-            .node-sub[data-orbit="10"] { --orbit: 43vmin; }
-
-            /* Réduire les anneaux en proportion */
-            .orbit-1  { width: 46vmin; height: 46vmin; }
-            .orbit-2  { width: 70vmin; height: 70vmin; }
-            .orbit-10 { width: 88vmin; height: 88vmin; }
-        }
-        @media (max-width: 480px) {
-            .node-sub  { width: clamp(58px, 11vmin, 80px); height: clamp(58px, 11vmin, 80px); }
-            .node .icon  { font-size: 1.2rem; }
-            .node .label { font-size: 0.5rem; }
-            .hud-title   { font-size: 0.95rem; }
-        }
-
-        /* --- AJOUT STATS NŒUDS --- */
-        .node-stat {
-            position: absolute;
-            bottom: 6px;
-            right: 8px;
-            font-family: var(--font-code);
-            font-size: 0.55rem;
-            letter-spacing: 1px;
-            opacity: 0.85;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-        .node-stat-val {
-            font-size: 0.75rem;
-            font-weight: bold;
-            display: block;
-            text-align: center;
-            line-height: 1;
-            margin-bottom: 1px;
-        }
-        .node:hover .node-stat { opacity: 1; }
-
-        .node-alert {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--accent-danger);
-            box-shadow: 0 0 6px var(--accent-danger);
+        /* ── LAYOUT ── */
+        .layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            height: 100vh;
             opacity: 0;
-            transition: opacity 0.3s;
+            animation: fadeIn .6s .1s forwards;
+        }
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        /* ══════════════════════════
+           SIDEBAR
+        ══════════════════════════ */
+        .sidebar {
+            border-right: 1px solid rgba(255,255,255,.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: rgba(4, 6, 9, .7);
+        }
+
+        /* Agent header */
+        .agent-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            position: relative;
+        }
+        .agent-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 0;
+            width: 80px; height: 1px;
+            background: var(--primary);
+            box-shadow: 0 0 8px var(--primary);
+        }
+        .agent-callsign {
+            font-family: var(--font-code);
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -1px;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .agent-callsign span { color: var(--primary); }
+        .agent-sub {
+            font-size: .65rem;
+            color: var(--dim);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        .online-dot {
+            display: inline-block;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: 0 0 8px var(--primary);
+            margin-right: 6px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+        /* ID Card */
+        .card-wrap {
+            padding: 16px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+        .id-card {
+            width: 100%;
+            background: rgba(13,17,23,.95);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform .15s ease;
+        }
+        .id-card:hover { transform: perspective(600px) rotateX(2deg) rotateY(-2deg) scale(1.01); }
+        .card-holo {
+            position: absolute; inset: 0;
+            background: linear-gradient(115deg, transparent 30%, rgba(0,255,157,.12) 48%, rgba(255,255,255,.2) 50%, rgba(0,255,157,.12) 52%, transparent 70%);
+            animation: holo 5s ease-in-out infinite;
+            pointer-events: none; z-index: 2;
+        }
+        @keyframes holo { 0%{transform:translateX(-200%) skewX(-20deg)} 30%,100%{transform:translateX(200%) skewX(-20deg)} }
+        .card-top {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(0,255,157,.25);
+            background: linear-gradient(90deg, rgba(0,255,157,.06), transparent);
+        }
+        .card-logo { font-weight: 800; color: var(--primary); letter-spacing: 3px; font-size: .9rem; }
+        .card-badge {
+            font-size: .6rem; font-weight: bold; padding: 2px 7px;
+            border: 1px solid var(--danger); color: #fff;
+            background: rgba(255,51,51,.2);
+            letter-spacing: 1px;
+        }
+        .card-body { display: flex; gap: 12px; padding: 12px 14px; }
+        .card-photo {
+            width: 70px; height: 88px;
+            border: 2px solid var(--secondary);
+            overflow: hidden; flex-shrink: 0;
+            position: relative;
+        }
+        .card-photo img {
+            width: 100%; height: 100%; object-fit: cover;
+            filter: grayscale(.8) contrast(1.2);
+        }
+        .card-photo::after {
+            content: '';
+            position: absolute; left: 0; width: 100%; height: 2px;
+            background: rgba(0,243,255,.6);
+            animation: scanPh 3s linear infinite;
+        }
+        @keyframes scanPh { 0%{top:0} 100%{top:100%} }
+        .card-info { flex: 1; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+        .ci-label { font-size: .55rem; color: var(--secondary); letter-spacing: 1px; opacity: .8; }
+        .ci-val { font-size: .95rem; color: #fff; font-weight: 800; font-family: var(--font-code); letter-spacing: 1px; }
+        .ci-code { font-family: var(--font-code); color: var(--primary); font-size: .8rem; }
+        .card-foot {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            padding: 8px 14px;
+            border-top: 1px solid rgba(255,255,255,.06);
+        }
+        .barcode { font-family: 'Libre Barcode 128 Text', cursive; font-size: 2rem; color: #fff; opacity: .7; line-height: .6; }
+        .chip {
+            width: 32px; height: 24px;
+            background: linear-gradient(135deg, #d4af37, #8a7322);
+            border: 1px solid #ffea8a; border-radius: 3px;
+        }
+
+        /* Biometrics */
+        .bio-block {
+            padding: 16px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+        .section-label {
+            font-size: .6rem; color: var(--dim); letter-spacing: 3px;
+            margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+        }
+        .section-label::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.06); }
+
+        .ecg-wrap {
+            background: #000;
+            border: 1px solid rgba(255,255,255,.08);
+            height: 52px; position: relative; overflow: hidden; margin-bottom: 10px;
+        }
+        .ecg-wrap canvas { display: block; width: 100%; height: 100%; }
+        .ecg-grid {
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(0,255,157,.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,157,.08) 1px, transparent 1px);
+            background-size: 12px 12px;
             pointer-events: none;
-            animation: pulseBadge 2s infinite;
         }
-        .node-alert.visible { opacity: 1; }
-        @keyframes pulseBadge {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.3); }
+        .bpm-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+        .bpm-val { font-family: var(--font-code); font-size: 1.8rem; color: var(--primary); font-weight: 800; line-height: 1; }
+        .bpm-unit { font-size: .6rem; color: var(--dim); letter-spacing: 2px; }
+
+        .stress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .stress-label { font-size: .6rem; color: var(--dim); letter-spacing: 2px; }
+        .stress-pct { font-family: var(--font-code); font-size: .8rem; }
+        .stress-track { height: 5px; background: rgba(255,255,255,.07); border-radius: 2px; overflow: hidden; margin-bottom: 8px; }
+        .stress-fill { height: 100%; border-radius: 2px; transition: width .4s, background .4s; }
+        .stress-status { font-size: .65rem; text-align: right; letter-spacing: 1px; }
+
+        .psy-btns { display: flex; gap: 6px; margin-top: 8px; }
+        .psy-btn {
+            flex: 1; background: transparent;
+            border: 1px solid rgba(255,255,255,.1); color: #666;
+            font-family: var(--font-ui); font-size: .6rem;
+            padding: 5px; cursor: pointer; transition: .2s; letter-spacing: 1px;
         }
+        .psy-btn:hover { border-color: #fff; color: #fff; }
+
+        /* Sidebar nav */
+        .sidebar-nav { flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+        .sidebar-nav::-webkit-scrollbar { width: 3px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: var(--dim); }
+
+        .nav-btn {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px;
+            background: transparent; border: none;
+            color: #667788; font-family: var(--font-ui);
+            font-size: .8rem; letter-spacing: 1px;
+            cursor: pointer; text-align: left;
+            border-left: 2px solid transparent;
+            transition: .2s; text-transform: uppercase;
+        }
+        .nav-btn:hover { color: #ccc; background: rgba(255,255,255,.03); }
+        .nav-btn.active {
+            color: var(--primary);
+            border-left-color: var(--primary);
+            background: rgba(0,255,157,.04);
+        }
+        .nav-btn .icon { font-size: 1rem; opacity: .7; }
+        .nav-btn .badge {
+            margin-left: auto;
+            font-size: .55rem; padding: 1px 5px;
+            border: 1px solid currentColor; border-radius: 2px; opacity: .7;
+        }
+
+        /* Sidebar footer */
+        .sidebar-foot {
+            padding: 12px;
+            border-top: 1px solid rgba(255,255,255,.06);
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .btn-secondary {
+            background: transparent; border: 1px solid rgba(238,187,0,.4); color: var(--warning);
+            padding: 9px; font-family: var(--font-ui); font-size: .7rem;
+            letter-spacing: 2px; cursor: pointer; transition: .2s; text-transform: uppercase;
+        }
+        .btn-secondary:hover { background: rgba(238,187,0,.1); }
+        .btn-danger {
+            background: transparent; border: 1px solid rgba(255,51,51,.4); color: var(--danger);
+            padding: 9px; font-family: var(--font-ui); font-size: .7rem;
+            letter-spacing: 2px; cursor: pointer; transition: .2s; text-transform: uppercase;
+        }
+        .btn-danger:hover { background: rgba(255,51,51,.1); }
+
+        /* ══════════════════════════
+           MAIN CONTENT
+        ══════════════════════════ */
+        .main {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top bar */
+        .topbar {
+            padding: 0 28px;
+            height: 56px;
+            border-bottom: 1px solid rgba(255,255,255,.07);
+            display: flex; align-items: center; justify-content: space-between;
+            flex-shrink: 0;
+            background: rgba(4,6,9,.5);
+        }
+        .topbar-left { display: flex; gap: 4px; }
+        .tab-btn {
+            background: transparent; border: none; border-bottom: 2px solid transparent;
+            color: #667788; font-family: var(--font-ui); font-size: .75rem;
+            letter-spacing: 2px; padding: 0 16px; height: 56px;
+            cursor: pointer; transition: .2s; text-transform: uppercase;
+        }
+        .tab-btn:hover { color: #ccc; }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .topbar-right { font-size: .65rem; color: var(--dim); font-family: var(--font-code); }
+
+        /* Tab panes */
+        .pane-area { flex: 1; overflow-y: auto; padding: 24px 28px; }
+        .pane-area::-webkit-scrollbar { width: 5px; }
+        .pane-area::-webkit-scrollbar-thumb { background: var(--dim); }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; animation: paneIn .25s ease; }
+        @keyframes paneIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+        /* ── Panels ── */
+        .panel {
+            background: rgba(8,12,16,.8);
+            border: 1px solid rgba(255,255,255,.07);
+            border-left: 2px solid rgba(255,255,255,.1);
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+            padding: 18px 20px;
+            margin-bottom: 16px;
+            transition: .25s;
+            position: relative;
+        }
+        .panel:hover { border-left-color: var(--primary); background: rgba(0,255,157,.02); }
+        .panel::after {
+            content: ''; position: absolute;
+            bottom: 0; right: 0;
+            width: 16px; height: 1px;
+            background: var(--secondary);
+            transform: rotate(-45deg) translateX(8px);
+        }
+        .panel-head {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 14px;
+            border-bottom: 1px dashed rgba(255,255,255,.08); padding-bottom: 10px;
+        }
+        .panel-title {
+            font-size: .75rem; color: var(--primary); letter-spacing: 2px; font-weight: bold;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .panel-title::before { content: '■'; font-size: .5rem; color: var(--danger); }
+        .panel-meta { font-size: .6rem; color: #667788; letter-spacing: 1px; }
+
+        /* ── Overview grid ── */
+        .ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .ov-stat {
+            background: rgba(0,0,0,.3);
+            border: 1px solid rgba(255,255,255,.06);
+            padding: 14px 16px;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .ov-stat-label { font-size: .55rem; color: var(--dim); letter-spacing: 2px; }
+        .ov-stat-val { font-family: var(--font-code); font-size: 1.6rem; color: #fff; font-weight: 800; line-height: 1; }
+        .ov-stat-sub { font-size: .6rem; color: var(--dim); }
+
+        /* ── Log entries ── */
+        .log-entry {
+            font-size: .8rem; color: #889; margin-bottom: 10px;
+            padding: 8px 12px;
+            border-left: 2px solid rgba(255,255,255,.08);
+            font-family: var(--font-code);
+            transition: .2s;
+            display: flex; flex-direction: column; gap: 2px;
+        }
+        .log-entry:hover { border-left-color: var(--primary); color: #ccc; padding-left: 18px; }
+        .log-entry .lbl { font-size: .55rem; color: var(--dim); letter-spacing: 1px; }
+
+        /* ── Physique tab ── */
+        .phys-wrap { display: grid; grid-template-columns: 200px 1fr; gap: 24px; align-items: start; }
+        .body-svg-wrap {
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .body-svg-wrap svg { filter: drop-shadow(0 0 8px rgba(0,255,157,.15)); }
+        .body-part { fill: rgba(0,255,157,.08); stroke: var(--dim); stroke-width: 1; cursor: pointer; transition: .3s; }
+        .body-part:hover { fill: rgba(0,255,157,.25); stroke: var(--primary); }
+        .body-part.injured { fill: rgba(255,51,51,.5); stroke: var(--danger); animation: injPulse 2s infinite; }
+        @keyframes injPulse { 0%,100%{opacity:.7} 50%{opacity:1} }
+        .body-hint { font-size: .55rem; color: var(--dim); letter-spacing: 1px; text-align: center; }
+
+        .injury-list { display: flex; flex-direction: column; gap: 10px; }
+        .injury-item {
+            padding: 10px 14px;
+            border-left: 3px solid;
+            background: rgba(0,0,0,.3);
+            display: flex; flex-direction: column; gap: 3px;
+        }
+        .injury-item.sev-critical { border-color: var(--danger); }
+        .injury-item.sev-moderate { border-color: var(--warning); }
+        .injury-item.sev-light    { border-color: var(--primary); }
+        .inj-zone { font-size: .7rem; font-weight: bold; font-family: var(--font-code); }
+        .inj-desc { font-size: .75rem; color: #aaa; }
+
+        /* ── Missions ── */
+        .mission-card {
+            background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.06);
+            border-left: 3px solid var(--warning);
+            padding: 12px 16px; margin-bottom: 10px;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .mission-card.ACTIVE { border-left-color: var(--danger); }
+        .mission-card.COMPLETED { border-left-color: var(--primary); }
+        .mc-header { display: flex; justify-content: space-between; align-items: center; }
+        .mc-name { font-family: var(--font-code); font-size: .95rem; color: #fff; font-weight: 700; }
+        .mc-badge { font-size: .55rem; border: 1px solid currentColor; padding: 1px 6px; border-radius: 2px; }
+        .mc-badge.ACTIVE { color: var(--danger); }
+        .mc-badge.PENDING { color: var(--warning); }
+        .mc-badge.COMPLETED { color: var(--primary); }
+        .mc-meta { display: flex; gap: 20px; font-size: .7rem; color: #778; font-family: var(--font-code); }
+
+        /* ── Equipment ── */
+        .equip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .equip-card {
+            background: rgba(0,20,40,.4);
+            border-left: 2px solid var(--secondary);
+            padding: 10px 12px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .equip-icon { font-size: 1.2rem; opacity: .7; }
+        .equip-name { font-family: var(--font-ui); font-size: .8rem; color: #fff; font-weight: bold; }
+        .equip-sn { font-size: .65rem; color: var(--secondary); font-family: monospace; }
+
+        /* ── Warnings ── */
+        .warn-card {
+            border: 1px solid rgba(255,51,51,.3);
+            background: rgba(255,51,51,.05);
+            padding: 12px 16px; margin-bottom: 10px;
+        }
+        .warn-date { font-size: .6rem; color: var(--danger); font-weight: bold; letter-spacing: 1px; margin-bottom: 4px; }
+        .warn-reason { font-size: .8rem; color: #ccc; }
+        .warn-bar {
+            display: flex; gap: 8px; align-items: center; margin-bottom: 16px;
+        }
+        .warn-pip {
+            width: 28px; height: 28px;
+            border: 1px solid #444; background: #111;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .6rem; color: #444; font-family: var(--font-code);
+            transition: .3s;
+        }
+        .warn-pip.active { border-color: var(--danger); background: rgba(255,51,51,.2); color: var(--danger); }
+        .warn-pip.critical { animation: warnBlink 1s infinite; }
+        @keyframes warnBlink { 50%{ background: rgba(255,51,51,.5); } }
+        .warn-status-text { font-size: .7rem; margin-left: 8px; }
+
+        /* ══════════════════════════
+           MODALS
+        ══════════════════════════ */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,.88);
+            backdrop-filter: blur(6px);
+            z-index: 1000; display: flex; align-items: center; justify-content: center;
+        }
+        .hidden { display: none !important; }
+        .modal-box {
+            background: #080c10;
+            border: 1px solid var(--warning);
+            box-shadow: 0 0 40px rgba(238,187,0,.1);
+            width: 420px; max-width: 94vw;
+        }
+        .modal-box.danger-modal { border-color: var(--danger); box-shadow: 0 0 40px rgba(255,51,51,.1); }
+        .modal-top {
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+            background: rgba(255,255,255,.03);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-title { font-family: var(--font-ui); color: var(--warning); letter-spacing: 2px; font-size: .85rem; }
+        .modal-close { background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; }
+        .modal-body { padding: 20px; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; color: #889; font-size: .6rem; letter-spacing: 1px; margin-bottom: 5px; }
+        .form-input, .form-select, .form-textarea {
+            width: 100%; background: rgba(255,255,255,.05);
+            border: 1px solid #333; color: #fff; padding: 9px;
+            font-family: var(--font-code); font-size: .8rem; outline: none; transition: .2s;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--warning); }
+        .form-textarea { height: 80px; resize: none; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+        .btn-cancel { background: transparent; border: 1px solid #444; color: #888; padding: 9px 18px; font-family: var(--font-ui); font-size: .7rem; cursor: pointer; }
+        .btn-confirm { background: var(--warning); border: none; color: #000; padding: 9px 18px; font-family: var(--font-ui); font-size: .7rem; font-weight: bold; cursor: pointer; letter-spacing: 1px; }
+        .btn-confirm.danger { background: var(--danger); color: #fff; }
+
+        /* Empty state */
+        .empty-state { padding: 30px; text-align: center; color: #445566; font-size: .8rem; letter-spacing: 1px; }
+        .empty-state span { display: block; font-size: 1.5rem; margin-bottom: 8px; opacity: .3; }
     </style>
 </head>
 <body>
 
-<div class="scanlines"></div>
-<div class="vignette"></div>
+<div class="scanline"></div>
 
+<div class="layout">
+    <!-- ════ SIDEBAR ════ -->
+    <aside class="sidebar">
 
-<canvas id="neural-network" role="presentation" aria-hidden="true"></canvas>
-
-<div id="node-tooltip" role="tooltip" aria-hidden="true"></div>
-
-
-<section id="login-overlay" aria-label="Authentification système">
-    <div class="login-box" id="login-box">
-        <div class="login-title">&gt;_ LIAISON SYNAPTIQUE</div>
-
-        <div class="login-field">
-            <label for="login-username" class="sr-only">Empreinte corticale — identifiant agent</label>
-            <input type="text" id="login-username" class="cmd-input"
-                   placeholder="[ EMPREINTE_CORTICALE ]"
-                   autocomplete="off" autofocus
-                   aria-label="Identifiant agent">
+        <div class="agent-header">
+            <div class="agent-callsign"><span id="hdr-username">AGENT</span></div>
+            <div class="agent-sub">
+                <span class="online-dot"></span>SHADOW COMPANY // PERSONNEL
+            </div>
         </div>
 
-        <div class="login-field">
-            <label for="login-password" class="sr-only">Souche mémorielle — mot de passe</label>
-            <input type="password" id="login-password" class="cmd-input"
-                   placeholder="[ SOUCHE_MÉMORIELLE ]"
-                   aria-label="Mot de passe">
+        <div class="card-wrap">
+            <div class="id-card" id="card">
+                <div class="card-holo"></div>
+                <div class="card-top">
+                    <div class="card-logo">SHADOW CO.</div>
+                    <div class="card-badge" id="card-badge">OPERATOR</div>
+                </div>
+                <div class="card-body">
+                    <div class="card-photo" id="card-photo-wrap">
+                        <div style="width:100%;height:100%;background:#111;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#333;">👤</div>
+                    </div>
+                    <div class="card-info">
+                        <div>
+                            <div class="ci-label">NOM DE CODE</div>
+                            <div class="ci-val" id="card-username">...</div>
+                        </div>
+                        <div>
+                            <div class="ci-label">UNITÉ</div>
+                            <div class="ci-val" style="color:var(--secondary);font-size:.75rem;">FIELD OPS</div>
+                        </div>
+                        <div>
+                            <div class="ci-label">ACCRÉDITATION</div>
+                            <div class="ci-code" id="card-rank">LVL-?</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-foot">
+                    <div class="barcode">1100101010</div>
+                    <div class="chip"></div>
+                </div>
+            </div>
         </div>
 
-        <div id="login-msg" aria-live="assertive" aria-atomic="true"></div>
+        <!-- Biometrics -->
+        <div class="bio-block">
+            <div class="section-label">BIO_METRICS</div>
 
-        <button class="btn-connect" onclick="handleLogin()" aria-label="Initier la connexion">
-            INITIER L'UPLINK
-        </button>
+            <div class="bpm-row">
+                <div>
+                    <div class="bpm-val" id="bpm-val">—</div>
+                    <div class="bpm-unit">BPM // CARDIO</div>
+                </div>
+                <div style="text-align:right">
+                    <div style="font-size:.55rem;color:var(--dim);letter-spacing:1px;">CORTISOL</div>
+                    <div class="stress-pct" id="stress-pct" style="color:var(--primary)">0%</div>
+                </div>
+            </div>
+
+            <div class="ecg-wrap">
+                <canvas id="ecg-canvas"></canvas>
+                <div class="ecg-grid"></div>
+            </div>
+
+            <div class="stress-track">
+                <div class="stress-fill" id="stress-fill"></div>
+            </div>
+            <div class="stress-status" id="stress-status" style="color:var(--primary)">NEURO-STABLE</div>
+
+            <div class="psy-btns">
+                <button class="psy-btn" onclick="adjustStress(-10)">— CALM</button>
+                <button class="psy-btn" onclick="adjustStress(10)">+ STRESS</button>
+            </div>
+        </div>
+
+        <!-- Nav -->
+        <nav class="sidebar-nav">
+            <button class="nav-btn active" onclick="switchTab('overview',this)">
+                <span class="icon">⬡</span> OVERVIEW
+            </button>
+            <button class="nav-btn" onclick="switchTab('physique',this)">
+                <span class="icon">⬡</span> PHYSIQUE
+            </button>
+            <button class="nav-btn" onclick="switchTab('missions',this)">
+                <span class="icon">⬡</span> MISSIONS
+                <span class="badge" id="badge-missions">—</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('dotation',this)">
+                <span class="icon">⬡</span> DOTATION
+                <span class="badge" id="badge-equip">—</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('discipline',this)">
+                <span class="icon">⬡</span> DISCIPLINE
+                <span class="badge" id="badge-warns">CLEAR</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-foot">
+            <button class="btn-secondary" onclick="openPasswordModal()">[ CONFIG SÉCURITÉ ]</button>
+            <button class="btn-danger" onclick="logout()">[ TERMINATE SESSION ]</button>
+        </div>
+    </aside>
+
+    <!-- ════ MAIN ════ -->
+    <main class="main">
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="tab-btn active" onclick="switchTab('overview',null,'overview')">OVERVIEW</button>
+                <button class="tab-btn" onclick="switchTab('physique',null,'physique')">PHYSIQUE</button>
+                <button class="tab-btn" onclick="switchTab('missions',null,'missions')">OPÉRATIONS</button>
+                <button class="tab-btn" onclick="switchTab('dotation',null,'dotation')">DOTATION</button>
+                <button class="tab-btn" onclick="switchTab('discipline',null,'discipline')">DISCIPLINE</button>
+            </div>
+            <div class="topbar-right">
+                SESSION: <span id="session-id" style="color:var(--primary)">...</span>
+            </div>
+        </div>
+
+        <div class="pane-area">
+
+            <!-- ── OVERVIEW ── -->
+            <div class="tab-pane active" id="pane-overview">
+                <div class="ov-grid" style="margin-bottom:16px;">
+                    <div class="ov-stat">
+                        <div class="ov-stat-label">MISSIONS ACTIVES</div>
+                        <div class="ov-stat-val" id="ov-missions" style="color:var(--danger)">—</div>
+                        <div class="ov-stat-sub">EN COURS D'EXÉCUTION</div>
+                    </div>
+                    <div class="ov-stat">
+                        <div class="ov-stat-label">ÉQUIPEMENT ASSIGNÉ</div>
+                        <div class="ov-stat-val" id="ov-equip" style="color:var(--secondary)">—</div>
+                        <div class="ov-stat-sub">PIÈCES EN DOTATION</div>
+                    </div>
+                    <div class="ov-stat">
+                        <div class="ov-stat-label">BLESSURES ACTIVES</div>
+                        <div class="ov-stat-val" id="ov-injuries" style="color:var(--warning)">—</div>
+                        <div class="ov-stat-sub">TRAUMATISMES SIGNALÉS</div>
+                    </div>
+                    <div class="ov-stat">
+                        <div class="ov-stat-label">AVERTISSEMENTS</div>
+                        <div class="ov-stat-val" id="ov-warns" style="color:var(--primary)">—</div>
+                        <div class="ov-stat-sub">SANCTIONS ACTIVES</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">JOURNAUX SYSTÈME</div>
+                        <div class="panel-meta">ACCESS_LOG</div>
+                    </div>
+                    <div class="log-entry"><span class="lbl">ACCÈS</span>Connexion sécurisée établie. Chiffrement AES-256 actif.</div>
+                    <div class="log-entry"><span class="lbl">AUTH</span>Authentification biométrique vérifiée — statut CLEAR.</div>
+                    <div class="log-entry"><span class="lbl">SYNC</span>Synchronisation base de données escouade en cours...</div>
+                    <div class="log-entry"><span class="lbl">SYS</span>Protocoles de routine — aucune anomalie détectée.</div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">ACCÈS RAPIDE</div>
+                        <div class="panel-meta">NAVIGATION</div>
+                    </div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <a href="database.html" style="display:inline-block;padding:9px 18px;border:1px solid rgba(0,255,157,.4);color:var(--primary);font-size:.7rem;letter-spacing:1px;text-decoration:none;transition:.2s;font-family:var(--font-ui);" onmouseover="this.style.background='rgba(0,255,157,.1)'" onmouseout="this.style.background='transparent'">[ BASE DE DONNÉES ]</a>
+                        <a href="missions.html" style="display:inline-block;padding:9px 18px;border:1px solid rgba(238,187,0,.4);color:var(--warning);font-size:.7rem;letter-spacing:1px;text-decoration:none;transition:.2s;font-family:var(--font-ui);" onmouseover="this.style.background='rgba(238,187,0,.08)'" onmouseout="this.style.background='transparent'">[ CENTRE OPS ]</a>
+                        <a href="index.html" style="display:inline-block;padding:9px 18px;border:1px solid rgba(0,243,255,.4);color:var(--secondary);font-size:.7rem;letter-spacing:1px;text-decoration:none;transition:.2s;font-family:var(--font-ui);" onmouseover="this.style.background='rgba(0,243,255,.08)'" onmouseout="this.style.background='transparent'">[ MAINFRAME ]</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── PHYSIQUE ── -->
+            <div class="tab-pane" id="pane-physique">
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">SCHÉMA CORPOREL</div>
+                        <div class="panel-meta" id="med-status" style="color:var(--primary)">NOMINAL</div>
+                    </div>
+                    <div class="phys-wrap">
+                        <div class="body-svg-wrap">
+                            <svg viewBox="0 0 100 200" width="160" height="260">
+                                <circle id="part-head"      class="body-part" cx="50" cy="20" r="12"    onclick="openInjuryModal('head')"/>
+                                <path   id="part-torso"     class="body-part" d="M35 35 L65 35 L60 90 L40 90 Z" onclick="openInjuryModal('torso')"/>
+                                <rect   id="part-left_arm"  class="body-part" x="15" y="38" width="15" height="60" rx="4" onclick="openInjuryModal('left_arm')"/>
+                                <rect   id="part-right_arm" class="body-part" x="70" y="38" width="15" height="60" rx="4" onclick="openInjuryModal('right_arm')"/>
+                                <rect   id="part-left_leg"  class="body-part" x="30" y="95" width="18" height="80" rx="4" onclick="openInjuryModal('left_leg')"/>
+                                <rect   id="part-right_leg" class="body-part" x="52" y="95" width="18" height="80" rx="4" onclick="openInjuryModal('right_leg')"/>
+                            </svg>
+                            <div class="body-hint">[ CLIQUER POUR SIGNALER ]</div>
+                        </div>
+                        <div>
+                            <div id="injury-list-display" class="injury-list">
+                                <div class="empty-state"><span>✚</span>AUCUN TRAUMATISME DÉTECTÉ</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── MISSIONS ── -->
+            <div class="tab-pane" id="pane-missions">
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">ORDRES DE MISSION</div>
+                        <div class="panel-meta">ORDERS_LOG</div>
+                    </div>
+                    <div id="my-missions-list">
+                        <div class="empty-state"><span>🗓</span>CHARGEMENT DES ORDRES...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── DOTATION ── -->
+            <div class="tab-pane" id="pane-dotation">
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">ÉQUIPEMENT ASSIGNÉ</div>
+                        <div class="panel-meta">GEAR_ASSIGNED</div>
+                    </div>
+                    <div id="my-equipment-list" class="equip-grid">
+                        <div class="empty-state" style="grid-column:1/-1"><span>📦</span>CHARGEMENT INVENTAIRE...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── DISCIPLINE ── -->
+            <div class="tab-pane" id="pane-discipline">
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">CASIER DISCIPLINAIRE</div>
+                        <div id="warn-badge" class="panel-meta" style="color:var(--primary)">SERVICE EXEMPLAIRE</div>
+                    </div>
+                    <div class="warn-bar" id="warn-bar">
+                        <div class="warn-pip" id="w1">1</div>
+                        <div class="warn-pip" id="w2">2</div>
+                        <div class="warn-pip" id="w3">3</div>
+                        <span class="warn-status-text" id="warn-text" style="color:var(--primary)">AUCUNE INFRACTION</span>
+                    </div>
+                    <div id="warnings-list">
+                        <div class="empty-state"><span>✓</span>AUCUNE SANCTION ENREGISTRÉE</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<!-- Modal Password -->
+<div id="password-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <div class="modal-top">
+            <span class="modal-title">CHANGEMENT MOT DE PASSE</span>
+            <button class="modal-close" onclick="closePasswordModal()">✖</button>
+        </div>
+        <form id="password-form" class="modal-body" onsubmit="submitPassword(event)">
+            <div class="form-group">
+                <label>ANCIEN MOT DE PASSE</label>
+                <input type="password" id="pwd-old" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label>NOUVEAU MOT DE PASSE</label>
+                <input type="password" id="pwd-new" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label>CONFIRMATION</label>
+                <input type="password" id="pwd-confirm" class="form-input" required>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closePasswordModal()">ANNULER</button>
+                <button type="submit" class="btn-confirm">VALIDER</button>
+            </div>
+        </form>
     </div>
-</section>
+</div>
 
-
-<div class="hud-overlay auth-content" aria-label="Informations de session" role="status">
-    <div class="hud-title">SAS // <span class="hud-title-accent">MAINFRAME</span></div>
-    <div class="hud-status" id="conn-status">&gt; CONNEXION ÉTABLIE</div>
-    <div class="hud-meta hud-meta-dim">
-        AGENT: <span id="mini-username" style="color:#fff;">ANONYME</span>
+<!-- Modal Blessure -->
+<div id="injury-modal" class="modal-overlay hidden">
+    <div class="modal-box danger-modal">
+        <div class="modal-top" style="border-color:rgba(255,51,51,.3);">
+            <span class="modal-title" style="color:var(--danger)">SIGNALEMENT BLESSURE</span>
+            <button class="modal-close" onclick="closeInjuryModal()">✖</button>
+        </div>
+        <form id="injury-form" class="modal-body" onsubmit="submitInjury(event)">
+            <input type="hidden" id="inj-part">
+            <div class="form-group">
+                <label>ZONE CORPORELLE</label>
+                <input type="text" id="inj-part-display" class="form-input" disabled style="color:var(--primary);font-weight:bold;">
+            </div>
+            <div class="form-group">
+                <label>GRAVITÉ</label>
+                <select id="inj-severity" class="form-select">
+                    <option value="light">LÉGÈRE — Égratignure, bleu</option>
+                    <option value="moderate">MODÉRÉE — Entorse, coupure</option>
+                    <option value="critical">CRITIQUE — Balle, fracture</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>DESCRIPTION</label>
+                <textarea id="inj-desc" class="form-textarea" placeholder="Ex: Impact de balle 9mm..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeInjuryModal()">ANNULER</button>
+                <button type="submit" class="btn-confirm danger">SIGNALER</button>
+            </div>
+        </form>
     </div>
-    <div class="hud-meta hud-meta-dimmer">
-        ACCRÉDITATION: <span id="mini-rank">LVL-0</span>
-    </div>
 </div>
 
-
-<div class="hud-top-right auth-content">
-    <img id="sidebar-avatar" src="assets/default.jpg" alt="Avatar agent"
-         class="hud-avatar">
-    <button class="btn-connect btn-logout" onclick="logout()" aria-label="Se déconnecter">
-        DÉCONNEXION ⏏
-    </button>
-</div>
-
-
-<div class="system-logs-container auth-content" aria-label="Journaux système" role="log" aria-live="polite">
-    <ul id="system-logs" class="log-list"></ul>
-</div>
-
-
-<div class="neural-dashboard auth-content" role="navigation" aria-label="Modules du système">
-
-    <div class="orbit orbit-1" aria-hidden="true"></div>
-    <div class="orbit orbit-2" aria-hidden="true"></div>
-    <div class="orbit orbit-10" aria-hidden="true"></div>
-
-    <svg class="synapse-lines" aria-hidden="true">
-        <line x1="50%" y1="50%" x2="62.5%"  y2="28.35%"/>
-        <line x1="50%" y1="50%" x2="75%"    y2="50%"   />
-        <line x1="50%" y1="50%" x2="62.5%"  y2="71.65%"/>
-        <line x1="50%" y1="50%" x2="37.5%"  y2="71.65%"/>
-        <line x1="50%" y1="50%" x2="25%"    y2="50%"   />
-        <line x1="50%" y1="50%" x2="37.5%"  y2="28.35%"/>
-        <line x1="50%" y1="50%" x2="50%"    y2="12.5%"  class="restricted"/>
-        <line x1="50%" y1="50%" x2="50%"    y2="87.5%"  class="restricted"/>
-        <line x1="50%" y1="50%" x2="83.58%" y2="16.42%" class="admin"/>
-        <line x1="50%" y1="50%" x2="16.42%" y2="16.42%" class="admin"/>
-        <line x1="62.5%"  y1="28.35%" x2="50%"    y2="12.5%"  class="restricted"/>
-        <line x1="37.5%"  y1="28.35%" x2="50%"    y2="12.5%"  class="restricted"/>
-        <line x1="62.5%"  y1="28.35%" x2="83.58%" y2="16.42%" class="admin"/>
-        <line x1="37.5%"  y1="28.35%" x2="16.42%" y2="16.42%" class="admin"/>
-    </svg>
-
-   
-    <button class="node node-core"
-            onclick="accessModule('profile.html', 1)"
-            aria-label="Accéder au noyau central — Profil">
-        <span class="icon" aria-hidden="true">🧠</span>
-        <span class="label">NOYAU CENTRAL</span>
-    </button>
-
-   
-    <button class="node node-sub" data-orbit="1"
-            style="--angle:30deg;  --orbit:25vmin; --float-delay:0.1s"
-            onclick="accessModule('database.html', 1)"
-            data-required-level="1"
-            aria-label="Module Agents (LVL-1)">
-        <span class="lock-badge" aria-hidden="true">🔒</span>
-        <span class="icon" aria-hidden="true">👥</span>
-        <span class="label">AGENTS</span>
-        <span class="node-stat" id="stat-agents" style="color:var(--accent-secondary)">
-            <span class="node-stat-val" id="stat-agents-val">—</span>OPS
-        </span>
-        <span class="node-alert" id="alert-agents"></span>
-    </button>
-
-    <button class="node node-sub" data-orbit="1"
-            style="--angle:90deg;  --orbit:25vmin; --float-delay:0.3s"
-            onclick="accessModule('missions.html', 1)"
-            data-required-level="1"
-            aria-label="Module Missions (LVL-1)">
-        <span class="lock-badge" aria-hidden="true">🔒</span>
-        <span class="icon" aria-hidden="true">🗓️</span>
-        <span class="label">MISSIONS</span>
-        <span class="node-stat" id="stat-missions" style="color:var(--accent-danger)">
-            <span class="node-stat-val" id="stat-missions-val">—</span>LIVE
-        </span>
-        <span class="node-alert" id="alert-missions"></span>
-    </button>
-
-    <button class="node node-sub" data-orbit="1"
-            style="--angle:150deg; --orbit:25vmin; --float-delay:0.5s"
-            onclick="accessModule('map.html', 1)"
-            data-required-level="1"
-            aria-label="Module Carte live (LVL-1)">
-        <span class="lock-badge" aria-hidden="true">🔒</span>
-        <span class="icon" aria-hidden="true">🗺️</span>
-        <span class="label">CARTE LIVE</span>
-        <span class="node-stat" id="stat-map" style="color:var(--accent-primary)">
-            <span class="node-stat-val" id="stat-map-val">—</span>MKR
-        </span>
-    </button>
-
-    <button class="node node-sub" data-orbit="1"
-            style="--angle:210deg; --orbit:25vmin; --float-delay:0.7s"
-            onclick="accessModule('report.html', 1)"
-            data-required-level="1"
-            aria-label="Module Rapports (LVL-1)">
-        <span class="lock-badge" aria-hidden="true">🔒</span>
-        <span class="icon" aria-hidden="true">📝</span>
-        <span class="label">RAPPORTS</span>
-        <span class="node-stat" id="stat-reports" style="color:var(--accent-primary)">
-            <span class="node-stat-val" id="stat-reports-val">GEN</span>AUTO
-        </span>
-    </button>
-
-    <button class="node node-sub" data-orbit="1"
-            style="--angle:270deg; --orbit:25vmin; --float-delay:0.9s"
-            onclick="accessModule('reglement.html', 1)"
-            data-required-level="1"
-            aria-label="Module Archives (LVL-1)">
-        <span class="lock-badge" aria-hidden="true">🔒</span>
-        <span class="icon" aria-hidden="true">📜</span>
-        <span class="label">ARCHIVES</span>
-        <span class="node-stat" id="stat-rules" style="color:var(--accent-primary)">
-            <span class="node-stat-val" id="stat-rules-val">V4</span>REG
-        </span>
-    </button>
-
-    <button class="node node-sub" data-orbit="1"
-            style="--angle:330deg; --orbit:25vmin; --float-delay:1.1s"
-            onclick="accessModule('logistics.html', 1)"
-            data-required-level="1"
-            aria-label="Module Matériel (LVL-1)">
-        <span class="lock-badge" aria-hidden="true">🔒</span>
-        <span class="icon" aria-hidden="true">📦</span>
-        <span class="label">MATÉRIEL</span>
-        <span class="node-stat" id="stat-gear" style="color:var(--accent-restricted)">
-            <span class="node-stat-val" id="stat-gear-val">—</span>DISPO
-        </span>
-        <span class="node-alert" id="alert-gear"></span>
-    </button>
-
-  
-    <button class="node node-sub status-restricted" data-orbit="2"
-            style="--angle:0deg;   --orbit:37.5vmin; --float-delay:0.2s"
-            onclick="accessModule('investigation.html', 2)"
-            data-required-level="2"
-            data-tooltip="⚠ Accréditation LVL-2 requise"
-            aria-label="Module Enquêtes — LVL-2 requis">
-        <span class="lock-badge" aria-hidden="true">🔒</span>
-        <span class="icon" aria-hidden="true">🔍</span>
-        <span class="label">ENQUÊTES</span>
-        <span class="node-stat" id="stat-invest" style="color:var(--accent-restricted)">
-            <span class="node-stat-val" id="stat-invest-val">—</span>OPEN
-        </span>
-    </button>
-
-    <button class="node node-sub status-restricted" data-orbit="2"
-            style="--angle:180deg; --orbit:37.5vmin; --float-delay:0.8s"
-            onclick="accessModule('#', 2)"
-            data-required-level="2"
-            data-tooltip="⚠ Accréditation LVL-2 requise"
-            aria-label="Module Cibles VIP — LVL-2 requis">
-        <span class="lock-badge" aria-hidden="true">🔒</span>
-        <span class="icon" aria-hidden="true">🎯</span>
-        <span class="label">CIBLES VIP</span>
-        <span class="node-stat" id="stat-vip" style="color:var(--accent-restricted)">
-            <span class="node-stat-val" id="stat-vip-val">N/A</span>CLASS
-        </span>
-    </button>
-
-   
-    <button class="node node-sub status-admin" data-orbit="10"
-            style="--angle:45deg;  --orbit:47.5vmin; --float-delay:0.4s"
-            onclick="accessModule('medical.html', 10)"
-            data-required-level="10"
-            data-tooltip="⛔ CLASSIFIED — LVL-10 requis"
-            aria-label="Module Médical — LVL-10 requis">
-        <span class="lock-badge" aria-hidden="true">🔒</span>
-        <span class="icon" aria-hidden="true">🧬</span>
-        <span class="label">MÉDICAL</span>
-    </button>
-
-    <button class="node node-sub status-admin" data-orbit="10"
-            style="--angle:315deg; --orbit:47.5vmin; --float-delay:1.0s"
-            onclick="accessModule('admin.html', 10)"
-            data-required-level="10"
-            data-tooltip="⛔ CLASSIFIED — LVL-10 requis"
-            aria-label="Module Système Admin — LVL-10 requis">
-        <span class="lock-badge" aria-hidden="true">🔒</span>
-        <span class="icon" aria-hidden="true">👁️</span>
-        <span class="label">SYSTÈME ADMIN</span>
-    </button>
-
-</div>
-
-
-<script src="js/script.js" defer></script>
-
+<script src="js/profile-equipment.js"></script>
 <script>
+const avatarMap = {
+    'adam':'Adam.jpg','blake':'Blake.png','blitz':'Blitz.png',
+    'dust':'Dust.png','wei':'Dust.png','graves':'Graves.jpg',
+    'jackal':'Jackal.jpg','ji':'Jackal.jpg','javier':'Javier.jpg',
+    'lexa':'Lexa.png','selena':'Lexa.png','lovelace':'LoveLace.jpg',
+    'nyx':'LoveLace.jpg','roxanne':'Roxanne.jpg'
+};
 
-const canvas = document.getElementById('neural-network');
-const ctx    = canvas.getContext('2d');
-let width, height, particles = [];
+const partNames = {
+    'head':'TÊTE / CRÂNE','torso':'TORSE / ORGANES',
+    'left_arm':'BRAS GAUCHE','right_arm':'BRAS DROIT',
+    'left_leg':'JAMBE GAUCHE','right_leg':'JAMBE DROITE'
+};
 
-const CONNECT_DIST = 180;
-const CELL_SIZE    = CONNECT_DIST; 
-const NEURON_COLOR = '0, 255, 157';
-const MOUSE_COLOR  = '0, 184, 255';
-let mouse = { x: null, y: null, radius: 200 };
+let currentTab = 'overview';
+let targetBPM = 65, ecgX = 0, lastT = 0, ecgCtx, ecgCanvas;
 
-window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
-window.addEventListener('mouseout',  () => { mouse.x = null; mouse.y = null; });
+/* ── TABS ── */
+function switchTab(id, navBtn, topBtnHint) {
+    currentTab = id;
 
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.getElementById('pane-' + id).classList.add('active');
 
-class Neuron {
-    constructor() {
-        this.x      = Math.random() * width;
-        this.y      = Math.random() * height;
-        this.vx     = (Math.random() - 0.5) * 0.5;
-        this.vy     = (Math.random() - 0.5) * 0.5;
-        this.radius = Math.random() * 2 + 1;
-    }
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        if (this.x < 0 || this.x > width)  this.vx *= -1;
-        if (this.y < 0 || this.y > height)  this.vy *= -1;
-        if (mouse.x != null) {
-            const dx = mouse.x - this.x;
-            const dy = mouse.y - this.y;
-            const d  = Math.sqrt(dx * dx + dy * dy);
-            if (d < mouse.radius && d > 0) {
-                const f = (mouse.radius - d) / mouse.radius;
-                this.x -= (dx / d) * f * 2;
-                this.y -= (dy / d) * f * 2;
-            }
-        }
-    }
-    draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${NEURON_COLOR}, 0.8)`;
-        ctx.fill();
-    }
-}
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
+    if (navBtn) navBtn.classList.add('active');
 
-function buildGrid() {
-    const grid = new Map();
-    particles.forEach((p, i) => {
-        const key = `${Math.floor(p.x / CELL_SIZE)},${Math.floor(p.y / CELL_SIZE)}`;
-        if (!grid.has(key)) grid.set(key, []);
-        grid.get(key).push(i);
-    });
-    return grid;
-}
-
-
-function drawConnections(grid) {
-    particles.forEach((p, i) => {
-        const cx = Math.floor(p.x / CELL_SIZE);
-        const cy = Math.floor(p.y / CELL_SIZE);
-
-        
-        for (let dx = -1; dx <= 1; dx++) {
-            for (let dy = -1; dy <= 1; dy++) {
-                const neighbors = grid.get(`${cx + dx},${cy + dy}`);
-                if (!neighbors) continue;
-                for (const j of neighbors) {
-                    if (j <= i) continue; /* éviter doublons */
-                    const ddx  = p.x - particles[j].x;
-                    const ddy  = p.y - particles[j].y;
-                    const dist = Math.sqrt(ddx * ddx + ddy * ddy);
-                    if (dist < CONNECT_DIST) {
-                        const alpha = (1 - dist / CONNECT_DIST) * 0.4;
-                        ctx.beginPath();
-                        ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.strokeStyle = `rgba(${NEURON_COLOR}, ${alpha})`;
-                        ctx.lineWidth = 1;
-                        ctx.stroke();
-                    }
-                }
-            }
-        }
-
-      
-        if (mouse.x != null) {
-            const dm = Math.sqrt((p.x - mouse.x) ** 2 + (p.y - mouse.y) ** 2);
-            if (dm < mouse.radius) {
-                ctx.beginPath();
-                ctx.moveTo(p.x, p.y);
-                ctx.lineTo(mouse.x, mouse.y);
-                ctx.strokeStyle = `rgba(${MOUSE_COLOR}, ${(1 - dm / mouse.radius) * 0.6})`;
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-            }
+    const mapping = { overview:'overview', physique:'physique', missions:'missions', dotation:'dotation', discipline:'discipline' };
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        const label = b.textContent.trim().toLowerCase();
+        if (label === (mapping[id] || id) || b.getAttribute('onclick')?.includes("'"+id+"'")) {
+            b.classList.add('active');
         }
     });
-}
-
-function initNeurons() {
-    particles = [];
-    /* Plafond à 200 pour les très grands écrans */
-    const count = Math.min(Math.floor((width * height) / 10000), 200);
-    for (let i = 0; i < count; i++) particles.push(new Neuron());
-}
-
-function animateNeurons() {
-    ctx.clearRect(0, 0, width, height);
-    particles.forEach(n => { n.update(); n.draw(); });
-    drawConnections(buildGrid());
-    requestAnimationFrame(animateNeurons);
-}
-
-function resize() {
-    width  = canvas.width  = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-}
-
-window.addEventListener('resize', () => { resize(); initNeurons(); });
-resize(); initNeurons(); animateNeurons();
-
-
-const tooltip = document.getElementById('node-tooltip');
-
-document.querySelectorAll('.node[data-tooltip]').forEach(node => {
-    node.addEventListener('mouseenter', () => {
-        tooltip.textContent = node.dataset.tooltip;
-        tooltip.setAttribute('aria-hidden', 'false');
-        tooltip.classList.toggle('admin-tip', node.classList.contains('status-admin'));
-        tooltip.classList.add('visible');
+    document.querySelectorAll('.nav-btn').forEach(b => {
+        if (b.getAttribute('onclick')?.includes("'"+id+"'")) b.classList.add('active');
     });
-    node.addEventListener('mousemove', e => {
-        const x = Math.min(e.clientX + 18, window.innerWidth  - 250);
-        const y = Math.max(e.clientY - 44, 6);
-        tooltip.style.left = x + 'px';
-        tooltip.style.top  = y + 'px';
-    });
-    node.addEventListener('mouseleave', () => {
-        tooltip.classList.remove('visible');
-        tooltip.setAttribute('aria-hidden', 'true');
-    });
+}
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded', () => {
+    const s = JSON.parse(localStorage.getItem('sas_session') || '{}');
+    const { username = 'AGENT', rank = 0, id: agentId } = s;
+
+    document.getElementById('hdr-username').textContent = username.toUpperCase();
+    document.getElementById('card-username').textContent = username.toUpperCase();
+    document.getElementById('card-rank').textContent = 'LVL-' + rank;
+    document.getElementById('card-badge').textContent = rank >= 5 ? 'COMMAND' : rank >= 3 ? 'OFFICER' : 'OPERATOR';
+    document.getElementById('session-id').textContent = '0x' + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
+
+    const lname = username.toLowerCase();
+    if (avatarMap[lname]) {
+        document.getElementById('card-photo-wrap').innerHTML =
+            `<img src="assets/${avatarMap[lname]}" alt="" style="width:100%;height:100%;object-fit:cover;filter:grayscale(.8) contrast(1.2);">`;
+    }
+
+    initECG();
+    initStress();
+    loadMissions(username);
+    loadWarnings();
+    loadInjuries(agentId);
 });
 
-
-
-function updateNodeAccess() {
-  
-    const rankText  = document.getElementById('mini-rank')?.textContent ?? 'LVL-1';
-    const match     = rankText.match(/(\d+)/);
-    const userLevel = match ? parseInt(match[1]) : 1;
-
-  
-    document.querySelectorAll('.node[data-required-level]').forEach(node => {
-        const required = parseInt(node.dataset.requiredLevel);
-        
-        node.classList.toggle('node-locked', userLevel < required);
-    });
+/* ── ECG ── */
+function initECG() {
+    ecgCanvas = document.getElementById('ecg-canvas');
+    if (!ecgCanvas) return;
+    ecgCtx = ecgCanvas.getContext('2d');
+    ecgCanvas.width = ecgCanvas.parentElement.clientWidth;
+    ecgCanvas.height = ecgCanvas.parentElement.clientHeight;
+    requestAnimationFrame(drawECG);
+    setInterval(() => {
+        const bpm = Math.floor(targetBPM + (Math.random() * 6 - 3));
+        document.getElementById('bpm-val').textContent = bpm;
+    }, 2000);
 }
 
+function drawECG(ts) {
+    if (!lastT) lastT = ts;
+    const speed = (ecgCanvas.width * (targetBPM / 60)) / 100;
+    const color = targetBPM > 140 ? '#ff3333' : targetBPM > 100 ? '#eebb00' : '#00ff9d';
+    ecgCtx.strokeStyle = color;
+    ecgCtx.lineWidth = 1.5;
+    ecgCtx.shadowBlur = 4;
+    ecgCtx.shadowColor = color;
+    ecgCtx.fillStyle = 'rgba(0,0,0,.12)';
+    ecgCtx.fillRect(0, 0, ecgCanvas.width, ecgCanvas.height);
+    ecgCtx.beginPath();
+    ecgCtx.moveTo(ecgX, ecgCanvas.height / 2);
+    ecgX += speed;
+    const p = ecgX % 100;
+    let y = ecgCanvas.height / 2;
+    if (p > 10 && p < 15) y -= 4;
+    else if (p > 20 && p < 25) y += 5;
+    else if (p > 25 && p < 35) y -= 22;
+    else if (p > 35 && p < 40) y += 8;
+    else if (p > 50 && p < 60) y -= 6;
+    y += Math.random() * 1.5 - 0.75;
+    ecgCtx.lineTo(ecgX, y);
+    ecgCtx.stroke();
+    if (ecgX >= ecgCanvas.width) { ecgX = 0; ecgCtx.clearRect(0, 0, ecgCanvas.width, ecgCanvas.height); }
+    lastT = ts;
+    requestAnimationFrame(drawECG);
+}
 
-// --- GESTION DES STATISTIQUES ---
-let statsInterval = null;
-
-async function loadNodeStats() {
+/* ── STRESS ── */
+async function initStress() {
     const token = localStorage.getItem('sas_token');
-    if (!token) return;
-    const h = { 'Authorization': `Bearer ${token}` };
-
-    function setStat(id, value, alertId = null, alertThreshold = 1) {
-        const el = document.getElementById(id);
-        if (el) el.textContent = value;
-        if (alertId) {
-            const badge = document.getElementById(alertId);
-            if (badge) {
-                // Règle spéciale : si c'est du stock sous forme "X/Y", l'alerte s'active si ça commence par "0/"
-                const isAlert = typeof value === 'string' && value.includes('/') 
-                              ? value.startsWith('0/') 
-                              : parseInt(value) >= alertThreshold;
-                badge.classList.toggle('visible', isAlert);
-            }
-        }
-    }
-
-    // MISSIONS
     try {
-        const res = await fetch('/api/game?entity=missions', { headers: h });
-        if (res.ok) {
-            const missions = await res.json();
-            const active = missions.filter(m => m.status === 'ACTIVE').length;
-            setStat('stat-missions-val', active, 'alert-missions', 1);
-            const statEl = document.getElementById('stat-missions');
-            if (statEl) statEl.style.color = active > 0 ? 'var(--accent-danger)' : 'var(--accent-primary)';
-        }
-    } catch(e) { console.warn('Stats missions:', e); }
-
-    // MATÉRIEL
-    try {
-        const res = await fetch('/api/game?entity=equipment', { headers: h });
-        if (res.ok) {
-            const data = await res.json();
-            const inv = Array.isArray(data) ? data : (data.inventory || []);
-            const available = inv.filter(i => !i.assigned_to).length;
-            setStat('stat-gear-val', `${available}/${inv.length}`, 'alert-gear');
-        }
-    } catch(e) { console.warn('Stats gear:', e); }
-
-    // AGENTS
-    try {
-        const res = await fetch('/api/game?entity=users', { headers: h });
-        if (res.ok) {
-            const agents = await res.json();
-            setStat('stat-agents-val', agents.length);
-        }
-    } catch(e) { console.warn('Stats agents:', e); }
-
-    // INVESTIGATION
-    try {
-        const res = await fetch('/api/game?entity=boards', { headers: h });
-        if (res.ok) {
-            const boards = await res.json();
-            setStat('stat-invest-val', boards.length);
-        }
-    } catch(e) { console.warn('Stats invest:', e); }
-
-    // CARTE
-    try {
-        const res = await fetch('/api/game?entity=markers');
-        if (res.ok) {
-            const markers = await res.json();
-            setStat('stat-map-val', markers.length);
-        }
-    } catch(e) { console.warn('Stats map:', e); }
-
-    // MEDICAL (Si rang >= 3)
-    const session = JSON.parse(localStorage.getItem('sas_session') || '{}');
-    if (parseInt(session.rank) >= 3) {
-        try {
-            const res = await fetch('/api/medical', { headers: h });
-            if (res.ok) {
-                const injuries = await res.json();
-                const node = document.querySelector('.node.status-admin[data-orbit="10"][onclick*="medical"]');
-                if (node) {
-                    if (!node.querySelector('.node-stat')) {
-                        const stat = document.createElement('span');
-                        stat.className = 'node-stat';
-                        stat.style.color = 'var(--accent-danger)';
-                        stat.innerHTML = `<span class="node-stat-val" id="stat-med-val">${injuries.length}</span>BLS`;
-                        node.appendChild(stat);
-                        if (injuries.length > 0) {
-                            const alert = document.createElement('span');
-                            alert.className = 'node-alert visible';
-                            node.appendChild(alert);
-                        }
-                    } else {
-                        const valEl = document.getElementById('stat-med-val');
-                        if(valEl) valEl.textContent = injuries.length;
-                    }
-                }
-            }
-        } catch(e) { console.warn('Stats medical:', e); }
-    }
+        const res = await fetch('/api/game?entity=stress', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) { const d = await res.json(); updateStressUI(d.stress_level); }
+    } catch {}
 }
 
+async function adjustStress(amount) {
+    const token = localStorage.getItem('sas_token');
+    try {
+        const res = await fetch('/api/game?entity=stress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ amount })
+        });
+        if (res.ok) { const d = await res.json(); updateStressUI(d.stress_level); }
+    } catch {}
+}
 
-const bodyObserver = new MutationObserver(() => {
-    if (document.body.classList.contains('logged-in')) {
-        updateNodeAccess(); 
-        cascadeNodes();
-        
-        // Démarrer les statistiques au moment de la connexion
-        loadNodeStats();
-        if (!statsInterval) statsInterval = setInterval(loadNodeStats, 30000);
+function updateStressUI(lv) {
+    const fill   = document.getElementById('stress-fill');
+    const pct    = document.getElementById('stress-pct');
+    const status = document.getElementById('stress-status');
+    fill.style.width = lv + '%';
+    pct.textContent = lv + '%';
+    if (lv < 30) {
+        fill.style.background = 'var(--primary)';
+        fill.style.boxShadow = '0 0 6px var(--primary)';
+        status.textContent = 'NEURO-STABLE'; status.style.color = 'var(--primary)';
+        pct.style.color = 'var(--primary)'; targetBPM = 60 + lv / 2;
+    } else if (lv < 70) {
+        fill.style.background = 'var(--warning)';
+        fill.style.boxShadow = '0 0 6px var(--warning)';
+        status.textContent = 'STRESS ÉLEVÉ'; status.style.color = 'var(--warning)';
+        pct.style.color = 'var(--warning)'; targetBPM = 90 + (lv - 30);
     } else {
-        // Arrêter les requêtes réseau lors de la déconnexion
-        if (statsInterval) {
-            clearInterval(statsInterval);
-            statsInterval = null;
-        }
+        fill.style.background = 'var(--danger)';
+        fill.style.boxShadow = '0 0 6px var(--danger)';
+        status.textContent = 'CRITIQUE'; status.style.color = 'var(--danger)';
+        pct.style.color = 'var(--danger)'; targetBPM = 130 + (lv - 70) * 1.5;
     }
-});
-bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-
-
-const rankObserver = new MutationObserver(() => {
-    if (document.body.classList.contains('logged-in')) {
-        updateNodeAccess(); 
-    }
-});
-const miniRankEl = document.getElementById('mini-rank');
-if (miniRankEl) {
-   
-    rankObserver.observe(miniRankEl, { childList: true, characterData: true, subtree: true });
 }
 
+/* ── MISSIONS ── */
+async function loadMissions(username) {
+    const token = localStorage.getItem('sas_token');
+    const container = document.getElementById('my-missions-list');
+    try {
+        const res = await fetch(`/api/game?entity=missions&agent=${username}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const missions = await res.json();
 
-function cascadeNodes() {
-    document.querySelectorAll('.node-sub').forEach((node, i) => {
-        node.animate(
-            [
-                { opacity: 0, scale: '0.1' },
-                { opacity: 1, scale: '1'   }
-            ],
-            {
-                duration: 600,
-                delay:    200 + i * 140,
-                easing:   'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                fill:     'backwards'
-            }
-        );
-    });
+        document.getElementById('ov-missions').textContent = missions.filter(m => m.status === 'ACTIVE').length;
+        document.getElementById('badge-missions').textContent = missions.length;
+
+        if (!missions.length) {
+            container.innerHTML = '<div class="empty-state"><span>🗓</span>AUCUN ORDRE EN ATTENTE</div>';
+            return;
+        }
+        container.innerHTML = missions.map(m => {
+            const date = new Date(m.start_time).toLocaleDateString('fr-FR');
+            return `
+            <div class="mission-card ${m.status}">
+                <div class="mc-header">
+                    <span class="mc-name">${m.title}</span>
+                    <span class="mc-badge ${m.status}">${m.status}</span>
+                </div>
+                <div class="mc-meta">
+                    <span>📍 ${m.location}</span>
+                    <span>📅 ${date}</span>
+                </div>
+            </div>`;
+        }).join('');
+    } catch { container.innerHTML = '<div class="empty-state"><span>!</span>ERREUR RÉSEAU</div>'; }
+}
+
+/* ── EQUIPMENT ── */
+async function loadMyEquipment_profile() {
+    const token = localStorage.getItem('sas_token');
+    const container = document.getElementById('my-equipment-list');
+    if (!token) return;
+    let payload;
+    try { payload = JSON.parse(atob(token.split('.')[1])); } catch { return; }
+    try {
+        const res = await fetch(`/api/game?entity=equipment&assigned_to=${encodeURIComponent(payload.username)}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) return;
+        const items = await res.json();
+        document.getElementById('ov-equip').textContent = items.length;
+        document.getElementById('badge-equip').textContent = items.length;
+        if (!items.length) {
+            container.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><span>📦</span>AUCUNE DOTATION</div>';
+            return;
+        }
+        const icons = { 'ARME':'🔫','RADIO':'📻','TENUE':'👕','VÉHICULE':'🚔' };
+        container.innerHTML = items.map(item => `
+            <div class="equip-card">
+                <div class="equip-icon">${icons[item.category] || '📦'}</div>
+                <div>
+                    <div class="equip-name">${item.item_name}</div>
+                    <div class="equip-sn">${item.serial_number}</div>
+                </div>
+            </div>`).join('');
+    } catch {}
+}
+
+document.addEventListener('DOMContentLoaded', loadMyEquipment_profile);
+
+/* ── WARNINGS ── */
+async function loadWarnings() {
+    const token = localStorage.getItem('sas_token');
+    const container = document.getElementById('warnings-list');
+    try {
+        const res = await fetch('/api/game?entity=my_warnings', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) return;
+        const warns = await res.json();
+        const count = warns.length;
+
+        document.getElementById('ov-warns').textContent = count;
+        document.getElementById('badge-warns').textContent = count > 0 ? `${count}/3` : 'CLEAR';
+
+        const pips = [document.getElementById('w1'), document.getElementById('w2'), document.getElementById('w3')];
+        pips.forEach((p, i) => {
+            p.classList.toggle('active', i < count);
+            if (count >= 3) p.classList.add('critical');
+        });
+
+        const badge = document.getElementById('warn-badge');
+        const txt   = document.getElementById('warn-text');
+        if (count === 0) {
+            badge.textContent = 'SERVICE EXEMPLAIRE'; badge.style.color = 'var(--primary)';
+            txt.textContent = 'AUCUNE INFRACTION'; txt.style.color = 'var(--primary)';
+            container.innerHTML = '<div class="empty-state"><span>✓</span>CASIER VIERGE</div>';
+        } else if (count < 3) {
+            badge.textContent = `ATTENTION (${count}/3)`; badge.style.color = 'var(--warning)';
+            txt.textContent = 'SANCTIONS EN COURS'; txt.style.color = 'var(--warning)';
+        } else {
+            badge.textContent = `CRITIQUE (${count}/3)`; badge.style.color = 'var(--danger)';
+            txt.textContent = 'RENVOI IMMINENT'; txt.style.color = 'var(--danger)';
+        }
+
+        if (count > 0) {
+            container.innerHTML = warns.map(w => {
+                const d = new Date(w.created_at).toLocaleDateString('fr-FR');
+                return `<div class="warn-card">
+                    <div class="warn-date">[ INFRACTION — ${d} ]</div>
+                    <div class="warn-reason">${w.reason}</div>
+                </div>`;
+            }).join('');
+        }
+    } catch { container.innerHTML = '<div class="empty-state"><span>!</span>ERREUR RÉSEAU</div>'; }
+}
+
+/* ── INJURIES ── */
+async function loadInjuries(agentId) {
+    if (!agentId) return;
+    const token = localStorage.getItem('sas_token');
+    const container = document.getElementById('injury-list-display');
+    document.querySelectorAll('.body-part').forEach(p => p.classList.remove('injured'));
+    try {
+        const res = await fetch(`/api/medical?agent_id=${agentId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const injuries = await res.json();
+
+        document.getElementById('ov-injuries').textContent = injuries.length;
+
+        const status = document.getElementById('med-status');
+        if (!injuries.length) {
+            container.innerHTML = '<div class="empty-state"><span>✚</span>AUCUN TRAUMATISME DÉTECTÉ</div>';
+            status.textContent = 'NOMINAL'; status.style.color = 'var(--primary)';
+            return;
+        }
+        status.textContent = 'ATTENTION REQUISE'; status.style.color = 'var(--danger)';
+        injuries.forEach(inj => {
+            const el = document.getElementById('part-' + inj.body_part);
+            if (el) el.classList.add('injured');
+        });
+        container.innerHTML = injuries.map(inj => {
+            const col = inj.severity === 'critical' ? 'var(--danger)' : inj.severity === 'moderate' ? 'var(--warning)' : '#ccc';
+            return `<div class="injury-item sev-${inj.severity}">
+                <div class="inj-zone" style="color:${col}">${(partNames[inj.body_part] || inj.body_part).toUpperCase()}</div>
+                <div class="inj-desc">${inj.description}</div>
+            </div>`;
+        }).join('');
+    } catch {}
+}
+
+/* ── MODALS ── */
+function openPasswordModal() { document.getElementById('password-modal').classList.remove('hidden'); }
+function closePasswordModal() { document.getElementById('password-modal').classList.add('hidden'); }
+
+async function submitPassword(e) {
+    e.preventDefault();
+    const oldP = document.getElementById('pwd-old').value;
+    const newP = document.getElementById('pwd-new').value;
+    const conf = document.getElementById('pwd-confirm').value;
+    if (newP !== conf) { alert('Les mots de passe ne correspondent pas.'); return; }
+    try {
+        const res = await fetch('/api/auth?action=change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('sas_token')}` },
+            body: JSON.stringify({ oldPassword: oldP, newPassword: newP })
+        });
+        const d = await res.json();
+        if (res.ok) { alert('✅ Mot de passe mis à jour.'); closePasswordModal(); }
+        else alert('❌ ' + d.error);
+    } catch { alert('❌ Erreur de connexion.'); }
+}
+
+function openInjuryModal(part) {
+    document.getElementById('inj-part').value = part;
+    document.getElementById('inj-part-display').value = partNames[part] || part;
+    document.getElementById('injury-modal').classList.remove('hidden');
+}
+function closeInjuryModal() { document.getElementById('injury-modal').classList.add('hidden'); }
+
+async function submitInjury(e) {
+    e.preventDefault();
+    const s = JSON.parse(localStorage.getItem('sas_session') || '{}');
+    const payload = {
+        agent_id: s.id,
+        body_part: document.getElementById('inj-part').value,
+        severity: document.getElementById('inj-severity').value,
+        description: document.getElementById('inj-desc').value
+    };
+    try {
+        const res = await fetch('/api/medical', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('sas_token')}` },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) { closeInjuryModal(); loadInjuries(s.id); }
+        else alert('Erreur lors du signalement.');
+    } catch {}
+}
+
+function logout() {
+    document.body.style.transition = 'opacity .4s';
+    document.body.style.opacity = '0';
+    setTimeout(() => {
+        ['sas_session','sas_token','userSecurityLevel'].forEach(k => localStorage.removeItem(k));
+        window.location.href = 'index.html';
+    }, 400);
 }
 </script>
 </body>

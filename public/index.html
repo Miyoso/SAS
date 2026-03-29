@@ -293,7 +293,7 @@
         .node-sub {
             width:  clamp(75px, 14vmin, 110px);
             height: clamp(75px, 14vmin, 110px);
-      
+       
             translate:
                 calc(-50% + sin(var(--angle, 0deg)) * var(--orbit, 25vmin))
                 calc(-50% - cos(var(--angle, 0deg)) * var(--orbit, 25vmin));
@@ -424,6 +424,48 @@
             .node .label { font-size: 0.5rem; }
             .hud-title   { font-size: 0.95rem; }
         }
+
+        /* --- AJOUT STATS NŒUDS --- */
+        .node-stat {
+            position: absolute;
+            bottom: 6px;
+            right: 8px;
+            font-family: var(--font-code);
+            font-size: 0.55rem;
+            letter-spacing: 1px;
+            opacity: 0.85;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .node-stat-val {
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: block;
+            text-align: center;
+            line-height: 1;
+            margin-bottom: 1px;
+        }
+        .node:hover .node-stat { opacity: 1; }
+
+        .node-alert {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-danger);
+            box-shadow: 0 0 6px var(--accent-danger);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            animation: pulseBadge 2s infinite;
+        }
+        .node-alert.visible { opacity: 1; }
+        @keyframes pulseBadge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
     </style>
 </head>
 <body>
@@ -434,7 +476,6 @@
 
 <canvas id="neural-network" role="presentation" aria-hidden="true"></canvas>
 
-<!-- Tooltip flottant pour nœuds verrouillés -->
 <div id="node-tooltip" role="tooltip" aria-hidden="true"></div>
 
 
@@ -494,18 +535,10 @@
 
 <div class="neural-dashboard auth-content" role="navigation" aria-label="Modules du système">
 
-    <!-- Anneaux d'orbite -->
-    <div class="orbit orbit-1" aria-hidden="true">
-        <
-    </div>
-    <div class="orbit orbit-2" aria-hidden="true">
-        
-    </div>
-    <div class="orbit orbit-10" aria-hidden="true">
-        
-    </div>
+    <div class="orbit orbit-1" aria-hidden="true"></div>
+    <div class="orbit orbit-2" aria-hidden="true"></div>
+    <div class="orbit orbit-10" aria-hidden="true"></div>
 
-    <!-- Lignes synaptiques -->
     <svg class="synapse-lines" aria-hidden="true">
         <line x1="50%" y1="50%" x2="62.5%"  y2="28.35%"/>
         <line x1="50%" y1="50%" x2="75%"    y2="50%"   />
@@ -540,6 +573,10 @@
         <span class="lock-badge" aria-hidden="true">🔒</span>
         <span class="icon" aria-hidden="true">👥</span>
         <span class="label">AGENTS</span>
+        <span class="node-stat" id="stat-agents" style="color:var(--accent-secondary)">
+            <span class="node-stat-val" id="stat-agents-val">—</span>OPS
+        </span>
+        <span class="node-alert" id="alert-agents"></span>
     </button>
 
     <button class="node node-sub" data-orbit="1"
@@ -550,6 +587,10 @@
         <span class="lock-badge" aria-hidden="true">🔒</span>
         <span class="icon" aria-hidden="true">🗓️</span>
         <span class="label">MISSIONS</span>
+        <span class="node-stat" id="stat-missions" style="color:var(--accent-danger)">
+            <span class="node-stat-val" id="stat-missions-val">—</span>LIVE
+        </span>
+        <span class="node-alert" id="alert-missions"></span>
     </button>
 
     <button class="node node-sub" data-orbit="1"
@@ -560,6 +601,9 @@
         <span class="lock-badge" aria-hidden="true">🔒</span>
         <span class="icon" aria-hidden="true">🗺️</span>
         <span class="label">CARTE LIVE</span>
+        <span class="node-stat" id="stat-map" style="color:var(--accent-primary)">
+            <span class="node-stat-val" id="stat-map-val">—</span>MKR
+        </span>
     </button>
 
     <button class="node node-sub" data-orbit="1"
@@ -570,6 +614,9 @@
         <span class="lock-badge" aria-hidden="true">🔒</span>
         <span class="icon" aria-hidden="true">📝</span>
         <span class="label">RAPPORTS</span>
+        <span class="node-stat" id="stat-reports" style="color:var(--accent-primary)">
+            <span class="node-stat-val" id="stat-reports-val">GEN</span>AUTO
+        </span>
     </button>
 
     <button class="node node-sub" data-orbit="1"
@@ -580,6 +627,9 @@
         <span class="lock-badge" aria-hidden="true">🔒</span>
         <span class="icon" aria-hidden="true">📜</span>
         <span class="label">ARCHIVES</span>
+        <span class="node-stat" id="stat-rules" style="color:var(--accent-primary)">
+            <span class="node-stat-val" id="stat-rules-val">V4</span>REG
+        </span>
     </button>
 
     <button class="node node-sub" data-orbit="1"
@@ -590,6 +640,10 @@
         <span class="lock-badge" aria-hidden="true">🔒</span>
         <span class="icon" aria-hidden="true">📦</span>
         <span class="label">MATÉRIEL</span>
+        <span class="node-stat" id="stat-gear" style="color:var(--accent-restricted)">
+            <span class="node-stat-val" id="stat-gear-val">—</span>DISPO
+        </span>
+        <span class="node-alert" id="alert-gear"></span>
     </button>
 
   
@@ -602,6 +656,9 @@
         <span class="lock-badge" aria-hidden="true">🔒</span>
         <span class="icon" aria-hidden="true">🔍</span>
         <span class="label">ENQUÊTES</span>
+        <span class="node-stat" id="stat-invest" style="color:var(--accent-restricted)">
+            <span class="node-stat-val" id="stat-invest-val">—</span>OPEN
+        </span>
     </button>
 
     <button class="node node-sub status-restricted" data-orbit="2"
@@ -613,6 +670,9 @@
         <span class="lock-badge" aria-hidden="true">🔒</span>
         <span class="icon" aria-hidden="true">🎯</span>
         <span class="label">CIBLES VIP</span>
+        <span class="node-stat" id="stat-vip" style="color:var(--accent-restricted)">
+            <span class="node-stat-val" id="stat-vip-val">N/A</span>CLASS
+        </span>
     </button>
 
    
@@ -807,10 +867,124 @@ function updateNodeAccess() {
 }
 
 
+// --- GESTION DES STATISTIQUES ---
+let statsInterval = null;
+
+async function loadNodeStats() {
+    const token = localStorage.getItem('sas_token');
+    if (!token) return;
+    const h = { 'Authorization': `Bearer ${token}` };
+
+    function setStat(id, value, alertId = null, alertThreshold = 1) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+        if (alertId) {
+            const badge = document.getElementById(alertId);
+            if (badge) {
+                // Règle spéciale : si c'est du stock sous forme "X/Y", l'alerte s'active si ça commence par "0/"
+                const isAlert = typeof value === 'string' && value.includes('/') 
+                              ? value.startsWith('0/') 
+                              : parseInt(value) >= alertThreshold;
+                badge.classList.toggle('visible', isAlert);
+            }
+        }
+    }
+
+    // MISSIONS
+    try {
+        const res = await fetch('/api/game?entity=missions', { headers: h });
+        if (res.ok) {
+            const missions = await res.json();
+            const active = missions.filter(m => m.status === 'ACTIVE').length;
+            setStat('stat-missions-val', active, 'alert-missions', 1);
+            const statEl = document.getElementById('stat-missions');
+            if (statEl) statEl.style.color = active > 0 ? 'var(--accent-danger)' : 'var(--accent-primary)';
+        }
+    } catch(e) { console.warn('Stats missions:', e); }
+
+    // MATÉRIEL
+    try {
+        const res = await fetch('/api/game?entity=equipment', { headers: h });
+        if (res.ok) {
+            const data = await res.json();
+            const inv = Array.isArray(data) ? data : (data.inventory || []);
+            const available = inv.filter(i => !i.assigned_to).length;
+            setStat('stat-gear-val', `${available}/${inv.length}`, 'alert-gear');
+        }
+    } catch(e) { console.warn('Stats gear:', e); }
+
+    // AGENTS
+    try {
+        const res = await fetch('/api/game?entity=users', { headers: h });
+        if (res.ok) {
+            const agents = await res.json();
+            setStat('stat-agents-val', agents.length);
+        }
+    } catch(e) { console.warn('Stats agents:', e); }
+
+    // INVESTIGATION
+    try {
+        const res = await fetch('/api/game?entity=boards', { headers: h });
+        if (res.ok) {
+            const boards = await res.json();
+            setStat('stat-invest-val', boards.length);
+        }
+    } catch(e) { console.warn('Stats invest:', e); }
+
+    // CARTE
+    try {
+        const res = await fetch('/api/game?entity=markers');
+        if (res.ok) {
+            const markers = await res.json();
+            setStat('stat-map-val', markers.length);
+        }
+    } catch(e) { console.warn('Stats map:', e); }
+
+    // MEDICAL (Si rang >= 3)
+    const session = JSON.parse(localStorage.getItem('sas_session') || '{}');
+    if (parseInt(session.rank) >= 3) {
+        try {
+            const res = await fetch('/api/medical', { headers: h });
+            if (res.ok) {
+                const injuries = await res.json();
+                const node = document.querySelector('.node.status-admin[data-orbit="10"][onclick*="medical"]');
+                if (node) {
+                    if (!node.querySelector('.node-stat')) {
+                        const stat = document.createElement('span');
+                        stat.className = 'node-stat';
+                        stat.style.color = 'var(--accent-danger)';
+                        stat.innerHTML = `<span class="node-stat-val" id="stat-med-val">${injuries.length}</span>BLS`;
+                        node.appendChild(stat);
+                        if (injuries.length > 0) {
+                            const alert = document.createElement('span');
+                            alert.className = 'node-alert visible';
+                            node.appendChild(alert);
+                        }
+                    } else {
+                        const valEl = document.getElementById('stat-med-val');
+                        if(valEl) valEl.textContent = injuries.length;
+                    }
+                }
+            }
+        } catch(e) { console.warn('Stats medical:', e); }
+    }
+}
+
+
 const bodyObserver = new MutationObserver(() => {
     if (document.body.classList.contains('logged-in')) {
         updateNodeAccess(); 
         cascadeNodes();
+        
+        // Démarrer les statistiques au moment de la connexion
+        loadNodeStats();
+        if (!statsInterval) statsInterval = setInterval(loadNodeStats, 30000);
+    } else {
+        // Arrêter les requêtes réseau lors de la déconnexion
+        if (statsInterval) {
+            clearInterval(statsInterval);
+            statsInterval = null;
+        }
     }
 });
 bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
