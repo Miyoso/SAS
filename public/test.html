@@ -3,836 +3,786 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS - User Profile [CLASSIFIED]</title>
-
-    <script>
-        const session = localStorage.getItem('sas_session');
-        if (!session) {
-            window.location.href = 'index.html';
-        }
-    </script>
-
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style-mo.css">
-
+    <title>SAS MAINFRAME // LIAISON NEURONALE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
-            --panel-bg: rgba(11, 14, 17, 0.85);
-            --panel-border: #333;
+            --accent-primary:    #00ff9d;
+            --accent-secondary:  #00b8ff;
+            --accent-danger:     #ff2a2a;
+            --accent-restricted: #ffaa00;
+            --font-code:    'JetBrains Mono', monospace;
+            --font-display: 'Share Tech Mono', monospace;
+            --bg-glass:     rgba(6, 10, 15, 0.65);
         }
 
-        body {
-            justify-content: center;
-            padding: 20px;
-            align-items: flex-start;
-            height: 100vh;
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
             overflow: hidden;
+            background: radial-gradient(circle at center, #050914 0%, #010203 100%);
+            color: #fff;
+            font-family: var(--font-display);
+        }
+        .scanlines {
+            position: fixed; inset: 0;
+            background: linear-gradient(to bottom,
+                rgba(255,255,255,0), rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+            pointer-events: none; z-index: 999; opacity: 0.6;
+        }
+        .vignette {
+            position: fixed; inset: 0;
+            box-shadow: 0 0 150px rgba(0,0,0,0.9) inset;
+            pointer-events: none; z-index: 998;
         }
 
-        .profile-layout {
-            display: flex;
-            gap: 30px;
-            width: 100%;
-            max-width: 1600px;
-            height: calc(100vh - 40px);
-            opacity: 0;
-            animation: slideIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        .auth-content                { display: none !important; }
+        body.logged-in .auth-content { display: flex !important; }
+        body.logged-in #login-overlay { display: none !important; }
+
+        #neural-network {
+            position: fixed; inset: 0;
+            z-index: 0; opacity: 0.6;
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+        .sr-only {
+            position: absolute; width: 1px; height: 1px;
+            padding: 0; margin: -1px; overflow: hidden;
+            clip: rect(0,0,0,0); white-space: nowrap; border: 0;
         }
 
-        /* --- SIDEBAR --- */
-        .sidebar {
-            width: 320px;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            height: 100%;
-            overflow-y: auto;
+        #login-overlay {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            height: 100vh; width: 100vw;
+            position: relative; z-index: 10;
         }
-
-        .sidebar::-webkit-scrollbar { width: 4px; }
-        .sidebar::-webkit-scrollbar-thumb { background: var(--primary); }
-
-        /* --- STYLES COMMUNS (Clip-path & Hover) --- */
-        .cut-panel {
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-left: 3px solid var(--secondary);
-            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
-            padding: 20px;
-            transition: all 0.3s ease;
+        .login-box {
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 255, 157, 0.3);
+            border-radius: 50%;
+            width: min(380px, 88vw); height: min(380px, 88vw);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             position: relative;
+            box-shadow: 0 0 40px rgba(0, 255, 157, 0.1), inset 0 0 20px rgba(0, 255, 157, 0.05);
+            animation: systemBoot 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+                       floatAnim 6s ease-in-out 1.5s infinite;
+            will-change: transform;
         }
-
-        .cut-panel:hover {
-            border-left-color: var(--primary);
-            box-shadow: -5px 0 15px rgba(0, 255, 157, 0.1);
+        .login-box::before {
+            content: ''; position: absolute; inset: -2px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, transparent, var(--accent-primary), transparent, var(--accent-secondary));
+            z-index: -1; animation: spinBg 4s linear infinite; opacity: 0.5;
         }
-
-        .cut-panel::after {
-            content: '';
-            position: absolute;
-            bottom: -1px; right: -1px;
-            border-bottom: 20px solid var(--secondary);
-            border-left: 20px solid transparent;
-            transition: 0.3s ease;
+        .login-title {
+            font-family: var(--font-code);
+            font-size: clamp(0.85rem, 3vw, 1.3rem);
+            color: #fff; text-align: center;
+            letter-spacing: 3px; margin-bottom: 20px;
+            text-shadow: 0 0 15px var(--accent-primary);
         }
-        .cut-panel:hover::after { border-bottom-color: var(--primary); }
-
-        /* --- MAIN CONTENT & TABS --- */
-        .main-content {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            overflow: hidden;
+        .login-field { margin-bottom: 14px; width: 100%; text-align: center; }
+        .login-field .cmd-input {
+            width: 82%; background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 255, 157, 0.2);
+            border-radius: 4px; color: var(--accent-primary);
+            padding: 10px; font-size: clamp(0.75rem, 2.5vw, 1rem);
+            text-align: center; font-family: var(--font-code);
+            outline: none; transition: all 0.3s ease;
         }
-
-        .tabs-nav {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
-        }
-
-        .tab-btn {
-            background: transparent;
-            border: 1px solid transparent;
-            color: #888;
-            padding: 10px 20px;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 1rem;
-            cursor: pointer;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            transition: 0.3s;
-            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
-        }
-
-        .tab-btn:hover {
-            color: #ccc;
-            background: rgba(255,255,255,0.05);
-        }
-
-        .tab-btn.active {
-            color: var(--primary);
-            border-bottom: 2px solid var(--primary);
+        .login-field .cmd-input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
             background: rgba(0, 255, 157, 0.05);
         }
-
-        .tab-pane {
-            display: none;
-            flex-grow: 1;
-            overflow-y: auto;
-            animation: fadeIn 0.4s ease;
+        #login-msg {
+            min-height: 20px;
+            font-family: var(--font-code);
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            text-align: center;
         }
-
-        .tab-pane.active {
-            display: block;
+        .btn-connect {
+            background: rgba(0, 255, 157, 0.1);
+            color: var(--accent-primary);
+            border: 1px solid var(--accent-primary);
+            padding: 12px 25px;
+            font-family: var(--font-code); font-weight: bold;
+            letter-spacing: 1px; cursor: pointer;
+            transition: all 0.3s; margin-top: 15px;
+            border-radius: 30px; text-transform: uppercase; white-space: nowrap;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .btn-connect:hover {
+            background: var(--accent-primary); color: #000;
+            box-shadow: 0 0 25px var(--accent-primary); scale: 1.05;
         }
-
-        /* --- ID CARD SPECIFICS --- */
-        .hero-section { margin: 0; padding: 0; display: flex; justify-content: center; }
-        .id-card-container { width: 100%; max-width: 280px; perspective: 1000px; }
-        
-        .holo-overlay {
-            background: linear-gradient(125deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 40%, rgba(0,255,157,0.2) 50%, rgba(255,255,255,0) 60%);
-            background-size: 200% 200%;
-            animation: holoFlow 4s infinite linear;
-        }
-        @keyframes holoFlow {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        /* --- BUTTONS --- */
         .btn-logout {
-            background: transparent; border: 1px solid var(--danger); color: var(--danger);
-            padding: 10px; font-family: 'Share Tech Mono'; cursor: pointer;
-            text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; width: 100%;
-            margin-top: 10px; text-align: center;
+            font-size: 0.7rem; padding: 8px 15px;
+            border-color: rgba(255,255,255,0.3);
+            color: #fff; margin-top: 0;
         }
-        .btn-logout:hover { background: rgba(255, 51, 51, 0.1); box-shadow: 0 0 15px rgba(255, 51, 51, 0.3); }
-
-        .btn-security {
-            background: transparent; border: 1px solid var(--warning); color: var(--warning);
-            padding: 10px; font-family: 'Share Tech Mono'; cursor: pointer;
-            text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; width: 100%;
+        .btn-logout:hover { background: rgba(255,255,255,0.15); color: #fff; scale: 1.05; }
+        .hud-overlay {
+            position: fixed; top: 30px; left: 30px;
+            pointer-events: none; z-index: 100;
+            border-left: 3px solid var(--accent-primary);
+            padding: 10px 20px;
+            background: linear-gradient(90deg, rgba(0,255,157,0.1) 0%, transparent 100%);
         }
-        .btn-security:hover { background: rgba(238, 187, 0, 0.1); box-shadow: 0 0 15px rgba(238, 187, 0, 0.3); }
+        .hud-title {
+            font-family: var(--font-code); font-size: 1.2rem; letter-spacing: 2px;
+        }
+        .hud-title-accent  { color: var(--accent-primary); }
+        .hud-status        { font-size: 0.8rem; color: var(--accent-primary); margin-top: 5px; }
+        .hud-meta          { font-size: 0.7rem; font-family: var(--font-code); margin-top: 5px; }
+        .hud-meta-dim      { opacity: 0.8; }
+        .hud-meta-dimmer   { opacity: 0.6; }
 
-        /* --- UTILS --- */
-        .default-avatar {
-            width: 100%; height: 100%; background: #111;
+        .hud-top-right {
+            position: fixed; top: 30px; right: 30px;
+            text-align: right; pointer-events: auto; z-index: 100;
+            display: flex; align-items: center; gap: 15px;
+        }
+        .hud-avatar {
+            width: 40px; height: 40px;
+            border-radius: 50%; border: 1px solid var(--accent-primary);
+        }
+
+        .system-logs-container {
+            position: fixed; bottom: 30px; left: 30px;
+            width: 300px; z-index: 100;
+            font-family: var(--font-code); font-size: 0.65rem;
+        }
+        .log-list {
+            list-style: none; padding: 0; margin: 0;
+            display: flex; flex-direction: column-reverse; gap: 6px;
+        }
+        .log-item {
+            background: rgba(0, 255, 157, 0.05);
+            border-left: 2px solid var(--accent-primary);
+            padding: 5px 10px; opacity: 0;
+            animation: logIn 0.3s forwards;
+        }
+        .log-item.alert {
+            border-color: var(--accent-danger);
+            background: rgba(255, 42, 42, 0.05);
+            color: var(--accent-danger);
+        }
+        .log-time { opacity: 0.5; margin-right: 8px; font-size: 0.55rem; }
+
+        .neural-dashboard {
+            position: relative; width: 100vw; height: 100vh;
             display: flex; align-items: center; justify-content: center;
-            font-size: 3rem; color: #333;
+            z-index: 5; animation: fadeIn 2s ease-out;
+        }
+        .orbit {
+            position: absolute; top: 50%; left: 50%;
+            translate: -50% -50%;
+            border-radius: 50%; pointer-events: none; z-index: 1;
+        }
+        .orbit-1  { width: 50vmin; height: 50vmin;  border: 1px dashed rgba(0, 255, 157, 0.15); }
+        .orbit-2  { width: 75vmin; height: 75vmin;  border: 1px dashed rgba(255, 170, 0, 0.15); }
+        .orbit-10 { width: 95vmin; height: 95vmin;  border: 1px dashed rgba(255, 42, 42, 0.15); }
+        .orbit-label {
+            position: absolute; bottom: -8px; left: 50%;
+            translate: -50% 0;
+            background: var(--bg-glass); padding: 0 10px;
+            font-family: var(--font-code); font-size: 0.65rem;
+            color: rgba(255,255,255,0.4); letter-spacing: 3px;
+            white-space: nowrap; border-radius: 10px;
+        }
+        .orbit-label-classified { color: var(--accent-danger); }
+
+        .synapse-lines {
+            position: absolute; top: 50%; left: 50%;
+            translate: -50% -50%;
+            width: 100vmin; height: 100vmin; z-index: 1; pointer-events: none;
+        }
+        .synapse-lines line {
+            stroke: rgba(0, 255, 157, 0.25); stroke-width: 1.5;
+            stroke-dasharray: 6 4; animation: dataFlow 30s linear infinite reverse;
+        }
+        .synapse-lines line.restricted { stroke: rgba(255, 170, 0, 0.3); }
+        .synapse-lines line.admin      { stroke: rgba(255, 42, 42, 0.3); }
+
+        .node {
+            position: absolute; top: 50%; left: 50%;
+            border-radius: 50%;
+            background: var(--bg-glass);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 255, 157, 0.4);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: box-shadow 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                        background 0.4s, border-color 0.4s, opacity 0.3s, filter 0.3s;
+            z-index: 10; color: #fff; padding: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .node::after {
+            content: ''; position: absolute; inset: 5px;
+            border-radius: 50%; border: 1px solid rgba(255,255,255,0.05);
+            pointer-events: none;
+        }
+        .node:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 35px rgba(0, 255, 157, 0.4), inset 0 0 20px rgba(0, 255, 157, 0.2);
+            z-index: 20; background: rgba(0, 255, 157, 0.15);
+        }
+        .node .icon {
+            font-size: clamp(1.2rem, 3vmin, 1.8rem); margin-bottom: 5px;
+            filter: drop-shadow(0 0 8px rgba(0, 255, 157, 0.6));
+            transition: scale 0.3s;
+        }
+        .node:hover .icon { scale: 1.1; }
+        .node .label {
+            font-family: var(--font-code);
+            font-size: clamp(0.55rem, 1.2vmin, 0.7rem);
+            text-align: center; letter-spacing: 2px;
+            opacity: 0.7; transition: opacity 0.3s;
+        }
+        .node:hover .label { opacity: 1; text-shadow: 0 0 10px var(--accent-primary); }
+
+        .node-core {
+            width: clamp(120px, 20vmin, 180px);
+            height: clamp(120px, 20vmin, 180px);
+            translate: -50% -50%;
+            border: 2px solid var(--accent-primary);
+            box-shadow: 0 0 40px rgba(0, 255, 157, 0.2), inset 0 0 30px rgba(0, 255, 157, 0.1);
+            background: rgba(6, 10, 15, 0.85);
+            will-change: transform, box-shadow;
+        }
+        .node-core::before {
+            content: ''; position: absolute; inset: -15px;
+            border-radius: 50%; border: 2px dashed rgba(0, 184, 255, 0.5);
+            animation: spinBg 15s linear infinite; pointer-events: none;
+        }
+        .node-core::after {
+            content: ''; position: absolute; inset: -25px;
+            border-radius: 50%; border: 1px dotted rgba(0, 255, 157, 0.3);
+            animation: spinBg 25s linear infinite reverse; pointer-events: none;
+        }
+        .node-core:hover { scale: 1.05; }
+        .node-core .icon  { font-size: clamp(2rem, 5vmin, 3.5rem); }
+        .node-core .label { font-weight: bold; opacity: 1; }
+
+        .node-sub {
+            width:  clamp(75px, 14vmin, 110px);
+            height: clamp(75px, 14vmin, 110px);
+            translate:
+                calc(-50% + sin(var(--angle, 0deg)) * var(--orbit, 25vmin))
+                calc(-50% - cos(var(--angle, 0deg)) * var(--orbit, 25vmin));
+            animation: floatAnim 4s ease-in-out infinite;
+            animation-delay: var(--float-delay, 0s);
+            will-change: transform, box-shadow;
+        }
+        .node-sub:hover {
+            scale: 1.15;
+            animation-play-state: paused;
+        }
+
+        .node.status-restricted { border-color: var(--accent-restricted); }
+        .node.status-restricted:hover {
+            box-shadow: 0 0 35px rgba(255, 170, 0, 0.5), inset 0 0 20px rgba(255, 170, 0, 0.2);
+            background: rgba(255, 170, 0, 0.15); border-color: var(--accent-restricted);
+        }
+        .node.status-restricted .icon {
+            filter: drop-shadow(0 0 8px rgba(255, 170, 0, 0.6));
+        }
+        .node.status-admin { border-color: var(--accent-danger); }
+        .node.status-admin:hover {
+            box-shadow: 0 0 40px rgba(255, 42, 42, 0.6), inset 0 0 25px rgba(255, 42, 42, 0.3);
+            background: rgba(255, 42, 42, 0.2); border-color: var(--accent-danger);
+        }
+        .node.status-admin .icon {
+            filter: drop-shadow(0 0 10px rgba(255, 42, 42, 0.8));
+        }
+
+        .node.node-locked {
+            opacity: 0.42;
+            filter: saturate(0.25);
+            cursor: not-allowed;
+        }
+        .node.node-locked:hover {
+            scale: 1;
         }
         
-        .panel-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #444; padding-bottom: 10px; margin-bottom: 15px; }
-        .panel-title { font-family: 'Share Tech Mono'; font-size: 1.2rem; color: var(--primary); letter-spacing: 2px; }
-
-        /* SCROLLBARS */
-        .tab-pane::-webkit-scrollbar, #injury-list-display::-webkit-scrollbar { width: 5px; }
-        .tab-pane::-webkit-scrollbar-track, #injury-list-display::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
-        .tab-pane::-webkit-scrollbar-thumb, #injury-list-display::-webkit-scrollbar-thumb { background: var(--secondary); }
-
-        /* MODALS */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
-            z-index: 10000; display: flex; justify-content: center; align-items: center;
+        .lock-badge {
+            display: none;
+            position: absolute; top: 5px; right: 5px;
+            font-size: 0.6rem;
+            background: rgba(0,0,0,0.65);
+            border-radius: 50%; width: 17px; height: 17px;
+            align-items: center; justify-content: center;
+            z-index: 2;
         }
-        .hidden { display: none !important; }
-        .modal-box { background: #0b0e11; border: 1px solid var(--warning); box-shadow: 0 0 50px rgba(238, 187, 0, 0.1); width: 400px; padding: 0; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%); }
-        .modal-top { padding: 15px 25px; border-bottom: 1px solid #333; background: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center; }
-        .modal-title { font-family: 'Share Tech Mono'; color: var(--warning); letter-spacing: 2px; }
-        .form-input, .form-textarea, select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid #444; color: #fff; padding: 10px; margin-top: 5px; font-family: 'JetBrains Mono'; outline: none; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { color: #888; font-size: 0.7rem; letter-spacing: 1px; }
-        .btn-confirm { background: var(--warning); color: #000; border: none; padding: 10px 20px; font-family: 'Share Tech Mono'; font-weight: bold; cursor: pointer; }
-        .btn-cancel { background: transparent; border: 1px solid #666; color: #888; padding: 10px 20px; font-family: 'Share Tech Mono'; cursor: pointer; }
+        .node.node-locked .lock-badge { display: flex; }
 
-        /* PHYSIQUE SVG */
-        .body-part { fill: rgba(0, 255, 157, 0.1); stroke: var(--primary); stroke-width: 1; cursor: pointer; transition: 0.3s; }
-        .body-part:hover { fill: rgba(0, 255, 157, 0.3); }
-        .body-part.injured { fill: rgba(255, 51, 51, 0.6); stroke: var(--danger); animation: pulseInjure 2s infinite; }
-        @keyframes pulseInjure { 0% {opacity: 0.6;} 50% {opacity: 1;} 100% {opacity: 0.6;} }
+        #node-tooltip {
+            position: fixed;
+            background: rgba(4, 8, 12, 0.97);
+            border: 1px solid var(--accent-restricted);
+            color: var(--accent-restricted);
+            font-family: var(--font-code); font-size: 0.65rem;
+            letter-spacing: 1px; padding: 6px 12px;
+            border-radius: 4px; pointer-events: none; z-index: 1001;
+            opacity: 0; translate: 0 5px;
+            transition: opacity 0.15s ease, translate 0.15s ease;
+            white-space: nowrap;
+            box-shadow: 0 0 12px rgba(255,170,0,0.25);
+        }
+        #node-tooltip.visible   { opacity: 1; translate: 0 0; }
+        #node-tooltip.admin-tip {
+            border-color: var(--accent-danger);
+            color: var(--accent-danger);
+            box-shadow: 0 0 12px rgba(255,42,42,0.3);
+        }
+
+        .glitch-anim {
+            animation: glitchError 0.3s cubic-bezier(.25,.46,.45,.94) both infinite;
+            border-color: var(--accent-danger) !important;
+            box-shadow: 0 0 15px rgba(255,42,42,0.4), inset 0 0 15px rgba(255,42,42,0.4) !important;
+        }
+        .term-error { color: var(--accent-danger);   text-shadow: 0 0 5px var(--accent-danger); }
+        .term-info  { color: var(--accent-secondary); text-shadow: 0 0 5px var(--accent-secondary); }
+        .term-dim   { color: rgba(255,255,255,0.5); }
+        .blink      { animation: blinkAnim 1s infinite; }
+
+        .node-stat {
+            position: absolute;
+            bottom: 6px;
+            right: 8px;
+            font-family: var(--font-code);
+            font-size: 0.55rem;
+            letter-spacing: 1px;
+            opacity: 0.85;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .node-stat-val {
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: block;
+            text-align: center;
+            line-height: 1;
+            margin-bottom: 1px;
+        }
+        .node:hover .node-stat { opacity: 1; }
+        .node-alert {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-danger);
+            box-shadow: 0 0 6px var(--accent-danger);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            animation: pulseBadge 2s infinite;
+        }
+        .node-alert.visible { opacity: 1; }
+
+        @keyframes glitchError {
+            0%   { transform: translate(0) }
+            20%  { transform: translate(-4px,  2px) }
+            40%  { transform: translate(-4px, -2px) }
+            60%  { transform: translate( 4px,  2px) }
+            80%  { transform: translate( 4px, -2px) }
+            100% { transform: translate(0) }
+        }
+        @keyframes blinkAnim  { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes logIn      {
+            from { opacity: 0; transform: translateX(-10px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes spinBg     { to { rotate: 360deg; } }
+        @keyframes floatAnim  { 0%, 100% { margin-top: 0; } 50% { margin-top: -8px; } }
+        @keyframes dataFlow   { to { stroke-dashoffset: 1000; } }
+        @keyframes systemBoot {
+            0%   { opacity: 0; transform: scale(0.8) translateY(30px); filter: blur(20px); }
+            100% { opacity: 1; transform: scale(1)   translateY(0);    filter: blur(0);   }
+        }
+        @keyframes fadeIn     {
+            from { opacity: 0; filter: blur(10px); }
+            to   { opacity: 1; filter: blur(0); }
+        }
+        @keyframes pulseBadge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        @media (max-width: 768px) {
+            .hud-overlay         { top: 12px; left: 12px; padding: 8px 14px; }
+            .hud-top-right       { top: 12px; right: 12px; }
+            .system-logs-container { display: none; }
+            .node-sub[data-orbit="1"]  { --orbit: 23vmin; }
+            .node-sub[data-orbit="2"]  { --orbit: 35vmin; }
+            .node-sub[data-orbit="10"] { --orbit: 43vmin; }
+            .orbit-1  { width: 46vmin; height: 46vmin; }
+            .orbit-2  { width: 70vmin; height: 70vmin; }
+            .orbit-10 { width: 88vmin; height: 88vmin; }
+        }
+        @media (max-width: 480px) {
+            .node-sub  { width: clamp(58px, 11vmin, 80px); height: clamp(58px, 11vmin, 80px); }
+            .node .icon  { font-size: 1.2rem; }
+            .node .label { font-size: 0.5rem; }
+            .hud-title   { font-size: 0.95rem; }
+        }
     </style>
 </head>
 <body>
 
-<div class="profile-layout">
-    
-    <aside class="sidebar">
-        
-        <header class="cut-panel" style="padding: 15px;">
-            <div style="font-family: 'Share Tech Mono'; font-size: 1.2rem;">DOSSIER :: <span id="header-username" style="color:var(--primary);">UNKNOWN</span></div>
-            <div style="display:flex; justify-content: space-between; margin-top: 5px; font-size: 0.75rem;">
-                <span style="color: var(--primary)">STATUS: ONLINE</span>
-                <span class="blink" id="session-id" style="color: #888;">...</span>
-            </div>
-        </header>
+<div class="scanlines"></div>
+<div class="vignette"></div>
 
-        <section class="hero-section">
-            <div class="id-card-container">
-                <div class="id-card" id="card">
-                    <div class="holo-overlay"></div>
+<canvas id="neural-network" role="presentation" aria-hidden="true"></canvas>
 
-                    <div class="card-header">
-                        <div class="card-logo-text">SHADOW CO.</div>
-                        <div class="security-level" id="card-rank-badge" style="background: var(--primary); color: #000;">OPERATOR</div>
-                    </div>
+<div id="node-tooltip" role="tooltip" aria-hidden="true"></div>
 
-                    <div class="card-body">
-                        <div class="photo-box" style="border-color: var(--secondary); overflow:hidden;">
-                            <div class="default-avatar" id="user-avatar-container">👤</div>
-                        </div>
-                        <div class="agent-info">
-                            <div class="card-label">NOM DE CODE</div>
-                            <div class="card-value" id="card-username">...</div>
-
-                            <div class="card-label">UNITÉ</div>
-                            <div class="card-value" style="color: var(--secondary);">FIELD OPS</div>
-
-                            <div class="card-label">ACCRÉDITATION</div>
-                            <div class="card-code" id="card-rank-code">LVL-?-UNDEF</div>
-                        </div>
-                    </div>
-
-                    <div class="card-footer">
-                        <div class="barcode" style="font-family: 'Libre Barcode 128 Text', cursive;">1100101010</div>
-                        <div class="chip"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <div class="cut-panel">
-            <div class="panel-header" style="margin-bottom: 10px; padding-bottom: 5px;">
-                <span class="panel-title" style="font-size: 1rem;">BIO_METRICS</span>
-                <span style="color:var(--danger); font-size:0.7rem;" class="blink">LIVE_FEED</span>
-            </div>
-
-            <div class="biometric-row" style="display: flex; flex-direction: column; gap: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span class="label" style="font-size: 0.7rem; color: #888;">HR_BPM</span>
-                    <span id="bpm-value" style="font-size: 1.5rem; color: var(--primary); font-weight: bold; font-family: 'Share Tech Mono';">--</span>
-                </div>
-                <div class="ecg-wrapper" style="width: 100%; height: 60px; position: relative;">
-                    <canvas id="ecg-canvas"></canvas>
-                    <div class="ecg-overlay"></div>
-                </div>
-            </div>
-
-            <div style="border-top: 1px dashed #444; margin: 15px 0;"></div>
-
-            <div class="psy-section">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size: 0.7rem;">
-                    <span class="label" style="color: #888;">CORTISOL_LVL</span>
-                    <span id="stress-pct" style="color: var(--secondary); font-family: 'Share Tech Mono'; font-size: 0.9rem;">0%</span>
-                </div>
-
-                <div class="progress-track" style="height: 8px; background: rgba(255,255,255,0.1); margin-bottom: 5px;">
-                    <div id="stress-bar" style="height: 100%; width: 0%; transition: width 0.3s, background-color 0.3s;"></div>
-                </div>
-
-                <div class="psy-status-text" id="psy-status-text" style="font-size: 0.75rem; text-align: right; margin-bottom: 10px;">
-                    NEURO-STABLE
-                </div>
-
-                <div class="psy-controls" style="display: flex; gap: 5px;">
-                    <button onclick="adjustStress(-10)" style="flex:1; background:transparent; border:1px solid #444; color:#888; font-family:'Share Tech Mono'; cursor:pointer;">[- CALM]</button>
-                    <button onclick="adjustStress(10)" style="flex:1; background:transparent; border:1px solid #444; color:#888; font-family:'Share Tech Mono'; cursor:pointer;">[+ STRESS]</button>
-                </div>
-            </div>
+<section id="login-overlay" aria-label="Authentification système">
+    <div class="login-box" id="login-box">
+        <div class="login-title">&gt;_ LIAISON SYNAPTIQUE</div>
+        <div class="login-field">
+            <input type="text" id="login-username" class="cmd-input" placeholder="[ EMPREINTE_CORTICALE ]" autocomplete="off" autofocus>
         </div>
-
-        <div class="cut-panel" style="padding: 15px; margin-bottom: 20px;">
-            <button onclick="openPasswordModal()" class="btn-security">[ CONFIG SÉCURITÉ ]</button>
-            <button onclick="logout()" class="btn-logout">[ TERMINATE SESSION ]</button>
+        <div class="login-field">
+            <input type="password" id="login-password" class="cmd-input" placeholder="[ SOUCHE_MÉMORIELLE ]">
         </div>
-
-    </aside>
-
-
-    <main class="main-content">
-        
-        <nav class="tabs-nav">
-            <button class="tab-btn active" onclick="switchTab('overview')">OVERVIEW</button>
-            <button class="tab-btn" onclick="switchTab('physique')">PHYSIQUE</button>
-            <button class="tab-btn" onclick="switchTab('operations')">OPÉRATIONS</button>
-            <button class="tab-btn" onclick="switchTab('dotation')">DOTATION</button>
-            <button class="tab-btn" onclick="switchTab('discipline')">DISCIPLINE</button>
-        </nav>
-
-        <div class="tab-pane active" id="tab-overview">
-            <div class="cut-panel">
-                <div class="panel-header">
-                    <span class="panel-title">SYSTÈME & JOURNAUX</span>
-                    <span style="color:var(--secondary); font-size:0.7rem;">ACCESS_LOG</span>
-                </div>
-                
-                <div style="font-family: 'JetBrains Mono'; font-size: 0.85rem; line-height: 1.6; color: #aaa;">
-                    <div class="log-entry" style="margin-bottom: 10px;">
-                         <span style="color: var(--primary)">[+]</span> <span>CONNEXION SÉCURISÉE ÉTABLIE DEPUIS Nœud Local.</span>
-                    </div>
-                    <div class="log-entry" style="margin-bottom: 10px;">
-                         <span style="color: var(--primary)">[+]</span> <span>AUTHENTIFICATION BIOMÉTRIQUE : SYSTÈME OPÉRATIONNEL.</span>
-                    </div>
-                    <div class="log-entry" style="margin-bottom: 10px;">
-                         <span style="color: var(--warning)">[*]</span> <span>Vérification des protocoles de routine... CLEAR.</span>
-                    </div>
-                    <div class="log-entry" style="margin-bottom: 10px;">
-                         <span style="color: #666;">[-] Synchronisation base de données de l'escouade...</span>
-                    </div>
-                </div>
-
-                <div style="margin-top: 30px;">
-                    <a href="database.html" style="display: inline-block; padding: 10px 20px; background: rgba(0, 255, 157, 0.1); border: 1px solid var(--primary); color: var(--primary); font-family: 'Share Tech Mono'; text-decoration: none; text-transform: uppercase; transition: 0.3s;">
-                        [ ACCÉDER À LA BASE DE DONNÉES GLOBALE ]
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-pane" id="tab-physique">
-            <div class="cut-panel" style="display: flex; gap: 40px; align-items: flex-start; min-height: 400px;">
-                
-                <div style="flex: 1; max-width: 300px;">
-                    <div class="panel-header">
-                        <span class="panel-title">SCHÉMA CORPOREL</span>
-                        <span style="color:var(--danger); font-size:0.7rem;" class="blink" id="med-alert-status">SCANNING...</span>
-                    </div>
-                    <div style="position: relative; height: 400px; width: 100%; display:flex; justify-content:center;">
-                        <svg viewBox="0 0 100 200" style="height: 100%; width: auto; filter: drop-shadow(0 0 8px rgba(0,255,157,0.3));">
-                            <circle id="part-head" class="body-part" cx="50" cy="20" r="12" onclick="openInjuryModal('head')"/>
-                            <path id="part-torso" class="body-part" d="M35 35 L65 35 L60 90 L40 90 Z" onclick="openInjuryModal('torso')"/>
-                            <rect id="part-left_arm" class="body-part" x="15" y="38" width="15" height="60" rx="5" onclick="openInjuryModal('left_arm')"/>
-                            <rect id="part-right_arm" class="body-part" x="70" y="38" width="15" height="60" rx="5" onclick="openInjuryModal('right_arm')"/>
-                            <rect id="part-left_leg" class="body-part" x="30" y="95" width="18" height="80" rx="5" onclick="openInjuryModal('left_leg')"/>
-                            <rect id="part-right_leg" class="body-part" x="52" y="95" width="18" height="80" rx="5" onclick="openInjuryModal('right_leg')"/>
-                        </svg>
-                    </div>
-                    <div style="text-align: center; color: #666; font-size: 0.7rem; font-family: 'Share Tech Mono'; margin-top: 10px;">
-                        [CLIQUEZ SUR UNE ZONE POUR SIGNALER UN TRAUMA]
-                    </div>
-                </div>
-
-                <div style="flex: 2;">
-                    <div class="panel-header">
-                        <span class="panel-title">RAPPORT DE TRAUMATISMES</span>
-                    </div>
-                    <div id="injury-list-display" style="font-size: 0.9rem; max-height: 400px; overflow-y: auto; font-family: 'JetBrains Mono'; padding-right: 15px;">
-                        <div style="color:#555; font-style:italic;">Aucune blessure détectée.</div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="tab-pane" id="tab-operations">
-            <div class="cut-panel">
-                <div class="panel-header">
-                    <span class="panel-title" style="color: var(--warning)">MISSIONS ASSIGNÉES</span>
-                    <span style="color:var(--warning); font-size:0.7rem;">ORDERS_LOG</span>
-                </div>
-                <div id="my-missions-list" style="display: flex; flex-direction: column; gap: 15px;">
-                    <div class="blink" style="color: #555;">RÉCUPÉRATION DES ORDRES...</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-pane" id="tab-dotation">
-            <div class="cut-panel">
-                <div class="panel-header">
-                    <span class="panel-title">INVENTAIRE & ÉQUIPEMENT</span>
-                    <span style="color:var(--secondary); font-size:0.7rem;">GEAR_ASSIGNED</span>
-                </div>
-                <div id="my-equipment-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
-                    <div class="blink" style="color: #555;">CHARGEMENT INVENTAIRE...</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-pane" id="tab-discipline">
-            <div class="cut-panel" id="warn-panel">
-                <div class="panel-header">
-                    <span class="panel-title">DISCIPLINE & SANCTIONS</span>
-                    <span id="warn-status-badge" style="font-size:0.8rem; padding: 4px 8px; border: 1px solid var(--primary); color: var(--primary); font-family: 'Share Tech Mono';">CLEAR</span>
-                </div>
-
-                <div id="warnings-list" style="font-family: 'JetBrains Mono'; font-size: 0.9rem; display: flex; flex-direction: column; gap: 10px;">
-                    <div class="blink" style="color: #555;">VÉRIFICATION DU CASIER...</div>
-                </div>
-            </div>
-        </div>
-
-    </main>
-</div>
-
-<div id="password-modal" class="modal-overlay hidden">
-    <div class="modal-box">
-        <div class="modal-top">
-            <span class="modal-title">CHANGEMENT MOT DE PASSE</span>
-            <button onclick="closePasswordModal()" style="background:none; border:none; color:#666; cursor:pointer;">✖</button>
-        </div>
-
-        <form id="password-form" style="padding: 25px;">
-            <div class="form-group">
-                <label>ANCIEN MOT DE PASSE</label>
-                <input type="password" id="pwd-old" class="form-input" required>
-            </div>
-            <div class="form-group">
-                <label>NOUVEAU MOT DE PASSE</label>
-                <input type="password" id="pwd-new" class="form-input" required>
-            </div>
-            <div class="form-group">
-                <label>CONFIRMATION</label>
-                <input type="password" id="pwd-confirm" class="form-input" required>
-            </div>
-
-            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                <button type="button" onclick="closePasswordModal()" class="btn-cancel">ANNULER</button>
-                <button type="submit" class="btn-confirm">VALIDER</button>
-            </div>
-        </form>
+        <div id="login-msg" aria-live="assertive"></div>
+        <button class="btn-connect" onclick="handleLogin()">INITIER L'UPLINK</button>
     </div>
+</section>
+
+<div class="hud-overlay auth-content" role="status">
+    <div class="hud-title">SAS // <span class="hud-title-accent">MAINFRAME</span></div>
+    <div class="hud-status" id="conn-status">&gt; CONNEXION ÉTABLIE</div>
+    <div class="hud-meta hud-meta-dim">AGENT: <span id="mini-username" style="color:#fff;">ANONYME</span></div>
+    <div class="hud-meta hud-meta-dimmer">ACCRÉDITATION: <span id="mini-rank">LVL-0</span></div>
 </div>
 
-<div id="injury-modal" class="modal-overlay hidden">
-    <div class="modal-box" style="border-color: var(--danger);">
-        <div class="modal-top" style="background: rgba(255,51,51,0.1);">
-            <span class="modal-title" style="color: var(--danger);">SIGNALEMENT BLESSURE</span>
-            <button onclick="closeInjuryModal()" style="background:none; border:none; color:#666; cursor:pointer;">✖</button>
-        </div>
-        <form id="injury-form" style="padding: 20px;">
-            <input type="hidden" id="inj-part">
-            <div class="form-group">
-                <label>ZONE CORPORELLE</label>
-                <input type="text" id="inj-part-display" class="form-input" disabled style="color:var(--primary); font-weight:bold;">
-            </div>
-            <div class="form-group">
-                <label>GRAVITÉ</label>
-                <select id="inj-severity" class="form-input">
-                    <option value="light">LÉGÈRE (Egratignure, Bleu)</option>
-                    <option value="moderate">MODÉRÉE (Entorse, Coupure)</option>
-                    <option value="critical">CRITIQUE (Balle, Fracture)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>DESCRIPTION</label>
-                <textarea id="inj-desc" class="form-textarea" style="height:80px;" placeholder="Ex: Impact de balle 9mm..."></textarea>
-            </div>
-            <div style="display:flex; justify-content:flex-end; gap:10px;">
-                <button type="button" onclick="closeInjuryModal()" class="btn-cancel">ANNULER</button>
-                <button type="submit" class="btn-confirm" style="background:var(--danger); color:#fff;">SIGNALER</button>
-            </div>
-        </form>
-    </div>
+<div class="hud-top-right auth-content">
+    <img id="sidebar-avatar" src="assets/default.jpg" alt="Avatar" class="hud-avatar">
+    <button class="btn-connect btn-logout" onclick="logout()">DÉCONNEXION ⏏</button>
 </div>
 
-<script src="js/profile-equipment.js"></script>
+<div class="system-logs-container auth-content" role="log">
+    <ul id="system-logs" class="log-list"></ul>
+</div>
+
+<div class="neural-dashboard auth-content" role="navigation">
+    <div class="orbit orbit-1" aria-hidden="true"></div>
+    <div class="orbit orbit-2" aria-hidden="true"></div>
+    <div class="orbit orbit-10" aria-hidden="true"></div>
+
+    <svg class="synapse-lines" aria-hidden="true">
+        <line x1="50%" y1="50%" x2="62.5%"  y2="28.35%"/>
+        <line x1="50%" y1="50%" x2="75%"    y2="50%"   />
+        <line x1="50%" y1="50%" x2="62.5%"  y2="71.65%"/>
+        <line x1="50%" y1="50%" x2="37.5%"  y2="71.65%"/>
+        <line x1="50%" y1="50%" x2="25%"    y2="50%"   />
+        <line x1="50%" y1="50%" x2="37.5%"  y2="28.35%"/>
+        <line x1="50%" y1="50%" x2="50%"    y2="12.5%"  class="restricted"/>
+        <line x1="50%" y1="50%" x2="50%"    y2="87.5%"  class="restricted"/>
+        <line x1="50%" y1="50%" x2="83.58%" y2="16.42%" class="admin"/>
+        <line x1="50%" y1="50%" x2="16.42%" y2="16.42%" class="admin"/>
+    </svg>
+
+    <button class="node node-core" onclick="accessModule('profile.html', 1)">
+        <span class="icon">🧠</span>
+        <span class="label">NOYAU CENTRAL</span>
+    </button>
+
+    <button class="node node-sub" data-orbit="1" style="--angle:30deg; --orbit:25vmin; --float-delay:0.1s" onclick="accessModule('database.html', 1)" data-required-level="1">
+        <span class="lock-badge">🔒</span><span class="icon">👥</span><span class="label">AGENTS</span>
+        <span class="node-stat" id="stat-agents" style="color:var(--accent-secondary)">
+            <span class="node-stat-val" id="stat-agents-val">—</span>OPS
+        </span>
+        <span class="node-alert" id="alert-agents"></span>
+    </button>
+
+    <button class="node node-sub" data-orbit="1" style="--angle:90deg; --orbit:25vmin; --float-delay:0.3s" onclick="accessModule('missions.html', 1)" data-required-level="1">
+        <span class="lock-badge">🔒</span><span class="icon">🗓️</span><span class="label">MISSIONS</span>
+        <span class="node-stat" id="stat-missions" style="color:var(--accent-danger)">
+            <span class="node-stat-val" id="stat-missions-val">—</span>LIVE
+        </span>
+        <span class="node-alert" id="alert-missions"></span>
+    </button>
+
+    <button class="node node-sub" data-orbit="1" style="--angle:150deg; --orbit:25vmin; --float-delay:0.5s" onclick="accessModule('map.html', 1)" data-required-level="1">
+        <span class="lock-badge">🔒</span><span class="icon">🗺️</span><span class="label">CARTE LIVE</span>
+        <span class="node-stat" id="stat-map" style="color:var(--accent-primary)">
+            <span class="node-stat-val" id="stat-map-val">—</span>MKR
+        </span>
+    </button>
+
+    <button class="node node-sub" data-orbit="1" style="--angle:210deg; --orbit:25vmin; --float-delay:0.7s" onclick="accessModule('report.html', 1)" data-required-level="1">
+        <span class="lock-badge">🔒</span><span class="icon">📝</span><span class="label">RAPPORTS</span>
+        <span class="node-stat" id="stat-reports" style="color:var(--accent-primary)">
+            <span class="node-stat-val" id="stat-reports-val">GEN</span>AUTO
+        </span>
+    </button>
+
+    <button class="node node-sub" data-orbit="1" style="--angle:270deg; --orbit:25vmin; --float-delay:0.9s" onclick="accessModule('reglement.html', 1)" data-required-level="1">
+        <span class="lock-badge">🔒</span><span class="icon">📜</span><span class="label">ARCHIVES</span>
+        <span class="node-stat" id="stat-rules" style="color:var(--accent-primary)">
+            <span class="node-stat-val" id="stat-rules-val">V4</span>REG
+        </span>
+    </button>
+
+    <button class="node node-sub" data-orbit="1" style="--angle:330deg; --orbit:25vmin; --float-delay:1.1s" onclick="accessModule('logistics.html', 1)" data-required-level="1">
+        <span class="lock-badge">🔒</span><span class="icon">📦</span><span class="label">MATÉRIEL</span>
+        <span class="node-stat" id="stat-gear" style="color:var(--accent-restricted)">
+            <span class="node-stat-val" id="stat-gear-val">—</span>DISPO
+        </span>
+        <span class="node-alert" id="alert-gear"></span>
+    </button>
+
+    <button class="node node-sub status-restricted" data-orbit="2" style="--angle:0deg; --orbit:37.5vmin; --float-delay:0.2s" onclick="accessModule('investigation.html', 2)" data-required-level="2" data-tooltip="⚠ Accréditation LVL-2 requise">
+        <span class="lock-badge">🔒</span><span class="icon">🔍</span><span class="label">ENQUÊTES</span>
+        <span class="node-stat" id="stat-invest" style="color:var(--accent-restricted)">
+            <span class="node-stat-val" id="stat-invest-val">—</span>OPEN
+        </span>
+    </button>
+
+    <button class="node node-sub status-restricted" data-orbit="2" style="--angle:180deg; --orbit:37.5vmin; --float-delay:0.8s" onclick="accessModule('#', 2)" data-required-level="2" data-tooltip="⚠ Accréditation LVL-2 requise">
+        <span class="lock-badge">🔒</span><span class="icon">🎯</span><span class="label">CIBLES VIP</span>
+        <span class="node-stat" id="stat-vip" style="color:var(--accent-restricted)">
+            <span class="node-stat-val" id="stat-vip-val">N/A</span>CLASS
+        </span>
+    </button>
+
+    <button class="node node-sub status-admin" data-orbit="10" style="--angle:45deg;  --orbit:47.5vmin; --float-delay:0.4s" onclick="accessModule('medical.html', 10)" data-required-level="10" data-tooltip="⛔ CLASSIFIED — LVL-10 requis">
+        <span class="lock-badge">🔒</span><span class="icon">🧬</span><span class="label">MÉDICAL</span>
+    </button>
+
+    <button class="node node-sub status-admin" data-orbit="10" style="--angle:315deg; --orbit:47.5vmin; --float-delay:1.0s" onclick="accessModule('admin.html', 10)" data-required-level="10" data-tooltip="⛔ CLASSIFIED — LVL-10 requis">
+        <span class="lock-badge">🔒</span><span class="icon">👁️</span><span class="label">SYSTÈME ADMIN</span>
+    </button>
+</div>
+
+<script src="js/script.js" defer></script>
 <script>
-    // Tab switching logic
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        
-        document.getElementById(`tab-${tabId}`).classList.add('active');
-        document.querySelector(`.tab-btn[onclick="switchTab('${tabId}')"]`).classList.add('active');
+const canvas = document.getElementById('neural-network');
+const ctx    = canvas.getContext('2d');
+let width, height, particles = [];
+const CONNECT_DIST = 180;
+const CELL_SIZE    = CONNECT_DIST; 
+const NEURON_COLOR = '0, 255, 157';
+const MOUSE_COLOR  = '0, 184, 255';
+let mouse = { x: null, y: null, radius: 200 };
+
+window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+window.addEventListener('mouseout',  () => { mouse.x = null; mouse.y = null; });
+
+class Neuron {
+    constructor() {
+        this.x      = Math.random() * width;
+        this.y      = Math.random() * height;
+        this.vx     = (Math.random() - 0.5) * 0.5;
+        this.vy     = (Math.random() - 0.5) * 0.5;
+        this.radius = Math.random() * 2 + 1;
     }
-
-    const avatarMap = {
-        'adam': 'Adam.jpg',
-        'blake': 'Blake.png',
-        'blitz': 'Blitz.png',
-        'dust': 'Dust.png',
-        'wei': 'Dust.png',
-        'graves': 'Graves.jpg',
-        'jackal': 'Jackal.jpg',
-        'ji': 'Jackal.jpg',
-        'javier': 'Javier.jpg',
-        'lexa': 'Lexa.png',
-        'selena': 'Lexa.png',
-        'lovelace': 'LoveLace.jpg',
-        'nyx': 'LoveLace.jpg',
-        'roxanne': 'Roxanne.jpg'
-    };
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const sessionData = JSON.parse(localStorage.getItem('sas_session'));
-
-        if (sessionData) {
-            const { username, rank } = sessionData;
-
-            document.getElementById('header-username').textContent = username.toUpperCase();
-            document.getElementById('card-username').textContent = username.toUpperCase();
-
-            const rankDisplay = `LVL-${rank}`;
-            document.getElementById('card-rank-code').textContent = rankDisplay;
-            document.getElementById('card-rank-badge').textContent = rank >= 5 ? 'COMMAND' : (rank >= 3 ? 'OFFICER' : 'OPERATOR');
-
-            document.getElementById('session-id').textContent = '0x' + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
-
-            const lowerName = username.toLowerCase();
-            if (avatarMap[lowerName]) {
-                const photoContainer = document.querySelector('.photo-box');
-                photoContainer.innerHTML = `<img src="assets/${avatarMap[lowerName]}" alt="${username}" style="width:100%; height:100%; object-fit:cover; filter: grayscale(1) contrast(1.2);">`;
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > width)  this.vx *= -1;
+        if (this.y < 0 || this.y > height)  this.vy *= -1;
+        if (mouse.x != null) {
+            const dx = mouse.x - this.x;
+            const dy = mouse.y - this.y;
+            const d  = Math.sqrt(dx * dx + dy * dy);
+            if (d < mouse.radius && d > 0) {
+                const f = (mouse.radius - d) / mouse.radius;
+                this.x -= (dx / d) * f * 2;
+                this.y -= (dy / d) * f * 2;
             }
-
-            loadMyMissions(username);
-            loadMyWarnings();
-            loadMyInjuries();
         }
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${NEURON_COLOR}, 0.8)`;
+        ctx.fill();
+    }
+}
 
-        // 3D Card Effect
-        const card = document.getElementById('card');
-        const cardContainer = document.querySelector('.id-card-container');
-        cardContainer.addEventListener('mousemove', (e) => {
-            const rect = cardContainer.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            const rotateX = ((y - centerY) / centerY) * -10;
-            const rotateY = ((x - centerX) / centerX) * 10;
-            card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-        });
-        cardContainer.addEventListener('mouseleave', () => {
-            card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
-        });
-
-        initPsychometrics();
-        initECG();
+function buildGrid() {
+    const grid = new Map();
+    particles.forEach((p, i) => {
+        const key = `${Math.floor(p.x / CELL_SIZE)},${Math.floor(p.y / CELL_SIZE)}`;
+        if (!grid.has(key)) grid.set(key, []);
+        grid.get(key).push(i);
     });
+    return grid;
+}
 
-    async function loadMyMissions(username) {
-        const container = document.getElementById('my-missions-list');
-        try {
-            const res = await fetch(`/api/game?entity=missions&agent=${username}`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('sas_token')}` }
-            });
+function drawConnections(grid) {
+    particles.forEach((p, i) => {
+        const cx = Math.floor(p.x / CELL_SIZE);
+        const cy = Math.floor(p.y / CELL_SIZE);
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                const neighbors = grid.get(`${cx + dx},${cy + dy}`);
+                if (!neighbors) continue;
+                for (const j of neighbors) {
+                    if (j <= i) continue;
+                    const ddx  = p.x - particles[j].x;
+                    const ddy  = p.y - particles[j].y;
+                    const dist = Math.sqrt(ddx * ddx + ddy * ddy);
+                    if (dist < CONNECT_DIST) {
+                        const alpha = (1 - dist / CONNECT_DIST) * 0.4;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(${NEURON_COLOR}, ${alpha})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+        if (mouse.x != null) {
+            const dm = Math.sqrt((p.x - mouse.x) ** 2 + (p.y - mouse.y) ** 2);
+            if (dm < mouse.radius) {
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(mouse.x, mouse.y);
+                ctx.strokeStyle = `rgba(${MOUSE_COLOR}, ${(1 - dm / mouse.radius) * 0.6})`;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+        }
+    });
+}
+
+function initNeurons() {
+    particles = [];
+    const count = Math.min(Math.floor((width * height) / 10000), 200);
+    for (let i = 0; i < count; i++) particles.push(new Neuron());
+}
+
+function animateNeurons() {
+    ctx.clearRect(0, 0, width, height);
+    particles.forEach(n => { n.update(); n.draw(); });
+    drawConnections(buildGrid());
+    requestAnimationFrame(animateNeurons);
+}
+
+function resize() {
+    width  = canvas.width  = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+}
+
+window.addEventListener('resize', () => { resize(); initNeurons(); });
+resize(); initNeurons(); animateNeurons();
+
+const tooltip = document.getElementById('node-tooltip');
+document.querySelectorAll('.node[data-tooltip]').forEach(node => {
+    node.addEventListener('mouseenter', () => {
+        tooltip.textContent = node.dataset.tooltip;
+        tooltip.setAttribute('aria-hidden', 'false');
+        tooltip.classList.toggle('admin-tip', node.classList.contains('status-admin'));
+        tooltip.classList.add('visible');
+    });
+    node.addEventListener('mousemove', e => {
+        const x = Math.min(e.clientX + 18, window.innerWidth  - 250);
+        const y = Math.max(e.clientY - 44, 6);
+        tooltip.style.left = x + 'px';
+        tooltip.style.top  = y + 'px';
+    });
+    node.addEventListener('mouseleave', () => {
+        tooltip.classList.remove('visible');
+        tooltip.setAttribute('aria-hidden', 'true');
+    });
+});
+
+function updateNodeAccess() {
+    const rankText  = document.getElementById('mini-rank')?.textContent ?? 'LVL-1';
+    const match     = rankText.match(/(\d+)/);
+    const userLevel = match ? parseInt(match[1]) : 1;
+    document.querySelectorAll('.node[data-required-level]').forEach(node => {
+        const required = parseInt(node.dataset.requiredLevel);
+        node.classList.toggle('node-locked', userLevel < required);
+    });
+}
+
+const bodyObserver = new MutationObserver(() => {
+    if (document.body.classList.contains('logged-in')) {
+        updateNodeAccess(); 
+        cascadeNodes();
+    }
+});
+bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+function cascadeNodes() {
+    document.querySelectorAll('.node-sub').forEach((node, i) => {
+        node.animate(
+            [
+                { opacity: 0, scale: '0.1' },
+                { opacity: 1, scale: '1'   }
+            ],
+            {
+                duration: 600,
+                delay:    200 + i * 140,
+                easing:   'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                fill:     'backwards'
+            }
+        );
+    });
+}
+
+let statsInterval = null;
+async function loadNodeStats() {
+    const token = localStorage.getItem('sas_token');
+    if (!token) return;
+    const h = { 'Authorization': `Bearer ${token}` };
+    function setStat(id, value, alertId = null, alertThreshold = 1) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+        if (alertId) {
+            const badge = document.getElementById(alertId);
+            if (badge) {
+                const isAlert = typeof value === 'string' ? value.startsWith('0/') : parseInt(value) >= alertThreshold;
+                badge.classList.toggle('visible', isAlert);
+            }
+        }
+    }
+    try {
+        const res = await fetch('/api/game?entity=missions', { headers: h });
+        if (res.ok) {
             const missions = await res.json();
-
-            if(missions.length === 0) {
-                container.innerHTML = '<div style="color:rgba(255,255,255,0.4); font-style:italic; font-size:0.8rem; padding:10px;">> AUCUN ORDRE EN ATTENTE</div>';
-                return;
-            }
-
-            container.innerHTML = missions.map(m => {
-                let borderCol = 'var(--warning)';
-                let statusText = 'PLANIFIÉE';
-
-                if(m.status === 'ACTIVE') { borderCol = 'var(--danger)'; statusText = 'EN COURS'; }
-                if(m.status === 'COMPLETED') { borderCol = 'var(--primary)'; statusText = 'TERMINÉE'; }
-
-                const date = new Date(m.start_time).toLocaleDateString('fr-FR');
-
-                return `
-                        <div style="background: rgba(255,255,255,0.03); border-left: 3px solid ${borderCol}; padding: 15px; display:flex; flex-direction:column; gap:8px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <span style="font-weight:bold; color:#fff; font-family:'Share Tech Mono'; font-size: 1.1rem;">${m.title}</span>
-                                <span style="font-size:0.75rem; color:${borderCol}; border:1px solid ${borderCol}; padding:2px 6px; border-radius:3px;">${statusText}</span>
-                            </div>
-                            <div style="font-size:0.85rem; color:#aaa; font-family:'JetBrains Mono'; display:flex; justify-content:space-between;">
-                                <span>📍 ${m.location}</span>
-                                <span>📅 ${date}</span>
-                            </div>
-                        </div>
-                    `;
-            }).join('');
-
-        } catch(e) { console.error(e); }
-    }
-
-    async function loadMyWarnings() {
-        const container = document.getElementById('warnings-list');
-        const badge = document.getElementById('warn-status-badge');
-        const panel = document.getElementById('warn-panel');
-
-        try {
-            const res = await fetch('/api/game?entity=my_warnings', {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('sas_token')}` }
-            });
-
-            if (!res.ok) return;
-
-            const warnings = await res.json();
-            const count = warnings.length;
-
-            if (count === 0) {
-                badge.textContent = "SERVICE EXEMPLAIRE";
-                badge.style.color = "var(--primary)";
-                badge.style.borderColor = "var(--primary)";
-                panel.style.borderColor = "var(--panel-border)";
-                container.innerHTML = '<div style="color:#445566; font-style:italic; padding:10px;">> AUCUNE INFRACTION SIGNALÉE.</div>';
-            } else if (count < 3) {
-                badge.textContent = `ATTENTION (${count}/3)`;
-                badge.style.color = "var(--warning)";
-                badge.style.borderColor = "var(--warning)";
-                panel.style.borderLeftColor = "var(--warning)";
-            } else {
-                badge.textContent = `CRITIQUE (${count}/3)`;
-                badge.style.color = "var(--danger)";
-                badge.style.borderColor = "var(--danger)";
-                badge.classList.add('blink');
-                panel.style.borderLeftColor = "var(--danger)";
-                panel.style.boxShadow = "0 0 20px rgba(255, 51, 51, 0.1)";
-            }
-
-            if (count > 0) {
-                container.innerHTML = warnings.map(w => {
-                    const date = new Date(w.created_at).toLocaleDateString('fr-FR');
-                    return `
-                        <div style="background: rgba(255, 255, 255, 0.03); padding: 12px; border-left: 2px solid var(--danger);">
-                            <div style="color: var(--danger); font-weight: bold; font-size: 0.8rem; margin-bottom: 5px;">
-                                [ INFRACTION SIGNALÉE LE ${date} ]
-                            </div>
-                            <div style="color: #ccc;">${w.reason}</div>
-                        </div>
-                    `;
-                }).join('');
-            }
-
-        } catch (e) {
-            console.error("Erreur chargement warns", e);
-            container.innerHTML = '<div style="color:var(--danger)">ERREUR DE CONNEXION AU SERVEUR CENTRAL</div>';
+            const active = missions.filter(m => m.status === 'ACTIVE').length;
+            setStat('stat-missions-val', active, 'alert-missions', 1);
         }
-    }
-
-    function openPasswordModal() { document.getElementById('password-modal').classList.remove('hidden'); }
-    function closePasswordModal() { document.getElementById('password-modal').classList.add('hidden'); document.getElementById('password-form').reset(); }
-
-    document.getElementById('password-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const oldPwd = document.getElementById('pwd-old').value;
-        const newPwd = document.getElementById('pwd-new').value;
-        const confirmPwd = document.getElementById('pwd-confirm').value;
-
-        if (newPwd !== confirmPwd) {
-            alert("❌ LES MOTS DE PASSE NE CORRESPONDENT PAS");
-            return;
-        }
-
-        try {
-            const res = await fetch('/api/auth?action=change-password', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('sas_token')}`
-                },
-                body: JSON.stringify({ oldPassword: oldPwd, newPassword: newPwd })
-            });
-
+    } catch(e) {}
+    try {
+        const res = await fetch('/api/game?entity=equipment', { headers: h });
+        if (res.ok) {
             const data = await res.json();
-
-            if (res.ok) {
-                alert("✅ MOT DE PASSE MIS À JOUR AVEC SUCCÈS");
-                closePasswordModal();
-            } else {
-                alert("❌ ERREUR: " + data.error);
-            }
-        } catch (err) { alert("❌ ERREUR DE CONNEXION"); }
-    });
-
-    async function initPsychometrics() {
-        try {
-            const res = await fetch('/api/game?entity=stress', {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('sas_token')}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                updateStressUI(data.stress_level);
-            }
-        } catch (e) { updateStressUI(0); }
-    }
-
-    async function adjustStress(amount) {
-        try {
-            const res = await fetch('/api/game?entity=stress', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('sas_token')}`
-                },
-                body: JSON.stringify({ amount: amount })
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                updateStressUI(data.stress_level);
-            }
-        } catch (e) { console.error(e); }
-    }
-
-    function updateStressUI(level) {
-        const bar = document.getElementById('stress-bar');
-        const pct = document.getElementById('stress-pct');
-        const txt = document.getElementById('psy-status-text');
-        bar.style.width = level + '%';
-        pct.textContent = level + '%';
-        if (level < 30) { bar.style.backgroundColor = '#00ff9d'; txt.textContent = "NEURO-STABLE"; txt.style.color = '#00ff9d'; targetBPM = 60 + (level / 2); }
-        else if (level < 70) { bar.style.backgroundColor = '#eebb00'; txt.textContent = "STRESS ÉLEVÉ"; txt.style.color = '#eebb00'; targetBPM = 90 + ((level - 30)); }
-        else { bar.style.backgroundColor = '#ff3333'; txt.textContent = "CRITIQUE"; txt.style.color = '#ff3333'; targetBPM = 130 + ((level - 70) * 1.5); }
-    }
-
-    let ctx, canvas, xPos = 0, targetBPM = 65, lastFrameTime = 0;
-    function initECG() {
-        canvas = document.getElementById('ecg-canvas');
-        if(!canvas) return;
-        ctx = canvas.getContext('2d');
-        canvas.width = canvas.parentElement.clientWidth;
-        canvas.height = canvas.parentElement.clientHeight;
-        requestAnimationFrame(drawECG);
-        setInterval(() => {
-            const noise = Math.floor(Math.random() * 6) - 3;
-            document.getElementById('bpm-value').textContent = Math.floor(targetBPM + noise);
-        }, 2000);
-    }
-    function drawECG(timestamp) {
-        if (!lastFrameTime) lastFrameTime = timestamp;
-        const delta = timestamp - lastFrameTime;
-        const speed = (canvas.width * (targetBPM / 60)) / 100;
-        ctx.strokeStyle = targetBPM > 100 ? (targetBPM > 140 ? '#ff3333' : '#eebb00') : '#00ff9d';
-        ctx.lineWidth = 2; ctx.shadowBlur = 5; ctx.shadowColor = ctx.strokeStyle;
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.beginPath(); ctx.moveTo(xPos, canvas.height / 2);
-        xPos += speed;
-        let y = canvas.height / 2;
-        const phase = xPos % 100;
-        if (phase > 10 && phase < 15) y -= 5; else if (phase > 20 && phase < 25) y += 5; else if (phase > 25 && phase < 35) y -= 25; else if (phase > 35 && phase < 40) y += 10; else if (phase > 50 && phase < 60) y -= 8;
-        y += (Math.random() * 2 - 1);
-        ctx.lineTo(xPos, y); ctx.stroke();
-        if (xPos >= canvas.width) { xPos = 0; ctx.clearRect(0,0, canvas.width, canvas.height); ctx.beginPath(); }
-        lastFrameTime = timestamp; requestAnimationFrame(drawECG);
-    }
-
-    function logout() {
-        document.body.style.transition = "opacity 0.5s"; document.body.style.opacity = "0";
-        setTimeout(() => { localStorage.removeItem('sas_session'); localStorage.removeItem('userSecurityLevel'); localStorage.removeItem('sas_token'); window.location.href = 'index.html'; }, 500);
-    }
-
-    function openInjuryModal(part) {
-        const partNames = { 'head': 'TÊTE / CRÂNE', 'torso': 'TORSE / ORGANES', 'left_arm': 'BRAS GAUCHE', 'right_arm': 'BRAS DROIT', 'left_leg': 'JAMBE GAUCHE', 'right_leg': 'JAMBE DROITE' };
-        document.getElementById('inj-part').value = part;
-        document.getElementById('inj-part-display').value = partNames[part];
-        document.getElementById('injury-modal').classList.remove('hidden');
-    }
-
-    function closeInjuryModal() { document.getElementById('injury-modal').classList.add('hidden'); document.getElementById('injury-form').reset(); }
-
-    document.getElementById('injury-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const session = JSON.parse(localStorage.getItem('sas_session'));
-
-        const payload = {
-            agent_id: session.id,
-            body_part: document.getElementById('inj-part').value,
-            severity: document.getElementById('inj-severity').value,
-            description: document.getElementById('inj-desc').value
-        };
-
-        try {
-            const res = await fetch('/api/medical', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('sas_token')}` },
-                body: JSON.stringify(payload)
-            });
-
-            if(res.ok) { closeInjuryModal(); loadMyInjuries(); } else { alert("Erreur lors du signalement."); }
-        } catch(e) { console.error(e); }
-    });
-
-    async function loadMyInjuries() {
-        const session = JSON.parse(localStorage.getItem('sas_session'));
-        const svgParts = document.querySelectorAll('.body-part');
-        svgParts.forEach(p => p.classList.remove('injured'));
-
-        try {
-            const res = await fetch(`/api/medical?agent_id=${session.id}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('sas_token')}` } });
-            const injuries = await res.json();
-
-            const listContainer = document.getElementById('injury-list-display');
-            const alertStatus = document.getElementById('med-alert-status');
-
-            if (injuries.length === 0) {
-                listContainer.innerHTML = '<div style="color:#555; font-style:italic;">> SYSTÈMES VITAUX NOMINAUX.</div>';
-                alertStatus.textContent = "OK";
-                alertStatus.style.color = "var(--primary)";
-                return;
-            }
-
-            alertStatus.textContent = "ATTENTION REQUISE";
-            alertStatus.style.color = "var(--danger)";
-            listContainer.innerHTML = '';
-
-            injuries.forEach(inj => {
-                const partEl = document.getElementById(`part-${inj.body_part}`);
-                if(partEl) partEl.classList.add('injured');
-
-                let severityColor = inj.severity === 'critical' ? '#ff3333' : (inj.severity === 'moderate' ? '#eebb00' : '#ccc');
-
-                listContainer.innerHTML += `
-                    <div style="border-left: 2px solid ${severityColor}; padding-left: 12px; margin-bottom: 12px; background: rgba(255,255,255,0.02); padding: 10px;">
-                        <div style="color:${severityColor}; font-weight:bold;">${inj.body_part.toUpperCase().replace('_', ' ')}</div>
-                        <div style="color:#aaa; margin-top: 5px;">${inj.description}</div>
-                    </div>
-                `;
-            });
-
-        } catch(e) { console.error("Erreur chargement médical", e); }
-    }
+            const inv = Array.isArray(data) ? data : (data.inventory || []);
+            const available = inv.filter(i => !i.assigned_to).length;
+            setStat('stat-gear-val', `${available}/${inv.length}`, 'alert-gear');
+        }
+    } catch(e) {}
+    try {
+        const res = await fetch('/api/game?entity=users', { headers: h });
+        if (res.ok) {
+            const agents = await res.json();
+            setStat('stat-agents-val', agents.length);
+        }
+    } catch(e) {}
+}
 </script>
 </body>
 </html>
