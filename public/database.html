@@ -4,14 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAS - Command Hierarchy [TACTICAL VIEW]</title>
-    
     <script>
         const session = localStorage.getItem('sas_session');
     </script>
-
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style-mo.css">
-
     <style>
         body {
             background-color: #020406;
@@ -21,7 +17,6 @@
             min-height: 100vh;
             margin: 0;
         }
-
         .tactical-grid {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-image:
@@ -31,13 +26,11 @@
             z-index: -10;
             mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
         }
-
         .vignette {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at 50% 50%, transparent 50%, #000 100%);
             z-index: -5; pointer-events: none;
         }
-
         .radar-scan {
             position: fixed; top: 0; left: 0; width: 100%; height: 5px;
             background: rgba(0, 255, 157, 0.3);
@@ -46,7 +39,6 @@
             z-index: -4; opacity: 0.3;
         }
         @keyframes scanScreen { 0% {top: -10%;} 100% {top: 110%;} }
-
         .hud-side {
             position: fixed; top: 100px; bottom: 50px; width: 60px;
             display: flex; flex-direction: column; justify-content: space-between; align-items: center;
@@ -65,35 +57,30 @@
             height: 100px; width: 4px;
             background: repeating-linear-gradient(to bottom, #334455 0, #334455 1px, transparent 2px, transparent 10px);
         }
-
-        /* ── WRAPPER ── position relative pour que le SVG s'y accroche */
         .hierarchy-wrapper {
             display: flex; flex-direction: column; align-items: center;
             padding: 100px 20px 150px 20px;
-            position: relative;          /* ← clé */
+            position: relative;
             z-index: 5;
             min-width: 1000px;
             animation: fadeIn 1s ease-out;
         }
         @keyframes fadeIn { from {opacity:0; transform: scale(0.95);} to {opacity:1; transform: scale(1);} }
-
-        /* ── SVG des lignes ── */
         #hier-svg {
-            position: absolute;          /* ← relatif au wrapper */
+            position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
             pointer-events: none;
             z-index: 0;
             overflow: visible;
         }
-
         .node-card {
             background: rgba(10, 14, 18, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(8px);
             padding: 15px 20px;
             width: 250px;
-            position: relative; z-index: 3;  /* ← au-dessus du SVG */
+            position: relative; z-index: 3;
             cursor: pointer; text-decoration: none;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
@@ -113,7 +100,6 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.8);
             z-index: 10;
         }
-
         .node-role {
             font-size: 0.65rem; color: #667788; margin-bottom: 5px;
             letter-spacing: 2px; text-transform: uppercase;
@@ -126,41 +112,33 @@
             border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;
             font-size: 0.65rem; color: #8899aa;
         }
-
         .rank-director { border-left: 3px solid #D40000FF; width: 320px; }
         .rank-director .node-role { color: #D40000FF; }
         .rank-director:hover { box-shadow: 0 0 30px rgba(212, 0, 0, 0.15); border-color: #d40000; }
-
         .rank-lt { border-left: 3px solid #ccc; width: 280px; }
         .rank-lt:hover { border-color: #fff; }
         .lt-javier { border-left-color: #00f3ff; } .lt-javier .node-role { color: #00f3ff; }
         .lt-jackal { border-left-color: #FFD633FF; } .lt-jackal .node-role { color: #ffd633; }
         .slt-rouge  { border-left-color: #d40000; } .slt-rouge .node-role  { color: #d40000; }
-
         .rank-soldier { border-left: 3px solid #445566; width: 220px; opacity: 0.85; }
-        .rank-soldier:hover { opacity: 1; border-left-color: var(--primary); border-color: var(--primary); }
-        .rank-soldier:hover .node-name { color: var(--primary); }
-
-        .level-1         { margin-bottom: 80px; display: flex; justify-content: center; }
+        .rank-soldier:hover { opacity: 1; border-left-color: #00ff9d; border-color: #00ff9d; }
+        .level-1 { margin-bottom: 80px; display: flex; justify-content: center; }
         .level-2-wrapper { margin-bottom: 80px; display: flex; gap: 120px; justify-content: center; }
-        .level-3-grid    { display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; max-width: 1200px; padding-top: 10px; }
-
+        .level-3-grid { display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; max-width: 1200px; padding-top: 10px; }
         .screen-header { position: absolute; top: 30px; left: 40px; font-family: 'JetBrains Mono'; }
-        .screen-title  { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
-        .screen-subtitle { color: var(--danger); font-size: 0.7rem; letter-spacing: 3px; margin-top: 5px; }
-
+        .screen-title { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .screen-subtitle { color: #D40000; font-size: 0.7rem; letter-spacing: 3px; margin-top: 5px; }
         .user-hud {
             position: fixed; top: 30px; right: 40px;
             display: flex; gap: 20px; align-items: center;
             background: rgba(0,0,0,0.6); padding: 10px 20px;
             border: 1px solid rgba(255,255,255,0.1);
-            border-bottom: 2px solid var(--primary);
+            border-bottom: 2px solid #00ff9d;
             backdrop-filter: blur(5px); z-index: 100;
         }
         .hud-block { text-align: right; }
         .hud-label { font-size: 0.65rem; color: #667788; letter-spacing: 1px; }
         .hud-value { font-size: 0.9rem; color: #fff; font-family: 'JetBrains Mono'; }
-
         .btn-return {
             display: inline-flex; align-items: center;
             margin-top: 15px; padding: 8px 16px;
@@ -177,19 +155,19 @@
             box-shadow: 0 0 15px rgba(0, 255, 157, 0.2); transform: translateX(5px);
         }
         .btn-return::before { content: '<'; margin-right: 8px; font-weight: bold; }
-
         .rank-badge {
             font-size: 0.6rem; padding: 2px 6px;
             border: 1px solid currentColor; border-radius: 2px;
             opacity: 0.85; transition: 0.3s;
         }
-
         .loading-indicator {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             background: rgba(0,0,0,0.8); border: 1px solid rgba(0,255,157,0.3);
             padding: 8px 20px; font-family: 'Share Tech Mono'; font-size: 0.7rem;
-            color: var(--primary); z-index: 200; letter-spacing: 2px; display: none;
+            color: #00ff9d; z-index: 200; letter-spacing: 2px; display: none;
         }
+        .blink { animation: blink-anim 1s steps(2, start) infinite; }
+        @keyframes blink-anim { to { visibility: hidden; } }
     </style>
 </head>
 <body>
@@ -201,7 +179,7 @@
     <div class="hud-side hud-left">
         <div class="hud-ruler"></div>
         <div class="hud-marker">SYS.MONITORING</div>
-        <div class="hud-marker" style="color:var(--danger)">SECURE</div>
+        <div class="hud-marker" style="color:#D40000">SECURE</div>
         <div class="hud-ruler"></div>
     </div>
     <div class="hud-side hud-right">
@@ -225,13 +203,12 @@
         <div style="width:1px; height:20px; background:#333;"></div>
         <div class="hud-block">
             <div class="hud-label">CLEARANCE</div>
-            <div id="hud-rank" class="hud-value" style="color:var(--secondary)">LVL-0</div>
+            <div id="hud-rank" class="hud-value" style="color:#00f3ff">LVL-0</div>
         </div>
     </div>
 
     <div class="loading-indicator" id="loading">SYNC BDD EN COURS...</div>
 
-    <!-- Le SVG sera injecté ICI par JS, à l'intérieur du wrapper -->
     <div class="hierarchy-wrapper" id="hier-wrap">
 
         <div class="level-1">
@@ -328,54 +305,40 @@
                     <span class="rank-badge" style="color:#d40000">LVL-?</span>
                 </div>
             </a>
-        </div>
 
-        <a href="/db/agent-fenrir.html" class="agent-card" style="border-color: var(--warning); text-decoration: none;">
-    <div class="card-header" style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--warning); padding-bottom: 5px; margin-bottom: 10px;">
-        <span class="sas-logo">SAS</span>
-        <span class="security-level" style="background: var(--warning); color: #000; font-size: 0.7rem; padding: 2px 5px;">NIVEAU OMEGA</span>
-    </div>
-    <div class="card-body">
-        <h3 style="margin: 0; color: #fff;">SANTORO VEGA</h3>
-        <div class="alias" style="color: var(--warning); font-family: var(--font-code); font-size: 0.9rem; margin-top: 5px;">
-            ALIAS: [ FENRIR ]
-        </div>
-        <div class="status" style="margin-top: 15px; font-size: 0.8rem; color: #aaa;">
-            STATUT : <span class="blink" style="color: var(--warning);">SURVEILLANCE ACTIVE</span>
-        </div>
-    </div>
-</a>
+            <a href="db/agent-garm.html" class="node-card rank-soldier" id="node-GARM">
+                <div class="node-role">RECON</div>
+                <div class="node-name">GARM</div>
+                <div class="node-footer">
+                    <span>STATUS: ACTIVE</span>
+                    <span class="rank-badge" style="color:#ffd633">CONFID.</span>
+                </div>
+            </a>
 
-<a href="/db/agent-garm.html" class="agent-card" style="border-color: var(--dim); text-decoration: none;">
-    <div class="card-header" style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--dim); padding-bottom: 5px; margin-bottom: 10px;">
-        <span class="sas-logo">SAS</span>
-        <span class="security-level" style="background: var(--warning); color: #000; font-size: 0.7rem; padding: 2px 5px;">CONFIDENTIEL</span>
-    </div>
-    <div class="card-body">
-        <h3 style="margin: 0; color: #fff;">JAXON HUNTER</h3>
-        <div class="alias" style="color: var(--warning); font-family: var(--font-code); font-size: 0.9rem; margin-top: 5px;">
-            ALIAS: [ GARM ]
+            <a href="db/agent-fenrir.html" class="node-card rank-soldier" id="node-FENRIR">
+                <div class="node-role">OMEGA</div>
+                <div class="node-name">FENRIR</div>
+                <div class="node-footer">
+                    <span class="blink" style="color: #ffaa00;">WATCH</span>
+                    <span class="rank-badge" style="color:#d40000">LVL-Ω</span>
+                </div>
+            </a>
         </div>
-        <div class="status" style="margin-top: 15px; font-size: 0.8rem; color: #aaa;">
-            STATUT : <span style="color: var(--secondary);">ACTIF (ENCADREMENT)</span>
-        </div>
-    </div>
-</a>
-
     </div>
 
     <script>
-      
         const CONNECTIONS = [
             { from: 'GRAVES',   to: 'JAVIER',   color: '#d4af37' },
             { from: 'GRAVES',   to: 'JACKAL',   color: '#d4af37' },
             { from: 'JAVIER',   to: 'LOVELACE', color: '#00f3ff' },
-            { from: 'JAVIER',   to: 'ADAM',     color: '#556677' },
-            { from: 'JAVIER',   to: 'BLAKE',    color: '#556677' },
-            { from: 'JACKAL',   to: 'BLITZ',    color: '#556677' },
-            { from: 'JACKAL',   to: 'DUST',     color: '#556677' },
-            { from: 'JACKAL',   to: 'ROXANNE',  color: '#556677' },
-            { from: 'JACKAL',   to: 'LEXA',     color: '#ffd633' },
+            { from: 'JAVIER',   to: 'ADAM',      color: '#556677' },
+            { from: 'JAVIER',   to: 'BLAKE',     color: '#556677' },
+            { from: 'JACKAL',   to: 'BLITZ',     color: '#556677' },
+            { from: 'JACKAL',   to: 'DUST',      color: '#556677' },
+            { from: 'JACKAL',   to: 'ROXANNE',   color: '#556677' },
+            { from: 'JACKAL',   to: 'LEXA',      color: '#ffd633' },
+            { from: 'JACKAL',   to: 'GARM',      color: '#556677' },
+            { from: 'LEXA',     to: 'FENRIR',    color: '#d40000' }
         ];
 
         const NODE_MAP = {
@@ -386,6 +349,8 @@
             'blitz':    'BLITZ',   'dust':     'DUST',
             'wei':      'DUST',    'roxanne':  'ROXANNE',
             'selena':   'LEXA',    'lexa':     'LEXA',
+            'garm':     'GARM',    'jaxon':    'GARM',
+            'fenrir':   'FENRIR',  'santoro':  'FENRIR'
         };
 
         function rankColor(rank) {
@@ -395,7 +360,6 @@
             return '#00ff9d';
         }
 
-        
         function relPos(el, wrapper) {
             const er = el.getBoundingClientRect();
             const wr = wrapper.getBoundingClientRect();
@@ -413,34 +377,23 @@
 
         function drawLines() {
             const wrapper = document.getElementById('hier-wrap');
-
             const old = document.getElementById('hier-svg');
             if (old) old.remove();
-
-         
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.id = 'hier-svg';
             svg.setAttribute('width',  wrapper.scrollWidth);
             svg.setAttribute('height', wrapper.scrollHeight);
-    
             wrapper.insertBefore(svg, wrapper.firstChild);
 
             CONNECTIONS.forEach(({ from, to, color }) => {
                 const elFrom = document.getElementById('node-' + from);
                 const elTo   = document.getElementById('node-' + to);
                 if (!elFrom || !elTo) return;
-
                 const pf = relPos(elFrom, wrapper);
                 const pt = relPos(elTo,   wrapper);
-
                 const x1 = pf.cx,    y1 = pf.bottom;
-            
                 const x2 = pt.cx,    y2 = pt.top;
-
-           
                 const my = y1 + (y2 - y1) * 0.5;
-
-           
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.setAttribute('d', `M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`);
                 path.setAttribute('stroke', color);
@@ -449,15 +402,11 @@
                 path.setAttribute('fill', 'none');
                 path.setAttribute('opacity', '0.5');
                 svg.appendChild(path);
-
-       
                 const glow = path.cloneNode();
                 glow.setAttribute('stroke-width', '4');
                 glow.setAttribute('opacity', '0.08');
                 glow.setAttribute('stroke-dasharray', 'none');
                 svg.insertBefore(glow, path);
-
-        
                 [{ cx: x1, cy: y1 }, { cx: x2, cy: y2 }].forEach(({ cx, cy }) => {
                     const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     dot.setAttribute('cx', cx); dot.setAttribute('cy', cy);
@@ -472,55 +421,28 @@
         async function fetchRanks() {
             const token = localStorage.getItem('sas_token');
             if (!token) return;
-
             const loader = document.getElementById('loading');
             loader.style.display = 'block';
-
             try {
                 const res = await fetch('/api/admin', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (!res.ok) { loader.style.display = 'none'; return; }
-
                 const agents = await res.json();
-
                 agents.forEach(agent => {
                     const key    = agent.username.toLowerCase();
                     const nodeId = NODE_MAP[key];
                     if (!nodeId) return;
-
                     const node = document.getElementById('node-' + nodeId);
                     if (!node) return;
-
                     const badge = node.querySelector('.rank-badge');
                     if (badge) {
                         badge.textContent  = `LVL-${agent.rank}`;
                         badge.style.color  = rankColor(agent.rank);
                     }
-
-                    const prevClasses = [...node.classList];
-                    node.classList.remove('rank-director','rank-lt','rank-soldier',
-                                         'lt-javier','lt-jackal','slt-rouge');
-
-                    if (agent.rank >= 10) {
-                        node.classList.add('rank-director');
-                        node.style.width = '320px';
-                    } else if (agent.rank >= 5) {
-                        node.classList.add('rank-lt');
-                        node.style.width = '280px';
-                        const kept = prevClasses.find(c => ['lt-javier','lt-jackal','slt-rouge'].includes(c));
-                        if (kept) node.classList.add(kept);
-                    } else {
-                        node.classList.add('rank-soldier');
-                        node.style.width = '220px';
-                    }
                 });
-
-            
                 setTimeout(drawLines, 150);
-
             } catch(_) {}
-
             loader.style.display = 'none';
         }
 
@@ -534,16 +456,12 @@
                     document.getElementById('user-hud').style.display = 'flex';
                 } catch(_) {}
             }
-
-            // Premier tracé après que la page ait fini de s'afficher
             requestAnimationFrame(() => {
                 drawLines();
                 fetchRanks();
             });
-
             window.addEventListener('resize', drawLines);
         });
     </script>
-
 </body>
 </html>
