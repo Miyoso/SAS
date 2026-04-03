@@ -16,7 +16,6 @@
     <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 
     <style>
-        /* === CORRECTION NAVBAR === */
         body.logged-in .tactical-navbar.auth-content,
         .tactical-navbar {
             display: flex !important; 
@@ -26,8 +25,6 @@
         }
         .tactical-navbar::-webkit-scrollbar { display: none; }
 
-        /* === OVERRIDES INVESTIGATION.CSS === */
-        /* On force le board à rester dans son conteneur au lieu de prendre tout l'écran */
         #board-viewport {
             position: absolute !important;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -35,7 +32,6 @@
             background: rgba(5, 8, 10, 0.6) !important;
         }
 
-        /* On désactive l'ancien bouton et on intègre la sidebar au panneau de droite */
         #btn-open-sidebar { display: none !important; }
         #case-sidebar {
             position: static !important; transform: none !important;
@@ -43,7 +39,7 @@
             background: transparent !important; border: none !important;
             padding: 0 !important; display: flex; flex-direction: column;
         }
-        .sidebar-header { display: none !important; } /* On cache l'ancien header car on a le nouveau */
+        .sidebar-header { display: none !important; }
 
         .investigation-wrapper {
             display: flex; gap: 25px;
@@ -51,7 +47,6 @@
             overflow: hidden;
         }
 
-        /* === TOOLS BAR === */
         .board-toolbar {
             position: absolute; top: 15px; left: 15px; right: 15px;
             z-index: 100; display: flex; justify-content: space-between; align-items: center;
@@ -75,7 +70,6 @@
         .color-dot:hover { transform: scale(1.2); }
         .color-dot.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
 
-        /* === MODAL === */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
@@ -170,9 +164,12 @@
             </section>
 
             <aside class="sidebar-panel" style="flex: 1; border-bottom: 2px solid var(--accent-warning);">
-                <div class="panel-header" style="margin-bottom: 15px;">
-                    <h3 style="margin: 0; color: var(--accent-warning); font-family: var(--font-display); letter-spacing: 2px;">ARCHIVES // DOSSIERS</h3>
-                    <span style="font-size:0.65rem; color:var(--accent-warning); font-family: var(--font-code);" class="blink">DB_SYNC</span>
+                <div class="panel-header" style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="margin: 0; color: var(--accent-warning); font-family: var(--font-display); letter-spacing: 2px;">ARCHIVES // DOSSIERS</h3>
+                        <span style="font-size:0.65rem; color:var(--accent-warning); font-family: var(--font-code);" class="blink">DB_SYNC</span>
+                    </div>
+                    <button onclick="closeCurrentBoard()" class="btn-connect" style="color: var(--accent-danger); border-color: rgba(255,51,51,0.4); font-size: 0.8rem; padding: 4px 8px;" title="Clore le dossier actuel">[ CLORE ]</button>
                 </div>
                 <div class="separator-line"></div>
 
@@ -226,8 +223,9 @@
 
             <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:25px; padding-top:15px; border-top: 1px solid rgba(255,255,255,0.1);">
                 <button onclick="closeModal()" class="btn-connect" style="color: var(--text-dim); border-color: rgba(255,255,255,0.2);">[ ABORT ]</button>
-                <button onclick="confirmCreateNode()" class="btn-connect" style="color: var(--accent-warning); border-color: rgba(238, 187, 0, 0.4);">[ ENREGISTRER ]</button>
+                <button onclick="confirmCreateNode()" class="btn-connect btn-confirm" style="color: var(--accent-warning); border-color: rgba(238, 187, 0, 0.4);">[ ENREGISTRER ]</button>
             </div>
+            <div class="modal-actions" style="margin-top: 10px;"></div>
         </div>
     </div>
 </div>
@@ -245,12 +243,10 @@
         } catch(e){}
 
         if (typeof SAS_COLLAB !== 'undefined') {
-            // Initialisation de la synchro avec la couleur verte tactique par défaut
             SAS_COLLAB.init(session.username, '#00ff9d');
         }
     });
 
-    // Optionnel : Petits ajustements visuels pour les boutons de type dans la modal
     function setModalType(type) {
         document.querySelectorAll('.type-btn').forEach(btn => {
             btn.classList.remove('active');

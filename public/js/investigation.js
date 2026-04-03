@@ -659,3 +659,34 @@ window.deleteNode = async function(id, event) {
         } catch(e) { alert("Erreur réseau."); }
     }
 }
+
+window.closeCurrentBoard = async function() {
+    if (!currentBoardId) {
+        alert("Aucun dossier n'est actuellement sélectionné.");
+        return;
+    }
+    
+    if(confirm("DANGER : Voulez-vous vraiment clore et supprimer définitivement ce dossier ainsi que toutes ses données ?")) {
+        try {
+            const res = await fetch('/api/game?entity=boards', {
+                method: 'DELETE',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id: currentBoardId })
+            });
+            
+            if(res.ok) {
+                currentBoardId = null;
+                const world = document.getElementById('board-world');
+                if (world) world.innerHTML = '<svg id="connections-layer"></svg>'; 
+                linksData = [];
+                
+                loadBoardsList();
+            } else {
+                alert("Erreur lors de la clôture du dossier.");
+            }
+        } catch(e) { 
+            console.error(e);
+            alert("Erreur réseau."); 
+        }
+    }
+}
