@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS MAINFRAME // MISSION BRIEFING</title>
+    <script>if (!localStorage.getItem('sas_session')) window.location.href = 'index.html';</script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/stylele.css">
+    <style>
+        .briefing-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: calc(100vh - 160px); overflow-y: auto; }
+        .countdown-block {
+            grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; padding: 30px; background: rgba(5,8,12,0.8);
+            border: 1px solid rgba(255,255,255,0.08); border-top: 2px solid var(--accent-danger);
+            position: relative; overflow: hidden;
+        }
+        .countdown-block::before {
+            content: ''; position: absolute; inset: 0;
+            background: repeating-linear-gradient(90deg, transparent 0, transparent 29px, rgba(255,51,51,0.02) 30px);
+        }
+        .mission-title { font-family: var(--font-code); font-size: 2rem; font-weight: 800; color: #fff; letter-spacing: -1px; text-align: center; margin-bottom: 8px; }
+        .mission-location { color: var(--accent-blue); font-size: 0.8rem; letter-spacing: 3px; margin-bottom: 20px; }
+        .countdown-digits { display: flex; gap: 20px; align-items: center; }
+        .countdown-unit { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .countdown-val {
+            font-family: var(--font-code); font-size: 3rem; font-weight: 800; color: var(--accent-danger);
+            text-shadow: 0 0 20px rgba(255,51,51,0.4); line-height: 1;
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,51,51,0.3);
+            padding: 10px 20px; min-width: 100px; text-align: center;
+        }
+        .countdown-label { font-size: 0.6rem; color: #445566; letter-spacing: 3px; }
+        .countdown-sep { font-family: var(--font-code); font-size: 2rem; color: rgba(255,51,51,0.4); margin-top: -20px; animation: blink 1s step-end infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+        .countdown-val.active { color: var(--accent-primary); text-shadow: 0 0 20px rgba(0,255,157,0.4); border-color: rgba(0,255,157,0.3); }
+        .status-banner {
+            margin-top: 16px; padding: 6px 20px; font-family: var(--font-display);
+            font-size: 0.75rem; letter-spacing: 3px; border: 1px solid; display: inline-block;
+        }
+        .detail-panel {
+            background: rgba(5,8,12,0.7); border: 1px solid rgba(255,255,255,0.08);
+            padding: 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto;
+        }
+        .detail-section-title { font-size: 0.6rem; color: var(--accent-blue); letter-spacing: 3px; margin-bottom: 10px; border-bottom: 1px dashed rgba(0,243,255,0.2); padding-bottom: 5px; }
+        .detail-body { font-family: var(--font-code); font-size: 0.8rem; color: #bbb; line-height: 1.6; white-space: pre-wrap; }
+        .roster-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .roster-tag {
+            background: rgba(0,243,255,0.06); border: 1px solid rgba(0,243,255,0.3);
+            color: var(--accent-blue); padding: 5px 12px; font-family: var(--font-code); font-size: 0.75rem;
+        }
+        .loadout-list { display: flex; flex-direction: column; gap: 8px; }
+        .loadout-item {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 6px;
+            font-family: var(--font-code); font-size: 0.78rem; color: #ccc;
+        }
+        .loadout-sn { color: var(--accent-warning); font-size: 0.65rem; }
+        .info-row { display: flex; flex-direction: column; gap: 3px; }
+        .info-label { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 1px; }
+        .info-val { font-family: var(--font-code); font-size: 0.9rem; color: #fff; }
+        .not-found { grid-column: 1/-1; display: flex; align-items: center; justify-content: center; height: 100%; color: var(--accent-danger); font-family: var(--font-display); letter-spacing: 2px; }
+    </style>
+</head>
+<body class="logged-in">
+
+<div class="tactical-grid" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+<div class="radar-scan" aria-hidden="true"></div>
+
+<div class="hud-side hud-left" aria-hidden="true">
+    <div class="hud-ruler"></div>
+    <div class="hud-marker">SYS.BRIEFING</div>
+    <div class="hud-marker" style="color:var(--accent-danger)">CLASSIFIED</div>
+    <div class="hud-ruler"></div>
+</div>
+<div class="hud-side hud-right" aria-hidden="true">
+    <div class="hud-ruler"></div>
+    <div class="hud-marker">OPS.CENTER</div>
+    <div class="hud-marker">128.0.0.1</div>
+    <div class="hud-ruler"></div>
+</div>
+
+<div class="terminal-wrapper">
+    <div class="terminal">
+
+        <header class="header-strip" style="margin-bottom: 15px;">
+            <div>
+                <h1>MISSION // <span style="color:var(--accent-danger)">BRIEFING</span></h1>
+                <div class="sub-header">TACTICAL OPERATIONS CENTER // CLASSIFIED</div>
+            </div>
+            <div class="meta-data">
+                <a href="missions.html" style="color:var(--accent-primary);text-decoration:none;">[ ← RETOUR OPS ]</a>
+            </div>
+        </header>
+
+        <div id="briefing-content" class="briefing-layout">
+            <div class="not-found blink">CHARGEMENT DES DONNÉES MISSION...</div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('sas_token');
+    let countdownInterval = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const params = new URLSearchParams(window.location.search);
+        const missionId = parseInt(params.get('id'));
+
+        if (!missionId) {
+            document.getElementById('briefing-content').innerHTML = '<div class="not-found">AUCUNE MISSION SÉLECTIONNÉE</div>';
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/game?entity=missions', { headers: { 'Authorization': `Bearer ${token}` } });
+            const missions = await res.json();
+            const mission = missions.find(m => m.id === missionId);
+
+            if (!mission) {
+                document.getElementById('briefing-content').innerHTML = '<div class="not-found">MISSION INTROUVABLE — DOSSIER CLASSIFIÉ</div>';
+                return;
+            }
+
+            renderBriefing(mission);
+        } catch (e) {
+            document.getElementById('briefing-content').innerHTML = '<div class="not-found">ERREUR DE CONNEXION SERVEUR</div>';
+        }
+    });
+
+    function renderBriefing(m) {
+        const container = document.getElementById('briefing-content');
+
+        const statusColors = { PENDING: 'var(--accent-warning)', ACTIVE: 'var(--accent-danger)', COMPLETED: 'var(--accent-primary)' };
+        const statusColor = statusColors[m.status] || '#fff';
+        const startDate = new Date(m.start_time);
+        const dateStr = startDate.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const timeStr = startDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        container.innerHTML = `
+            <div class="countdown-block">
+                <div class="mission-title">${m.title.toUpperCase()}</div>
+                <div class="mission-location">📍 ${m.location.toUpperCase()}</div>
+
+                <div class="countdown-digits" id="countdown-display">
+                    <div class="countdown-unit">
+                        <div class="countdown-val" id="cd-days">--</div>
+                        <div class="countdown-label">JOURS</div>
+                    </div>
+                    <div class="countdown-sep">:</div>
+                    <div class="countdown-unit">
+                        <div class="countdown-val" id="cd-hours">--</div>
+                        <div class="countdown-label">HEURES</div>
+                    </div>
+                    <div class="countdown-sep">:</div>
+                    <div class="countdown-unit">
+                        <div class="countdown-val" id="cd-mins">--</div>
+                        <div class="countdown-label">MINUTES</div>
+                    </div>
+                    <div class="countdown-sep">:</div>
+                    <div class="countdown-unit">
+                        <div class="countdown-val" id="cd-secs">--</div>
+                        <div class="countdown-label">SECONDES</div>
+                    </div>
+                </div>
+
+                <div class="status-banner" style="color:${statusColor}; border-color:${statusColor};">
+                    ${m.status} // ${dateStr} à ${timeStr}
+                </div>
+            </div>
+
+            <div class="detail-panel">
+                <div>
+                    <div class="detail-section-title">OFFICIER EN CHARGE</div>
+                    <div class="info-val">${m.lead_agent?.toUpperCase() || 'NON ASSIGNÉ'}</div>
+                </div>
+                <div>
+                    <div class="detail-section-title">OBJECTIFS & SITUATION</div>
+                    <div class="detail-body">${m.description || 'Aucun briefing disponible.'}</div>
+                </div>
+            </div>
+
+            <div class="detail-panel">
+                <div>
+                    <div class="detail-section-title">ROSTER — ${(m.roster || []).length} OPÉRATEUR(S)</div>
+                    <div class="roster-list" id="roster-display">
+                        ${(m.roster || []).length === 0
+                            ? '<span style="color:#445566;font-size:0.8rem;font-family:var(--font-display)">AUCUN AGENT AFFECTÉ</span>'
+                            : (m.roster || []).map(a => `<div class="roster-tag">${a.toUpperCase()}</div>`).join('')
+                        }
+                    </div>
+                </div>
+                <div>
+                    <div class="detail-section-title">DOTATION — ${(m.loadout || []).length} PIÈCE(S)</div>
+                    <div class="loadout-list">
+                        ${(m.loadout || []).length === 0
+                            ? '<span style="color:#445566;font-size:0.8rem;font-family:var(--font-display)">AUCUN ÉQUIPEMENT DÉPLOYÉ</span>'
+                            : (m.loadout || []).map(l => `
+                                <div class="loadout-item">
+                                    <span>${l.item_name}</span>
+                                    <span class="loadout-sn">${l.serial_number}</span>
+                                </div>`).join('')
+                        }
+                    </div>
+                </div>
+            </div>
+        `;
+
+        startCountdown(new Date(m.start_time), m.status);
+    }
+
+    function startCountdown(targetDate, status) {
+        if (countdownInterval) clearInterval(countdownInterval);
+
+        function update() {
+            const now = new Date();
+            const diff = targetDate - now;
+
+            if (status === 'ACTIVE') {
+                ['cd-days','cd-hours','cd-mins','cd-secs'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) { el.textContent = 'GO'; el.classList.add('active'); }
+                });
+                clearInterval(countdownInterval);
+                return;
+            }
+
+            if (status === 'COMPLETED' || diff <= 0) {
+                ['cd-days','cd-hours','cd-mins','cd-secs'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) { el.textContent = '00'; el.classList.add('active'); }
+                });
+                clearInterval(countdownInterval);
+                return;
+            }
+
+            const days    = Math.floor(diff / 86400000);
+            const hours   = Math.floor((diff % 86400000) / 3600000);
+            const minutes = Math.floor((diff % 3600000) / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+
+            const fmt = n => String(n).padStart(2, '0');
+            const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = fmt(val); };
+
+            set('cd-days', days);
+            set('cd-hours', hours);
+            set('cd-mins', minutes);
+            set('cd-secs', seconds);
+        }
+
+        update();
+        countdownInterval = setInterval(update, 1000);
+    }
+</script>
+</body>
+</html>

@@ -1,6 +1,8 @@
 import { Pool } from 'pg';
 import Pusher from 'pusher';
 import { verifyToken } from './utils/auth.js';
+import { logActivity } from './utils/activity.js';
+import { pusherServer } from './utils/pusher-server.js';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 const pusher = new Pusher({ appId: "2084549", key: "51d51cc5bfc1c8ee90d4", secret: "b3a325fcecbfabc17f57", cluster: "eu", useTLS: true });
@@ -26,23 +28,51 @@ export default async function handler(req, res) {
             return res.status(200).json(result.rows);
         }
 
+        if (entity === 'stats' && method === 'GET') {
+            const agentName = req.query.agent || user.username;
+
+            const missionsResult = await pool.query(`
+                SELECT m.status, COUNT(*) as count
+                FROM missions m
+                JOIN mission_roster mr ON m.id = mr.mission_id
+                WHERE mr.agent_name = $1
+                GROUP BY m.status
+            `, [agentName]);
+
+            const stats = { total: 0, active: 0, completed: 0, pending: 0, success_rate: 0 };
+            missionsResult.rows.forEach(row => {
+                const count = parseInt(row.count);
+                stats.total += count;
+                if (row.status === 'ACTIVE') stats.active = count;
+                if (row.status === 'COMPLETED') stats.completed = count;
+                if (row.status === 'PENDING') stats.pending = count;
+            });
+            stats.success_rate = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+
+            const equipRes = await pool.query(
+                'SELECT COUNT(*) as count FROM equipment WHERE assigned_to = $1', [agentName]
+            );
+            stats.equipment = parseInt(equipRes.rows[0].count);
+
+            const warnRes = await pool.query(
+                'SELECT COUNT(*) as count FROM warnings WHERE agent_id = $1', [user.userId]
+            );
+            stats.warnings = parseInt(warnRes.rows[0].count);
+
+            return res.status(200).json(stats);
+        }
+
         if (entity === 'stress') {
             if (method === 'GET') {
                 const result = await pool.query('SELECT stress_level FROM agents WHERE id = $1', [user.userId]);
                 if (result.rows.length === 0) return res.status(404).json({ error: 'Agent introuvable' });
                 return res.status(200).json({ stress_level: result.rows[0].stress_level });
             }
-
             if (method === 'POST') {
                 let { amount } = req.body;
-
                 const currentRes = await pool.query('SELECT stress_level FROM agents WHERE id = $1', [user.userId]);
                 let currentLevel = currentRes.rows[0].stress_level || 0;
-
-                let newLevel = currentLevel + parseInt(amount);
-                if (newLevel < 0) newLevel = 0;
-                if (newLevel > 100) newLevel = 100;
-
+                let newLevel = Math.min(100, Math.max(0, currentLevel + parseInt(amount)));
                 await pool.query('UPDATE agents SET stress_level = $1 WHERE id = $2', [newLevel, user.userId]);
                 return res.status(200).json({ stress_level: newLevel });
             }
@@ -80,19 +110,40 @@ export default async function handler(req, res) {
                 }));
                 return res.status(200).json(enriched);
             }
+
             if (method === 'POST') {
                 const { action } = req.body;
                 if (action === 'create') {
-                    await pool.query('INSERT INTO missions (title, description, location, start_time, lead_agent, status) VALUES ($1, $2, $3, $4, $5, $6)',
-                        [req.body.title, req.body.description, req.body.location, req.body.start_time, user.username, 'PENDING']);
+                    await pool.query(
+                        'INSERT INTO missions (title, description, location, start_time, lead_agent, status) VALUES ($1, $2, $3, $4, $5, $6)',
+                        [req.body.title, req.body.description, req.body.location, req.body.start_time, user.username, 'PENDING']
+                    );
+                    await logActivity('MISSION_CREATED', user.username, `🗓 Nouvelle mission créée: ${req.body.title.toUpperCase()} — ${req.body.location}`);
                 } else if (action === 'move') {
+                    const missionRes = await pool.query('SELECT title FROM missions WHERE id = $1', [req.body.id]);
+                    const missionTitle = missionRes.rows[0]?.title || 'INCONNUE';
+
                     await pool.query('UPDATE missions SET status = $1 WHERE id = $2', [req.body.status, req.body.id]);
+
+                    await pusherServer.trigger('sas-events', 'mission-update', {
+                        title: missionTitle,
+                        status: req.body.status,
+                        agent: user.username
+                    });
+
+                    const statusLabels = { ACTIVE: '🔴 LANCÉE', COMPLETED: '✅ CLÔTURÉE', PENDING: '🟡 EN ATTENTE' };
+                    await logActivity('MISSION_UPDATE', user.username, `Mission "${missionTitle}" → ${statusLabels[req.body.status] || req.body.status}`);
                 } else if (action === 'assign') {
                     if (req.body.agent) {
                         const check = await pool.query('SELECT * FROM mission_roster WHERE mission_id=$1 AND agent_name=$2', [req.body.mission_id, req.body.agent]);
-                        if(check.rows.length === 0) await pool.query('INSERT INTO mission_roster (mission_id, agent_name) VALUES ($1, $2)', [req.body.mission_id, req.body.agent]);
+                        if (check.rows.length === 0) {
+                            await pool.query('INSERT INTO mission_roster (mission_id, agent_name) VALUES ($1, $2)', [req.body.mission_id, req.body.agent]);
+                            await logActivity('ROSTER_UPDATE', user.username, `${req.body.agent.toUpperCase()} affecté à la mission #${req.body.mission_id}`);
+                        }
                     }
-                    if (req.body.equipment_id) await pool.query('UPDATE equipment SET mission_id = $1, status = $2 WHERE id = $3', [req.body.mission_id, 'DEPLOYED', req.body.equipment_id]);
+                    if (req.body.equipment_id) {
+                        await pool.query('UPDATE equipment SET mission_id = $1, status = $2 WHERE id = $3', [req.body.mission_id, 'DEPLOYED', req.body.equipment_id]);
+                    }
                 }
                 return res.status(200).json({ success: true });
             }
@@ -110,10 +161,15 @@ export default async function handler(req, res) {
             }
             if (method === 'POST') {
                 if (parseInt(user.rank) < 3) return res.status(403).json({ error: 'Non autorisé' });
-                await pool.query('INSERT INTO equipment (item_name, category, serial_number, storage_location, status) VALUES ($1, $2, $3, $4, $5)',
-                    [req.body.name, req.body.category, req.body.serial_number, req.body.storage_location, 'AVAILABLE']);
-                await pool.query('INSERT INTO logistics_logs (item_name, serial_number, action_type, agent_name) VALUES ($1, $2, $3, $4)',
-                    [req.body.name, req.body.serial_number, 'NEW_STOCK', user.username]);
+                await pool.query(
+                    'INSERT INTO equipment (item_name, category, serial_number, storage_location, status) VALUES ($1, $2, $3, $4, $5)',
+                    [req.body.name, req.body.category, req.body.serial_number, req.body.storage_location, 'AVAILABLE']
+                );
+                await pool.query(
+                    'INSERT INTO logistics_logs (item_name, serial_number, action_type, agent_name) VALUES ($1, $2, $3, $4)',
+                    [req.body.name, req.body.serial_number, 'NEW_STOCK', user.username]
+                );
+                await logActivity('EQUIPMENT', user.username, `📦 Nouvel équipement enregistré: ${req.body.name} (S/N: ${req.body.serial_number})`);
                 return res.status(200).json({ success: true });
             }
             if (method === 'PATCH') {
@@ -122,10 +178,14 @@ export default async function handler(req, res) {
                 if (action === 'TAKE') {
                     if (parseInt(user.rank) < 3) return res.status(403).json({ error: 'Rank 3 requis' });
                     await pool.query("UPDATE equipment SET assigned_to = $1, status = 'ASSIGNED', last_updated = NOW() WHERE id = $2", [agent, id]);
-                    await pool.query('INSERT INTO logistics_logs (item_name, serial_number, action_type, agent_name) VALUES ($1, $2, $3, $4)', [item.item_name, item.serial_number, 'CHECKOUT', `${user.username} -> ${agent}`]);
+                    await pool.query('INSERT INTO logistics_logs (item_name, serial_number, action_type, agent_name) VALUES ($1, $2, $3, $4)',
+                        [item.item_name, item.serial_number, 'CHECKOUT', `${user.username} -> ${agent}`]);
+                    await logActivity('EQUIPMENT', user.username, `📦 ${item.item_name} assigné à ${agent.toUpperCase()}`);
                 } else if (action === 'RETURN') {
                     await pool.query("UPDATE equipment SET assigned_to = NULL, status = 'AVAILABLE', last_updated = NOW() WHERE id = $1", [id]);
-                    await pool.query('INSERT INTO logistics_logs (item_name, serial_number, action_type, agent_name) VALUES ($1, $2, $3, $4)', [item.item_name, item.serial_number, 'RETURN', user.username]);
+                    await pool.query('INSERT INTO logistics_logs (item_name, serial_number, action_type, agent_name) VALUES ($1, $2, $3, $4)',
+                        [item.item_name, item.serial_number, 'RETURN', user.username]);
+                    await logActivity('EQUIPMENT', user.username, `📦 ${item.item_name} retourné en stock`);
                 }
                 return res.status(200).json({ success: true });
             }
@@ -139,6 +199,7 @@ export default async function handler(req, res) {
             if (method === 'POST') {
                 const { title } = req.body;
                 const result = await pool.query('INSERT INTO investigation_boards (title) VALUES ($1) RETURNING *', [title]);
+                await logActivity('INVESTIGATION', user.username, `🔍 Nouveau dossier d'enquête ouvert: ${title}`);
                 return res.status(200).json(result.rows[0]);
             }
             if (method === 'DELETE') {
@@ -151,7 +212,6 @@ export default async function handler(req, res) {
             if (method === 'GET') {
                 const boardId = req.query.board_id;
                 if (!boardId) return res.status(400).json({ error: "Board ID requis" });
-
                 const nodes = await pool.query('SELECT * FROM investigation_nodes WHERE board_id = $1', [boardId]);
                 const links = await pool.query('SELECT * FROM investigation_links WHERE board_id = $1', [boardId]);
                 return res.status(200).json({ nodes: nodes.rows, links: links.rows });
@@ -159,7 +219,6 @@ export default async function handler(req, res) {
 
             if (method === 'POST') {
                 const { action, board_id } = req.body;
-
                 if (action === 'create_node') {
                     const r = await pool.query(
                         'INSERT INTO investigation_nodes (board_id, type, label, sub_label, image_url, x, y) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
@@ -168,7 +227,6 @@ export default async function handler(req, res) {
                     await pusher.trigger('investigation-board', 'node-created', r.rows[0]);
                     return res.status(200).json(r.rows[0]);
                 }
-
                 if (action === 'create_link') {
                     const r = await pool.query(
                         'INSERT INTO investigation_links (board_id, from_id, to_id, color, label) VALUES ($1, $2, $3, $4, $5) RETURNING *',
@@ -192,7 +250,6 @@ export default async function handler(req, res) {
                     }
                     return res.status(404).json({ error: "Lien non trouvé" });
                 }
-
                 if (req.body.label !== undefined) {
                     const { id, label, sub_label, image_url, type } = req.body;
                     const result = await pool.query(
@@ -217,7 +274,6 @@ export default async function handler(req, res) {
                     await pusher.trigger('investigation-board', 'link-deleted', { id: req.body.id });
                     return res.status(200).json({ success: true });
                 }
-
                 await pool.query('DELETE FROM investigation_nodes WHERE id=$1', [req.body.id]);
                 await pool.query('DELETE FROM investigation_links WHERE from_id=$1 OR to_id=$1', [req.body.id]);
                 await pusher.trigger('investigation-board', 'node-deleted', req.body);
@@ -226,7 +282,6 @@ export default async function handler(req, res) {
         }
 
         return res.status(404).json({ error: 'Entité inconnue' });
-
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'Erreur API Game' });
