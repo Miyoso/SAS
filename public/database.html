@@ -7,14 +7,12 @@
     
     <script>
         const session = localStorage.getItem('sas_session');
-
     </script>
 
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style-mo.css">
 
     <style>
-
         body {
             background-color: #020406;
             color: #eee;
@@ -24,7 +22,6 @@
             margin: 0;
         }
 
-
         .tactical-grid {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-image:
@@ -32,16 +29,14 @@
                 linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
             background-size: 40px 40px;
             z-index: -10;
-            mask-image: radial-gradient(circleAt center, black 40%, transparent 90%);
+            mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
         }
-
 
         .vignette {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at 50% 50%, transparent 50%, #000 100%);
             z-index: -5; pointer-events: none;
         }
-
 
         .radar-scan {
             position: fixed; top: 0; left: 0; width: 100%; height: 5px;
@@ -51,7 +46,6 @@
             z-index: -4; opacity: 0.3;
         }
         @keyframes scanScreen { 0% {top: -10%;} 100% {top: 110%;} }
-
 
         .hud-side {
             position: fixed; top: 100px; bottom: 50px; width: 60px;
@@ -63,17 +57,14 @@
         }
         .hud-left { left: 20px; border-left: none; }
         .hud-right { right: 20px; border-right: none; }
-
         .hud-marker {
             writing-mode: vertical-rl; text-orientation: mixed;
-            transform: rotate(180deg);
-            opacity: 0.6;
+            transform: rotate(180deg); opacity: 0.6;
         }
         .hud-ruler {
             height: 100px; width: 4px;
             background: repeating-linear-gradient(to bottom, #334455 0, #334455 1px, transparent 2px, transparent 10px);
         }
-
 
         .hierarchy-wrapper {
             display: flex; flex-direction: column; align-items: center;
@@ -83,7 +74,6 @@
             animation: fadeIn 1s ease-out;
         }
         @keyframes fadeIn { from {opacity:0; transform: scale(0.95);} to {opacity:1; transform: scale(1);} }
-
 
         .node-card {
             background: rgba(10, 14, 18, 0.85);
@@ -96,8 +86,8 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
             overflow: hidden;
+            display: block;
         }
-
 
         .node-card::after {
             content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
@@ -106,7 +96,6 @@
             transition: 0.5s;
         }
         .node-card:hover::after { transform: rotate(45deg) translateY(100%); }
-
         .node-card:hover {
             transform: translateY(-5px);
             background: rgba(20, 25, 30, 0.95);
@@ -115,58 +104,35 @@
             z-index: 10;
         }
 
-
-        .node-role { font-size: 0.65rem; color: #667788; margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
+        .node-role {
+            font-size: 0.65rem; color: #667788; margin-bottom: 5px;
+            letter-spacing: 2px; text-transform: uppercase;
+            display: flex; align-items: center; gap: 5px;
+        }
         .node-role::before { content:''; width: 4px; height: 4px; background: currentColor; }
-
         .node-name { font-family: 'JetBrains Mono'; font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 12px; letter-spacing: 1px; }
-
         .node-footer {
             display: flex; justify-content: space-between; align-items: center;
             border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; font-size: 0.65rem; color: #8899aa;
         }
 
-
         .rank-director { border-left: 3px solid #D40000FF; width: 320px; }
         .rank-director .node-role { color: #D40000FF; }
-        .rank-director:hover { box-shadow: 0 0 30px rgba(212, 175, 55, 0.15); border-color: #d40000; }
-
+        .rank-director:hover { box-shadow: 0 0 30px rgba(212, 0, 0, 0.15); border-color: #d40000; }
 
         .rank-lt { border-left: 3px solid #ccc; width: 280px; }
         .rank-lt:hover { border-color: #fff; }
         .lt-javier { border-left-color: #00f3ff; } .lt-javier .node-role { color: #00f3ff; }
         .lt-jackal { border-left-color: #FFD633FF; } .lt-jackal .node-role { color: #ffd633; }
-        .slt-rouge { border-left-color: #d40000; }  .slt-rouge .node-role { color: #d40000; }
-
+        .slt-rouge { border-left-color: #d40000; } .slt-rouge .node-role { color: #d40000; }
 
         .rank-soldier { border-left: 3px solid #445566; width: 220px; opacity: 0.85; }
         .rank-soldier:hover { opacity: 1; border-left-color: var(--primary); border-color: var(--primary); }
         .rank-soldier:hover .node-name { color: var(--primary); }
 
-
-        .line { position: absolute; background: #334455; z-index: -1; opacity: 0.5; }
-
-        .line::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, #fff, transparent);
-            opacity: 0.3; animation: dataFlow 3s infinite linear;
-        }
-        .line-v::before { background: linear-gradient(180deg, transparent, #fff, transparent); }
-        @keyframes dataFlow { 0% {opacity:0;} 50% {opacity:0.5;} 100% {opacity:0;} }
-
-
         .level-1 { margin-bottom: 70px; position: relative; display: flex; justify-content: center; }
-        .stem-1 { width: 1px; height: 35px; bottom: -35px; left: 50%; background: #d4af37; }
-
         .level-2-wrapper { margin-bottom: 70px; display: flex; gap: 120px; justify-content: center; position: relative; }
-        .bridge { height: 1px; top: -35px; left: 140px; right: 140px; background: linear-gradient(90deg, #ff3333, #ccc, #00f3ff); }
-        .stem-lt { width: 1px; height: 35px; top: -35px; left: 50%; background: #ccc; }
-
         .level-3-grid { display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; max-width: 1200px; position: relative; padding-top: 40px; }
-        .stem-main-soldier { width: 1px; height: 40px; top: 0; left: 50%; background: linear-gradient(180deg, #ccc, #334455); }
-        .bar-soldier { height: 1px; width: 85%; top: 20px; left: 7.5%; background: #334455; }
-        .stem-small { width: 1px; height: 20px; top: -20px; left: 50%; background: #334455; }
-
 
         .screen-header {
             position: absolute; top: 30px; left: 40px;
@@ -188,41 +154,45 @@
         .hud-value { font-size: 0.9rem; color: #fff; font-family: 'JetBrains Mono'; }
 
         .btn-return {
-            display: inline-flex;
-            align-items: center;
-            margin-top: 15px;
-            padding: 8px 16px;
+            display: inline-flex; align-items: center;
+            margin-top: 15px; padding: 8px 16px;
             background: rgba(0, 255, 157, 0.05);
             border: 1px solid rgba(0, 255, 157, 0.4);
             color: rgba(0, 255, 157, 0.8);
-            text-decoration: none;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            letter-spacing: 1px;
+            text-decoration: none; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem; letter-spacing: 1px;
             transition: all 0.3s ease;
             clip-path: polygon(0 0, 100% 0, 100% 70%, 95% 100%, 0 100%);
-
-            /* --- CORRECTION ESSENTIELLE --- */
-            position: relative; /* Permet au z-index de fonctionner */
-            z-index: 10000;     /* Place le bouton au-dessus des effets d'écran/scanlines */
-            cursor: pointer;    /* Force le curseur main */
-            pointer-events: auto; /* Force la réactivité aux clics */
+            position: relative; z-index: 10000;
+            cursor: pointer; pointer-events: auto;
         }
-
         .btn-return:hover {
             background: rgba(0, 255, 157, 0.2);
-            border-color: #00ff9d;
-            color: #fff;
+            border-color: #00ff9d; color: #fff;
             box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
             transform: translateX(5px);
         }
+        .btn-return::before { content: '<'; margin-right: 8px; font-weight: bold; }
 
-        .btn-return::before {
-            content: '<';
-            margin-right: 8px;
-            font-weight: bold;
+        /* Badge de rang dynamique */
+        .rank-badge {
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border: 1px solid currentColor;
+            border-radius: 2px;
+            opacity: 0.8;
+            transition: 0.3s;
         }
 
+        /* Loader */
+        .loading-indicator {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); border: 1px solid rgba(0,255,157,0.3);
+            padding: 8px 20px; font-family: 'Share Tech Mono'; font-size: 0.7rem;
+            color: var(--primary); z-index: 200; letter-spacing: 2px;
+            animation: fadeIn 0.3s ease;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -247,9 +217,8 @@
     <div class="screen-header">
         <div class="screen-title">SHADOW // NET</div>
         <div class="screen-subtitle">PERSONNEL DATABASE V.4.0</div>
-
         <a href="index.html" class="btn-return">RETOUR</a>
-        </div>
+    </div>
 
     <div id="user-hud" class="user-hud" style="display: none;">
         <div class="hud-block">
@@ -263,99 +232,105 @@
         </div>
     </div>
 
+    <div class="loading-indicator" id="loading">SYNC BDD EN COURS...</div>
+
     <div class="hierarchy-wrapper">
 
         <div class="level-1">
-            <a href="db/agent-Graves.html" class="node-card rank-director">
+            <a href="db/agent-Graves.html" class="node-card rank-director" id="node-GRAVES">
                 <div class="node-role">DIRECTOR</div>
                 <div class="node-name">GRAVES</div>
                 <div class="node-footer">
                     <span>STATUS: ACTIVE</span>
-                    <span style="color:#d4af37">● CEO</span>
+                    <span class="rank-badge" style="color:#d4af37">CEO</span>
                 </div>
-                <div class="line line-v stem-1"></div>
             </a>
         </div>
 
         <div class="level-2-wrapper">
-            <div class="line bridge"></div>
-
-            <a href="db/agent-Javier.html" class="node-card rank-lt lt-javier">
-                <div class="line line-v stem-lt"></div>
+            <a href="db/agent-Javier.html" class="node-card rank-lt lt-javier" id="node-JAVIER">
                 <div class="node-role">LIEUTENANT</div>
                 <div class="node-name">JAVIER</div>
                 <div class="node-footer">
                     <span>STATUS: ACTIVE</span>
-                    <span style="color:#00f3ff">●</span>
+                    <span class="rank-badge" style="color:#00f3ff">LVL-?</span>
                 </div>
             </a>
 
-            <a href="db/agent-ji.html" class="node-card rank-lt lt-jackal">
-                <div class="line line-v stem-lt"></div>
+            <a href="db/agent-ji.html" class="node-card rank-lt lt-jackal" id="node-JACKAL">
                 <div class="node-role">LIEUTENANT</div>
                 <div class="node-name">JACKAL</div>
                 <div class="node-footer">
                     <span>STATUS: ACTIVE</span>
-                    <span style="color:#ff3333">●</span>
+                    <span class="rank-badge" style="color:#ffd633">LVL-?</span>
                 </div>
             </a>
         </div>
 
         <div class="level-3-grid">
-            <div class="line line-v stem-main-soldier"></div>
-            <div class="line bar-soldier"></div>
-
-            <a href="db/agent-nyx.html" class="node-card rank-lt lt-javier">
-                <div class="line line-v stem-small"></div>
+            <a href="db/agent-nyx.html" class="node-card rank-lt lt-javier" id="node-LOVELACE">
                 <div class="node-role">CYBER</div>
                 <div class="node-name">NYX</div>
-                <div class="node-footer"><span>ONLINE</span> <span>●</span></div>
+                <div class="node-footer">
+                    <span>ONLINE</span>
+                    <span class="rank-badge" style="color:#00f3ff">LVL-?</span>
+                </div>
             </a>
 
-            <a href="db/agent-adam.html" class="node-card rank-soldier">
-                <div class="line line-v stem-small"></div>
+            <a href="db/agent-adam.html" class="node-card rank-soldier" id="node-ADAM">
                 <div class="node-role">SOLDIER</div>
                 <div class="node-name">ADAM</div>
-                <div class="node-footer"><span>READY</span> <span>●</span></div>
+                <div class="node-footer">
+                    <span>READY</span>
+                    <span class="rank-badge" style="color:#00ff9d">LVL-?</span>
+                </div>
             </a>
 
-            <a href="db/agent-blake.html" class="node-card rank-soldier">
-                <div class="line line-v stem-small"></div>
+            <a href="db/agent-blake.html" class="node-card rank-soldier" id="node-BLAKE">
                 <div class="node-role">SOLDIER</div>
                 <div class="node-name">BLAKE</div>
-                <div class="node-footer"><span>ACTIVE</span> <span>●</span></div>
+                <div class="node-footer">
+                    <span>ACTIVE</span>
+                    <span class="rank-badge" style="color:#00ff9d">LVL-?</span>
+                </div>
             </a>
 
-            <a href="db/agent-blitz.html" class="node-card rank-soldier">
-                <div class="line line-v stem-small"></div>
+            <a href="db/agent-blitz.html" class="node-card rank-soldier" id="node-BLITZ">
                 <div class="node-role">SOLDIER</div>
                 <div class="node-name">BLITZ</div>
-                <div class="node-footer"><span>ACTIVE</span> <span>●</span></div>
+                <div class="node-footer">
+                    <span>ACTIVE</span>
+                    <span class="rank-badge" style="color:#00ff9d">LVL-?</span>
+                </div>
             </a>
 
-            <a href="db/agent-wei.html" class="node-card rank-soldier">
-                <div class="line line-v stem-small"></div>
+            <a href="db/agent-wei.html" class="node-card rank-soldier" id="node-DUST">
                 <div class="node-role">SOLDIER</div>
                 <div class="node-name">DUST</div>
-                <div class="node-footer"><span>OBSERVER</span> <span>●</span></div>
+                <div class="node-footer">
+                    <span>OBSERVER</span>
+                    <span class="rank-badge" style="color:#00ff9d">LVL-?</span>
+                </div>
             </a>
 
-            <a href="db/agent-roxanne.html" class="node-card rank-soldier">
-                <div class="line line-v stem-small"></div>
+            <a href="db/agent-roxanne.html" class="node-card rank-soldier" id="node-ROXANNE">
                 <div class="node-role">PROTECTION</div>
                 <div class="node-name">ROXANNE</div>
-                <div class="node-footer"><span>GUARD</span> <span>●</span></div>
+                <div class="node-footer">
+                    <span>GUARD</span>
+                    <span class="rank-badge" style="color:#00ff9d">LVL-?</span>
+                </div>
             </a>
 
-            <a href="db/agent-selena.html" class="node-card rank-lt slt-rouge">
-                <div class="line line-v stem-small"></div>
+            <a href="db/agent-selena.html" class="node-card rank-lt slt-rouge" id="node-LEXA">
                 <div class="node-role">STRAT</div>
                 <div class="node-name">SELENA</div>
-                <div class="node-footer"><span>ADVISOR</span> <span>●</span></div>
+                <div class="node-footer">
+                    <span>ADVISOR</span>
+                    <span class="rank-badge" style="color:#d40000">LVL-?</span>
+                </div>
             </a>
         </div>
-
-        <div id="sidebar-placeholder"></div>
 
     </div>
 
@@ -370,7 +345,178 @@
                     document.getElementById('user-hud').style.display = 'flex';
                 } catch(e) {}
             }
+
+            drawLines();
+            window.addEventListener('resize', drawLines);
+            fetchRanks();
         });
+
+        // ── Map username -> node ID suffix ──
+        const NODE_MAP = {
+            'graves':   'GRAVES',
+            'javier':   'JAVIER',
+            'jackal':   'JACKAL',
+            'ji':       'JACKAL',
+            'lovelace': 'LOVELACE',
+            'nyx':      'LOVELACE',
+            'adam':     'ADAM',
+            'blake':    'BLAKE',
+            'blitz':    'BLITZ',
+            'dust':     'DUST',
+            'wei':      'DUST',
+            'roxanne':  'ROXANNE',
+            'selena':   'LEXA',
+            'lexa':     'LEXA',
+        };
+
+        // ── Rank color ──
+        function rankColor(rank) {
+            if (rank >= 10) return '#D40000';
+            if (rank >= 5)  return '#ffd633';
+            if (rank >= 3)  return '#00f3ff';
+            return '#00ff9d';
+        }
+
+        // ── Fetch real ranks ──
+        async function fetchRanks() {
+            const token = localStorage.getItem('sas_token');
+            if (!token) return;
+
+            const loader = document.getElementById('loading');
+            loader.style.display = 'block';
+
+            try {
+                const res = await fetch('/api/admin', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    loader.style.display = 'none';
+                    return;
+                }
+
+                const agents = await res.json();
+
+                agents.forEach(agent => {
+                    const key = agent.username.toLowerCase();
+                    const nodeId = NODE_MAP[key];
+                    if (!nodeId) return;
+
+                    const node = document.getElementById('node-' + nodeId);
+                    if (!node) return;
+
+                    // Mettre à jour le badge de rang
+                    const badge = node.querySelector('.rank-badge');
+                    if (badge) {
+                        badge.textContent = `LVL-${agent.rank}`;
+                        badge.style.color = rankColor(agent.rank);
+                    }
+
+                    // Réorganiser la classe selon le rang réel
+                    const prevClasses = [...node.classList];
+                    node.classList.remove('rank-director', 'rank-lt', 'rank-soldier',
+                                         'lt-javier', 'lt-jackal', 'slt-rouge');
+
+                    if (agent.rank >= 10) {
+                        node.classList.add('rank-director');
+                        node.style.width = '320px';
+                    } else if (agent.rank >= 5) {
+                        node.classList.add('rank-lt');
+                        node.style.width = '280px';
+                        // Conserver la couleur spécifique si elle existait
+                        const colorClass = prevClasses.find(c => ['lt-javier','lt-jackal','slt-rouge'].includes(c));
+                        if (colorClass) node.classList.add(colorClass);
+                    } else {
+                        node.classList.add('rank-soldier');
+                        node.style.width = '220px';
+                    }
+                });
+
+                setTimeout(drawLines, 150);
+
+            } catch(_) {}
+
+            loader.style.display = 'none';
+        }
+
+        // ── Dessin dynamique des lignes SVG ──
+        function drawLines() {
+            const old = document.getElementById('hier-svg');
+            if (old) old.remove();
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.id = 'hier-svg';
+            Object.assign(svg.style, {
+                position: 'fixed', top: '0', left: '0',
+                width: '100%', height: '100%',
+                pointerEvents: 'none', zIndex: '2',
+                overflow: 'visible'
+            });
+            document.body.appendChild(svg);
+
+            const director  = document.querySelector('.rank-director');
+            const lts       = [...document.querySelectorAll('.rank-lt')];
+            const soldiers  = [...document.querySelectorAll('.rank-soldier')];
+
+            if (!director) return;
+
+            // Director → Lieutenants
+            lts.forEach(lt => {
+                drawCurve(svg, director, lt, '#d4af37', 0.55);
+            });
+
+            // Lieutenants → Soldiers (par proximité horizontale)
+            soldiers.forEach(s => {
+                if (lts.length === 0) return;
+                const nearest = lts.slice().sort((a, b) => {
+                    return Math.abs(centerX(a) - centerX(s)) - Math.abs(centerX(b) - centerX(s));
+                })[0];
+                drawCurve(svg, nearest, s, '#334455', 0.45);
+            });
+        }
+
+        function centerX(el) {
+            const r = el.getBoundingClientRect();
+            return r.left + r.width / 2;
+        }
+
+        function drawCurve(svg, from, to, color, opacity) {
+            const fr = from.getBoundingClientRect();
+            const tr = to.getBoundingClientRect();
+
+            const x1 = fr.left + fr.width / 2;
+            const y1 = fr.bottom;
+            const x2 = tr.left + tr.width / 2;
+            const y2 = tr.top;
+            const cy = y1 + (y2 - y1) * 0.5;
+
+            // Ligne principale
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', `M${x1},${y1} C${x1},${cy} ${x2},${cy} ${x2},${y2}`);
+            path.setAttribute('stroke', color);
+            path.setAttribute('stroke-width', '1');
+            path.setAttribute('stroke-dasharray', '6,4');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('opacity', opacity);
+            svg.appendChild(path);
+
+            // Point de départ
+            const dot1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            dot1.setAttribute('cx', x1); dot1.setAttribute('cy', y1);
+            dot1.setAttribute('r', '3');
+            dot1.setAttribute('fill', color);
+            dot1.setAttribute('opacity', opacity);
+            svg.appendChild(dot1);
+
+            // Point d'arrivée
+            const dot2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            dot2.setAttribute('cx', x2); dot2.setAttribute('cy', y2);
+            dot2.setAttribute('r', '3');
+            dot2.setAttribute('fill', color);
+            dot2.setAttribute('opacity', opacity);
+            svg.appendChild(dot2);
+        }
     </script>
+
 </body>
 </html>
