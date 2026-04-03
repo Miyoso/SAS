@@ -330,11 +330,42 @@
             </a>
         </div>
 
-    </div><!-- fin .hierarchy-wrapper -->
+        <a href="/db/agent-fenrir.html" class="agent-card" style="border-color: var(--warning); text-decoration: none;">
+    <div class="card-header" style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--warning); padding-bottom: 5px; margin-bottom: 10px;">
+        <span class="sas-logo">SAS</span>
+        <span class="security-level" style="background: var(--warning); color: #000; font-size: 0.7rem; padding: 2px 5px;">NIVEAU OMEGA</span>
+    </div>
+    <div class="card-body">
+        <h3 style="margin: 0; color: #fff;">SANTORO VEGA</h3>
+        <div class="alias" style="color: var(--warning); font-family: var(--font-code); font-size: 0.9rem; margin-top: 5px;">
+            ALIAS: [ FENRIR ]
+        </div>
+        <div class="status" style="margin-top: 15px; font-size: 0.8rem; color: #aaa;">
+            STATUT : <span class="blink" style="color: var(--warning);">SURVEILLANCE ACTIVE</span>
+        </div>
+    </div>
+</a>
+
+<a href="/db/agent-garm.html" class="agent-card" style="border-color: var(--dim); text-decoration: none;">
+    <div class="card-header" style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--dim); padding-bottom: 5px; margin-bottom: 10px;">
+        <span class="sas-logo">SAS</span>
+        <span class="security-level" style="background: var(--warning); color: #000; font-size: 0.7rem; padding: 2px 5px;">CONFIDENTIEL</span>
+    </div>
+    <div class="card-body">
+        <h3 style="margin: 0; color: #fff;">JAXON HUNTER</h3>
+        <div class="alias" style="color: var(--warning); font-family: var(--font-code); font-size: 0.9rem; margin-top: 5px;">
+            ALIAS: [ GARM ]
+        </div>
+        <div class="status" style="margin-top: 15px; font-size: 0.8rem; color: #aaa;">
+            STATUT : <span style="color: var(--secondary);">ACTIF (ENCADREMENT)</span>
+        </div>
+    </div>
+</a>
+
+    </div>
 
     <script>
-        // ── Connexions fixes entre agents ──
-        // On définit qui est lié à qui, avec quelle couleur
+      
         const CONNECTIONS = [
             { from: 'GRAVES',   to: 'JAVIER',   color: '#d4af37' },
             { from: 'GRAVES',   to: 'JACKAL',   color: '#d4af37' },
@@ -364,7 +395,7 @@
             return '#00ff9d';
         }
 
-        // ── Calcule la position d'un nœud RELATIVE au wrapper ──
+        
         function relPos(el, wrapper) {
             const er = el.getBoundingClientRect();
             const wr = wrapper.getBoundingClientRect();
@@ -386,12 +417,12 @@
             const old = document.getElementById('hier-svg');
             if (old) old.remove();
 
-            // On redimensionne le SVG à la taille réelle du wrapper
+         
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.id = 'hier-svg';
             svg.setAttribute('width',  wrapper.scrollWidth);
             svg.setAttribute('height', wrapper.scrollHeight);
-            // Inséré en PREMIER ENFANT pour être derrière les nœuds
+    
             wrapper.insertBefore(svg, wrapper.firstChild);
 
             CONNECTIONS.forEach(({ from, to, color }) => {
@@ -402,15 +433,14 @@
                 const pf = relPos(elFrom, wrapper);
                 const pt = relPos(elTo,   wrapper);
 
-                // Point de départ : bas-centre du nœud source
                 const x1 = pf.cx,    y1 = pf.bottom;
-                // Point d'arrivée : haut-centre du nœud cible
+            
                 const x2 = pt.cx,    y2 = pt.top;
 
-                // Contrôle de la courbe de Bézier
+           
                 const my = y1 + (y2 - y1) * 0.5;
 
-                // Courbe principale
+           
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.setAttribute('d', `M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`);
                 path.setAttribute('stroke', color);
@@ -420,14 +450,14 @@
                 path.setAttribute('opacity', '0.5');
                 svg.appendChild(path);
 
-                // Lueur de la courbe
+       
                 const glow = path.cloneNode();
                 glow.setAttribute('stroke-width', '4');
                 glow.setAttribute('opacity', '0.08');
                 glow.setAttribute('stroke-dasharray', 'none');
                 svg.insertBefore(glow, path);
 
-                // Dot départ
+        
                 [{ cx: x1, cy: y1 }, { cx: x2, cy: y2 }].forEach(({ cx, cy }) => {
                     const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     dot.setAttribute('cx', cx); dot.setAttribute('cy', cy);
@@ -486,7 +516,7 @@
                     }
                 });
 
-                // Laisser le DOM se re-peindre avant de re-tracer
+            
                 setTimeout(drawLines, 150);
 
             } catch(_) {}
