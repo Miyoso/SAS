@@ -7,8 +7,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+    <script src="js/notifications.js"></script>
     <style>
-        
         :root {
             --accent-primary:    #00ff9d;
             --accent-secondary:  #00b8ff;
@@ -19,7 +20,6 @@
             --bg-glass:     rgba(6, 10, 15, 0.65);
         }
 
-        
         *, *::before, *::after { box-sizing: border-box; }
 
         body, html {
@@ -44,7 +44,6 @@
             pointer-events: none; z-index: 998;
         }
 
-        
         .auth-content                { display: none !important; }
         body.logged-in .auth-content { display: flex !important; }
         body.logged-in #login-overlay { display: none !important; }
@@ -54,7 +53,6 @@
             z-index: 0; opacity: 0.6;
         }
 
-        
         .sr-only {
             position: absolute; width: 1px; height: 1px;
             padding: 0; margin: -1px; overflow: hidden;
@@ -72,7 +70,6 @@
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(0, 255, 157, 0.3);
             border-radius: 50%;
-            
             width: min(380px, 88vw); height: min(380px, 88vw);
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
@@ -117,7 +114,6 @@
             text-align: center;
         }
 
-      
         .btn-connect {
             background: rgba(0, 255, 157, 0.1);
             color: var(--accent-primary);
@@ -132,7 +128,6 @@
             background: var(--accent-primary); color: #000;
             box-shadow: 0 0 25px var(--accent-primary); scale: 1.05;
         }
-   
         .btn-logout {
             font-size: 0.7rem; padding: 8px 15px;
             border-color: rgba(255,255,255,0.3);
@@ -140,7 +135,6 @@
         }
         .btn-logout:hover { background: rgba(255,255,255,0.15); color: #fff; scale: 1.05; }
 
-       
         .hud-overlay {
             position: fixed; top: 30px; left: 30px;
             pointer-events: none; z-index: 100;
@@ -157,7 +151,6 @@
         .hud-meta-dim      { opacity: 0.8; }
         .hud-meta-dimmer   { opacity: 0.6; }
 
-        /* HUD — TOP RIGHT */
         .hud-top-right {
             position: fixed; top: 30px; right: 30px;
             text-align: right; pointer-events: auto; z-index: 100;
@@ -168,7 +161,6 @@
             border-radius: 50%; border: 1px solid var(--accent-primary);
         }
 
-        
         .system-logs-container {
             position: fixed; bottom: 30px; left: 30px;
             width: 300px; z-index: 100;
@@ -189,9 +181,13 @@
             background: rgba(255, 42, 42, 0.05);
             color: var(--accent-danger);
         }
+        .log-item.warning {
+            border-color: var(--accent-restricted);
+            background: rgba(255,170,0,0.05);
+            color: var(--accent-restricted);
+        }
         .log-time { opacity: 0.5; margin-right: 8px; font-size: 0.55rem; }
 
-      
         .neural-dashboard {
             position: relative; width: 100vw; height: 100vh;
             display: flex; align-items: center; justify-content: center;
@@ -213,7 +209,6 @@
             color: rgba(255,255,255,0.4); letter-spacing: 3px;
             white-space: nowrap; border-radius: 10px;
         }
-        .orbit-label-classified { color: var(--accent-danger); }
 
         .synapse-lines {
             position: absolute; top: 50%; left: 50%;
@@ -227,7 +222,6 @@
         .synapse-lines line.restricted { stroke: rgba(255, 170, 0, 0.3); }
         .synapse-lines line.admin      { stroke: rgba(255, 42, 42, 0.3); }
 
-       
         .node {
             position: absolute; top: 50%; left: 50%;
             border-radius: 50%;
@@ -289,11 +283,9 @@
         .node-core .icon  { font-size: clamp(2rem, 5vmin, 3.5rem); }
         .node-core .label { font-weight: bold; opacity: 1; }
 
-        
         .node-sub {
             width:  clamp(75px, 14vmin, 110px);
             height: clamp(75px, 14vmin, 110px);
-       
             translate:
                 calc(-50% + sin(var(--angle, 0deg)) * var(--orbit, 25vmin))
                 calc(-50% - cos(var(--angle, 0deg)) * var(--orbit, 25vmin));
@@ -323,16 +315,13 @@
             filter: drop-shadow(0 0 10px rgba(255, 42, 42, 0.8));
         }
 
-        
         .node.node-locked {
             opacity: 0.42;
             filter: saturate(0.25);
             cursor: not-allowed;
         }
-        .node.node-locked:hover {
-            scale: 1; /* bloquer le zoom hover */
-        }
-        
+        .node.node-locked:hover { scale: 1; }
+
         .lock-badge {
             display: none;
             position: absolute; top: 5px; right: 5px;
@@ -344,7 +333,6 @@
         }
         .node.node-locked .lock-badge { display: flex; }
 
-        
         #node-tooltip {
             position: fixed;
             background: rgba(4, 8, 12, 0.97);
@@ -365,7 +353,6 @@
             box-shadow: 0 0 12px rgba(255,42,42,0.3);
         }
 
-    
         .glitch-anim {
             animation: glitchError 0.3s cubic-bezier(.25,.46,.45,.94) both infinite;
             border-color: var(--accent-danger) !important;
@@ -376,7 +363,6 @@
         .term-dim   { color: rgba(255,255,255,0.5); }
         .blink      { animation: blinkAnim 1s infinite; }
 
-    
         @keyframes glitchError {
             0%   { transform: translate(0) }
             20%  { transform: translate(-4px,  2px) }
@@ -402,18 +388,13 @@
             to   { opacity: 1; filter: blur(0); }
         }
 
-        
         @media (max-width: 768px) {
             .hud-overlay         { top: 12px; left: 12px; padding: 8px 14px; }
             .hud-top-right       { top: 12px; right: 12px; }
             .system-logs-container { display: none; }
-
-            /* Réduire les rayons d'orbite pour tenir dans l'écran */
             .node-sub[data-orbit="1"]  { --orbit: 23vmin; }
             .node-sub[data-orbit="2"]  { --orbit: 35vmin; }
             .node-sub[data-orbit="10"] { --orbit: 43vmin; }
-
-            /* Réduire les anneaux en proportion */
             .orbit-1  { width: 46vmin; height: 46vmin; }
             .orbit-2  { width: 70vmin; height: 70vmin; }
             .orbit-10 { width: 88vmin; height: 88vmin; }
@@ -425,39 +406,25 @@
             .hud-title   { font-size: 0.95rem; }
         }
 
-        /* --- AJOUT STATS NŒUDS --- */
         .node-stat {
-            position: absolute;
-            bottom: 6px;
-            right: 8px;
-            font-family: var(--font-code);
-            font-size: 0.55rem;
-            letter-spacing: 1px;
-            opacity: 0.85;
-            pointer-events: none;
-            transition: opacity 0.3s;
+            position: absolute; bottom: 6px; right: 8px;
+            font-family: var(--font-code); font-size: 0.55rem;
+            letter-spacing: 1px; opacity: 0.85;
+            pointer-events: none; transition: opacity 0.3s;
         }
         .node-stat-val {
-            font-size: 0.75rem;
-            font-weight: bold;
-            display: block;
-            text-align: center;
-            line-height: 1;
-            margin-bottom: 1px;
+            font-size: 0.75rem; font-weight: bold;
+            display: block; text-align: center;
+            line-height: 1; margin-bottom: 1px;
         }
         .node:hover .node-stat { opacity: 1; }
 
         .node-alert {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
+            position: absolute; top: 4px; right: 4px;
+            width: 8px; height: 8px; border-radius: 50%;
             background: var(--accent-danger);
             box-shadow: 0 0 6px var(--accent-danger);
-            opacity: 0;
-            transition: opacity 0.3s;
+            opacity: 0; transition: opacity 0.3s;
             pointer-events: none;
             animation: pulseBadge 2s infinite;
         }
@@ -473,39 +440,30 @@
 <div class="scanlines"></div>
 <div class="vignette"></div>
 
-
 <canvas id="neural-network" role="presentation" aria-hidden="true"></canvas>
 
 <div id="node-tooltip" role="tooltip" aria-hidden="true"></div>
 
-
 <section id="login-overlay" aria-label="Authentification système">
     <div class="login-box" id="login-box">
         <div class="login-title">&gt;_ LIAISON SYNAPTIQUE</div>
-
         <div class="login-field">
-            <label for="login-username" class="sr-only">Empreinte corticale — identifiant agent</label>
+            <label for="login-username" class="sr-only">Empreinte corticale</label>
             <input type="text" id="login-username" class="cmd-input"
                    placeholder="[ EMPREINTE_CORTICALE ]"
-                   autocomplete="off" autofocus
-                   aria-label="Identifiant agent">
+                   autocomplete="off" autofocus aria-label="Identifiant agent">
         </div>
-
         <div class="login-field">
-            <label for="login-password" class="sr-only">Souche mémorielle — mot de passe</label>
+            <label for="login-password" class="sr-only">Souche mémorielle</label>
             <input type="password" id="login-password" class="cmd-input"
-                   placeholder="[ SOUCHE_MÉMORIELLE ]"
-                   aria-label="Mot de passe">
+                   placeholder="[ SOUCHE_MÉMORIELLE ]" aria-label="Mot de passe">
         </div>
-
         <div id="login-msg" aria-live="assertive" aria-atomic="true"></div>
-
         <button class="btn-connect" onclick="handleLogin()" aria-label="Initier la connexion">
             INITIER L'UPLINK
         </button>
     </div>
 </section>
-
 
 <div class="hud-overlay auth-content" aria-label="Informations de session" role="status">
     <div class="hud-title">SAS // <span class="hud-title-accent">MAINFRAME</span></div>
@@ -518,20 +476,16 @@
     </div>
 </div>
 
-
 <div class="hud-top-right auth-content">
-    <img id="sidebar-avatar" src="assets/default.jpg" alt="Avatar agent"
-         class="hud-avatar">
+    <img id="sidebar-avatar" src="assets/default.jpg" alt="Avatar agent" class="hud-avatar">
     <button class="btn-connect btn-logout" onclick="logout()" aria-label="Se déconnecter">
         DÉCONNEXION ⏏
     </button>
 </div>
 
-
 <div class="system-logs-container auth-content" aria-label="Journaux système" role="log" aria-live="polite">
     <ul id="system-logs" class="log-list"></ul>
 </div>
-
 
 <div class="neural-dashboard auth-content" role="navigation" aria-label="Modules du système">
 
@@ -550,13 +504,13 @@
         <line x1="50%" y1="50%" x2="50%"    y2="87.5%"  class="restricted"/>
         <line x1="50%" y1="50%" x2="83.58%" y2="16.42%" class="admin"/>
         <line x1="50%" y1="50%" x2="16.42%" y2="16.42%" class="admin"/>
+        <line x1="50%" y1="50%" x2="16.42%" y2="83.58%" class="restricted"/>
         <line x1="62.5%"  y1="28.35%" x2="50%"    y2="12.5%"  class="restricted"/>
         <line x1="37.5%"  y1="28.35%" x2="50%"    y2="12.5%"  class="restricted"/>
         <line x1="62.5%"  y1="28.35%" x2="83.58%" y2="16.42%" class="admin"/>
         <line x1="37.5%"  y1="28.35%" x2="16.42%" y2="16.42%" class="admin"/>
     </svg>
 
-   
     <button class="node node-core"
             onclick="accessModule('profile.html', 1)"
             aria-label="Accéder au noyau central — Profil">
@@ -564,9 +518,9 @@
         <span class="label">NOYAU CENTRAL</span>
     </button>
 
-   
+    <!-- ORBIT 1 -->
     <button class="node node-sub" data-orbit="1"
-            style="--angle:30deg;  --orbit:25vmin; --float-delay:0.1s"
+            style="--angle:30deg; --orbit:25vmin; --float-delay:0.1s"
             onclick="accessModule('database.html', 1)"
             data-required-level="1"
             aria-label="Module Agents (LVL-1)">
@@ -580,7 +534,7 @@
     </button>
 
     <button class="node node-sub" data-orbit="1"
-            style="--angle:90deg;  --orbit:25vmin; --float-delay:0.3s"
+            style="--angle:90deg; --orbit:25vmin; --float-delay:0.3s"
             onclick="accessModule('missions.html', 1)"
             data-required-level="1"
             aria-label="Module Missions (LVL-1)">
@@ -646,9 +600,9 @@
         <span class="node-alert" id="alert-gear"></span>
     </button>
 
-  
+    <!-- ORBIT 2 -->
     <button class="node node-sub status-restricted" data-orbit="2"
-            style="--angle:0deg;   --orbit:37.5vmin; --float-delay:0.2s"
+            style="--angle:0deg; --orbit:37.5vmin; --float-delay:0.2s"
             onclick="accessModule('investigation.html', 2)"
             data-required-level="2"
             data-tooltip="⚠ Accréditation LVL-2 requise"
@@ -659,6 +613,20 @@
         <span class="node-stat" id="stat-invest" style="color:var(--accent-restricted)">
             <span class="node-stat-val" id="stat-invest-val">—</span>OPEN
         </span>
+    </button>
+
+    <button class="node node-sub status-restricted" data-orbit="2"
+            style="--angle:120deg; --orbit:37.5vmin; --float-delay:0.6s"
+            onclick="accessModule('messages.html', 1)"
+            data-required-level="1"
+            aria-label="Module COMMS (LVL-1)">
+        <span class="lock-badge" aria-hidden="true">🔒</span>
+        <span class="icon" aria-hidden="true">📡</span>
+        <span class="label">COMMS</span>
+        <span class="node-stat" id="stat-comms" style="color:var(--accent-primary)">
+            <span class="node-stat-val" id="stat-comms-val">LIVE</span>CH.1
+        </span>
+        <span class="node-alert" id="alert-comms"></span>
     </button>
 
     <button class="node node-sub status-restricted" data-orbit="2"
@@ -675,9 +643,9 @@
         </span>
     </button>
 
-   
+    <!-- ORBIT 10 -->
     <button class="node node-sub status-admin" data-orbit="10"
-            style="--angle:45deg;  --orbit:47.5vmin; --float-delay:0.4s"
+            style="--angle:45deg; --orbit:47.5vmin; --float-delay:0.4s"
             onclick="accessModule('medical.html', 10)"
             data-required-level="10"
             data-tooltip="⛔ CLASSIFIED — LVL-10 requis"
@@ -700,24 +668,21 @@
 
 </div>
 
-
 <script src="js/script.js" defer></script>
 
 <script>
-
 const canvas = document.getElementById('neural-network');
 const ctx    = canvas.getContext('2d');
 let width, height, particles = [];
 
 const CONNECT_DIST = 180;
-const CELL_SIZE    = CONNECT_DIST; 
+const CELL_SIZE    = CONNECT_DIST;
 const NEURON_COLOR = '0, 255, 157';
 const MOUSE_COLOR  = '0, 184, 255';
 let mouse = { x: null, y: null, radius: 200 };
 
 window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
 window.addEventListener('mouseout',  () => { mouse.x = null; mouse.y = null; });
-
 
 class Neuron {
     constructor() {
@@ -751,7 +716,6 @@ class Neuron {
     }
 }
 
-
 function buildGrid() {
     const grid = new Map();
     particles.forEach((p, i) => {
@@ -762,19 +726,16 @@ function buildGrid() {
     return grid;
 }
 
-
 function drawConnections(grid) {
     particles.forEach((p, i) => {
         const cx = Math.floor(p.x / CELL_SIZE);
         const cy = Math.floor(p.y / CELL_SIZE);
-
-        
         for (let dx = -1; dx <= 1; dx++) {
             for (let dy = -1; dy <= 1; dy++) {
                 const neighbors = grid.get(`${cx + dx},${cy + dy}`);
                 if (!neighbors) continue;
                 for (const j of neighbors) {
-                    if (j <= i) continue; /* éviter doublons */
+                    if (j <= i) continue;
                     const ddx  = p.x - particles[j].x;
                     const ddy  = p.y - particles[j].y;
                     const dist = Math.sqrt(ddx * ddx + ddy * ddy);
@@ -790,8 +751,6 @@ function drawConnections(grid) {
                 }
             }
         }
-
-      
         if (mouse.x != null) {
             const dm = Math.sqrt((p.x - mouse.x) ** 2 + (p.y - mouse.y) ** 2);
             if (dm < mouse.radius) {
@@ -808,7 +767,6 @@ function drawConnections(grid) {
 
 function initNeurons() {
     particles = [];
-    /* Plafond à 200 pour les très grands écrans */
     const count = Math.min(Math.floor((width * height) / 10000), 200);
     for (let i = 0; i < count; i++) particles.push(new Neuron());
 }
@@ -828,9 +786,7 @@ function resize() {
 window.addEventListener('resize', () => { resize(); initNeurons(); });
 resize(); initNeurons(); animateNeurons();
 
-
 const tooltip = document.getElementById('node-tooltip');
-
 document.querySelectorAll('.node[data-tooltip]').forEach(node => {
     node.addEventListener('mouseenter', () => {
         tooltip.textContent = node.dataset.tooltip;
@@ -850,24 +806,16 @@ document.querySelectorAll('.node[data-tooltip]').forEach(node => {
     });
 });
 
-
-
 function updateNodeAccess() {
-  
     const rankText  = document.getElementById('mini-rank')?.textContent ?? 'LVL-1';
     const match     = rankText.match(/(\d+)/);
     const userLevel = match ? parseInt(match[1]) : 1;
-
-  
     document.querySelectorAll('.node[data-required-level]').forEach(node => {
         const required = parseInt(node.dataset.requiredLevel);
-        
         node.classList.toggle('node-locked', userLevel < required);
     });
 }
 
-
-// --- GESTION DES STATISTIQUES ---
 let statsInterval = null;
 
 async function loadNodeStats() {
@@ -881,16 +829,14 @@ async function loadNodeStats() {
         if (alertId) {
             const badge = document.getElementById(alertId);
             if (badge) {
-                // Règle spéciale : si c'est du stock sous forme "X/Y", l'alerte s'active si ça commence par "0/"
-                const isAlert = typeof value === 'string' && value.includes('/') 
-                              ? value.startsWith('0/') 
+                const isAlert = typeof value === 'string' && value.includes('/')
+                              ? value.startsWith('0/')
                               : parseInt(value) >= alertThreshold;
                 badge.classList.toggle('visible', isAlert);
             }
         }
     }
 
-    // MISSIONS
     try {
         const res = await fetch('/api/game?entity=missions', { headers: h });
         if (res.ok) {
@@ -900,9 +846,8 @@ async function loadNodeStats() {
             const statEl = document.getElementById('stat-missions');
             if (statEl) statEl.style.color = active > 0 ? 'var(--accent-danger)' : 'var(--accent-primary)';
         }
-    } catch(e) { console.warn('Stats missions:', e); }
+    } catch(e) {}
 
-    // MATÉRIEL
     try {
         const res = await fetch('/api/game?entity=equipment', { headers: h });
         if (res.ok) {
@@ -911,36 +856,32 @@ async function loadNodeStats() {
             const available = inv.filter(i => !i.assigned_to).length;
             setStat('stat-gear-val', `${available}/${inv.length}`, 'alert-gear');
         }
-    } catch(e) { console.warn('Stats gear:', e); }
+    } catch(e) {}
 
-    // AGENTS
     try {
         const res = await fetch('/api/game?entity=users', { headers: h });
         if (res.ok) {
             const agents = await res.json();
             setStat('stat-agents-val', agents.length);
         }
-    } catch(e) { console.warn('Stats agents:', e); }
+    } catch(e) {}
 
-    // INVESTIGATION
     try {
         const res = await fetch('/api/game?entity=boards', { headers: h });
         if (res.ok) {
             const boards = await res.json();
             setStat('stat-invest-val', boards.length);
         }
-    } catch(e) { console.warn('Stats invest:', e); }
+    } catch(e) {}
 
-    // CARTE
     try {
         const res = await fetch('/api/game?entity=markers');
         if (res.ok) {
             const markers = await res.json();
             setStat('stat-map-val', markers.length);
         }
-    } catch(e) { console.warn('Stats map:', e); }
+    } catch(e) {}
 
-    // MEDICAL (Si rang >= 3)
     const session = JSON.parse(localStorage.getItem('sas_session') || '{}');
     if (parseInt(session.rank) >= 3) {
         try {
@@ -966,57 +907,83 @@ async function loadNodeStats() {
                     }
                 }
             }
-        } catch(e) { console.warn('Stats medical:', e); }
+        } catch(e) {}
     }
 }
 
-
 const bodyObserver = new MutationObserver(() => {
     if (document.body.classList.contains('logged-in')) {
-        updateNodeAccess(); 
+        updateNodeAccess();
         cascadeNodes();
-        
-        // Démarrer les statistiques au moment de la connexion
         loadNodeStats();
+        loadActivityFeed();
         if (!statsInterval) statsInterval = setInterval(loadNodeStats, 30000);
     } else {
-        // Arrêter les requêtes réseau lors de la déconnexion
-        if (statsInterval) {
-            clearInterval(statsInterval);
-            statsInterval = null;
-        }
+        if (statsInterval) { clearInterval(statsInterval); statsInterval = null; }
     }
 });
 bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
-
 const rankObserver = new MutationObserver(() => {
-    if (document.body.classList.contains('logged-in')) {
-        updateNodeAccess(); 
-    }
+    if (document.body.classList.contains('logged-in')) updateNodeAccess();
 });
 const miniRankEl = document.getElementById('mini-rank');
-if (miniRankEl) {
-   
-    rankObserver.observe(miniRankEl, { childList: true, characterData: true, subtree: true });
-}
-
+if (miniRankEl) rankObserver.observe(miniRankEl, { childList: true, characterData: true, subtree: true });
 
 function cascadeNodes() {
     document.querySelectorAll('.node-sub').forEach((node, i) => {
         node.animate(
-            [
-                { opacity: 0, scale: '0.1' },
-                { opacity: 1, scale: '1'   }
-            ],
-            {
-                duration: 600,
-                delay:    200 + i * 140,
-                easing:   'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                fill:     'backwards'
-            }
+            [{ opacity: 0, scale: '0.1' }, { opacity: 1, scale: '1' }],
+            { duration: 600, delay: 200 + i * 140, easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)', fill: 'backwards' }
         );
     });
+}
+
+window._activityFeedUpdate = function(data) {
+    const typeMap = {
+        WARNING: 'alert', RANK_CHANGE: 'warning',
+        MISSION_CREATED: 'info', MISSION_UPDATE: 'info',
+        EQUIPMENT: 'info', INVESTIGATION: 'info', ROSTER_UPDATE: 'info'
+    };
+    const type = typeMap[data.action_type] || 'info';
+    const logList = document.getElementById('system-logs');
+    if (!logList) return;
+    const li = document.createElement('li');
+    li.className = `log-item ${type}`;
+    li.style.opacity = '0';
+    const time = new Date(data.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    li.innerHTML = `<span class="log-time">${time}</span><span class="log-msg">${data.details}</span>`;
+    logList.insertBefore(li, logList.firstChild);
+    requestAnimationFrame(() => requestAnimationFrame(() => { li.style.animation = 'logIn 0.3s forwards'; }));
+    if (logList.children.length > 15) logList.removeChild(logList.lastChild);
+};
+
+async function loadActivityFeed() {
+    const token = localStorage.getItem('sas_token');
+    if (!token) return;
+    try {
+        const res = await fetch('/api/activity', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) return;
+        const logs = await res.json();
+        const logList = document.getElementById('system-logs');
+        if (!logList) return;
+        logList.innerHTML = '';
+        const typeMap = {
+            WARNING: 'alert', RANK_CHANGE: 'warning',
+            MISSION_CREATED: 'info', MISSION_UPDATE: 'info',
+            EQUIPMENT: 'info', INVESTIGATION: 'info', ROSTER_UPDATE: 'info'
+        };
+        logs.slice(0, 12).forEach(log => {
+            const li = document.createElement('li');
+            li.className = `log-item ${typeMap[log.action_type] || 'info'}`;
+            const time = new Date(log.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            li.innerHTML = `<span class="log-time">${time}</span><span class="log-msg">${log.details}</span>`;
+            logList.appendChild(li);
+        });
+
+        const session = JSON.parse(localStorage.getItem('sas_session') || '{}');
+        if (typeof SAS_NOTIFY !== 'undefined') SAS_NOTIFY.init(session.username);
+    } catch (e) { console.warn('Activity feed error:', e); }
 }
 </script>
 </body>

@@ -38,7 +38,6 @@
             background-size: 40px 40px;
         }
 
-        /* ── SCAN LINE ── */
         .scanline {
             position: fixed; left: 0; width: 100%; height: 3px;
             background: rgba(0,255,157,.15);
@@ -48,7 +47,6 @@
         }
         @keyframes scan { 0%{top:-1%} 100%{top:101%} }
 
-        /* ── LAYOUT ── */
         .layout {
             display: grid;
             grid-template-columns: 300px 1fr;
@@ -58,9 +56,7 @@
         }
         @keyframes fadeIn { to { opacity: 1; } }
 
-        /* ══════════════════════════
-           SIDEBAR
-        ══════════════════════════ */
+        /* SIDEBAR */
         .sidebar {
             border-right: 1px solid rgba(255,255,255,.08);
             display: flex;
@@ -69,7 +65,6 @@
             background: rgba(4, 6, 9, .7);
         }
 
-        /* Agent header */
         .agent-header {
             padding: 20px;
             border-bottom: 1px solid rgba(255,255,255,.06);
@@ -110,11 +105,7 @@
         }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-        /* ID Card */
-        .card-wrap {
-            padding: 16px;
-            border-bottom: 1px solid rgba(255,255,255,.06);
-        }
+        .card-wrap { padding: 16px; border-bottom: 1px solid rgba(255,255,255,.06); }
         .id-card {
             width: 100%;
             background: rgba(13,17,23,.95);
@@ -143,20 +134,15 @@
         .card-badge {
             font-size: .6rem; font-weight: bold; padding: 2px 7px;
             border: 1px solid var(--danger); color: #fff;
-            background: rgba(255,51,51,.2);
-            letter-spacing: 1px;
+            background: rgba(255,51,51,.2); letter-spacing: 1px;
         }
         .card-body { display: flex; gap: 12px; padding: 12px 14px; }
         .card-photo {
             width: 70px; height: 88px;
             border: 2px solid var(--secondary);
-            overflow: hidden; flex-shrink: 0;
-            position: relative;
+            overflow: hidden; flex-shrink: 0; position: relative;
         }
-        .card-photo img {
-            width: 100%; height: 100%; object-fit: cover;
-            filter: grayscale(.8) contrast(1.2);
-        }
+        .card-photo img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(.8) contrast(1.2); }
         .card-photo::after {
             content: '';
             position: absolute; left: 0; width: 100%; height: 2px;
@@ -170,21 +156,12 @@
         .ci-code { font-family: var(--font-code); color: var(--primary); font-size: .8rem; }
         .card-foot {
             display: flex; justify-content: space-between; align-items: flex-end;
-            padding: 8px 14px;
-            border-top: 1px solid rgba(255,255,255,.06);
+            padding: 8px 14px; border-top: 1px solid rgba(255,255,255,.06);
         }
         .barcode { font-family: 'Libre Barcode 128 Text', cursive; font-size: 2rem; color: #fff; opacity: .7; line-height: .6; }
-        .chip {
-            width: 32px; height: 24px;
-            background: linear-gradient(135deg, #d4af37, #8a7322);
-            border: 1px solid #ffea8a; border-radius: 3px;
-        }
+        .chip { width: 32px; height: 24px; background: linear-gradient(135deg, #d4af37, #8a7322); border: 1px solid #ffea8a; border-radius: 3px; }
 
-        /* Biometrics */
-        .bio-block {
-            padding: 16px;
-            border-bottom: 1px solid rgba(255,255,255,.06);
-        }
+        .bio-block { padding: 16px; border-bottom: 1px solid rgba(255,255,255,.06); }
         .section-label {
             font-size: .6rem; color: var(--dim); letter-spacing: 3px;
             margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
@@ -192,8 +169,7 @@
         .section-label::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.06); }
 
         .ecg-wrap {
-            background: #000;
-            border: 1px solid rgba(255,255,255,.08);
+            background: #000; border: 1px solid rgba(255,255,255,.08);
             height: 52px; position: relative; overflow: hidden; margin-bottom: 10px;
         }
         .ecg-wrap canvas { display: block; width: 100%; height: 100%; }
@@ -225,7 +201,6 @@
         }
         .psy-btn:hover { border-color: #fff; color: #fff; }
 
-        /* Sidebar nav */
         .sidebar-nav { flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
         .sidebar-nav::-webkit-scrollbar { width: 3px; }
         .sidebar-nav::-webkit-scrollbar-thumb { background: var(--dim); }
@@ -241,11 +216,7 @@
             transition: .2s; text-transform: uppercase;
         }
         .nav-btn:hover { color: #ccc; background: rgba(255,255,255,.03); }
-        .nav-btn.active {
-            color: var(--primary);
-            border-left-color: var(--primary);
-            background: rgba(0,255,157,.04);
-        }
+        .nav-btn.active { color: var(--primary); border-left-color: var(--primary); background: rgba(0,255,157,.04); }
         .nav-btn .icon { font-size: 1rem; opacity: .7; }
         .nav-btn .badge {
             margin-left: auto;
@@ -253,10 +224,8 @@
             border: 1px solid currentColor; border-radius: 2px; opacity: .7;
         }
 
-        /* Sidebar footer */
         .sidebar-foot {
-            padding: 12px;
-            border-top: 1px solid rgba(255,255,255,.06);
+            padding: 12px; border-top: 1px solid rgba(255,255,255,.06);
             display: flex; flex-direction: column; gap: 6px;
         }
         .btn-secondary {
@@ -272,36 +241,28 @@
         }
         .btn-danger:hover { background: rgba(255,51,51,.1); }
 
-        /* ══════════════════════════
-           MAIN CONTENT
-        ══════════════════════════ */
-        .main {
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+        /* MAIN */
+        .main { display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Top bar */
         .topbar {
-            padding: 0 28px;
-            height: 56px;
+            padding: 0 28px; height: 56px;
             border-bottom: 1px solid rgba(255,255,255,.07);
             display: flex; align-items: center; justify-content: space-between;
-            flex-shrink: 0;
-            background: rgba(4,6,9,.5);
+            flex-shrink: 0; background: rgba(4,6,9,.5);
         }
-        .topbar-left { display: flex; gap: 4px; }
+        .topbar-left { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+        .topbar-left::-webkit-scrollbar { display: none; }
         .tab-btn {
             background: transparent; border: none; border-bottom: 2px solid transparent;
             color: #667788; font-family: var(--font-ui); font-size: .75rem;
             letter-spacing: 2px; padding: 0 16px; height: 56px;
             cursor: pointer; transition: .2s; text-transform: uppercase;
+            white-space: nowrap; flex-shrink: 0;
         }
         .tab-btn:hover { color: #ccc; }
         .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
-        .topbar-right { font-size: .65rem; color: var(--dim); font-family: var(--font-code); }
+        .topbar-right { font-size: .65rem; color: var(--dim); font-family: var(--font-code); flex-shrink: 0; }
 
-        /* Tab panes */
         .pane-area { flex: 1; overflow-y: auto; padding: 24px 28px; }
         .pane-area::-webkit-scrollbar { width: 5px; }
         .pane-area::-webkit-scrollbar-thumb { background: var(--dim); }
@@ -309,21 +270,16 @@
         .tab-pane.active { display: block; animation: paneIn .25s ease; }
         @keyframes paneIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
 
-        /* ── Panels ── */
         .panel {
             background: rgba(8,12,16,.8);
             border: 1px solid rgba(255,255,255,.07);
             border-left: 2px solid rgba(255,255,255,.1);
             clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
-            padding: 18px 20px;
-            margin-bottom: 16px;
-            transition: .25s;
-            position: relative;
+            padding: 18px 20px; margin-bottom: 16px; transition: .25s; position: relative;
         }
         .panel:hover { border-left-color: var(--primary); background: rgba(0,255,157,.02); }
         .panel::after {
-            content: ''; position: absolute;
-            bottom: 0; right: 0;
+            content: ''; position: absolute; bottom: 0; right: 0;
             width: 16px; height: 1px;
             background: var(--secondary);
             transform: rotate(-45deg) translateX(8px);
@@ -340,35 +296,26 @@
         .panel-title::before { content: '■'; font-size: .5rem; color: var(--danger); }
         .panel-meta { font-size: .6rem; color: #667788; letter-spacing: 1px; }
 
-        /* ── Overview grid ── */
         .ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .ov-stat {
-            background: rgba(0,0,0,.3);
-            border: 1px solid rgba(255,255,255,.06);
-            padding: 14px 16px;
-            display: flex; flex-direction: column; gap: 4px;
+            background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.06);
+            padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;
         }
         .ov-stat-label { font-size: .55rem; color: var(--dim); letter-spacing: 2px; }
         .ov-stat-val { font-family: var(--font-code); font-size: 1.6rem; color: #fff; font-weight: 800; line-height: 1; }
         .ov-stat-sub { font-size: .6rem; color: var(--dim); }
 
-        /* ── Log entries ── */
         .log-entry {
             font-size: .8rem; color: #889; margin-bottom: 10px;
-            padding: 8px 12px;
-            border-left: 2px solid rgba(255,255,255,.08);
-            font-family: var(--font-code);
-            transition: .2s;
+            padding: 8px 12px; border-left: 2px solid rgba(255,255,255,.08);
+            font-family: var(--font-code); transition: .2s;
             display: flex; flex-direction: column; gap: 2px;
         }
         .log-entry:hover { border-left-color: var(--primary); color: #ccc; padding-left: 18px; }
         .log-entry .lbl { font-size: .55rem; color: var(--dim); letter-spacing: 1px; }
 
-        /* ── Physique tab ── */
         .phys-wrap { display: grid; grid-template-columns: 200px 1fr; gap: 24px; align-items: start; }
-        .body-svg-wrap {
-            display: flex; flex-direction: column; align-items: center; gap: 8px;
-        }
+        .body-svg-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
         .body-svg-wrap svg { filter: drop-shadow(0 0 8px rgba(0,255,157,.15)); }
         .body-part { fill: rgba(0,255,157,.08); stroke: var(--dim); stroke-width: 1; cursor: pointer; transition: .3s; }
         .body-part:hover { fill: rgba(0,255,157,.25); stroke: var(--primary); }
@@ -377,19 +324,13 @@
         .body-hint { font-size: .55rem; color: var(--dim); letter-spacing: 1px; text-align: center; }
 
         .injury-list { display: flex; flex-direction: column; gap: 10px; }
-        .injury-item {
-            padding: 10px 14px;
-            border-left: 3px solid;
-            background: rgba(0,0,0,.3);
-            display: flex; flex-direction: column; gap: 3px;
-        }
+        .injury-item { padding: 10px 14px; border-left: 3px solid; background: rgba(0,0,0,.3); display: flex; flex-direction: column; gap: 3px; }
         .injury-item.sev-critical { border-color: var(--danger); }
         .injury-item.sev-moderate { border-color: var(--warning); }
         .injury-item.sev-light    { border-color: var(--primary); }
         .inj-zone { font-size: .7rem; font-weight: bold; font-family: var(--font-code); }
         .inj-desc { font-size: .75rem; color: #aaa; }
 
-        /* ── Missions ── */
         .mission-card {
             background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.06);
             border-left: 3px solid var(--warning);
@@ -405,45 +346,46 @@
         .mc-badge.PENDING { color: var(--warning); }
         .mc-badge.COMPLETED { color: var(--primary); }
         .mc-meta { display: flex; gap: 20px; font-size: .7rem; color: #778; font-family: var(--font-code); }
+        .mc-briefing {
+            display: inline-block; margin-top: 4px;
+            font-size: .6rem; color: var(--secondary);
+            border: 1px solid rgba(0,243,255,.3); padding: 2px 8px;
+            text-decoration: none; letter-spacing: 1px; font-family: var(--font-ui);
+            transition: .2s;
+        }
+        .mc-briefing:hover { background: rgba(0,243,255,.1); }
 
-        /* ── Equipment ── */
         .equip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
         .equip-card {
-            background: rgba(0,20,40,.4);
-            border-left: 2px solid var(--secondary);
-            padding: 10px 12px;
-            display: flex; align-items: center; gap: 10px;
+            background: rgba(0,20,40,.4); border-left: 2px solid var(--secondary);
+            padding: 10px 12px; display: flex; align-items: center; gap: 10px;
         }
         .equip-icon { font-size: 1.2rem; opacity: .7; }
         .equip-name { font-family: var(--font-ui); font-size: .8rem; color: #fff; font-weight: bold; }
         .equip-sn { font-size: .65rem; color: var(--secondary); font-family: monospace; }
 
-        /* ── Warnings ── */
-        .warn-card {
-            border: 1px solid rgba(255,51,51,.3);
-            background: rgba(255,51,51,.05);
-            padding: 12px 16px; margin-bottom: 10px;
-        }
+        .warn-card { border: 1px solid rgba(255,51,51,.3); background: rgba(255,51,51,.05); padding: 12px 16px; margin-bottom: 10px; }
         .warn-date { font-size: .6rem; color: var(--danger); font-weight: bold; letter-spacing: 1px; margin-bottom: 4px; }
         .warn-reason { font-size: .8rem; color: #ccc; }
-        .warn-bar {
-            display: flex; gap: 8px; align-items: center; margin-bottom: 16px;
-        }
+        .warn-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
         .warn-pip {
-            width: 28px; height: 28px;
-            border: 1px solid #444; background: #111;
+            width: 28px; height: 28px; border: 1px solid #444; background: #111;
             display: flex; align-items: center; justify-content: center;
-            font-size: .6rem; color: #444; font-family: var(--font-code);
-            transition: .3s;
+            font-size: .6rem; color: #444; font-family: var(--font-code); transition: .3s;
         }
         .warn-pip.active { border-color: var(--danger); background: rgba(255,51,51,.2); color: var(--danger); }
         .warn-pip.critical { animation: warnBlink 1s infinite; }
         @keyframes warnBlink { 50%{ background: rgba(255,51,51,.5); } }
         .warn-status-text { font-size: .7rem; margin-left: 8px; }
 
-        /* ══════════════════════════
-           MODALS
-        ══════════════════════════ */
+        /* STATS TAB */
+        .stats-rate-bar-wrap { margin-top: 20px; }
+        .stats-rate-label { font-size: .6rem; color: var(--dim); letter-spacing: 2px; margin-bottom: 6px; }
+        .stats-rate-track { height: 8px; background: rgba(255,255,255,.07); border-radius: 4px; overflow: hidden; }
+        .stats-rate-fill { height: 100%; border-radius: 4px; transition: width .6s, background .6s; }
+        .stats-extra-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+
+        /* MODALS */
         .modal-overlay {
             position: fixed; inset: 0;
             background: rgba(0,0,0,.88);
@@ -451,16 +393,10 @@
             z-index: 1000; display: flex; align-items: center; justify-content: center;
         }
         .hidden { display: none !important; }
-        .modal-box {
-            background: #080c10;
-            border: 1px solid var(--warning);
-            box-shadow: 0 0 40px rgba(238,187,0,.1);
-            width: 420px; max-width: 94vw;
-        }
+        .modal-box { background: #080c10; border: 1px solid var(--warning); box-shadow: 0 0 40px rgba(238,187,0,.1); width: 420px; max-width: 94vw; }
         .modal-box.danger-modal { border-color: var(--danger); box-shadow: 0 0 40px rgba(255,51,51,.1); }
         .modal-top {
-            padding: 14px 20px;
-            border-bottom: 1px solid rgba(255,255,255,.08);
+            padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,.08);
             background: rgba(255,255,255,.03);
             display: flex; justify-content: space-between; align-items: center;
         }
@@ -481,7 +417,6 @@
         .btn-confirm { background: var(--warning); border: none; color: #000; padding: 9px 18px; font-family: var(--font-ui); font-size: .7rem; font-weight: bold; cursor: pointer; letter-spacing: 1px; }
         .btn-confirm.danger { background: var(--danger); color: #fff; }
 
-        /* Empty state */
         .empty-state { padding: 30px; text-align: center; color: #445566; font-size: .8rem; letter-spacing: 1px; }
         .empty-state span { display: block; font-size: 1.5rem; margin-bottom: 8px; opacity: .3; }
     </style>
@@ -491,7 +426,7 @@
 <div class="scanline"></div>
 
 <div class="layout">
-    <!-- ════ SIDEBAR ════ -->
+    <!-- SIDEBAR -->
     <aside class="sidebar">
 
         <div class="agent-header">
@@ -534,10 +469,8 @@
             </div>
         </div>
 
-        <!-- Biometrics -->
         <div class="bio-block">
             <div class="section-label">BIO_METRICS</div>
-
             <div class="bpm-row">
                 <div>
                     <div class="bpm-val" id="bpm-val">—</div>
@@ -548,24 +481,20 @@
                     <div class="stress-pct" id="stress-pct" style="color:var(--primary)">0%</div>
                 </div>
             </div>
-
             <div class="ecg-wrap">
                 <canvas id="ecg-canvas"></canvas>
                 <div class="ecg-grid"></div>
             </div>
-
             <div class="stress-track">
                 <div class="stress-fill" id="stress-fill"></div>
             </div>
             <div class="stress-status" id="stress-status" style="color:var(--primary)">NEURO-STABLE</div>
-
             <div class="psy-btns">
                 <button class="psy-btn" onclick="adjustStress(-10)">— CALM</button>
                 <button class="psy-btn" onclick="adjustStress(10)">+ STRESS</button>
             </div>
         </div>
 
-        <!-- Nav -->
         <nav class="sidebar-nav">
             <button class="nav-btn active" onclick="switchTab('overview',this)">
                 <span class="icon">⬡</span> OVERVIEW
@@ -581,6 +510,10 @@
                 <span class="icon">⬡</span> DOTATION
                 <span class="badge" id="badge-equip">—</span>
             </button>
+            <button class="nav-btn" onclick="switchTab('stats',this)">
+                <span class="icon">⬡</span> STATISTIQUES
+                <span class="badge" id="badge-stats">—</span>
+            </button>
             <button class="nav-btn" onclick="switchTab('discipline',this)">
                 <span class="icon">⬡</span> DISCIPLINE
                 <span class="badge" id="badge-warns">CLEAR</span>
@@ -593,7 +526,7 @@
         </div>
     </aside>
 
-    <!-- ════ MAIN ════ -->
+    <!-- MAIN -->
     <main class="main">
         <div class="topbar">
             <div class="topbar-left">
@@ -601,6 +534,7 @@
                 <button class="tab-btn" onclick="switchTab('physique',null,'physique')">PHYSIQUE</button>
                 <button class="tab-btn" onclick="switchTab('missions',null,'missions')">OPÉRATIONS</button>
                 <button class="tab-btn" onclick="switchTab('dotation',null,'dotation')">DOTATION</button>
+                <button class="tab-btn" onclick="switchTab('stats',null,'stats')">STATS</button>
                 <button class="tab-btn" onclick="switchTab('discipline',null,'discipline')">DISCIPLINE</button>
             </div>
             <div class="topbar-right">
@@ -610,7 +544,7 @@
 
         <div class="pane-area">
 
-            <!-- ── OVERVIEW ── -->
+            <!-- OVERVIEW -->
             <div class="tab-pane active" id="pane-overview">
                 <div class="ov-grid" style="margin-bottom:16px;">
                     <div class="ov-stat">
@@ -634,7 +568,6 @@
                         <div class="ov-stat-sub">SANCTIONS ACTIVES</div>
                     </div>
                 </div>
-
                 <div class="panel">
                     <div class="panel-head">
                         <div class="panel-title">JOURNAUX SYSTÈME</div>
@@ -645,7 +578,6 @@
                     <div class="log-entry"><span class="lbl">SYNC</span>Synchronisation base de données escouade en cours...</div>
                     <div class="log-entry"><span class="lbl">SYS</span>Protocoles de routine — aucune anomalie détectée.</div>
                 </div>
-
                 <div class="panel">
                     <div class="panel-head">
                         <div class="panel-title">ACCÈS RAPIDE</div>
@@ -654,12 +586,13 @@
                     <div style="display:flex;gap:10px;flex-wrap:wrap;">
                         <a href="database.html" style="display:inline-block;padding:9px 18px;border:1px solid rgba(0,255,157,.4);color:var(--primary);font-size:.7rem;letter-spacing:1px;text-decoration:none;transition:.2s;font-family:var(--font-ui);" onmouseover="this.style.background='rgba(0,255,157,.1)'" onmouseout="this.style.background='transparent'">[ BASE DE DONNÉES ]</a>
                         <a href="missions.html" style="display:inline-block;padding:9px 18px;border:1px solid rgba(238,187,0,.4);color:var(--warning);font-size:.7rem;letter-spacing:1px;text-decoration:none;transition:.2s;font-family:var(--font-ui);" onmouseover="this.style.background='rgba(238,187,0,.08)'" onmouseout="this.style.background='transparent'">[ CENTRE OPS ]</a>
+                        <a href="messages.html" style="display:inline-block;padding:9px 18px;border:1px solid rgba(0,243,255,.4);color:var(--secondary);font-size:.7rem;letter-spacing:1px;text-decoration:none;transition:.2s;font-family:var(--font-ui);" onmouseover="this.style.background='rgba(0,243,255,.08)'" onmouseout="this.style.background='transparent'">[ COMMS ]</a>
                         <a href="index.html" style="display:inline-block;padding:9px 18px;border:1px solid rgba(0,243,255,.4);color:var(--secondary);font-size:.7rem;letter-spacing:1px;text-decoration:none;transition:.2s;font-family:var(--font-ui);" onmouseover="this.style.background='rgba(0,243,255,.08)'" onmouseout="this.style.background='transparent'">[ MAINFRAME ]</a>
                     </div>
                 </div>
             </div>
 
-            <!-- ── PHYSIQUE ── -->
+            <!-- PHYSIQUE -->
             <div class="tab-pane" id="pane-physique">
                 <div class="panel">
                     <div class="panel-head">
@@ -687,7 +620,7 @@
                 </div>
             </div>
 
-            <!-- ── MISSIONS ── -->
+            <!-- MISSIONS -->
             <div class="tab-pane" id="pane-missions">
                 <div class="panel">
                     <div class="panel-head">
@@ -700,7 +633,7 @@
                 </div>
             </div>
 
-            <!-- ── DOTATION ── -->
+            <!-- DOTATION -->
             <div class="tab-pane" id="pane-dotation">
                 <div class="panel">
                     <div class="panel-head">
@@ -713,7 +646,57 @@
                 </div>
             </div>
 
-            <!-- ── DISCIPLINE ── -->
+            <!-- STATISTIQUES -->
+            <div class="tab-pane" id="pane-stats">
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">PERFORMANCES OPÉRATIONNELLES</div>
+                        <div class="panel-meta">CAREER_LOG</div>
+                    </div>
+                    <div class="ov-grid" style="margin-bottom:20px;">
+                        <div class="ov-stat">
+                            <div class="ov-stat-label">MISSIONS TOTALES</div>
+                            <div class="ov-stat-val" id="stats-total" style="color:#fff">—</div>
+                            <div class="ov-stat-sub">TOUTES PÉRIODES</div>
+                        </div>
+                        <div class="ov-stat">
+                            <div class="ov-stat-label">COMPLÉTÉES</div>
+                            <div class="ov-stat-val" id="stats-completed" style="color:var(--primary)">—</div>
+                            <div class="ov-stat-sub">OBJECTIFS ATTEINTS</div>
+                        </div>
+                        <div class="ov-stat">
+                            <div class="ov-stat-label">EN COURS</div>
+                            <div class="ov-stat-val" id="stats-active" style="color:var(--danger)">—</div>
+                            <div class="ov-stat-sub">DÉPLOIEMENTS ACTIFS</div>
+                        </div>
+                        <div class="ov-stat">
+                            <div class="ov-stat-label">TAUX DE SUCCÈS</div>
+                            <div class="ov-stat-val" id="stats-rate" style="color:var(--secondary)">—%</div>
+                            <div class="ov-stat-sub">RATIO OPÉRATIONNEL</div>
+                        </div>
+                    </div>
+                    <div class="stats-rate-bar-wrap">
+                        <div class="stats-rate-label">INDICE D'EFFICACITÉ OPÉRATIONNELLE</div>
+                        <div class="stats-rate-track">
+                            <div class="stats-rate-fill" id="stats-rate-bar"></div>
+                        </div>
+                    </div>
+                    <div class="stats-extra-grid">
+                        <div class="ov-stat">
+                            <div class="ov-stat-label">ÉQUIPEMENT ASSIGNÉ</div>
+                            <div class="ov-stat-val" id="stats-equip" style="color:var(--secondary)">—</div>
+                            <div class="ov-stat-sub">PIÈCES EN DOTATION</div>
+                        </div>
+                        <div class="ov-stat">
+                            <div class="ov-stat-label">AVERTISSEMENTS</div>
+                            <div class="ov-stat-val" id="stats-warns" style="color:var(--primary)">—</div>
+                            <div class="ov-stat-sub">SANCTIONS ACTIVES</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DISCIPLINE -->
             <div class="tab-pane" id="pane-discipline">
                 <div class="panel">
                     <div class="panel-head">
@@ -816,31 +799,22 @@ const partNames = {
 let currentTab = 'overview';
 let targetBPM = 65, ecgX = 0, lastT = 0, ecgCtx, ecgCanvas;
 
-/* ── TABS ── */
 function switchTab(id, navBtn, topBtnHint) {
     currentTab = id;
-
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     document.getElementById('pane-' + id).classList.add('active');
-
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
     if (navBtn) navBtn.classList.add('active');
-
-    const mapping = { overview:'overview', physique:'physique', missions:'missions', dotation:'dotation', discipline:'discipline' };
-    document.querySelectorAll('.tab-btn').forEach(b => {
-        const label = b.textContent.trim().toLowerCase();
-        if (label === (mapping[id] || id) || b.getAttribute('onclick')?.includes("'"+id+"'")) {
-            b.classList.add('active');
-        }
-    });
     document.querySelectorAll('.nav-btn').forEach(b => {
         if (b.getAttribute('onclick')?.includes("'"+id+"'")) b.classList.add('active');
     });
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        if (b.getAttribute('onclick')?.includes("'"+id+"'")) b.classList.add('active');
+    });
+    if (id === 'stats') loadStats();
 }
 
-/* ── INIT ── */
 document.addEventListener('DOMContentLoaded', () => {
     const s = JSON.parse(localStorage.getItem('sas_session') || '{}');
     const { username = 'AGENT', rank = 0, id: agentId } = s;
@@ -864,7 +838,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadInjuries(agentId);
 });
 
-/* ── ECG ── */
 function initECG() {
     ecgCanvas = document.getElementById('ecg-canvas');
     if (!ecgCanvas) return;
@@ -906,7 +879,6 @@ function drawECG(ts) {
     requestAnimationFrame(drawECG);
 }
 
-/* ── STRESS ── */
 async function initStress() {
     const token = localStorage.getItem('sas_token');
     try {
@@ -951,7 +923,6 @@ function updateStressUI(lv) {
     }
 }
 
-/* ── MISSIONS ── */
 async function loadMissions(username) {
     const token = localStorage.getItem('sas_token');
     const container = document.getElementById('my-missions-list');
@@ -978,12 +949,14 @@ async function loadMissions(username) {
                     <span>📍 ${m.location}</span>
                     <span>📅 ${date}</span>
                 </div>
+                <div>
+                    <a href="briefing.html?id=${m.id}" class="mc-briefing" target="_blank">[ VOIR BRIEFING ]</a>
+                </div>
             </div>`;
         }).join('');
     } catch { container.innerHTML = '<div class="empty-state"><span>!</span>ERREUR RÉSEAU</div>'; }
 }
 
-/* ── EQUIPMENT ── */
 async function loadMyEquipment_profile() {
     const token = localStorage.getItem('sas_token');
     const container = document.getElementById('my-equipment-list');
@@ -1014,7 +987,32 @@ async function loadMyEquipment_profile() {
 
 document.addEventListener('DOMContentLoaded', loadMyEquipment_profile);
 
-/* ── WARNINGS ── */
+async function loadStats() {
+    const s = JSON.parse(localStorage.getItem('sas_session') || '{}');
+    const token = localStorage.getItem('sas_token');
+    try {
+        const res = await fetch(`/api/game?entity=stats&agent=${encodeURIComponent(s.username)}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const stats = await res.json();
+
+        document.getElementById('stats-total').textContent = stats.total;
+        document.getElementById('stats-completed').textContent = stats.completed;
+        document.getElementById('stats-active').textContent = stats.active;
+        document.getElementById('stats-rate').textContent = `${stats.success_rate}%`;
+        document.getElementById('stats-equip').textContent = stats.equipment;
+        document.getElementById('stats-warns').textContent = stats.warnings;
+        document.getElementById('badge-stats').textContent = `${stats.success_rate}%`;
+
+        const bar = document.getElementById('stats-rate-bar');
+        bar.style.width = `${stats.success_rate}%`;
+        const color = stats.success_rate >= 70 ? 'var(--primary)' : stats.success_rate >= 40 ? 'var(--warning)' : 'var(--danger)';
+        bar.style.background = color;
+        bar.style.boxShadow = `0 0 6px ${color}`;
+    } catch (e) { console.error('Stats error:', e); }
+}
+
 async function loadWarnings() {
     const token = localStorage.getItem('sas_token');
     const container = document.getElementById('warnings-list');
@@ -1059,7 +1057,6 @@ async function loadWarnings() {
     } catch { container.innerHTML = '<div class="empty-state"><span>!</span>ERREUR RÉSEAU</div>'; }
 }
 
-/* ── INJURIES ── */
 async function loadInjuries(agentId) {
     if (!agentId) return;
     const token = localStorage.getItem('sas_token');
@@ -1092,7 +1089,6 @@ async function loadInjuries(agentId) {
     } catch {}
 }
 
-/* ── MODALS ── */
 function openPasswordModal() { document.getElementById('password-modal').classList.remove('hidden'); }
 function closePasswordModal() { document.getElementById('password-modal').classList.add('hidden'); }
 
@@ -1109,9 +1105,9 @@ async function submitPassword(e) {
             body: JSON.stringify({ oldPassword: oldP, newPassword: newP })
         });
         const d = await res.json();
-        if (res.ok) { alert('✅ Mot de passe mis à jour.'); closePasswordModal(); }
-        else alert('❌ ' + d.error);
-    } catch { alert('❌ Erreur de connexion.'); }
+        if (res.ok) { alert('Mot de passe mis à jour.'); closePasswordModal(); }
+        else alert('Erreur: ' + d.error);
+    } catch { alert('Erreur de connexion.'); }
 }
 
 function openInjuryModal(part) {
