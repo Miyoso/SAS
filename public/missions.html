@@ -14,7 +14,6 @@
     <link rel="stylesheet" href="css/stylele.css">
     
     <style>
-        /* === NAVBAR === */
         body.logged-in .tactical-navbar.auth-content,
         .tactical-navbar {
             display: flex !important; 
@@ -24,10 +23,9 @@
         }
         .tactical-navbar::-webkit-scrollbar { display: none; }
 
-        /* === OPS BOARD STYLES === */
         .ops-container {
             display: flex; flex-direction: column; gap: 15px;
-            height: calc(100vh - 220px); /* Ajustement pour la navbar et le header */
+            height: calc(100vh - 220px);
             overflow: hidden;
         }
 
@@ -40,7 +38,6 @@
         .toolbar-stats { display: flex; gap: 30px; font-family: var(--font-code); font-size: 0.8rem; color: var(--text-dim); }
         .stat-item b { margin-left: 5px; font-size: 1rem; }
 
-        /* KANBAN GRID */
         .kanban-grid {
             flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
             overflow: hidden;
@@ -70,7 +67,6 @@
             scrollbar-width: thin; scrollbar-color: var(--text-dim) transparent;
         }
 
-        /* MISSION CARD */
         .mission-card {
             background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1);
             padding: 15px; cursor: grab; position: relative; transition: all 0.2s;
@@ -82,7 +78,6 @@
             box-shadow: 0 0 15px rgba(0, 255, 157, 0.15); z-index: 10;
         }
         
-        /* MODALS */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
@@ -160,7 +155,6 @@
         </nav>
 
         <main class="ops-container view-section">
-            
             <div class="ops-toolbar">
                 <div class="toolbar-stats">
                     <span class="stat-item">ACTIVES: <b id="stat-active" style="color:var(--accent-danger)">0</b></span>
@@ -194,7 +188,6 @@
                     <div class="col-body" id="body-completed"></div>
                 </div>
             </div>
-
         </main>
     </div>
 </div>
@@ -236,7 +229,13 @@
     <div class="modal-box modal-wide">
         <div class="modal-top">
             <span class="modal-title" id="d-title">OPERATION ALPHA</span>
-            <button onclick="closeModals()" style="background:none; border:none; color:var(--accent-primary); cursor:pointer; font-weight:bold;">[ X ]</button>
+            <div style="display:flex;gap:10px;align-items:center;">
+                <a id="d-briefing-link" href="briefing.html" target="_blank"
+                   style="color:var(--accent-warning);border:1px solid rgba(238,187,0,0.4);padding:6px 12px;font-size:0.7rem;font-family:var(--font-display);text-decoration:none;letter-spacing:1px;transition:0.2s;"
+                   onmouseover="this.style.background='rgba(238,187,0,0.1)'"
+                   onmouseout="this.style.background='transparent'">[ BRIEFING ]</a>
+                <button onclick="closeModals()" style="background:none;border:none;color:var(--accent-primary);cursor:pointer;font-weight:bold;">[ X ]</button>
+            </div>
         </div>
 
         <div class="modal-main">
@@ -255,9 +254,7 @@
                         <span>ROSTER TACTIQUE</span>
                         <span>EFFECTIF: <span id="roster-count">0</span></span>
                     </div>
-                    
                     <div id="d-roster-list" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:15px;"></div>
-
                     <div style="display:flex; gap:10px; margin-top:20px;">
                         <select id="add-agent-select" class="cmd-input" style="flex: 1;">
                             <option value="">-- AFFECTER UN AGENT --</option>
@@ -271,13 +268,11 @@
                 <div style="flex:1;">
                     <div class="detail-label" style="color:var(--accent-warning); border-bottom-color: var(--accent-warning);">MATÉRIEL DÉPLOYÉ</div>
                     <div id="d-loadout-list" style="max-height:200px; overflow-y:auto; font-size:0.8rem; color:var(--text-main); margin-bottom:15px; font-family: var(--font-code);"></div>
-
                     <select id="equip-select" class="cmd-input" style="margin-bottom:10px;">
                         <option>Chargement inventaire...</option>
                     </select>
                     <button onclick="addGearToMission()" class="btn-connect btn-full" style="color: var(--accent-warning); border-color: rgba(238, 187, 0, 0.4);">[ RÉQUISITIONNER ARME ]</button>
                 </div>
-
                 <div style="border-top:1px dashed rgba(255,255,255,0.1); padding-top:20px; margin-top:auto;">
                     <div class="detail-label" style="text-align:center; border:none; margin-bottom:15px;">GESTION STATUT</div>
                     <button onclick="moveMission('PENDING')" class="btn-connect btn-full" style="color: var(--accent-warning); border-color: rgba(238, 187, 0, 0.4);">[ REPLACER EN ATTENTE ]</button>
@@ -293,8 +288,6 @@
     let currentMissionId = null;
     let draggedCard = null;
     let allAgents = []; 
-    
-    // Ton système de token (fallback sur sas_session si besoin)
     const token = localStorage.getItem('sas_token') || localStorage.getItem('sas_session');
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -307,23 +300,18 @@
     async function loadAgentsList() {
         try {
             const res = await fetch('/api/game?entity=users', { headers: { 'Authorization': `Bearer ${token}` } });
-            if(res.ok) {
-                allAgents = await res.json();
-            }
+            if(res.ok) { allAgents = await res.json(); }
         } catch(e) { console.error("Erreur chargement agents", e); }
     }
 
     function updateAgentSelect(currentRoster) {
         const select = document.getElementById('add-agent-select');
         select.innerHTML = '<option value="">-- AFFECTER UN AGENT --</option>';
-
         const rosterNames = currentRoster.map(a => typeof a === 'string' ? a : a.username || a.name);
-        
         const availableAgents = allAgents.filter(agent => {
             const name = typeof agent === 'string' ? agent : agent.username || agent.name;
             return !rosterNames.includes(name);
         });
-
         if (availableAgents.length === 0) {
             const opt = document.createElement('option');
             opt.textContent = "(AUCUN AGENT DISPO)";
@@ -345,20 +333,16 @@
             const res = await fetch('/api/game?entity=missions', { headers: { 'Authorization': `Bearer ${token}` } });
             if(!res.ok) return;
             const missions = await res.json();
-
             ['pending', 'active', 'completed'].forEach(s => {
                 const el = document.getElementById(`body-${s}`);
                 if(el) el.innerHTML = '';
             });
-
             missions.forEach(m => {
                 const card = document.createElement('div');
                 card.className = 'mission-card';
                 card.setAttribute('draggable', 'true');
                 card.dataset.id = m.id;
-
                 const date = new Date(m.start_time).toLocaleDateString('fr-FR', {day: '2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
-
                 card.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span style="font-family:var(--font-code); font-weight:bold; color:#fff; font-size:1rem;">${m.title.toUpperCase()}</span>
@@ -373,16 +357,13 @@
                         <span style="background:rgba(238, 187, 0, 0.1); border:1px solid rgba(238, 187, 0, 0.3); color:var(--accent-warning); padding:2px 6px; font-size:0.7rem; font-family:var(--font-code);">📦 GEAR: ${m.loadout ? m.loadout.length : 0}</span>
                     </div>
                 `;
-
                 card.onclick = () => openDetailModal(m);
                 card.addEventListener('dragstart', dragStart);
                 card.addEventListener('dragend', dragEnd);
-
                 const colId = `body-${(m.status || 'pending').toLowerCase()}`;
                 const col = document.getElementById(colId);
                 if(col) col.appendChild(card);
             });
-
             updateStats();
         } catch(e) { console.error(e); }
     }
@@ -405,9 +386,7 @@
                     let newStatus = 'PENDING';
                     if (col.id === 'body-active') newStatus = 'ACTIVE';
                     if (col.id === 'body-completed') newStatus = 'COMPLETED';
-
                     const missionId = draggedCard.dataset.id;
-
                     try {
                         await fetch('/api/game?entity=missions', {
                             method: 'POST',
@@ -438,10 +417,8 @@
             const data = await res.json();
             const select = document.getElementById('equip-select');
             select.innerHTML = '<option value="">-- RECHERCHE INVENTAIRE --</option>';
-            
             const inventory = Array.isArray(data) ? data : data.inventory || [];
             const available = inventory.filter(i => !i.assigned_to && !i.mission_id && i.status !== 'PERDU');
-            
             available.forEach(item => {
                 const opt = document.createElement('option');
                 opt.value = item.id;
@@ -452,8 +429,7 @@
     }
 
     function openCreateModal() {
-        const modal = document.getElementById('create-modal');
-        modal.classList.remove('hidden');
+        document.getElementById('create-modal').classList.remove('hidden');
     }
 
     function closeModals() {
@@ -467,10 +443,8 @@
         document.getElementById('d-desc').textContent = mission.description || "Aucun renseignement disponible.";
         document.getElementById('d-loc').textContent = mission.location.toUpperCase();
         document.getElementById('roster-count').innerText = mission.roster ? mission.roster.length : 0;
-
         const rosterArray = mission.roster || [];
         updateAgentSelect(rosterArray);
-
         const rosterContainer = document.getElementById('d-roster-list');
         if (rosterArray.length === 0) {
             rosterContainer.innerHTML = `<span style="color:var(--text-dim); font-size:0.8rem;">[ AUCUN AGENT AFFECTÉ ]</span>`;
@@ -480,7 +454,6 @@
                 return `<div style="background:rgba(0,243,255,0.05); padding:5px 10px; border:1px solid rgba(0,243,255,0.4); color:var(--accent-blue); font-family:var(--font-code); font-size:0.8rem;">[OP] ${name.toUpperCase()}</div>`;
             }).join('');
         }
-
         const loadoutArray = mission.loadout || [];
         const loadoutContainer = document.getElementById('d-loadout-list');
         if(loadoutArray.length === 0) {
@@ -493,7 +466,7 @@
                 </div>`
             ).join('');
         }
-
+        document.getElementById('d-briefing-link').href = `briefing.html?id=${mission.id}`;
         document.getElementById('detail-modal').classList.remove('hidden');
     }
 
@@ -506,7 +479,6 @@
             location: document.getElementById('m-loc').value,
             start_time: document.getElementById('m-time').value
         };
-
         try {
             await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
             document.getElementById('create-form').reset();
@@ -528,7 +500,6 @@
         const select = document.getElementById('add-agent-select');
         const agentIdOrName = select.value;
         if(!agentIdOrName) return;
-
         try {
             await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, agent: agentIdOrName }) });
             refreshDetails();
@@ -539,7 +510,6 @@
     async function addGearToMission() {
         const gearId = document.getElementById('equip-select').value;
         if(!gearId) return;
-
         try {
             await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, equipment_id: gearId }) });
             refreshDetails(); 
