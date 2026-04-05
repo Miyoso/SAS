@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS MAINFRAME // VIP TARGETS</title>
+    <script>if (!localStorage.getItem('sas_session')) window.location.href = 'index.html';</script>
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/stylele.css">
+    <style>
+        /* ── LAYOUT ── */
+        .vip-layout { display: flex; gap: 20px; height: calc(100vh - 210px); }
+
+        /* ── TABS ── */
+        .tab-switcher {
+            display: flex; gap: 0; margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            width: fit-content;
+        }
+        .tab-switch {
+            background: transparent; border: none; padding: 10px 28px;
+            font-family: var(--font-display); font-size: 0.85rem;
+            letter-spacing: 2px; cursor: pointer; transition: 0.2s;
+            text-transform: uppercase; color: #667788;
+        }
+        .tab-switch.active-protection {
+            background: rgba(0, 255, 157, 0.12);
+            color: var(--accent-primary);
+            border-right: 1px solid rgba(255,255,255,0.1);
+            box-shadow: inset 0 -2px 0 var(--accent-primary);
+        }
+        .tab-switch.active-target {
+            background: rgba(255, 51, 51, 0.12);
+            color: var(--accent-danger);
+            box-shadow: inset 0 -2px 0 var(--accent-danger);
+        }
+
+        /* ── CARD GRID ── */
+        .vip-grid {
+            flex: 1; overflow-y: auto; display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px; align-content: start;
+            scrollbar-width: thin; scrollbar-color: #334 transparent;
+            padding-right: 4px;
+        }
+
+        /* ── VIP CARD ── */
+        .vip-card {
+            background: rgba(8, 12, 16, 0.9);
+            border: 1px solid rgba(255,255,255,0.08);
+            position: relative; overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+        }
+        .vip-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.25); }
+        .vip-card.type-protection { border-left: 3px solid var(--accent-primary); }
+        .vip-card.type-protection:hover { box-shadow: 0 10px 30px rgba(0,255,157,0.15); border-color: var(--accent-primary); }
+        .vip-card.type-target { border-left: 3px solid var(--accent-danger); }
+        .vip-card.type-target:hover { box-shadow: 0 10px 30px rgba(255,51,51,0.15); border-color: var(--accent-danger); }
+
+        /* Card top scan effect */
+        .vip-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, currentColor, transparent);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .vip-card.type-protection::before { color: var(--accent-primary); }
+        .vip-card.type-target::before { color: var(--accent-danger); }
+        .vip-card:hover::before { opacity: 0.5; }
+
+        .card-top {
+            display: flex; gap: 14px; padding: 16px 16px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .card-photo {
+            width: 70px; height: 86px; flex-shrink: 0;
+            border: 1px solid; overflow: hidden; position: relative;
+        }
+        .type-protection .card-photo { border-color: rgba(0,255,157,0.4); }
+        .type-target .card-photo { border-color: rgba(255,51,51,0.4); }
+        .card-photo img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(0.5) contrast(1.1); }
+        .card-photo .no-photo {
+            width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; background: rgba(0,0,0,0.5);
+        }
+        .card-photo::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            animation: scanPh 3s linear infinite;
+        }
+        .type-protection .card-photo::after { background: rgba(0,255,157,0.6); }
+        .type-target .card-photo::after { background: rgba(255,51,51,0.6); }
+        @keyframes scanPh { 0%{top:0} 100%{top:100%} }
+
+        .card-info { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .card-name { font-family: var(--font-code); font-size: 1.05rem; font-weight: 800; color: #fff; letter-spacing: 1px; }
+        .card-alias { font-size: 0.65rem; color: #667788; letter-spacing: 2px; }
+        .card-location { font-size: 0.7rem; color: #aaa; margin-top: 4px; }
+
+        .threat-bar-wrap { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+        .threat-label { font-size: 0.55rem; color: #667788; letter-spacing: 1px; flex-shrink: 0; }
+        .threat-track { flex: 1; height: 4px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden; }
+        .threat-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+        .threat-val { font-family: var(--font-code); font-size: 0.7rem; font-weight: bold; flex-shrink: 0; min-width: 20px; }
+
+        .card-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 16px;
+        }
+        .status-pill {
+            font-size: 0.6rem; font-weight: bold; letter-spacing: 2px;
+            padding: 3px 10px; border: 1px solid; border-radius: 2px;
+            text-transform: uppercase;
+        }
+        .status-active, .status-actif { color: var(--accent-danger); border-color: var(--accent-danger); background: rgba(255,51,51,0.1); }
+        .status-securite, .status-en-securite { color: var(--accent-primary); border-color: var(--accent-primary); background: rgba(0,255,157,0.1); }
+        .status-expose, .status-exposé { color: var(--accent-warning); border-color: var(--accent-warning); background: rgba(238,187,0,0.1); animation: blink 2s infinite; }
+        .status-compromis { color: #fff; border-color: var(--accent-danger); background: var(--accent-danger); animation: blink 1s infinite; }
+        .status-neutralise, .status-neutralisé { color: #667788; border-color: #445566; background: rgba(0,0,0,0.3); }
+        .status-localise, .status-localisé { color: var(--accent-warning); border-color: var(--accent-warning); background: rgba(238,187,0,0.1); }
+        .status-disparu { color: #667788; border-color: #445566; }
+        .status-critique { color: #ff0000; border-color: #ff0000; background: rgba(255,0,0,0.15); animation: blink 0.7s infinite; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+        .agents-assigned { font-size: 0.6rem; color: var(--accent-blue); font-family: var(--font-code); }
+
+        /* ── SIDEBAR FORM ── */
+        .vip-sidebar {
+            width: 300px; flex-shrink: 0; display: flex; flex-direction: column; gap: 0;
+            background: rgba(5,8,12,0.8); border: 1px solid rgba(255,255,255,0.08);
+            border-top: 2px solid var(--accent-primary);
+        }
+        .sidebar-header-vip {
+            padding: 14px 18px; border-bottom: 1px dashed rgba(255,255,255,0.1);
+            font-family: var(--font-display); color: var(--accent-primary);
+            font-size: 0.8rem; letter-spacing: 2px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .sidebar-form { padding: 18px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; flex: 1; }
+        .fg { display: flex; flex-direction: column; gap: 4px; }
+        .fg label { font-size: 0.6rem; color: #667788; letter-spacing: 1px; font-family: var(--font-code); }
+        .fg input, .fg select, .fg textarea {
+            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12);
+            color: #fff; padding: 8px 10px; font-family: var(--font-display); font-size: 0.8rem; outline: none; transition: 0.2s;
+        }
+        .fg input:focus, .fg select:focus, .fg textarea:focus { border-color: var(--accent-primary); background: rgba(0,255,157,0.04); }
+        .fg textarea { resize: none; height: 70px; }
+
+        .type-toggle { display: flex; gap: 0; }
+        .type-btn {
+            flex: 1; padding: 8px; border: 1px solid rgba(255,255,255,0.12); background: transparent;
+            color: #667788; font-family: var(--font-display); font-size: 0.75rem; letter-spacing: 1px;
+            cursor: pointer; transition: 0.2s; text-align: center;
+        }
+        .type-btn.active-prot { background: rgba(0,255,157,0.12); color: var(--accent-primary); border-color: var(--accent-primary); }
+        .type-btn.active-tgt { background: rgba(255,51,51,0.12); color: var(--accent-danger); border-color: var(--accent-danger); }
+
+        .threat-selector { display: flex; gap: 4px; align-items: center; }
+        .threat-dot {
+            width: 22px; height: 22px; border-radius: 50%; border: 1px solid #334;
+            background: #111; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; font-size: 0.55rem; color: #445;
+        }
+        .threat-dot.on { border-color: currentColor; box-shadow: 0 0 6px currentColor; }
+
+        .btn-create {
+            background: rgba(0,255,157,0.1); border: 1px solid var(--accent-primary); color: var(--accent-primary);
+            padding: 11px; font-family: var(--font-display); letter-spacing: 2px; cursor: pointer;
+            transition: 0.2s; text-transform: uppercase; font-size: 0.8rem; width: 100%; margin-top: 4px;
+        }
+        .btn-create:hover { background: var(--accent-primary); color: #000; box-shadow: 0 0 15px var(--accent-primary); }
+        .btn-create.danger { border-color: var(--accent-danger); color: var(--accent-danger); background: rgba(255,51,51,0.1); }
+        .btn-create.danger:hover { background: var(--accent-danger); color: #fff; box-shadow: 0 0 15px var(--accent-danger); }
+
+        /* ── DETAIL MODAL ── */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(8px);
+            z-index: 3000; display: flex; align-items: center; justify-content: center;
+        }
+        .hidden { display: none !important; }
+        .modal-vip {
+            background: #080c10; width: 700px; max-width: 95vw; max-height: 90vh;
+            overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);
+            display: flex; flex-direction: column;
+        }
+        .modal-vip.prot { border-top: 3px solid var(--accent-primary); }
+        .modal-vip.tgt { border-top: 3px solid var(--accent-danger); }
+
+        .modal-vip-header {
+            padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.08);
+            display: flex; justify-content: space-between; align-items: flex-start;
+            background: rgba(0,0,0,0.4);
+        }
+        .mvh-name { font-family: var(--font-code); font-size: 1.6rem; font-weight: 800; color: #fff; }
+        .mvh-alias { font-size: 0.7rem; color: #667788; letter-spacing: 2px; margin-top: 2px; }
+
+        .modal-vip-body { display: grid; grid-template-columns: 180px 1fr; gap: 0; }
+        .modal-photo-col { padding: 20px; border-right: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; gap: 14px; }
+        .modal-photo { width: 140px; height: 175px; border: 1px solid; overflow: hidden; }
+        .modal-photo img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(0.3); }
+        .modal-photo .no-photo { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:3rem; background:#111; }
+
+        .modal-info-col { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+        .info-row { display: flex; flex-direction: column; gap: 3px; }
+        .info-lbl { font-size: 0.55rem; color: #556677; letter-spacing: 2px; text-transform: uppercase; }
+        .info-val { font-family: var(--font-code); font-size: 0.9rem; color: #fff; }
+        .info-val.desc { font-family: var(--font-display); font-size: 0.82rem; color: #aaa; line-height: 1.5; }
+
+        .modal-status-row {
+            display: flex; flex-wrap: wrap; gap: 8px;
+            padding: 14px 20px; border-top: 1px dashed rgba(255,255,255,0.08);
+        }
+        .status-btn {
+            background: transparent; border: 1px solid #334; color: #667788;
+            padding: 6px 14px; font-family: var(--font-display); font-size: 0.7rem;
+            letter-spacing: 1px; cursor: pointer; transition: 0.2s; text-transform: uppercase;
+        }
+        .status-btn:hover { border-color: #fff; color: #fff; }
+
+        .modal-footer {
+            padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .empty-state {
+            grid-column: 1/-1; text-align: center; padding: 60px 20px;
+            color: #334455; font-family: var(--font-display); letter-spacing: 2px;
+        }
+        .empty-icon { font-size: 2.5rem; display: block; margin-bottom: 12px; opacity: 0.3; }
+
+        /* ── ALERT TOAST ── */
+        #vip-toast {
+            position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+            z-index: 9999; min-width: 400px; max-width: 600px;
+            background: rgba(255,0,0,0.95); border: 2px solid #ff0000;
+            padding: 14px 20px; font-family: var(--font-display); color: #fff;
+            letter-spacing: 1px; text-align: center; font-size: 0.85rem;
+            box-shadow: 0 0 30px rgba(255,0,0,0.5); animation: slideDown 0.3s ease;
+            pointer-events: none;
+        }
+        @keyframes slideDown { from{transform:translateX(-50%) translateY(-20px); opacity:0} to{transform:translateX(-50%) translateY(0); opacity:1} }
+
+        .counter-badge {
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2);
+            padding: 2px 8px; font-family: var(--font-code); font-size: 0.65rem; color: #aaa; border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="logged-in">
+
+<div id="vip-toast" class="hidden"></div>
+
+<div class="tactical-grid" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+<div class="radar-scan" aria-hidden="true"></div>
+
+<div class="hud-side hud-left" aria-hidden="true">
+    <div class="hud-ruler"></div>
+    <div class="hud-marker">SYS.VIP</div>
+    <div class="hud-marker" style="color:var(--accent-warning)">CLASSIFIÉ</div>
+    <div class="hud-ruler"></div>
+</div>
+<div class="hud-side hud-right" aria-hidden="true">
+    <div class="hud-ruler"></div>
+    <div class="hud-marker">THREAT.FEED</div>
+    <div class="hud-marker">128.0.0.1</div>
+    <div class="hud-ruler"></div>
+</div>
+
+<div class="terminal-wrapper">
+    <div class="terminal">
+        <header class="header-strip" style="margin-bottom:12px;">
+            <div>
+                <h1>VIP // <span style="color:var(--accent-warning)">TRACKER</span></h1>
+                <div class="sub-header">PROTECTION & CIBLES — CLASSIFIÉ LVL-2</div>
+            </div>
+            <div class="meta-data">
+                <span style="color:var(--accent-warning)" class="blink">● LIVE TRACKING</span>
+            </div>
+        </header>
+
+        <nav class="tactical-navbar" style="display:flex;">
+            <a href="index.html" class="nav-item">MAINFRAME</a>
+            <a href="database.html" class="nav-item">BASE AGENTS</a>
+            <a href="map.html" class="nav-item">MAP_FEED</a>
+            <a href="report.html" class="nav-item">RAPPORTS</a>
+            <a href="logistics.html" class="nav-item">LOGISTIQUE</a>
+            <a href="missions.html" class="nav-item">MISSIONS</a>
+            <a href="vip.html" class="nav-item active">VIP</a>
+        </nav>
+
+        <!-- Tab switcher -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div class="tab-switcher">
+                <button class="tab-switch active-protection" id="tab-prot" onclick="switchTab('PROTECTION')">
+                    🟢 PROTECTION
+                </button>
+                <button class="tab-switch" id="tab-tgt" onclick="switchTab('TARGET')">
+                    🔴 CIBLES
+                </button>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <span class="counter-badge" id="count-badge">— dossiers</span>
+                <input type="text" id="search-input" placeholder="RECHERCHER..."
+                    style="background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:7px 12px; font-family:var(--font-display); font-size:0.75rem; outline:none; width:180px;"
+                    oninput="filterCards()">
+            </div>
+        </div>
+
+        <main class="vip-layout">
+
+            <!-- GRID -->
+            <div class="vip-grid" id="vip-grid">
+                <div class="empty-state">
+                    <span class="empty-icon">⌛</span>
+                    CHARGEMENT DES DOSSIERS...
+                </div>
+            </div>
+
+            <!-- SIDEBAR FORMULAIRE -->
+            <aside class="vip-sidebar">
+                <div class="sidebar-header-vip">
+                    <span id="form-title">NOUVEAU DOSSIER</span>
+                    <span style="font-size:0.6rem; color:#445566;">LVL-2</span>
+                </div>
+                <div class="sidebar-form">
+
+                    <div class="fg">
+                        <label>TYPE DE DOSSIER</label>
+                        <div class="type-toggle">
+                            <button class="type-btn active-prot" id="btn-prot" onclick="setFormType('PROTECTION')">🟢 PROTECTION</button>
+                            <button class="type-btn" id="btn-tgt" onclick="setFormType('TARGET')">🔴 CIBLE</button>
+                        </div>
+                    </div>
+
+                    <div class="fg">
+                        <label>NOM COMPLET</label>
+                        <input type="text" id="f-name" placeholder="EX: MICHAEL TOWNLEY">
+                    </div>
+
+                    <div class="fg">
+                        <label>ALIAS / SURNOM</label>
+                        <input type="text" id="f-alias" placeholder="EX: GHOST">
+                    </div>
+
+                    <div class="fg">
+                        <label>STATUT INITIAL</label>
+                        <select id="f-status">
+                            <option value="EN SÉCURITÉ">EN SÉCURITÉ</option>
+                            <option value="EXPOSÉ">EXPOSÉ</option>
+                            <option value="COMPROMIS">COMPROMIS</option>
+                            <option value="ACTIF">ACTIF</option>
+                            <option value="LOCALISÉ">LOCALISÉ</option>
+                            <option value="DISPARU">DISPARU</option>
+                            <option value="NEUTRALISÉ">NEUTRALISÉ</option>
+                            <option value="CRITIQUE">CRITIQUE</option>
+                        </select>
+                    </div>
+
+                    <div class="fg">
+                        <label>NIVEAU DE MENACE (1-10)</label>
+                        <div class="threat-selector" id="threat-selector"></div>
+                    </div>
+
+                    <div class="fg">
+                        <label>LOCALISATION CONNUE</label>
+                        <input type="text" id="f-location" placeholder="EX: VINEWOOD, LS">
+                    </div>
+
+                    <div class="fg">
+                        <label>AGENTS ASSIGNÉS</label>
+                        <input type="text" id="f-agents" placeholder="EX: Blitz, Roxanne">
+                    </div>
+
+                    <div class="fg">
+                        <label>URL PHOTO (OPTIONNEL)</label>
+                        <input type="text" id="f-image" placeholder="https://...">
+                    </div>
+
+                    <div class="fg">
+                        <label>DESCRIPTION / CONTEXTE</label>
+                        <textarea id="f-desc" placeholder="Situation, historique, particularités..."></textarea>
+                    </div>
+
+                    <div class="fg">
+                        <label>NOTES INTERNES</label>
+                        <textarea id="f-notes" placeholder="Notes confidentielles..."></textarea>
+                    </div>
+
+                    <button class="btn-create" id="btn-submit" onclick="submitVip()">[ CRÉER LE DOSSIER ]</button>
+                    <button class="btn-create danger hidden" id="btn-cancel-edit" onclick="cancelEdit()">[ ANNULER ]</button>
+                </div>
+            </aside>
+
+        </main>
+    </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div id="detail-modal" class="modal-overlay hidden">
+    <div class="modal-vip" id="modal-box">
+        <div class="modal-vip-header">
+            <div>
+                <div class="mvh-name" id="m-name">—</div>
+                <div class="mvh-alias" id="m-alias">—</div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <div id="m-status-pill" class="status-pill">—</div>
+                <button onclick="closeModal()" style="background:none;border:none;color:#667788;cursor:pointer;font-size:1.2rem;padding:4px;">✖</button>
+            </div>
+        </div>
+
+        <div class="modal-vip-body">
+            <div class="modal-photo-col">
+                <div class="modal-photo" id="m-photo-wrap">
+                    <div class="no-photo">👤</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-lbl">TYPE</div>
+                    <div class="info-val" id="m-type">—</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-lbl">MENACE</div>
+                    <div style="display:flex; gap:3px; margin-top:3px;" id="m-threat-dots"></div>
+                </div>
+                <div class="info-row">
+                    <div class="info-lbl">CRÉÉ PAR</div>
+                    <div class="info-val" id="m-created-by" style="font-size:0.75rem; color:#667788;">—</div>
+                </div>
+            </div>
+            <div class="modal-info-col">
+                <div class="info-row">
+                    <div class="info-lbl">LOCALISATION</div>
+                    <div class="info-val" id="m-location">—</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-lbl">AGENTS ASSIGNÉS</div>
+                    <div class="info-val" id="m-agents" style="color:var(--accent-blue);">—</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-lbl">DESCRIPTION</div>
+                    <div class="info-val desc" id="m-desc">—</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-lbl">NOTES INTERNES</div>
+                    <div class="info-val desc" id="m-notes" style="color:#667788;">—</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHANGER STATUT -->
+        <div style="padding: 12px 20px; border-top: 1px dashed rgba(255,255,255,0.08);">
+            <div style="font-size:0.55rem; color:#445566; letter-spacing:2px; margin-bottom:8px;">MODIFIER LE STATUT</div>
+            <div class="modal-status-row" id="status-buttons"></div>
+        </div>
+
+        <div class="modal-footer">
+            <div style="font-size:0.65rem; color:#445566; font-family:var(--font-code);">
+                ID: <span id="m-id">—</span> // MAJ: <span id="m-updated">—</span>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button onclick="editFromModal()" class="status-btn" style="border-color:var(--accent-warning); color:var(--accent-warning);">[ ÉDITER ]</button>
+                <button onclick="deleteFromModal()" class="status-btn" style="border-color:var(--accent-danger); color:var(--accent-danger);">[ SUPPRIMER ]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const token = localStorage.getItem('sas_token');
+const session = JSON.parse(localStorage.getItem('sas_session') || '{}');
+
+let currentTab = 'PROTECTION';
+let currentFormType = 'PROTECTION';
+let currentThreat = 5;
+let allVips = [];
+let selectedVipId = null;
+let editingId = null;
+
+// ── THREAT SELECTOR ──
+function buildThreatSelector() {
+    const container = document.getElementById('threat-selector');
+    container.innerHTML = '';
+    for (let i = 1; i <= 10; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'threat-dot' + (i <= currentThreat ? ' on' : '');
+        dot.textContent = i;
+        dot.style.color = i <= 3 ? 'var(--accent-primary)' : i <= 7 ? 'var(--accent-warning)' : 'var(--accent-danger)';
+        dot.onclick = () => { currentThreat = i; buildThreatSelector(); };
+        container.appendChild(dot);
+    }
+}
+
+// ── TAB SWITCH ──
+function switchTab(type) {
+    currentTab = type;
+    document.getElementById('tab-prot').className = 'tab-switch' + (type === 'PROTECTION' ? ' active-protection' : '');
+    document.getElementById('tab-tgt').className = 'tab-switch' + (type === 'TARGET' ? ' active-target' : '');
+    renderGrid();
+}
+
+// ── FORM TYPE ──
+function setFormType(type) {
+    currentFormType = type;
+    document.getElementById('btn-prot').className = 'type-btn' + (type === 'PROTECTION' ? ' active-prot' : '');
+    document.getElementById('btn-tgt').className = 'type-btn' + (type === 'TARGET' ? ' active-tgt' : '');
+    // Adapter les statuts
+    const sel = document.getElementById('f-status');
+    if (type === 'PROTECTION') {
+        sel.innerHTML = `
+            <option>EN SÉCURITÉ</option><option>EXPOSÉ</option>
+            <option>COMPROMIS</option><option>CRITIQUE</option>`;
+    } else {
+        sel.innerHTML = `
+            <option>ACTIF</option><option>LOCALISÉ</option>
+            <option>DISPARU</option><option>NEUTRALISÉ</option><option>CRITIQUE</option>`;
+    }
+}
+
+// ── LOAD VIPs ──
+async function loadVips() {
+    try {
+        const res = await fetch('/api/vip', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) {
+            allVips = await res.json();
+            renderGrid();
+        }
+    } catch(e) { console.error(e); }
+}
+
+// ── STATUS STYLE ──
+function getStatusClass(status) {
+    if (!status) return '';
+    const s = status.toLowerCase().replace(/\s+/g, '-').replace(/é/g, 'e').replace(/û/g, 'u');
+    return 'status-' + s;
+}
+
+function getThreatColor(level) {
+    if (level <= 3) return 'var(--accent-primary)';
+    if (level <= 7) return 'var(--accent-warning)';
+    return 'var(--accent-danger)';
+}
+
+// ── RENDER ──
+function renderGrid() {
+    const grid = document.getElementById('vip-grid');
+    const query = document.getElementById('search-input').value.toLowerCase();
+
+    const filtered = allVips.filter(v => {
+        const matchType = v.type === currentTab;
+        const matchSearch = !query ||
+            v.name?.toLowerCase().includes(query) ||
+            v.alias?.toLowerCase().includes(query) ||
+            v.location?.toLowerCase().includes(query) ||
+            v.status?.toLowerCase().includes(query);
+        return matchType && matchSearch;
+    });
+
+    document.getElementById('count-badge').textContent = `${filtered.length} dossier${filtered.length !== 1 ? 's' : ''}`;
+
+    if (!filtered.length) {
+        grid.innerHTML = `<div class="empty-state">
+            <span class="empty-icon">${currentTab === 'PROTECTION' ? '🛡️' : '🎯'}</span>
+            AUCUN DOSSIER ${currentTab === 'PROTECTION' ? 'DE PROTECTION' : 'DE CIBLE'} ENREGISTRÉ
+        </div>`;
+        return;
+    }
+
+    grid.innerHTML = filtered.map(v => {
+        const tc = getThreatColor(v.threat_level);
+        const pct = (v.threat_level / 10) * 100;
+        const isProtection = v.type === 'PROTECTION';
+
+        return `
+        <div class="vip-card type-${isProtection ? 'protection' : 'target'}" onclick="openModal(${v.id})">
+            <div class="card-top">
+                <div class="card-photo">
+                    ${v.image_url
+                        ? `<img src="${v.image_url}" alt="" onerror="this.parentElement.innerHTML='<div class=no-photo>${isProtection ? '🛡️' : '🎯'}</div>'">`
+                        : `<div class="no-photo">${isProtection ? '🛡️' : '🎯'}</div>`
+                    }
+                </div>
+                <div class="card-info">
+                    <div class="card-name">${v.name}</div>
+                    ${v.alias ? `<div class="card-alias">// ${v.alias}</div>` : ''}
+                    ${v.location ? `<div class="card-location">📍 ${v.location}</div>` : ''}
+                    <div class="threat-bar-wrap">
+                        <span class="threat-label">MENACE</span>
+                        <div class="threat-track">
+                            <div class="threat-fill" style="width:${pct}%; background:${tc}; box-shadow:0 0 6px ${tc};"></div>
+                        </div>
+                        <span class="threat-val" style="color:${tc};">${v.threat_level}/10</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="status-pill ${getStatusClass(v.status)}">${v.status}</div>
+                ${v.assigned_agents ? `<div class="agents-assigned">👤 ${v.assigned_agents}</div>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function filterCards() { renderGrid(); }
+
+// ── OPEN MODAL ──
+function openModal(id) {
+    const v = allVips.find(x => x.id === id);
+    if (!v) return;
+    selectedVipId = id;
+
+    const isProtection = v.type === 'PROTECTION';
+    const box = document.getElementById('modal-box');
+    box.className = 'modal-vip ' + (isProtection ? 'prot' : 'tgt');
+
+    document.getElementById('m-name').textContent = v.name;
+    document.getElementById('m-alias').textContent = v.alias ? `// ${v.alias}` : '— AUCUN ALIAS';
+    document.getElementById('m-id').textContent = v.id;
+    document.getElementById('m-type').textContent = isProtection ? '🟢 PROTECTION' : '🔴 CIBLE';
+    document.getElementById('m-location').textContent = v.location || 'Inconnue';
+    document.getElementById('m-agents').textContent = v.assigned_agents || 'Aucun agent assigné';
+    document.getElementById('m-desc').textContent = v.description || '—';
+    document.getElementById('m-notes').textContent = v.notes || '—';
+    document.getElementById('m-created-by').textContent = v.created_by?.toUpperCase() || '—';
+    document.getElementById('m-updated').textContent = new Date(v.updated_at || v.created_at).toLocaleDateString('fr-FR');
+
+    // Status pill
+    const pill = document.getElementById('m-status-pill');
+    pill.textContent = v.status;
+    pill.className = 'status-pill ' + getStatusClass(v.status);
+
+    // Threat dots
+    const dots = document.getElementById('m-threat-dots');
+    dots.innerHTML = '';
+    for (let i = 1; i <= 10; i++) {
+        const d = document.createElement('div');
+        d.style.cssText = `width:12px;height:12px;border-radius:50%;border:1px solid #334;background:${i <= v.threat_level ? getThreatColor(v.threat_level) : '#111'};box-shadow:${i<=v.threat_level?'0 0 4px '+getThreatColor(v.threat_level):''};`;
+        dots.appendChild(d);
+    }
+
+    // Photo
+    const photoWrap = document.getElementById('m-photo-wrap');
+    photoWrap.style.borderColor = isProtection ? 'rgba(0,255,157,0.4)' : 'rgba(255,51,51,0.4)';
+    if (v.image_url) {
+        photoWrap.innerHTML = `<img src="${v.image_url}" alt="" onerror="this.parentElement.innerHTML='<div class=no-photo>${isProtection ? '🛡️' : '🎯'}</div>'">`;
+    } else {
+        photoWrap.innerHTML = `<div class="no-photo">${isProtection ? '🛡️' : '🎯'}</div>`;
+    }
+
+    // Status buttons
+    const statuses = isProtection
+        ? ['EN SÉCURITÉ', 'EXPOSÉ', 'COMPROMIS', 'CRITIQUE']
+        : ['ACTIF', 'LOCALISÉ', 'DISPARU', 'NEUTRALISÉ', 'CRITIQUE'];
+    const sbContainer = document.getElementById('status-buttons');
+    sbContainer.innerHTML = statuses.map(s => {
+        const active = s === v.status;
+        return `<button class="status-btn ${getStatusClass(s)}"
+            style="${active ? 'opacity:1;font-weight:bold;border-width:2px;' : 'opacity:0.6;'}"
+            onclick="changeStatus(${id}, '${s}')">${s}</button>`;
+    }).join('');
+
+    document.getElementById('detail-modal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('detail-modal').classList.add('hidden');
+    selectedVipId = null;
+}
+
+// ── CHANGE STATUS ──
+async function changeStatus(id, status) {
+    try {
+        const res = await fetch('/api/vip', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ id, status })
+        });
+        if (res.ok) {
+            await loadVips();
+            if (selectedVipId === id) openModal(id);
+        }
+    } catch(e) { console.error(e); }
+}
+
+// ── SUBMIT (CREATE/EDIT) ──
+async function submitVip() {
+    const name = document.getElementById('f-name').value.trim();
+    if (!name) { alert('Le nom est obligatoire.'); return; }
+
+    const payload = {
+        type: currentFormType,
+        name, threat_level: currentThreat,
+        alias: document.getElementById('f-alias').value,
+        status: document.getElementById('f-status').value,
+        location: document.getElementById('f-location').value,
+        assigned_agents: document.getElementById('f-agents').value,
+        image_url: document.getElementById('f-image').value,
+        description: document.getElementById('f-desc').value,
+        notes: document.getElementById('f-notes').value
+    };
+
+    try {
+        let res;
+        if (editingId) {
+            payload.id = editingId;
+            res = await fetch('/api/vip', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+        } else {
+            res = await fetch('/api/vip', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+        }
+
+        if (res.ok) {
+            resetForm();
+            await loadVips();
+            if (currentTab !== currentFormType) switchTab(currentFormType);
+        } else {
+            const err = await res.json();
+            alert('Erreur: ' + err.error);
+        }
+    } catch(e) { console.error(e); }
+}
+
+// ── EDIT FROM MODAL ──
+function editFromModal() {
+    const v = allVips.find(x => x.id === selectedVipId);
+    if (!v) return;
+    editingId = v.id;
+    closeModal();
+
+    setFormType(v.type);
+    document.getElementById('f-name').value = v.name;
+    document.getElementById('f-alias').value = v.alias || '';
+    document.getElementById('f-status').value = v.status;
+    document.getElementById('f-location').value = v.location || '';
+    document.getElementById('f-agents').value = v.assigned_agents || '';
+    document.getElementById('f-image').value = v.image_url || '';
+    document.getElementById('f-desc').value = v.description || '';
+    document.getElementById('f-notes').value = v.notes || '';
+    currentThreat = v.threat_level || 5;
+    buildThreatSelector();
+
+    document.getElementById('form-title').textContent = 'MODIFIER DOSSIER';
+    document.getElementById('btn-submit').textContent = '[ SAUVEGARDER ]';
+    document.getElementById('btn-cancel-edit').classList.remove('hidden');
+}
+
+function cancelEdit() {
+    resetForm();
+}
+
+function resetForm() {
+    editingId = null;
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-alias').value = '';
+    document.getElementById('f-location').value = '';
+    document.getElementById('f-agents').value = '';
+    document.getElementById('f-image').value = '';
+    document.getElementById('f-desc').value = '';
+    document.getElementById('f-notes').value = '';
+    currentThreat = 5;
+    buildThreatSelector();
+    document.getElementById('form-title').textContent = 'NOUVEAU DOSSIER';
+    document.getElementById('btn-submit').textContent = '[ CRÉER LE DOSSIER ]';
+    document.getElementById('btn-cancel-edit').classList.add('hidden');
+}
+
+// ── DELETE ──
+async function deleteFromModal() {
+    if (!selectedVipId) return;
+    const v = allVips.find(x => x.id === selectedVipId);
+    if (!confirm(`SUPPRIMER DÉFINITIVEMENT LE DOSSIER "${v?.name}" ?`)) return;
+
+    try {
+        const res = await fetch('/api/vip', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ id: selectedVipId })
+        });
+        if (res.ok) { closeModal(); await loadVips(); }
+    } catch(e) { console.error(e); }
+}
+
+// ── TOAST ALERT ──
+function showToast(msg, duration = 5000) {
+    const t = document.getElementById('vip-toast');
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), duration);
+}
+
+// ── PUSHER REALTIME ──
+function initPusher() {
+    const pusher = new Pusher('51d51cc5bfc1c8ee90d4', { cluster: 'eu' });
+    const ch = pusher.subscribe('sas-events');
+
+    ch.bind('vip-update', data => {
+        loadVips();
+        if (data.action === 'status_change' && data.critical) {
+            showToast(`🚨 ALERTE — ${data.vip.name} : STATUT → ${data.new_status}`, 8000);
+        }
+    });
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+    buildThreatSelector();
+    setFormType('PROTECTION');
+    loadVips();
+    initPusher();
+});
+</script>
+</body>
+</html>
