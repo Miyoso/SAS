@@ -3,46 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS :: SC-0404 — NYX BLACKWOOD</title>
+    <title>NYX BLACKWOOD — PROFIL</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Share+Tech+Mono&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
     <style>
         :root {
             --gold:     #b8965a;
             --gold-dim: rgba(184,150,90,0.1);
             --red:      #c0392b;
-            --dim:      #3a3530;
             --bg:        #08090a;
             --bg2:      #0e0f11;
-            --surface:  rgba(255,255,255,0.03);
             --text:      #c8c2ba;
             --text-dim: #52504d;
             --border:    rgba(184,150,90,0.12);
             --mono:      'JetBrains Mono', monospace;
-            --ui:        'Share Tech Mono', monospace;
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: var(--ui);
+            font-family: 'Share Tech Mono', monospace;
             overflow-x: hidden;
-            cursor: crosshair;
         }
-
-        /* Scanline */
-        .scan {
-            position: fixed; left: 0; width: 100%; height: 1px;
-            background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
-            opacity: 0.2; pointer-events: none; z-index: 200;
-            animation: scan 14s linear infinite;
-        }
-        @keyframes scan { 0%{top:-2%} 100%{top:102%} }
 
         /* ── BOOT ── */
         #boot {
@@ -51,519 +36,167 @@
             flex-direction: column; gap: 20px;
             transition: opacity 0.7s ease;
         }
-        .boot-ref {
-            font-family: var(--mono); font-size: 0.6rem;
-            color: var(--gold); letter-spacing: 6px;
-            opacity: 0; animation: fadeIn 0.4s 0.2s forwards;
-        }
-        .boot-progress {
-            width: 180px; height: 1px;
-            background: rgba(255,255,255,0.06);
-            overflow: hidden;
-        }
         .boot-fill {
-            height: 100%; width: 0;
-            background: var(--gold);
-            animation: fill 1.8s cubic-bezier(0.4,0,0.2,1) forwards;
+            height: 1px; width: 0; background: var(--gold);
+            animation: fill 1.2s forwards;
         }
-        .boot-label {
-            font-size: 0.5rem; color: var(--text-dim);
-            letter-spacing: 4px; min-height: 14px;
-        }
-        @keyframes fill    { to { width: 100%; } }
-        @keyframes fadeIn  { to { opacity: 1; } }
+        @keyframes fill { to { width: 200px; } }
 
-        /* ── TOP BAR ── */
-        .topbar {
-            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-            height: 44px;
-            background: rgba(8,9,10,0.96);
-            border-bottom: 1px solid var(--border);
-            backdrop-filter: blur(12px);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 40px;
-            opacity: 0; animation: fadeIn 0.5s 2.3s forwards;
-        }
-        .tb-left { display: flex; align-items: center; gap: 20px; }
-        .tb-logo {
-            font-family: var(--mono); font-size: 0.65rem;
-            color: var(--gold); letter-spacing: 3px;
-        }
-        .tb-sep { width: 1px; height: 16px; background: var(--border); }
-        .tb-ref {
-            font-size: 0.55rem; color: var(--text-dim); letter-spacing: 2px;
-        }
-        .tb-right { display: flex; gap: 24px; align-items: center; }
-        .tb-link {
-            font-size: 0.55rem; color: var(--text-dim); text-decoration: none;
-            letter-spacing: 2px; transition: color 0.2s;
-        }
-        .tb-link:hover { color: var(--gold); }
-        .tb-back {
-            font-size: 0.55rem; color: var(--text-dim); text-decoration: none;
-            letter-spacing: 2px; border: 1px solid var(--border);
-            padding: 4px 12px; transition: 0.2s;
-        }
-        .tb-back:hover { border-color: var(--gold); color: var(--gold); }
-
-        /* ── HERO ── */
+        /* ── LAYOUT ── */
         .hero {
-            height: 100vh; position: relative;
-            display: grid; grid-template-columns: 1fr 1fr;
-            opacity: 0; animation: fadeIn 1s 2.2s forwards;
+            height: 80vh; display: grid; grid-template-columns: 1fr 1fr;
+            border-bottom: 1px solid var(--border);
         }
-
-        .hero-photo-col {
+        .hero-photo {
             position: relative; overflow: hidden;
+            background: #111;
         }
-        .hero-photo-col img {
+        .hero-photo img {
             width: 100%; height: 100%; object-fit: cover;
-            object-position: center 10%;
-            filter: grayscale(0.7) contrast(1.1) brightness(0.7) sepia(0.2);
-            display: block;
+            filter: grayscale(0.4) contrast(1.1);
         }
-        .hero-photo-col::after {
-            content: '';
-            position: absolute; inset: 0;
-            background: linear-gradient(
-                to right,
-                rgba(8,9,10,0) 40%,
-                rgba(8,9,10,1) 100%
-            );
-        }
-        .hero-photo-col::before {
-            content: '';
-            position: absolute; bottom: 0; left: 0; right: 0; height: 40%;
-            background: linear-gradient(to top, var(--bg), transparent);
-            z-index: 1;
+        .hero-text {
+            padding: 60px; display: flex; flex-direction: column; justify-content: center;
         }
 
-        .hero-tape {
-            position: absolute; top: 44px; left: 0; right: 0; height: 3px;
-            background: repeating-linear-gradient(
-                90deg,
-                var(--gold) 0, var(--gold) 20px,
-                transparent 20px, transparent 40px
-            );
-            z-index: 10; opacity: 0.7;
-            animation: tape 2s linear infinite;
-        }
-        @keyframes tape { to { background-position: 40px 0; } }
+        .name { font-size: 4rem; font-weight: 800; color: #fff; line-height: 0.9; }
+        .surname { font-size: 1.2rem; color: var(--gold); letter-spacing: 5px; margin-bottom: 30px; }
 
-        .hero-text-col {
-            display: flex; flex-direction: column;
-            justify-content: center; padding: 80px 60px 60px;
-            position: relative;
-        }
+        .body-content { max-width: 1000px; margin: 0 auto; padding: 60px 20px; }
 
-        .hero-classified {
-            display: flex; align-items: center; gap: 8px;
-            font-size: 0.5rem; color: var(--red); letter-spacing: 5px;
-            margin-bottom: 32px;
+        /* ── TABLEAU MISSIONS ── */
+        .mission-table {
+            width: 100%; border-collapse: collapse; margin-top: 20px;
+            font-family: var(--mono); font-size: 0.8rem;
         }
-        .hero-classified::before {
-            content: ''; width: 5px; height: 5px; border-radius: 50%;
-            background: var(--red); box-shadow: 0 0 6px var(--red);
-            animation: pulse 1.5s infinite;
+        .mission-table th {
+            text-align: left; padding: 15px; color: var(--gold);
+            border-bottom: 2px solid var(--border); text-transform: uppercase;
         }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+        .mission-table td {
+            padding: 15px; border-bottom: 1px solid var(--border);
+        }
+        .mission-table tr:hover { background: var(--gold-dim); }
 
-        .hero-surname {
-            font-family: var(--mono); font-size: clamp(3rem, 5vw, 4.5rem);
-            font-weight: 800; color: #fff; letter-spacing: -3px;
-            line-height: 1; margin-bottom: 6px;
+        /* ── CARACTÈRE ── */
+        .traits {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 40px;
         }
-        .hero-given {
-            font-family: var(--mono); font-size: clamp(1rem, 2vw, 1.4rem);
-            font-weight: 300; color: var(--gold); letter-spacing: 6px;
-            text-transform: uppercase; margin-bottom: 28px;
+        .trait-box {
+            padding: 25px; background: var(--bg2); border: 1px solid var(--border);
+        }
+        .trait-title { color: var(--gold); margin-bottom: 10px; font-size: 0.9rem; }
+
+        .tag {
+            display: inline-block; padding: 4px 10px; background: var(--border);
+            color: var(--text); font-size: 0.7rem; margin-right: 5px;
         }
 
-        .hero-desc {
-            font-size: 0.72rem; color: var(--text-dim);
-            line-height: 1.7; max-width: 400px;
-            border-left: 2px solid var(--border);
-            padding-left: 16px; margin-bottom: 36px;
-            font-family: var(--mono);
-        }
-
-        .hero-stats {
-            display: grid; grid-template-columns: repeat(3, 1fr);
-            gap: 1px; background: var(--border);
-            border: 1px solid var(--border);
-            max-width: 400px;
-        }
-        .hero-stat {
-            background: var(--bg); padding: 14px 16px;
-            display: flex; flex-direction: column; gap: 3px;
-        }
-        .hs-label { font-size: 0.45rem; color: var(--text-dim); letter-spacing: 3px; }
-        .hs-value { font-family: var(--mono); font-size: 0.8rem; color: #fff; }
-        .hs-value.gold { color: var(--gold); }
-        .hs-value.red  { color: var(--red);  }
-
-        /* ── BODY ── */
-        .body {
-            max-width: 960px; margin: 0 auto;
-            padding: 80px 40px 100px;
-            display: flex; flex-direction: column; gap: 64px;
-            opacity: 0; animation: fadeIn 0.6s 2.6s forwards;
-        }
-
-        .sec { display: flex; flex-direction: column; gap: 20px; }
-
-        .sec-header {
-            display: flex; align-items: center; gap: 16px;
-        }
-        .sec-n {
-            font-family: var(--mono); font-size: 0.5rem; font-weight: 700;
-            color: var(--gold); letter-spacing: 2px;
-            border: 1px solid var(--border); padding: 3px 8px;
-            flex-shrink: 0;
-        }
-        .sec-title {
-            font-size: 0.55rem; color: var(--text-dim);
-            letter-spacing: 5px; text-transform: uppercase;
-        }
-        .sec-line { flex: 1; height: 1px; background: var(--border); }
-
-        .block {
-            background: var(--bg2);
-            border: 1px solid var(--border);
-            position: relative;
-            overflow: hidden;
-        }
-        .block::before {
-            content: ''; position: absolute;
-            top: 0; left: 0; bottom: 0; width: 2px;
-            background: transparent;
-            transition: background 0.4s;
-        }
-        .block:hover::before { background: var(--gold); }
-
-        .grid-2 {
-            display: grid; grid-template-columns: 1fr 1fr;
-            border-top: 1px solid var(--border);
-        }
-        .grid-cell {
-            padding: 20px 28px;
-            border-right: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-        }
-        .grid-cell:nth-child(2n) { border-right: none; }
-
-        .cell-label {
-            font-size: 0.48rem; color: var(--text-dim);
-            letter-spacing: 3px; text-transform: uppercase;
-            margin-bottom: 6px;
-        }
-        .cell-value {
-            font-family: var(--mono); font-size: 0.82rem;
-            color: #e0dbd4; line-height: 1.4;
-        }
-        .cell-value.gold { color: var(--gold); }
-        .cell-value.red  { color: var(--red); font-size: 0.7rem; }
-
-        .prose {
-            padding: 28px 32px;
-            font-family: var(--mono); font-size: 0.78rem;
-            color: var(--text-dim); line-height: 1.8;
-        }
-        .prose strong { color: var(--text); font-weight: 700; }
-        .prose em { color: var(--gold); font-style: normal; }
-
-        .quote {
-            padding: 24px 32px;
-            border-top: 1px solid var(--border);
-            display: flex; align-items: flex-start; gap: 16px;
-        }
-        .quote-mark {
-            font-family: var(--mono); font-size: 2rem; color: var(--gold);
-            opacity: 0.3; line-height: 1; flex-shrink: 0; margin-top: -4px;
-        }
-        .quote-inner { flex: 1; }
-        .quote-text {
-            font-family: var(--mono); font-style: italic;
-            font-size: 0.82rem; color: var(--text); line-height: 1.6;
-            margin-bottom: 8px;
-        }
-        .quote-src {
-            font-size: 0.48rem; color: var(--text-dim); letter-spacing: 3px;
-        }
-
-        .trait-block { padding: 0; }
-        .trait-row {
-            display: flex; align-items: flex-start; gap: 16px;
-            padding: 16px 28px;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.75rem; color: var(--text-dim);
-            font-family: var(--mono); line-height: 1.5;
-            transition: background 0.2s;
-        }
-        .trait-row:last-child { border-bottom: none; }
-        .trait-row:hover { background: var(--surface); }
-        .trait-sign { flex-shrink: 0; font-family: var(--mono); font-size: 0.7rem; }
-        .trait-sign.pos { color: var(--gold); }
-        .trait-sign.neg { color: var(--red); }
-
-        .rdct {
-            display: inline-block;
-            background: rgba(255,255,255,0.06);
-            color: transparent;
-            padding: 0 6px; position: relative;
-            cursor: help; transition: 0.3s;
-            font-family: var(--mono);
-        }
-        .rdct::after {
-            content: attr(data-text);
-            position: absolute; inset: 0;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.65rem; color: #2a2826;
-            letter-spacing: -1px;
-        }
-        .rdct:hover { background: var(--gold-dim); color: var(--gold); }
-        .rdct:hover::after { display: none; }
-
-        .classified-row {
-            display: flex; align-items: center; gap: 12px;
-            padding: 14px 28px;
-            border-top: 1px solid var(--border);
-            font-size: 0.52rem; color: var(--red); letter-spacing: 3px;
-        }
-        .classified-row::before { content: '⚠'; font-size: 0.8rem; }
-
-        .note-box {
-            padding: 22px 28px;
-            border-top: 1px solid var(--border);
-            display: flex; flex-direction: column; gap: 10px;
-        }
-        .note-title { font-size: 0.48rem; color: var(--text-dim); letter-spacing: 3px; }
-        .note-line {
-            padding-left: 14px;
-            border-left: 1px solid var(--border);
-            font-family: var(--mono); font-size: 0.73rem;
-            color: var(--text-dim); line-height: 1.5; font-style: italic;
-        }
-
-        .page-footer {
-            display: flex; justify-content: space-between; align-items: center;
-            padding-top: 32px;
-            border-top: 1px solid var(--border);
-            font-size: 0.48rem; color: var(--text-dim); letter-spacing: 2px;
-        }
-        .page-footer a {
-            color: var(--text-dim); text-decoration: none;
-            border: 1px solid var(--border); padding: 6px 16px;
-            transition: 0.2s; font-size: 0.52rem; letter-spacing: 2px;
-        }
-        .page-footer a:hover { border-color: var(--gold); color: var(--gold); }
-
-        ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--border); }
-        ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+        h2 { font-size: 1.5rem; margin-bottom: 20px; color: #fff; border-left: 3px solid var(--gold); padding-left: 15px; }
     </style>
 </head>
 <body>
 
-<div class="scan"></div>
-
 <div id="boot">
-    <div class="boot-ref">SAS // SC-0404</div>
-    <div class="boot-progress"><div class="boot-fill"></div></div>
-    <div class="boot-label" id="boot-label">CHARGEMENT DES DONNÉES BLACKWOOD...</div>
+    <div class="boot-fill"></div>
+    <div style="font-size: 0.6rem; letter-spacing: 3px; color: var(--text-dim);">OUVERTURE DU DOSSIER : NYX</div>
 </div>
 
-<nav class="topbar">
-    <div class="tb-left">
-        <div class="tb-logo">SAS</div>
-        <div class="tb-sep"></div>
-        <div class="tb-ref">DOSSIER SC-0404 // NYX // CYBER-OPS</div>
-    </div>
-    <div class="tb-right">
-        <a href="#" class="tb-link">BASE AGENTS</a>
-        <a href="#" class="tb-back">← RETOUR</a>
-    </div>
-</nav>
-
 <section class="hero">
-    <div class="hero-tape"></div>
-
-    <div class="hero-photo-col">
-        <img src="/assets/Nyx_Blackwood.jpg" alt="Nyx Blackwood">
+    <div class="hero-photo">
+        <img src="/assets/Nyx_Portrait.jpg" alt="Nyx">
     </div>
-
-    <div class="hero-text-col">
-        <div class="hero-classified">STATUT : INDÉPENDANTE — RECHERCHÉE PAR LA FAMILLE</div>
-
-        <div class="hero-surname">BLACKWOOD</div>
-        <div class="hero-given">NYX "PILE ÉLECTRIQUE"</div>
-
-        <div class="hero-desc">
-            Expertise hybride en <strong>Cyber-sécurité offensive</strong> et <strong>Gestion opérationnelle</strong>. Ancienne propriétaire du Golden Pub. Allie une intelligence foudroyante à un tempérament imprévisible. Capable de craquer un serveur gouvernemental tout en préparant le cocktail parfait.
-        </div>
-
-        <div class="hero-stats">
-            <div class="hero-stat">
-                <div class="hs-label">HÉRITAGE</div>
-                <div class="hs-value gold">BLACKWOOD</div>
-            </div>
-            <div class="hero-stat">
-                <div class="hs-label">ÂGE</div>
-                <div class="hs-value">27 ANS</div>
-            </div>
-            <div class="hero-stat">
-                <div class="hs-label">TEMPÉRAMENT</div>
-                <div class="hs-value red">CHAOTIQUE</div>
-            </div>
-            <div class="hero-stat">
-                <div class="hs-label">ORIGINE</div>
-                <div class="hs-value">HAUTE SOCIÉTÉ</div>
-            </div>
-            <div class="hero-stat">
-                <div class="hs-label">MÉTIER</div>
-                <div class="hs-value">CYBER-EXPERT</div>
-            </div>
-            <div class="hero-stat">
-                <div class="hs-label">STATUT</div>
-                <div class="hs-value gold">● EN CAVALE</div>
-            </div>
+    <div class="hero-text">
+        <div class="surname">BLACKWOOD</div>
+        <div class="name">NYX</div>
+        <p style="margin-top: 20px; line-height: 1.6; color: var(--text-dim);">
+            27 ans. Ancienne gérante du <em>Golden Pub</em>. 
+            Une énergie débordante et un cerveau qui tourne à mille à l'heure. 
+            A tout plaqué pour suivre son instinct et une bande d'inconnus.
+        </p>
+        <div style="margin-top: 30px;">
+            <span class="tag">EXPERT-RÉSEAU</span>
+            <span class="tag">MIXOLOGUE</span>
+            <span class="tag">SANS ATTACHE</span>
         </div>
     </div>
 </section>
 
-<div class="body">
+<div class="body-content">
 
-    <div class="sec">
-        <div class="sec-header">
-            <div class="sec-n">01</div>
-            <div class="sec-title">CURRICULUM VITAE : CHAOS DORÉ</div>
-            <div class="sec-line"></div>
+    <section>
+        <h2>PETITS EXPLOITS & "MISSIONS" PASSÉES</h2>
+        <p style="margin-bottom: 20px; font-family: var(--mono); font-size: 0.8rem; color: var(--text-dim);">
+            Archives des bêtises et coups d'éclat de Nyx avant qu'elle ne devienne pro.
+        </p>
+        <table class="mission-table">
+            <thead>
+                <tr>
+                    <th>Âge</th>
+                    <th>Événement</th>
+                    <th>Description</th>
+                    <th>Résultat</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>14</td>
+                    <td>Examen de Maths</td>
+                    <td>A remplacé les questions de l'examen par des énigmes sur les cocktails (sans alcool).</td>
+                    <td>1 semaine de colle, mais 100% de réussite de la classe.</td>
+                </tr>
+                <tr>
+                    <td>16</td>
+                    <td>Bal de Promo</td>
+                    <td>A piraté le système audio pour diffuser une playlist "Punk" au lieu de la valse prévue.</td>
+                    <td>Chaos total. Elle a été élue reine du bal par dépit.</td>
+                </tr>
+                <tr>
+                    <td>19</td>
+                    <td>Héritage Blackwood</td>
+                    <td>A réussi à transférer 1€ de chaque compte de ses frères vers une association pour animaux.</td>
+                    <td>Personne n'a remarqué, sauf son père qui a souri.</td>
+                </tr>
+                <tr>
+                    <td>24</td>
+                    <td>Le Golden Pub</td>
+                    <td>A créé un bar caché derrière une porte dont le code changeait selon la météo locale.</td>
+                    <td>L'endroit le plus complet de la ville pendant 2 ans.</td>
+                </tr>
+                <tr>
+                    <td>26</td>
+                    <td>La Grande Évasion</td>
+                    <td>Vente flash de son établissement en 24h pour partir vers l'inconnu.</td>
+                    <td>Indépendance financière et rupture familiale réussie.</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <div class="traits">
+        <div class="trait-box">
+            <div class="trait-title">TEMPÉRAMENT</div>
+            <p style="font-size: 0.85rem; line-height: 1.5;">
+                Nyx est une véritable <strong>pile électrique</strong>. Elle ne tient pas en place. Sous ses airs de "tête en l'air" qui oublie ses clés, elle est capable de repérer une faille de sécurité dans un système complexe en moins de dix secondes. Son rire est sa meilleure arme.
+            </p>
         </div>
-
-        <div class="block">
-            <div class="prose">
-                Nyx est le <em>"glitch"</em> dans la matrice millimétrée des Blackwood. Élevée entre les serveurs de sa mère (Cyber-sécurité) et les fûts de son père (Spiritueux), elle a acquis des compétences que peu d'humains peuvent cumuler. Après avoir <strong>survolé ses études</strong> par pur défi, elle a transformé une "cage dorée" (le Golden Pub) en l'épicentre du renseignement informel de la ville avant de tout plaquer pour l'inconnu.
-            </div>
-            <div class="grid-2">
-                <div class="grid-cell">
-                    <div class="cell-label">COMPÉTENCE MAJEURE</div>
-                    <div class="cell-value gold">INTRUSION RÉSEAU</div>
-                </div>
-                <div class="grid-cell">
-                    <div class="cell-label">COMPÉTENCE SECONDAIRE</div>
-                    <div class="cell-value">MIXOLOGIE AVANCÉE</div>
-                </div>
-                <div class="grid-cell">
-                    <div class="cell-label">RÉSEAU SOCIAL</div>
-                    <div class="cell-value red"><span class="rdct" data-text="ERROR">FAMILLE BLACKWOOD</span></div>
-                </div>
-                <div class="grid-cell">
-                    <div class="cell-label">ACTIFS</div>
-                    <div class="cell-value">INDÉPENDANCE TOTALE</div>
-                </div>
-            </div>
+        <div class="trait-box">
+            <div class="trait-title">CAPACITÉS</div>
+            <p style="font-size: 0.85rem; line-height: 1.5;">
+                Elle possède une **intelligence vive** héritée de ses parents. Elle passe d'une analyse de données cryptées à la préparation d'un cocktail à la tequila avec une facilité déconcertante. Pour elle, tout est une question de dosage et de rapidité.
+            </p>
         </div>
-    </div>
-
-    <div class="sec">
-        <div class="sec-header">
-            <div class="sec-n">02</div>
-            <div class="sec-title">ANALYSE COMPORTEMENTALE</div>
-            <div class="sec-line"></div>
-        </div>
-
-        <div class="block">
-            <div class="prose">
-                Derrière un masque de "tête en l'air" se cache un processeur tournant à pleine puissance. Nyx ne traite pas l'information, elle la dévore. Son rire communicatif est son meilleur outil d'ingénierie sociale : elle vous désarme avec une blague avant de copier votre disque dur.
-            </div>
-
-            <div class="trait-block">
-                <div class="trait-row">
-                    <span class="trait-sign pos">+</span>
-                    <span><strong>Pile électrique :</strong> Capacité de travail inépuisable lors de phases de "crunch" informatique.</span>
-                </div>
-                <div class="trait-row">
-                    <span class="trait-sign pos">+</span>
-                    <span><strong>Esprit polyvalent :</strong> Capable d'analyser un code source et un profil psychologique simultanément.</span>
-                </div>
-                <div class="trait-row">
-                    <span class="trait-sign neg">−</span>
-                    <span><strong>Imprévisibilité :</strong> Ses décisions sont souvent basées sur l'instinct ou le défi, au mépris du danger.</span>
-                </div>
-                <div class="trait-row">
-                    <span class="trait-sign neg">−</span>
-                    <span><strong>Aversion à l'autorité :</strong> Rejet viscéral des hiérarchies (héritage d'une éducation trop rigide).</span>
-                </div>
-            </div>
-
-            <div class="quote">
-                <div class="quote-mark">"</div>
-                <div class="quote-inner">
-                    <div class="quote-text">Un pare-feu, c'est comme une tequila bon marché : ça brûle un peu au début, mais on finit toujours par passer au travers.</div>
-                    <div class="quote-src">NYX BLACKWOOD — DERNIER LOG AVANT DISPARITION</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="sec">
-        <div class="sec-header">
-            <div class="sec-n">03</div>
-            <div class="sec-title">INCIDENTS & LOGS</div>
-            <div class="sec-line"></div>
-        </div>
-
-        <div class="block">
-            <div class="grid-2">
-                <div class="grid-cell">
-                    <div class="cell-label">ÂGE 23 — INCIDENT "SÉISME"</div>
-                    <div class="cell-value">Refus de l'héritage // Fugue barmaid</div>
-                </div>
-                <div class="grid-cell">
-                    <div class="cell-label">ÂGE 25 — GOLDEN PUB</div>
-                    <div class="cell-value gold">Hacking du système financier paternel</div>
-                </div>
-                <div class="grid-cell">
-                    <div class="cell-label">RÉCENT — VENTE ACTIFS</div>
-                    <div class="cell-value">Vente du Pub // Indépendance acquise</div>
-                </div>
-                <div class="grid-cell">
-                    <div class="cell-label">OBJECTIF ACTUEL</div>
-                    <div class="cell-value red">SUIVRE <span class="rdct" data-text="████████">L'INCONNU</span></div>
-                </div>
-            </div>
-            
-            <div class="classified-row">
-                ALERTE : SIGNAL GPS PERDU DANS LE SILLAGE DE "LA BANDE".
-            </div>
-        </div>
-    </div>
-
-    <div class="page-footer">
-        <span>SAS SECURE TERMINAL V.4.0.2 // DOSSIER BLACKWOOD // NYX</span>
-        <a href="#">← ARCHIVES FAMILIALES</a>
     </div>
 
 </div>
 
 <script>
-const msgs = ["DÉCRYPTAGE DES ORIGINES...", "ACCÈS AUX SERVEURS BLACKWOOD...", "BIENVENUE, NYX."];
-let idx = 0;
-const lbl = document.getElementById('boot-label');
-const boot = document.getElementById('boot');
-function tick() {
-    lbl.textContent = msgs[idx++];
-    if (idx < msgs.length) setTimeout(tick, 550);
-    else {
-        setTimeout(() => {
-            boot.style.opacity = '0';
-            boot.style.pointerEvents = 'none';
-            setTimeout(() => boot.remove(), 700);
-        }, 600);
-    }
-}
-setTimeout(tick, 300);
+    const boot = document.getElementById('boot');
+    setTimeout(() => {
+        boot.style.opacity = '0';
+        setTimeout(() => boot.remove(), 700);
+    }, 1500);
 </script>
+
 </body>
 </html>
