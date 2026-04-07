@@ -3,227 +3,567 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS :: AGENT [JAXON HUNTER]</title>
+    <title>SAS :: SC-0404 — NYX</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Share+Tech+Mono&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="/css/style-mo.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Share+Tech+Mono&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
 
+    <style>
+        :root {
+            --gold:     #b8965a;
+            --gold-dim: rgba(184,150,90,0.1);
+            --red:      #c0392b;
+            --dim:      #3a3530;
+            --bg:       #08090a;
+            --bg2:      #0e0f11;
+            --surface:  rgba(255,255,255,0.03);
+            --text:     #c8c2ba;
+            --text-dim: #52504d;
+            --border:   rgba(184,150,90,0.12);
+            --mono:     'JetBrains Mono', monospace;
+            --ui:       'Share Tech Mono', monospace;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--ui);
+            overflow-x: hidden;
+            cursor: crosshair;
+        }
+
+        /* Scanline */
+        .scan {
+            position: fixed; left: 0; width: 100%; height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
+            opacity: 0.2; pointer-events: none; z-index: 200;
+            animation: scan 14s linear infinite;
+        }
+        @keyframes scan { 0%{top:-2%} 100%{top:102%} }
+
+        /* ── BOOT ── */
+        #boot {
+            position: fixed; inset: 0; background: #000; z-index: 9000;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column; gap: 20px;
+            transition: opacity 0.7s ease;
+        }
+        .boot-ref {
+            font-family: var(--mono); font-size: 0.6rem;
+            color: var(--gold); letter-spacing: 6px;
+            opacity: 0; animation: fadeIn 0.4s 0.2s forwards;
+        }
+        .boot-progress {
+            width: 180px; height: 1px;
+            background: rgba(255,255,255,0.06);
+            overflow: hidden;
+        }
+        .boot-fill {
+            height: 100%; width: 0;
+            background: var(--gold);
+            animation: fill 1.8s cubic-bezier(0.4,0,0.2,1) forwards;
+        }
+        .boot-label {
+            font-size: 0.5rem; color: var(--text-dim);
+            letter-spacing: 4px; min-height: 14px;
+        }
+        @keyframes fill    { to { width: 100%; } }
+        @keyframes fadeIn  { to { opacity: 1; } }
+
+        /* ── TOP BAR ── */
+        .topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            height: 44px;
+            background: rgba(8,9,10,0.96);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 40px;
+            opacity: 0; animation: fadeIn 0.5s 2.3s forwards;
+        }
+        .tb-left { display: flex; align-items: center; gap: 20px; }
+        .tb-logo {
+            font-family: var(--mono); font-size: 0.65rem;
+            color: var(--gold); letter-spacing: 3px;
+        }
+        .tb-sep { width: 1px; height: 16px; background: var(--border); }
+        .tb-ref {
+            font-size: 0.55rem; color: var(--text-dim); letter-spacing: 2px;
+        }
+        .tb-right { display: flex; gap: 24px; align-items: center; }
+        .tb-link {
+            font-size: 0.55rem; color: var(--text-dim); text-decoration: none;
+            letter-spacing: 2px; transition: color 0.2s;
+        }
+        .tb-link:hover { color: var(--gold); }
+        .tb-back {
+            font-size: 0.55rem; color: var(--text-dim); text-decoration: none;
+            letter-spacing: 2px; border: 1px solid var(--border);
+            padding: 4px 12px; transition: 0.2s;
+        }
+        .tb-back:hover { border-color: var(--gold); color: var(--gold); }
+
+        /* ── HERO ── */
+        .hero {
+            height: 100vh; position: relative;
+            display: grid; grid-template-columns: 1fr 1fr;
+            opacity: 0; animation: fadeIn 1s 2.2s forwards;
+        }
+
+        .hero-photo-col {
+            position: relative; overflow: hidden;
+        }
+        .hero-photo-col img {
+            width: 100%; height: 100%; object-fit: cover;
+            object-position: center 10%;
+            filter: grayscale(0.7) contrast(1.1) brightness(0.6);
+            display: block;
+        }
+        .hero-photo-col::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(
+                to right,
+                rgba(8,9,10,0) 40%,
+                rgba(8,9,10,1) 100%
+            );
+        }
+        .hero-photo-col::before {
+            content: '';
+            position: absolute; bottom: 0; left: 0; right: 0; height: 40%;
+            background: linear-gradient(to top, var(--bg), transparent);
+            z-index: 1;
+        }
+
+        .hero-tape {
+            position: absolute; top: 44px; left: 0; right: 0; height: 3px;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--gold) 0, var(--gold) 20px,
+                transparent 20px, transparent 40px
+            );
+            z-index: 10; opacity: 0.7;
+            animation: tape 2s linear infinite;
+        }
+        @keyframes tape { to { background-position: 40px 0; } }
+
+        .hero-text-col {
+            display: flex; flex-direction: column;
+            justify-content: center; padding: 80px 60px 60px;
+            position: relative;
+        }
+
+        .hero-classified {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.5rem; color: var(--red); letter-spacing: 5px;
+            margin-bottom: 32px;
+        }
+        .hero-classified::before {
+            content: ''; width: 5px; height: 5px; border-radius: 50%;
+            background: var(--red); box-shadow: 0 0 6px var(--red);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        .hero-surname {
+            font-family: var(--mono); font-size: clamp(3rem, 5vw, 4.5rem);
+            font-weight: 800; color: #fff; letter-spacing: -3px;
+            line-height: 1; margin-bottom: 6px;
+        }
+        .hero-given {
+            font-family: var(--mono); font-size: clamp(1rem, 2vw, 1.4rem);
+            font-weight: 300; color: var(--gold); letter-spacing: 6px;
+            text-transform: uppercase; margin-bottom: 28px;
+        }
+
+        .hero-desc {
+            font-size: 0.72rem; color: var(--text-dim);
+            line-height: 1.7; max-width: 360px;
+            border-left: 2px solid var(--border);
+            padding-left: 16px; margin-bottom: 36px;
+            font-family: var(--mono);
+        }
+
+        .hero-stats {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 1px; background: var(--border);
+            border: 1px solid var(--border);
+            max-width: 360px;
+        }
+        .hero-stat {
+            background: var(--bg); padding: 14px 16px;
+            display: flex; flex-direction: column; gap: 3px;
+        }
+        .hs-label { font-size: 0.45rem; color: var(--text-dim); letter-spacing: 3px; }
+        .hs-value { font-family: var(--mono); font-size: 0.8rem; color: #fff; }
+        .hs-value.gold { color: var(--gold); }
+        .hs-value.red  { color: var(--red);  }
+
+        /* ── BODY ── */
+        .body {
+            max-width: 960px; margin: 0 auto;
+            padding: 80px 40px 100px;
+            display: flex; flex-direction: column; gap: 64px;
+            opacity: 0; animation: fadeIn 0.6s 2.6s forwards;
+        }
+
+        .sec { display: flex; flex-direction: column; gap: 20px; }
+
+        .sec-header {
+            display: flex; align-items: center; gap: 16px;
+        }
+        .sec-n {
+            font-family: var(--mono); font-size: 0.5rem; font-weight: 700;
+            color: var(--gold); letter-spacing: 2px;
+            border: 1px solid var(--border); padding: 3px 8px;
+            flex-shrink: 0;
+        }
+        .sec-title {
+            font-size: 0.55rem; color: var(--text-dim);
+            letter-spacing: 5px; text-transform: uppercase;
+        }
+        .sec-line { flex: 1; height: 1px; background: var(--border); }
+
+        .block {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+        .block::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; bottom: 0; width: 2px;
+            background: transparent;
+            transition: background 0.4s;
+        }
+        .block:hover::before { background: var(--gold); }
+
+        .grid-2 {
+            display: grid; grid-template-columns: 1fr 1fr;
+            border-top: 1px solid var(--border);
+        }
+        .grid-cell {
+            padding: 20px 28px;
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .grid-cell:nth-child(2n) { border-right: none; }
+
+        .cell-label {
+            font-size: 0.48rem; color: var(--text-dim);
+            letter-spacing: 3px; text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .cell-value {
+            font-family: var(--mono); font-size: 0.82rem;
+            color: #e0dbd4; line-height: 1.4;
+        }
+        .cell-value.gold { color: var(--gold); }
+        .cell-value.red  { color: var(--red); font-size: 0.7rem; }
+
+        .prose {
+            padding: 28px 32px;
+            font-family: var(--mono); font-size: 0.78rem;
+            color: var(--text-dim); line-height: 1.8;
+        }
+        .prose strong { color: var(--text); font-weight: 700; }
+        .prose em { color: var(--gold); font-style: normal; }
+
+        .quote {
+            padding: 24px 32px;
+            border-top: 1px solid var(--border);
+            display: flex; align-items: flex-start; gap: 16px;
+        }
+        .quote-mark {
+            font-family: var(--mono); font-size: 2rem; color: var(--gold);
+            opacity: 0.3; line-height: 1; flex-shrink: 0; margin-top: -4px;
+        }
+        .quote-inner { flex: 1; }
+        .quote-text {
+            font-family: var(--mono); font-style: italic;
+            font-size: 0.82rem; color: var(--text); line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        .quote-src {
+            font-size: 0.48rem; color: var(--text-dim); letter-spacing: 3px;
+        }
+
+        .trait-block { padding: 0; }
+        .trait-row {
+            display: flex; align-items: flex-start; gap: 16px;
+            padding: 16px 28px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.75rem; color: var(--text-dim);
+            font-family: var(--mono); line-height: 1.5;
+            transition: background 0.2s;
+        }
+        .trait-row:last-child { border-bottom: none; }
+        .trait-row:hover { background: var(--surface); }
+        .trait-sign { flex-shrink: 0; font-family: var(--mono); font-size: 0.7rem; }
+        .trait-sign.pos { color: var(--gold); }
+        .trait-sign.neg { color: var(--red); }
+
+        .rdct {
+            display: inline-block;
+            background: rgba(255,255,255,0.06);
+            color: transparent;
+            padding: 0 6px; position: relative;
+            cursor: help; transition: 0.3s;
+            font-family: var(--mono);
+        }
+        .rdct::after {
+            content: attr(data-text);
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem; color: #2a2826;
+            letter-spacing: -1px;
+        }
+        .rdct:hover { background: var(--gold-dim); color: var(--gold); }
+        .rdct:hover::after { display: none; }
+
+        .classified-row {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 28px;
+            border-top: 1px solid var(--border);
+            font-size: 0.52rem; color: var(--red); letter-spacing: 3px;
+        }
+        .classified-row::before { content: '⚠'; font-size: 0.8rem; }
+
+        .note-box {
+            padding: 22px 28px;
+            border-top: 1px solid var(--border);
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .note-title { font-size: 0.48rem; color: var(--text-dim); letter-spacing: 3px; }
+        .note-line {
+            padding-left: 14px;
+            border-left: 1px solid var(--border);
+            font-family: var(--mono); font-size: 0.73rem;
+            color: var(--text-dim); line-height: 1.5; font-style: italic;
+        }
+
+        .page-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-top: 32px;
+            border-top: 1px solid var(--border);
+            font-size: 0.48rem; color: var(--text-dim); letter-spacing: 2px;
+        }
+        .page-footer a {
+            color: var(--text-dim); text-decoration: none;
+            border: 1px solid var(--border); padding: 6px 16px;
+            transition: 0.2s; font-size: 0.52rem; letter-spacing: 2px;
+        }
+        .page-footer a:hover { border-color: var(--gold); color: var(--gold); }
+
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+    </style>
 </head>
 <body>
 
-    <div id="boot-screen">
-        <div class="boot-text">DECRYPTING MILITARY ARCHIVES...</div>
-        <div class="progress-bar"><div class="progress-fill" style="background: var(--warning);"></div></div>
-        <div style="margin-top: 10px; font-size: 0.8rem; color: #555;">TARGET: AGENT GARM // SOURCE: DEPT. DES OPÉRATIONS SPÉCIALES</div>
+<div class="scan"></div>
+
+<div id="boot">
+    <div class="boot-ref">SAS // SC-0404</div>
+    <div class="boot-progress"><div class="boot-fill"></div></div>
+    <div class="boot-label" id="boot-label">VÉRIFICATION PROTOCOLE GHOST...</div>
+</div>
+
+<nav class="topbar">
+    <div class="tb-left">
+        <div class="tb-logo">SAS</div>
+        <div class="tb-sep"></div>
+        <div class="tb-ref">DOSSIER SC-0404 // NIVEAU 5 // NYX</div>
+    </div>
+    <div class="tb-right">
+        <a href="/database.html" class="tb-link">BASE AGENTS</a>
+        <a href="/database.html" class="tb-back">← RETOUR</a>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="hero-tape"></div>
+
+    <div class="hero-photo-col">
+        <img src="/assets/LoveLace.jpg" alt="Agent Nyx">
     </div>
 
-    <div class="terminal-wrapper">
-        <main class="terminal">
-            
-            <header class="header-strip" style="border-bottom-color: var(--warning);">
-                <div>
-                    <h1>DOSSIER :: <span>HUNTER</span></h1>
-                    <div style="color: var(--warning); font-size: 0.9rem; letter-spacing: 3px;">SAN ANDREAS SECURITY // AGENT</div>
+    <div class="hero-text-col">
+        <div class="hero-classified">DOSSIER ACTIF — CYBER-OPS — LVL 5</div>
+
+        <div class="hero-surname">NYX</div>
+        <div class="hero-given">LoveLace</div>
+
+        <div class="hero-desc">
+            Spécialiste Netrunner et SIGINT. Opère depuis le réseau Shadow en infiltration virtuelle constante. Sociabilité proche du néant absolu.
+        </div>
+
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hs-label">CALLSIGN</div>
+                <div class="hs-value gold">NYX</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hs-label">ÂGE</div>
+                <div class="hs-value">INCONNU</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hs-label">CLEARANCE</div>
+                <div class="hs-value red">LVL-5</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hs-label">ORIGINE</div>
+                <div class="hs-value">NON-LOCALISÉE</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hs-label">RÔLE</div>
+                <div class="hs-value">NETRUNNER</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hs-label">STATUT</div>
+                <div class="hs-value gold">● ONLINE</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="body">
+
+    <div class="sec">
+        <div class="sec-header">
+            <div class="sec-n">01</div>
+            <div class="sec-title">DIGITAL FOOTPRINT</div>
+            <div class="sec-line"></div>
+        </div>
+
+        <div class="block">
+            <div class="prose">
+                Affectée à la <strong>SECTION 00 (GHOST SQUAD)</strong>. Ses véritables motivations restent floues. <em>Attention : elle surveille constamment ce réseau et sait que vous lisez ceci.</em>
+            </div>
+            <div class="grid-2">
+                <div class="grid-cell">
+                    <div class="cell-label">CLEARANCE ID</div>
+                    <div class="cell-value">OMNI</div>
                 </div>
-                <div class="meta-data">
-                    <div>SRC: CONFIDENTIEL DÉFENSE</div>
-                    <div>REQ ID: <span class="blink">_GARM</span></div>
+                <div class="grid-cell">
+                    <div class="cell-label">STATUT RÉSEAU</div>
+                    <div class="cell-value gold">CONNECTED // INTERCEPTING</div>
                 </div>
-            </header>
-
-            <section class="hero-section">
-                <div class="id-card-container">
-                    <div class="id-card" id="card">
-                        <div class="holo-overlay"></div>
-                        
-                        <div class="card-header">
-                            <div class="card-logo-text">SAS</div>
-                            <div class="security-level" style="background: var(--warning); color: #000;">CONFIDENTIEL</div>
-                        </div>
-            
-                        <div class="card-body">
-                            
-                            <div class="photo-box" style="border-color: var(--secondary); display: flex; align-items: center; justify-content: center; background: #111;">
-                                <div style="color: var(--secondary); font-size: 0.8rem; font-family: var(--font-code); text-align: center; border: 1px dashed var(--secondary); padding: 10px;">
-                                    [VISUEL CLASSÉ]<br><br>IMAGE REDACTED
-                                </div>
-                            </div>
-                            
-                            <div class="agent-info">
-                                <div class="card-label">NOM COMPLET</div>
-                                <div class="card-value">JAXON HUNTER</div>
-                                
-                                <div class="card-label">ALIAS</div>
-                                <div class="card-value" style="color: var(--warning);">GARM</div>
-
-                                <div class="card-label">STATUT MILITAIRE</div>
-                                <div class="card-code">SORTIE VOLONTAIRE</div>
-                            </div>
-                        </div>
-            
-                        <div class="card-footer">
-                            <div class="barcode" style="font-family: 'Libre Barcode 128 Text', cursive;">5948625487</div>
-                            <div class="chip" style="background: linear-gradient(135deg, #b8860b, #ffd700);"></div>
-                        </div>
-                    </div>
+                <div class="grid-cell">
+                    <div class="cell-label">LOCALISATION</div>
+                    <div class="cell-value red"><span class="rdct" data-text="TRACING NODE... [ERROR]">VPN MULTIPLES</span></div>
                 </div>
-            </section>
-
-            <section class="intel-grid">
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">ÉVALUATION INTERNE</span>
-                        <div class="audio-viz">
-                            <div class="bar" style="animation-delay:0s; background: var(--warning);"></div>
-                            <div class="bar" style="animation-delay:0.1s; background: var(--warning);"></div>
-                            <div class="bar" style="animation-delay:0.2s; background: var(--warning);"></div>
-                            <div class="bar" style="animation-delay:0.3s; background: var(--warning);"></div>
-                        </div>
-                    </div>
-                    <div class="log-entry">
-                        <span class="label">RÔLE SUGGÉRÉ:</span><br>
-                        <span>ENCADREMENT / OPÉRATIONS TERRAIN</span>
-                    </div>
-                    <div class="log-entry">
-                        <span class="label">ÉTAT PSYCHOLOGIQUE:</span><br>
-                        <span>FORT SENS DU DEVOIR - RÉSISTANCE ÉLEVÉE</span>
-                    </div>
-                    <div class="log-entry">
-                        <span class="label">NIVEAU DE SURVEILLANCE:</span><br>
-                        <span class="redacted text-warning" data-real="MODÉRÉ - SURVEILLANCE INDIRECTE" data-scramble="UNKOWN STATUS"></span>
-                    </div>
-                    <div style="margin-top: 15px; font-size: 0.8rem; color: #888; font-style: italic;">
-                        "On rentre ensemble... ou pas du tout."
-                    </div>
+                <div class="grid-cell">
+                    <div class="cell-label">PROJET: OVERRIDE</div>
+                    <div class="cell-value red">ROOT ACCESS [ACTIF]</div>
                 </div>
-
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">PROFIL COMPORTEMENTAL</span>
-                        <span style="color:var(--warning); font-size:0.7rem;">ATTENTION REQUISE</span>
-                    </div>
-                    
-                    <div class="log-entry">
-                         <span class="label">QUALITÉS (ASSETS):</span><br>
-                         <span style="color: var(--secondary)">
-                             <span class="redacted" data-real="- ATTENTIF - ANALYSTE - PRÉPARATION TERRAIN - LOYAUTÉ ABSOLUE" data-scramble="ENCRYPTED_DATA_#77_ACCESS_RESTRICTED"></span>
-                         </span>
-                    </div>
-
-                    <div class="log-entry">
-                         <span class="label">DÉFAUTS (LIABILITIES):</span><br>
-                         <span style="color: var(--danger)">[!] 
-                             <span class="redacted" style="color:var(--danger)" data-real="- IMPULSIF - GRANDE GUEULE - NUL EN PAPERASSE" data-scramble="SYSTEM_ERROR_X44_BEHAVIORAL_FLAWS"></span>
-                         </span>
-                    </div>
-
-                    <div class="log-entry">
-                        <span class="label">RISQUES IDENTIFIÉS:</span><br>
-                        <span style="color: var(--warning)">[!] 
-                            <span class="redacted" style="color:var(--warning)" data-real="- DÉSOBÉISSANCE SI CONFLIT MORAL - ATTACHEMENT CIBLE (SANTORO)" data-scramble="SYSTEM_ERROR_X99_LOYALTY_CONFLICT"></span>
-                        </span>
-                   </div>
-
-                    <div style="margin-top: 15px; font-size: 0.75rem; color: #666; border-top: 1px dashed #444; padding-top: 10px;">
-                        // NOTE INTERNE : "Si Fenrir est une arme instable... Garm est le seul capable de la retenir."
-                    </div>
-                </div>
-            </section>
-
-            <section class="logs-section" style="margin-top: 1.5rem;">
-                <div class="panel" style="border-color: var(--dim);">
-                    <div class="panel-header">
-                        <span class="panel-title">HISTORIQUE MILITAIRE & TRANSFERT</span>
-                        <span style="font-family: var(--font-code); font-size: 0.7rem; color: #888;">STATUT : CLASSIFIÉ</span>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr; gap: 10px; font-family: var(--font-code); font-size: 0.8rem; color: #aaa;">
-                        <p>
-                            SUJET: ANCIEN OPÉRATEUR D'UNE UNITÉ SPÉCIALISÉE. ÉLÉMENT CENTRAL (COMMANDEMENT, GESTION DU STRESS, COHÉSION).
-                        </p>
-                        <div class="log-entry" style="border-left-color: var(--dim);">
-                            <span class="label">INCIDENT MAJEUR:</span><br>
-                            Perte d'un membre clé de l'escouade sous feu ennemi. A entraîné une baisse de discipline administrative et une implication excessive en mission chez le sujet.
-                        </div>
-                        <div class="log-entry" style="border-left-color: var(--dim);">
-                            <span class="label">INTERACTION "FENRIR":</span><br>
-                            <span class="redacted" data-real="PREMIER À RECONNAÎTRE LA CIBLE. A CONTESTÉ LE COMMANDEMENT ET EXIGÉ ACCÈS AU DOSSIER." data-scramble="INCIDENT #77491-X / OMEGA LEVEL ACCESS DENIED"></span>
-                        </div>
-                        <div class="log-entry" style="border-left-color: var(--warning);">
-                            <span class="label">RÉASSIGNATION SAS:</span><br>
-                            Sortie volontaire encadrée suite à remise en question répétée de la hiérarchie. Transféré au SAS pour exploiter ses compétences de leadership tout en le gardant sous surveillance indirecte.
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <footer class="footer">
-                <div>SECURE TERMINAL V.4.0.2 // USR: COMMANDEMENT</div>
-                <div>
-                    <a href="/database.html" class="text-secondary" style="text-decoration: none;">[ REVENIR AU DOSSIER MAÎTRE ]</a>
-                </div>
-            </footer>
-
-        </main>
+            </div>
+        </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
+    <div class="sec">
+        <div class="sec-header">
+            <div class="sec-n">02</div>
+            <div class="sec-title">TECH PROFILE</div>
+            <div class="sec-line"></div>
+        </div>
+
+        <div class="block">
+            <div class="prose">
+                L'utilisateur 'ROOT' a pris le contrôle total. Les protocoles de sécurité ont été désactivés manuellement. Aversion prononcée au risque physique direct compensée par une domination absolue dans le cyberespace.
+            </div>
+
+            <div class="trait-block">
+                <div class="trait-row">
+                    <span class="trait-sign pos">+</span>
+                    <span>Loyauté conditionnelle vérifiée.</span>
+                </div>
+                <div class="trait-row">
+                    <span class="trait-sign pos">+</span>
+                    <span>Maîtrise totale des environnements numériques.</span>
+                </div>
+                <div class="trait-row">
+                    <span class="trait-sign neg">−</span>
+                    <span>Dépendance technologique sévère.</span>
+                </div>
+                <div class="trait-row">
+                    <span class="trait-sign neg">−</span>
+                    <span>Aversion au risque physique direct et sociabilité inexistante.</span>
+                </div>
+            </div>
+
+            <div class="quote">
+                <div class="quote-mark">"</div>
+                <div class="quote-inner">
+                    <div class="quote-text">root@nyx:~$ ./sudo_inject.py --silent</div>
+                    <div class="quote-src">LOG SYSTÈME : CONTRÔLE REQUISITIONNÉ</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sec">
+        <div class="sec-header">
+            <div class="sec-n">03</div>
+            <div class="sec-title">TCP/IP LOGS & OPÉRATIONS</div>
+            <div class="sec-line"></div>
+        </div>
+
+        <div class="block">
+            <div class="grid-2">
+                <div class="grid-cell">
+                    <div class="cell-label">22:41:09 — SHEPHERD_PC</div>
+                    <div class="cell-value"><span class="rdct" data-text="UNKNOWN">BACKDOOR</span> [ROOT]</div>
+                </div>
+                <div class="grid-cell">
+                    <div class="cell-label">23:15:00 — TASK FORCE 141</div>
+                    <div class="cell-value">DDOS [BLOCK]</div>
+                </div>
+                <div class="grid-cell">
+                    <div class="cell-label">00:00:01 — SHADOW_MAIN</div>
+                    <div class="cell-value">WIPE_LOGS [CLEAN]</div>
+                </div>
+                <div class="grid-cell">
+                    <div class="cell-label">MAINTENANT — CE TERMINAL</div>
+                    <div class="cell-value gold">MONITORING [ACTIF]</div>
+                </div>
+            </div>
             
-            // 1. BOOT SCREEN
-            const bootScreen = document.getElementById('boot-screen');
-            const bootText = document.querySelector('.boot-text');
-            
-            setTimeout(() => { bootText.textContent = "HANDSHAKE WITH COMMAND SERVER..."; }, 800);
-            setTimeout(() => { bootText.textContent = "CONNECTION ESTABLISHED."; }, 1800);
-            setTimeout(() => {
-                bootScreen.style.opacity = '0';
-                setTimeout(() => bootScreen.remove(), 1000);
-            }, 2500);
+            <div class="classified-row">
+                ALERTE SYSTÈME : AUTHENTIFICATION MANUELLE REQUISE — <span class="rdct" data-text="████████">FICHIERS CORROMPUS</span>
+            </div>
+        </div>
+    </div>
 
-            // 2. 3D CARD EFFECT
-            const card = document.getElementById('card');
-            const cardContainer = document.querySelector('.id-card-container');
+    <div class="page-footer">
+        <span>SAS SECURE TERMINAL V.4.0.2 // SC-0404 // NYX</span>
+        <a href="/database.html">← DOSSIER MAÎTRE</a>
+    </div>
 
-            cardContainer.addEventListener('mousemove', (e) => {
-                const rect = cardContainer.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                const rotateX = ((y - centerY) / centerY) * -10; 
-                const rotateY = ((x - centerX) / centerX) * 10;
-                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-            });
-            cardContainer.addEventListener('mouseleave', () => {
-                card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
-            });
+</div>
 
-            // 3. HACKER TEXT DECRYPTION
-            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
-            document.querySelectorAll('.redacted').forEach(element => {
-                element.textContent = element.getAttribute('data-scramble');
-                element.onmouseover = event => {
-                    let iterations = 0;
-                    const targetText = event.target.getAttribute('data-real');
-                    if(!targetText) return;
-                    const interval = setInterval(() => {
-                        event.target.textContent = targetText.split("").map((letter, index) => {
-                            if(index < iterations) return targetText[index];
-                            return letters[Math.floor(Math.random() * 43)]
-                        }).join("");
-                        if(iterations >= targetText.length) clearInterval(interval);
-                        iterations += 1 / 2;
-                    }, 30);
-                }
-                element.onmouseleave = event => {
-                   element.textContent = element.getAttribute('data-scramble');
-                }
-            });
-        });
-    </script>
+<script>
+const msgs = ["VÉRIFICATION ACCÈS...", "DÉCRYPTAGE SC-0404...", "ACCÈS ACCORDÉ."];
+let idx = 0;
+const lbl = document.getElementById('boot-label');
+const boot = document.getElementById('boot');
+function tick() {
+    lbl.textContent = msgs[idx++];
+    if (idx < msgs.length) setTimeout(tick, 550);
+    else {
+        setTimeout(() => {
+            boot.style.opacity = '0';
+            boot.style.pointerEvents = 'none';
+            setTimeout(() => boot.remove(), 700);
+        }, 600);
+    }
+}
+setTimeout(tick, 300);
+</script>
 </body>
 </html>
