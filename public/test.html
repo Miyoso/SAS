@@ -12,40 +12,43 @@
         :root {
             --gold:      #d4af37; 
             --gold-dim:  rgba(212, 175, 55, 0.12);
-            --bg:        #000000;
+            --cyan:      #d4af37; 
+            --red:       #c0392b;
+            --bg:        #050505;
+            --bg2:       #0a0a08;
             --text:      #e2d1b3;
             --text-dim:  #7a6f5d;
+            --border:    rgba(212, 175, 55, 0.15);
+            --border-c:  rgba(212, 175, 55, 0.3);
             --mono:      'JetBrains Mono', monospace;
             --ui:        'Share Tech Mono', monospace;
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        
+        html { scroll-behavior: smooth; }
+
         body {
             background: var(--bg);
             color: var(--text);
             font-family: var(--ui);
-            overflow: hidden; /* Empêche le défilement pour un effet d'écran */
+            overflow-x: hidden;
             cursor: crosshair;
         }
 
-        /* ── LE PIXEL FIXE (POSITIONNÉ EN HAUT) ── */
+        /* ── LE PIXEL FIXE ── */
         #secret-pixel {
             position: fixed;
-            top: 25vh; /* Position verticale (25% du haut) */
-            left: 50.5vw; /* Position horizontale (juste avant le texte) */
-            
+            top: 25vh; 
+            left: 50.5vw; 
             width: 3px;
             height: 3px;
             background: var(--gold);
-            opacity: 0.3; /* Légèrement visible par défaut */
+            opacity: 0.4;
             z-index: 9999;
             cursor: help;
             box-shadow: 0 0 5px var(--gold);
             transition: all 0.3s ease;
-            pointer-events: auto;
         }
-
         #secret-pixel:hover {
             background: #fff;
             transform: scale(4);
@@ -53,7 +56,7 @@
             box-shadow: 0 0 15px #fff;
         }
 
-        /* ── SCANLINE (LIGNE DE BALAYAGE) ── */
+        /* ── EFFETS VISUELS ── */
         .scan {
             position: fixed; left: 0; width: 100%; height: 1px;
             background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
@@ -62,123 +65,144 @@
         }
         @keyframes scan { 0%{top:-2%} 100%{top:102%} }
 
-        /* ── BOOT (ÉCRAN DE CHARGEMENT) ── */
         #boot {
             position: fixed; inset: 0; background: #000; z-index: 9000;
             display: flex; align-items: center; justify-content: center;
             flex-direction: column; gap: 20px; transition: opacity 0.7s ease;
         }
-        .boot-fill {
-            height: 100%; width: 0; background: var(--gold);
-            box-shadow: 0 0 10px var(--gold);
-            animation: fill 1.5s ease-in-out forwards;
-        }
-        .boot-progress { width: 180px; height: 1px; background: rgba(212,175,55,0.1); }
+        .boot-progress { width: 180px; height: 1px; background: rgba(212,175,55,0.1); overflow: hidden; }
+        .boot-fill { height: 100%; width: 0; background: var(--gold); animation: fill 1.5s ease-in-out forwards; }
         @keyframes fill { to { width: 100%; } }
 
-        /* ── STRUCTURE HERO ── */
-        .hero {
-            height: 100vh;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            opacity: 0;
-            animation: fadeIn 1s 1.8s forwards;
+        /* ── TOPBAR ── */
+        .topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            height: 44px; background: rgba(5,5,5,0.9); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 40px;
+            opacity: 0; animation: fadeIn 0.5s 2s forwards;
         }
 
-        /* Colonne de gauche (Photo) */
-        .hero-photo-col {
-            position: relative;
-            overflow: hidden;
-            background-color: #000;
+        /* ── HERO ── */
+        .hero {
+            height: 100vh; display: grid; grid-template-columns: 1fr 1fr;
+            opacity: 0; animation: fadeIn 1s 1.8s forwards;
         }
         .hero-photo-col img {
             width: 100%; height: 100%; object-fit: cover;
-            filter: grayscale(1) brightness(0.6);
-            mask-image: linear-gradient(to right, black 85%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+            filter: grayscale(1) brightness(0.5);
         }
-
-        /* Colonne de droite (Texte) */
-        .hero-text-col {
-            display: flex; flex-direction: column; justify-content: center;
-            padding-left: 60px; /* Espace pour le pixel */
-            padding-right: 10vh;
-            background: #000;
+        .hero-photo-col::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to right, rgba(5,5,5,0) 40%, rgba(5,5,5,1) 100%);
         }
+        .hero-text-col { display: flex; flex-direction: column; justify-content: center; padding-left: 60px; }
+        .hero-surname { font-family: var(--mono); font-size: 4.5rem; font-weight: 800; color: #fff; line-height: 1; }
+        .hero-given { color: var(--gold); letter-spacing: 6px; text-transform: uppercase; margin-bottom: 25px; }
 
-        .classified-label {
-            font-size: 0.5rem; color: var(--gold); letter-spacing: 4px;
-            margin-bottom: 2vh; text-transform: uppercase;
-        }
-
-        .hero-surname { font-family: var(--mono); font-size: 4rem; font-weight: 800; color: #fff; line-height: 1; }
-        .hero-given { color: var(--gold); letter-spacing: 6px; text-transform: uppercase; margin-bottom: 3vh; font-size: 0.9rem;}
+        /* ── DATA SECTIONS ── */
+        .body-content { max-width: 960px; margin: 0 auto; padding: 80px 40px; display: flex; flex-direction: column; gap: 60px; }
         
-        .hero-desc {
-            font-size: 0.7rem; color: var(--text-dim); max-width: 420px;
-            line-height: 1.6; font-family: var(--mono); margin-bottom: 4vh;
-        }
+        .sec-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .sec-n { color: var(--gold); border: 1px solid var(--gold); padding: 2px 8px; font-size: 0.6rem; }
+        .sec-line { flex: 1; height: 1px; background: var(--border); }
 
-        /* Grille de stats */
-        .stats-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
-            background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.1);
-            max-width: 420px;
-        }
-        .stat-box { background: #000; padding: 15px; display: flex; flex-direction: column; gap: 4px;}
-        .stat-label { font-size: 0.45rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase;}
-        .stat-value { font-family: var(--mono); font-size: 0.75rem; color: #fff; }
-        .stat-value.gold { color: var(--gold); }
+        .block { background: var(--bg2); border: 1px solid var(--border); position: relative; padding: 30px; }
+        .prose { font-family: var(--mono); font-size: 0.8rem; line-height: 1.7; color: var(--text-dim); }
+        .prose em { color: var(--gold); font-style: normal; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--border); margin-top: 20px; }
+        .grid-cell { padding: 20px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        
+        .tl-item { display: flex; border-bottom: 1px solid var(--border); }
+        .tl-year { width: 80px; padding: 20px; color: var(--gold); font-weight: bold; border-right: 1px solid var(--border); }
+        .tl-content { padding: 20px; }
+
+        .skill-bar { height: 2px; background: rgba(212,175,55,0.1); margin: 10px 0; }
+        .skill-fill { height: 100%; background: var(--gold); box-shadow: 0 0 5px var(--gold); }
+
+        .rdct { background: #222; color: transparent; padding: 0 5px; cursor: help; transition: 0.3s; }
+        .rdct:hover { color: var(--gold); background: transparent; }
 
         @keyframes fadeIn { to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<a href="Dossier.html" id="secret-pixel" title="Accès restreint"></a>
-
+<a href="Dossier.html" id="secret-pixel"></a>
 <div class="scan"></div>
 
 <div id="boot">
     <div class="boot-progress"><div class="boot-fill"></div></div>
-    <div class="boot-label" style="font-size: 0.5rem; color: var(--text-dim); letter-spacing: 4px;">DÉCHIFFREMENT BLACKWOOD...</div>
+    <div class="boot-label" style="font-size: 0.5rem; color: var(--text-dim); letter-spacing: 4px; margin-top: 10px;">ACCÈS CRYPTÉ BLACKWOOD...</div>
 </div>
+
+<nav class="topbar">
+    <div style="color: var(--gold); font-size: 0.7rem; letter-spacing: 2px;">SAS // DOSSIER SC-0077</div>
+    <a href="#" style="color: var(--text-dim); text-decoration: none; font-size: 0.6rem; border: 1px solid var(--border); padding: 5px 15px;">RETOUR</a>
+</nav>
 
 <section class="hero">
     <div class="hero-photo-col">
-        <img src="/assets/LoveLace.jpg" alt="Profil Nyx Blackwood">
+        <img src="/assets/LoveLace.jpg" alt="Nyx">
     </div>
-    
     <div class="hero-text-col">
-        <div class="classified-label">> DOSSIER ACTIF — CYBER-OPS — LVL 2</div>
-        
+        <div style="font-size: 0.5rem; color: var(--gold); letter-spacing: 4px; margin-bottom: 10px;">● CLASSIFIÉ LVL 2</div>
         <div class="hero-surname">BLACKWOOD</div>
         <div class="hero-given">Nyx // LoveLace</div>
-        
-        <div class="hero-desc">
-            Ancienne héritière de l'empire Blackwood. A tout abandonné pour suivre l'inconnu.
-            Passe d'un audit de pare-feu à un cocktail de tequila avec une facilité qui dérange tout le monde.
-        </div>
-        
-        <div class="stats-grid">
-            <div class="stat-box"><div class="stat-label">CALLSIGN</div><div class="stat-value gold">LOVELACE</div></div>
-            <div class="stat-box"><div class="stat-label">ÂGE</div><div class="stat-value">27 ANS</div></div>
-            <div class="stat-box"><div class="stat-label">CLEARANCE</div><div class="stat-value gold">LVL-10</div></div>
-            <div class="stat-box"><div class="stat-label">ORIGINE</div><div class="stat-value">CONFIDENTIEL</div></div>
-            <div class="stat-box"><div class="stat-label">RÔLE</div><div class="stat-value">CYBER / SIGINT</div></div>
-            <div class="stat-box"><div class="stat-label">STATUT</div><div class="stat-value gold">● ACTIVE</div></div>
+        <div class="prose" style="max-width: 400px;">
+            Ancienne héritière de l'empire Blackwood. A tout abandonné pour suivre l'inconnu. 
+            Passe d'un audit de pare-feu à un cocktail avec une aisance déconcertante.
         </div>
     </div>
 </section>
 
+<div class="body-content">
+    <!-- PROFIL -->
+    <div class="sec">
+        <div class="sec-header"><div class="sec-n">01</div><div style="font-size: 0.6rem; letter-spacing: 3px;">PROFIL</div><div class="sec-line"></div></div>
+        <div class="block">
+            <div class="prose">
+                Fille de <em>Valéria Blackwood</em> et d'<em>Alistair Blackwood</em>. Elle était la touche de chaos dans une famille d'horlogers. Elle a plaqué l'empire familial pour disparaître dans le sillage de la Shadow Company.
+            </div>
+            <div class="grid-2">
+                <div class="grid-cell"><div style="font-size: 0.5rem; color: var(--text-dim);">LANGUES</div><div>FR · EN · <span class="rdct">RU / ZH</span></div></div>
+                <div class="grid-cell"><div style="font-size: 0.5rem; color: var(--text-dim);">STATUT</div><div style="color: var(--red);">SORTIE VOLONTAIRE</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHRONOLOGIE -->
+    <div class="sec">
+        <div class="sec-header"><div class="sec-n">02</div><div style="font-size: 0.6rem; letter-spacing: 3px;">CHRONOLOGIE</div><div class="sec-line"></div></div>
+        <div class="block" style="padding: 0;">
+            <div class="tl-item"><div class="tl-year">— 19</div><div class="tl-content"><div style="font-size: 0.6rem; color: var(--gold);">OPÉRATION HÉRITAGE</div><div class="prose">Détournement symbolique des comptes familiaux.</div></div></div>
+            <div class="tl-item"><div class="tl-year">— 26</div><div class="tl-content"><div style="font-size: 0.6rem; color: var(--gold);">RUPTURE TOTALE</div><div class="prose">Vente du Golden Pub et passage en zone grise.</div></div></div>
+        </div>
+    </div>
+
+    <!-- COMPÉTENCES -->
+    <div class="sec">
+        <div class="sec-header"><div class="sec-n">03</div><div style="font-size: 0.6rem; letter-spacing: 3px;">COMPÉTENCES</div><div class="sec-line"></div></div>
+        <div class="block">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <div>
+                    <div style="font-size: 0.6rem;">INTRUSION SYSTÈMES</div>
+                    <div class="skill-bar"><div class="skill-fill" style="width: 95%;"></div></div>
+                </div>
+                <div>
+                    <div style="font-size: 0.6rem;">MIXOLOGIE TACTIQUE</div>
+                    <div class="skill-bar"><div class="skill-fill" style="width: 100%;"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    // Gestion du retrait de l'écran de boot
     const boot = document.getElementById('boot');
     setTimeout(() => {
         boot.style.opacity = '0';
-        setTimeout(() => {
-            boot.remove();
-        }, 700);
+        setTimeout(() => boot.remove(), 700);
     }, 1800);
 </script>
 
