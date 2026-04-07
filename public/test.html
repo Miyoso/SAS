@@ -10,9 +10,11 @@
 
     <style>
         :root {
+            /* Palette Or / Blackwood */
             --gold:      #d4af37; 
+            --gold-bright: #f1d592;
             --gold-dim:  rgba(212, 175, 55, 0.12);
-            --cyan:      #d4af37; 
+            --cyan:      #d4af37; /* Remplacement du cyan par l'or pour cohérence */
             --red:       #c0392b;
             --bg:        #050505;
             --bg2:       #0a0a08;
@@ -35,28 +37,35 @@
             cursor: crosshair;
         }
 
-        /* ── LE PIXEL FIXE ── */
-        #secret-pixel {
+        /* ── Pixel Glitch Background ── */
+        #glitch-bg {
             position: fixed;
-            top: 25vh; 
-            left: 50.5vw; 
-            width: 3px;
-            height: 3px;
-            background: var(--gold);
-            opacity: 0.4;
-            z-index: 9999;
-            cursor: help;
-            box-shadow: 0 0 5px var(--gold);
-            transition: all 0.3s ease;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
         }
-        #secret-pixel:hover {
+
+        .glitch-pixel {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--gold);
+            opacity: 0;
+            pointer-events: auto;
+            cursor: help;
+            box-shadow: 0 0 8px var(--gold);
+            transition: transform 0.2s;
+        }
+
+        .glitch-pixel:hover {
             background: #fff;
-            transform: scale(4);
+            transform: scale(3);
             opacity: 1 !important;
             box-shadow: 0 0 15px #fff;
         }
 
-        /* ── EFFETS VISUELS ── */
+        /* ── Scanline ── */
         .scan {
             position: fixed; left: 0; width: 100%; height: 1px;
             background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
@@ -65,146 +74,375 @@
         }
         @keyframes scan { 0%{top:-2%} 100%{top:102%} }
 
+        /* ── BOOT ── */
         #boot {
             position: fixed; inset: 0; background: #000; z-index: 9000;
             display: flex; align-items: center; justify-content: center;
-            flex-direction: column; gap: 20px; transition: opacity 0.7s ease;
+            flex-direction: column; gap: 20px;
+            transition: opacity 0.7s ease;
         }
-        .boot-progress { width: 180px; height: 1px; background: rgba(212,175,55,0.1); overflow: hidden; }
-        .boot-fill { height: 100%; width: 0; background: var(--gold); animation: fill 1.5s ease-in-out forwards; }
-        @keyframes fill { to { width: 100%; } }
+        .boot-ref {
+            font-family: var(--mono); font-size: 0.6rem;
+            color: var(--gold); letter-spacing: 6px;
+            opacity: 0; animation: fadeIn 0.4s 0.2s forwards;
+        }
+        .boot-progress {
+            width: 180px; height: 1px;
+            background: rgba(212, 175, 55, 0.1);
+            overflow: hidden;
+        }
+        .boot-fill {
+            height: 100%; width: 0;
+            background: var(--gold);
+            box-shadow: 0 0 10px var(--gold);
+            animation: fill 1.8s cubic-bezier(0.4,0,0.2,1) forwards;
+        }
+        .boot-label {
+            font-size: 0.5rem; color: var(--text-dim);
+            letter-spacing: 4px; min-height: 14px;
+        }
+        @keyframes fill    { to { width: 100%; } }
+        @keyframes fadeIn  { to { opacity: 1; } }
 
-        /* ── TOPBAR ── */
+        /* ── TOP BAR ── */
         .topbar {
             position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-            height: 44px; background: rgba(5,5,5,0.9); border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between; padding: 0 40px;
-            opacity: 0; animation: fadeIn 0.5s 2s forwards;
+            height: 44px;
+            background: rgba(5,5,5,0.96);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 40px;
+            opacity: 0; animation: fadeIn 0.5s 2.3s forwards;
         }
+        .tb-left { display: flex; align-items: center; gap: 20px; }
+        .tb-logo { font-family: var(--mono); font-size: 0.65rem; color: var(--gold); letter-spacing: 3px; }
+        .tb-sep { width: 1px; height: 16px; background: var(--border); }
+        .tb-ref { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 2px; }
+        .tb-right { display: flex; gap: 24px; align-items: center; }
+        .tb-link { font-size: 0.55rem; color: var(--text-dim); text-decoration: none; letter-spacing: 2px; transition: color 0.2s; }
+        .tb-link:hover { color: var(--gold); }
 
         /* ── HERO ── */
         .hero {
-            height: 100vh; display: grid; grid-template-columns: 1fr 1fr;
-            opacity: 0; animation: fadeIn 1s 1.8s forwards;
+            height: 100vh; position: relative;
+            display: grid; grid-template-columns: 1fr 1fr;
+            opacity: 0; animation: fadeIn 1s 2.2s forwards;
+            z-index: 5;
         }
+
+        .hero-photo-col { position: relative; overflow: hidden; }
         .hero-photo-col img {
             width: 100%; height: 100%; object-fit: cover;
-            filter: grayscale(1) brightness(0.5);
+            object-position: center 15%;
+            filter: grayscale(0.6) contrast(1.1) brightness(0.5) sepia(0.2);
+            display: block;
         }
         .hero-photo-col::after {
             content: ''; position: absolute; inset: 0;
             background: linear-gradient(to right, rgba(5,5,5,0) 40%, rgba(5,5,5,1) 100%);
         }
-        .hero-text-col { display: flex; flex-direction: column; justify-content: center; padding-left: 60px; }
-        .hero-surname { font-family: var(--mono); font-size: 4.5rem; font-weight: 800; color: #fff; line-height: 1; }
-        .hero-given { color: var(--gold); letter-spacing: 6px; text-transform: uppercase; margin-bottom: 25px; }
+        .hero-photo-col::before {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%;
+            background: linear-gradient(to top, var(--bg), transparent);
+            z-index: 1;
+        }
 
-        /* ── DATA SECTIONS ── */
-        .body-content { max-width: 960px; margin: 0 auto; padding: 80px 40px; display: flex; flex-direction: column; gap: 60px; }
-        
-        .sec-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-        .sec-n { color: var(--gold); border: 1px solid var(--gold); padding: 2px 8px; font-size: 0.6rem; }
+        .hero-tape {
+            position: absolute; top: 44px; left: 0; right: 0; height: 3px;
+            background: repeating-linear-gradient(90deg, var(--gold) 0, var(--gold) 20px, transparent 20px, transparent 40px);
+            z-index: 10; opacity: 0.2; animation: tape 3s linear infinite;
+        }
+        @keyframes tape { to { background-position: 40px 0; } }
+
+        .photo-data { position: absolute; bottom: 60px; left: 30px; z-index: 5; pointer-events: none; display: flex; flex-direction: column; gap: 6px; }
+        .data-line { font-family: var(--mono); font-size: 0.52rem; color: rgba(212, 175, 55, 0.5); letter-spacing: 3px; }
+        .data-line.blink { animation: blk 2s step-end infinite; }
+        @keyframes blk { 50% { opacity: 0; } }
+
+        .hero-text-col { display: flex; flex-direction: column; justify-content: center; padding: 80px 60px 60px; position: relative; }
+
+        .hero-classified { display: flex; align-items: center; gap: 8px; font-size: 0.5rem; color: var(--gold); letter-spacing: 5px; margin-bottom: 32px; }
+        .hero-classified::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); animation: pls 1.5s infinite; }
+        @keyframes pls { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        .hero-surname { font-family: var(--mono); font-size: clamp(3rem, 5vw, 4.5rem); font-weight: 800; color: #fff; letter-spacing: -3px; line-height: 1; margin-bottom: 6px; }
+        .hero-given { font-family: var(--mono); font-size: clamp(1rem, 2vw, 1.4rem); font-weight: 300; color: var(--gold); letter-spacing: 6px; text-transform: uppercase; margin-bottom: 28px; }
+
+        .hero-desc {
+            font-size: 0.72rem; color: var(--text-dim); line-height: 1.7; max-width: 360px;
+            border-left: 2px solid var(--border-c); padding-left: 16px; margin-bottom: 36px; font-family: var(--mono);
+        }
+
+        .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); max-width: 360px; }
+        .hero-stat { background: var(--bg); padding: 14px 16px; display: flex; flex-direction: column; gap: 3px; }
+        .hs-label { font-size: 0.45rem; color: var(--text-dim); letter-spacing: 3px; }
+        .hs-value { font-family: var(--mono); font-size: 0.8rem; color: #fff; }
+        .hs-value.cyan { color: var(--gold); }
+        .hs-value.red  { color: var(--red); }
+
+        /* ── BODY ── */
+        .body {
+            max-width: 960px; margin: 0 auto; padding: 80px 40px 100px;
+            display: flex; flex-direction: column; gap: 64px;
+            opacity: 0; animation: fadeIn 0.6s 2.6s forwards; position: relative; z-index: 5;
+        }
+
+        .sec { display: flex; flex-direction: column; gap: 20px; }
+        .sec-header { display: flex; align-items: center; gap: 16px; }
+        .sec-n { font-family: var(--mono); font-size: 0.5rem; font-weight: 700; color: var(--gold); letter-spacing: 2px; border: 1px solid var(--border-c); padding: 3px 8px; flex-shrink: 0; }
+        .sec-title { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 5px; text-transform: uppercase; }
         .sec-line { flex: 1; height: 1px; background: var(--border); }
 
-        .block { background: var(--bg2); border: 1px solid var(--border); position: relative; padding: 30px; }
-        .prose { font-family: var(--mono); font-size: 0.8rem; line-height: 1.7; color: var(--text-dim); }
+        .block { background: var(--bg2); border: 1px solid var(--border); position: relative; overflow: hidden; }
+        .block::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 2px; background: transparent; transition: background 0.4s; }
+        .block:hover::before { background: var(--gold); }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--border); }
+        .grid-cell { padding: 20px 28px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .grid-cell:nth-child(2n) { border-right: none; }
+
+        .cell-label { font-size: 0.48rem; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+        .cell-value { font-family: var(--mono); font-size: 0.82rem; color: #e0dbd4; line-height: 1.4; }
+        .cell-value.cyan { color: var(--gold); }
+        .cell-value.red  { color: var(--red); }
+        .cell-value.gold { color: var(--gold-bright); }
+
+        .prose { padding: 28px 32px; font-family: var(--mono); font-size: 0.78rem; color: var(--text-dim); line-height: 1.8; }
+        .prose strong { color: var(--text); font-weight: 700; }
         .prose em { color: var(--gold); font-style: normal; }
 
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--border); margin-top: 20px; }
-        .grid-cell { padding: 20px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-        
         .tl-item { display: flex; border-bottom: 1px solid var(--border); }
-        .tl-year { width: 80px; padding: 20px; color: var(--gold); font-weight: bold; border-right: 1px solid var(--border); }
-        .tl-content { padding: 20px; }
+        .tl-item:last-child { border-bottom: none; }
+        .tl-year { flex-shrink: 0; width: 100px; padding: 20px 24px; font-family: var(--mono); font-size: 0.75rem; color: var(--gold); font-weight: 700; border-right: 1px solid var(--border); }
+        .tl-content { padding: 20px 28px; flex: 1; }
+        .tl-event { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+        .tl-desc { font-family: var(--mono); font-size: 0.78rem; color: var(--text); line-height: 1.6; }
 
-        .skill-bar { height: 2px; background: rgba(212,175,55,0.1); margin: 10px 0; }
-        .skill-fill { height: 100%; background: var(--gold); box-shadow: 0 0 5px var(--gold); }
+        .skills-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--border); }
+        .skill-item { padding: 18px 24px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .skill-item:nth-child(3n) { border-right: none; }
+        .skill-name { font-size: 0.62rem; color: #fff; letter-spacing: 2px; }
+        .skill-bar-track { height: 2px; background: rgba(212,175,55,0.1); margin: 8px 0; }
+        .skill-bar-fill { height: 100%; background: var(--gold); box-shadow: 0 0 4px var(--gold); }
+        .skill-note { font-size: 0.55rem; color: var(--text-dim); font-family: var(--mono); }
 
-        .rdct { background: #222; color: transparent; padding: 0 5px; cursor: help; transition: 0.3s; }
-        .rdct:hover { color: var(--gold); background: transparent; }
+        .rdct { display: inline-block; background: rgba(212,175,55,0.1); color: transparent; padding: 0 6px; position: relative; cursor: help; transition: 0.3s; font-family: var(--mono); }
+        .rdct::after { content: attr(data-text); position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: #333; }
+        .rdct:hover { background: var(--gold-dim); color: var(--gold); }
+        .rdct:hover::after { display: none; }
 
-        @keyframes fadeIn { to { opacity: 1; } }
+        .page-footer { display: flex; justify-content: space-between; padding-top: 32px; border-top: 1px solid var(--border); font-size: 0.48rem; color: var(--text-dim); }
+        .page-footer a { color: var(--text-dim); text-decoration: none; border: 1px solid var(--border); padding: 6px 16px; }
+        .page-footer a:hover { border-color: var(--gold); color: var(--gold); }
     </style>
 </head>
 <body>
 
-<a href="Dossier.html" id="secret-pixel"></a>
+<!-- Glitch Container -->
+<div id="glitch-bg"></div>
 <div class="scan"></div>
 
+<!-- BOOT -->
 <div id="boot">
+    <div class="boot-ref">SAS // SC-0077</div>
     <div class="boot-progress"><div class="boot-fill"></div></div>
-    <div class="boot-label" style="font-size: 0.5rem; color: var(--text-dim); letter-spacing: 4px; margin-top: 10px;">ACCÈS CRYPTÉ BLACKWOOD...</div>
+    <div class="boot-label" id="boot-label">DÉCHIFFREMENT EN COURS...</div>
 </div>
 
+<!-- TOP BAR -->
 <nav class="topbar">
-    <div style="color: var(--gold); font-size: 0.7rem; letter-spacing: 2px;">SAS // DOSSIER SC-0077</div>
-    <a href="#" style="color: var(--text-dim); text-decoration: none; font-size: 0.6rem; border: 1px solid var(--border); padding: 5px 15px;">RETOUR</a>
+    <div class="tb-left">
+        <div class="tb-logo">SAS</div>
+        <div class="tb-sep"></div>
+        <div class="tb-ref">DOSSIER SC-0077 // NIVEAU 2 // BLACKWOOD HÉRITAGE</div>
+    </div>
 </nav>
 
+<!-- HERO -->
 <section class="hero">
+    <div class="hero-tape"></div>
     <div class="hero-photo-col">
-        <img src="/assets/LoveLace.jpg" alt="Nyx">
+        <img src="/assets/LoveLace.jpg" alt="Nyx Blackwood">
+        <div class="photo-data">
+            <div class="data-line">ID // SC-0077</div>
+            <div class="data-line">SPEC // CYBER-OPS</div>
+            <div class="data-line blink">STATUS // ACTIVE ●</div>
+        </div>
     </div>
+
     <div class="hero-text-col">
-        <div style="font-size: 0.5rem; color: var(--gold); letter-spacing: 4px; margin-bottom: 10px;">● CLASSIFIÉ LVL 2</div>
+        <div class="hero-classified">DOSSIER ACTIF — CYBER-OPS — LVL 2</div>
         <div class="hero-surname">BLACKWOOD</div>
         <div class="hero-given">Nyx // LoveLace</div>
-        <div class="prose" style="max-width: 400px;">
-            Ancienne héritière de l'empire Blackwood. A tout abandonné pour suivre l'inconnu. 
-            Passe d'un audit de pare-feu à un cocktail avec une aisance déconcertante.
+        <div class="hero-desc">
+            Ancienne héritière de l'empire Blackwood. 
+            A tout abandonné pour suivre l'inconnu. 
+            Passe d'un audit de pare-feu à un cocktail de tequila avec une facilité qui dérange.
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat"><div class="hs-label">CALLSIGN</div><div class="hs-value cyan">LOVELACE</div></div>
+            <div class="hero-stat"><div class="hs-label">ÂGE</div><div class="hs-value">27 ANS</div></div>
+            <div class="hero-stat"><div class="hs-label">CLEARANCE</div><div class="hs-value red">LVL-2</div></div>
+            <div class="hero-stat"><div class="hs-label">ORIGINE</div><div class="hs-value">CONFIDENTIEL</div></div>
+            <div class="hero-stat"><div class="hs-label">RÔLE</div><div class="hs-value">CYBER / SIGINT</div></div>
+            <div class="hero-stat"><div class="hs-label">STATUT</div><div class="hs-value cyan">● ACTIVE</div></div>
         </div>
     </div>
 </section>
 
-<div class="body-content">
-    <!-- PROFIL -->
+<!-- BODY -->
+<div class="body">
+    <!-- 01 PROFIL -->
     <div class="sec">
-        <div class="sec-header"><div class="sec-n">01</div><div style="font-size: 0.6rem; letter-spacing: 3px;">PROFIL</div><div class="sec-line"></div></div>
+        <div class="sec-header">
+            <div class="sec-n">01</div>
+            <div class="sec-title">PROFIL</div>
+            <div class="sec-line"></div>
+        </div>
         <div class="block">
             <div class="prose">
-                Fille de <em>Valéria Blackwood</em> et d'<em>Alistair Blackwood</em>. Elle était la touche de chaos dans une famille d'horlogers. Elle a plaqué l'empire familial pour disparaître dans le sillage de la Shadow Company.
+                Fille de <em>Valéria Blackwood</em>, figure mondiale de la cybersécurité, et d'<em>Alistair Blackwood</em>, magnat des spiritueux. Nyx a grandi dans un cocon de verre et d'acier, entourée de frères au profil de <strong>successeurs millimétrés</strong>. Elle a plaqué l'empire familial pour disparaître dans le sillage d'une bande d'inconnus.
             </div>
             <div class="grid-2">
-                <div class="grid-cell"><div style="font-size: 0.5rem; color: var(--text-dim);">LANGUES</div><div>FR · EN · <span class="rdct">RU / ZH</span></div></div>
-                <div class="grid-cell"><div style="font-size: 0.5rem; color: var(--text-dim);">STATUT</div><div style="color: var(--red);">SORTIE VOLONTAIRE</div></div>
+                <div class="grid-cell"><div class="cell-label">LANGUES</div><div class="cell-value">FR · EN · <span class="rdct" data-text="RU / ZH">██ / ██</span></div></div>
+                <div class="grid-cell"><div class="cell-label">STATUT LÉGAL</div><div class="cell-value red">SORTIE VOLONTAIRE</div></div>
+                <div class="grid-cell"><div class="cell-label">INDÉPENDANCE FIN.</div><div class="cell-value gold">AUTONOME</div></div>
+                <div class="grid-cell"><div class="cell-label">RECRUTEMENT</div><div class="cell-value cyan"><span class="rdct" data-text="CONTACT DIRECT">CLASSIFIÉ</span></div></div>
             </div>
         </div>
     </div>
 
-    <!-- CHRONOLOGIE -->
+    <!-- 02 CHRONOLOGIE -->
     <div class="sec">
-        <div class="sec-header"><div class="sec-n">02</div><div style="font-size: 0.6rem; letter-spacing: 3px;">CHRONOLOGIE</div><div class="sec-line"></div></div>
-        <div class="block" style="padding: 0;">
-            <div class="tl-item"><div class="tl-year">— 19</div><div class="tl-content"><div style="font-size: 0.6rem; color: var(--gold);">OPÉRATION HÉRITAGE</div><div class="prose">Détournement symbolique des comptes familiaux.</div></div></div>
-            <div class="tl-item"><div class="tl-year">— 26</div><div class="tl-content"><div style="font-size: 0.6rem; color: var(--gold);">RUPTURE TOTALE</div><div class="prose">Vente du Golden Pub et passage en zone grise.</div></div></div>
+        <div class="sec-header">
+            <div class="sec-n">02</div>
+            <div class="sec-title">CHRONOLOGIE</div>
+            <div class="sec-line"></div>
+        </div>
+        <div class="block timeline">
+            <div class="tl-item">
+                <div class="tl-year">— 19</div>
+                <div class="tl-content">
+                    <div class="tl-event">OPÉRATION HÉRITAGE</div>
+                    <div class="tl-desc">Transfert automatisé de 1€ par mois depuis les comptes de ses frères vers une association caritative. Exécuté sans détection.</div>
+                </div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-year">— 26</div>
+                <div class="tl-content">
+                    <div class="tl-event">RUPTURE TOTALE</div>
+                    <div class="tl-desc">Vente flash du Golden Pub. Disparition du radar familial et indépendance financière acquise.</div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- COMPÉTENCES -->
+    <!-- 03 COMPÉTENCES -->
     <div class="sec">
-        <div class="sec-header"><div class="sec-n">03</div><div style="font-size: 0.6rem; letter-spacing: 3px;">COMPÉTENCES</div><div class="sec-line"></div></div>
+        <div class="sec-header">
+            <div class="sec-n">03</div>
+            <div class="sec-title">COMPÉTENCES</div>
+            <div class="sec-line"></div>
+        </div>
         <div class="block">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-                <div>
-                    <div style="font-size: 0.6rem;">INTRUSION SYSTÈMES</div>
-                    <div class="skill-bar"><div class="skill-fill" style="width: 95%;"></div></div>
+            <div class="skills-grid">
+                <div class="skill-item">
+                    <div class="skill-name">INTRUSION</div>
+                    <div class="skill-bar-track"><div class="skill-bar-fill" style="width:95%"></div></div>
+                    <div class="skill-note">Niveau exceptionnel</div>
                 </div>
-                <div>
-                    <div style="font-size: 0.6rem;">MIXOLOGIE TACTIQUE</div>
-                    <div class="skill-bar"><div class="skill-fill" style="width: 100%;"></div></div>
+                <div class="skill-item">
+                    <div class="skill-name">MIXOLOGIE</div>
+                    <div class="skill-bar-track"><div class="skill-bar-fill" style="width:100%"></div></div>
+                    <div class="skill-note">Maîtrise totale</div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">SOCIAL ENG.</div>
+                    <div class="skill-bar-track"><div class="skill-bar-fill" style="width:90%"></div></div>
+                    <div class="skill-note">Expertise terrain</div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="page-footer">
+        <span>SAS SECURE TERMINAL V.4.0.2 // SC-0077 // LOVELACE</span>
+        <a href="#">← DOSSIER MAÎTRE</a>
     </div>
 </div>
 
 <script>
-    const boot = document.getElementById('boot');
-    setTimeout(() => {
-        boot.style.opacity = '0';
-        setTimeout(() => boot.remove(), 700);
-    }, 1800);
-</script>
+// --- Script de Boot ---
+const msgs = ["DÉCHIFFREMENT EN COURS...", "CRÉDENTIALS BLACKWOOD RECONNUS...", "ACCÈS ACCORDÉ."];
+let idx = 0;
+const lbl = document.getElementById('boot-label');
+const boot = document.getElementById('boot');
 
+function tick() {
+    lbl.textContent = msgs[idx++];
+    if (idx < msgs.length) setTimeout(tick, 700);
+    else {
+        setTimeout(() => {
+            boot.style.opacity = '0';
+            boot.style.pointerEvents = 'none';
+            setTimeout(() => {
+                boot.remove();
+                initGlitch(); // Lance le glitch après le boot
+            }, 700);
+        }, 600);
+    }
+}
+setTimeout(tick, 300);
+
+// --- Système de Glitch (1 seul pixel) ---
+function initGlitch() {
+    const container = document.getElementById('glitch-bg');
+    const pixelCount = 1; // 1 seul pixel
+
+    for (let i = 0; i < pixelCount; i++) {
+        createPixel(container);
+    }
+}
+
+function createPixel(container) {
+    const pixel = document.createElement('div');
+    pixel.className = 'glitch-pixel';
+    
+    resetPixel(pixel);
+
+    // Redirection au clic
+    pixel.addEventListener('click', () => {
+        window.location.href = "interceptio.html";
+    });
+
+    container.appendChild(pixel);
+    animatePixel(pixel);
+}
+
+function resetPixel(pixel) {
+    pixel.style.left = Math.random() * 95 + "vw";
+    pixel.style.top = Math.random() * 95 + "vh";
+    pixel.style.opacity = "0";
+}
+
+function animatePixel(pixel) {
+    const delay = Math.random() * 5000;
+    const duration = 100 + Math.random() * 300;
+
+    setTimeout(() => {
+        // Apparition brève (glitch) avec une opacité un peu plus élevée pour être visible
+        pixel.style.opacity = Math.random() > 0.5 ? "0.8" : "0.3";
+        
+        setTimeout(() => {
+            pixel.style.opacity = "0";
+            resetPixel(pixel);
+            animatePixel(pixel); // Boucle
+        }, duration);
+        
+    }, delay);
+}
+</script>
 </body>
 </html>
