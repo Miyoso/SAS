@@ -14,7 +14,7 @@
             --gold:      #d4af37; 
             --gold-bright: #f1d592;
             --gold-dim:  rgba(212, 175, 55, 0.12);
-            --cyan:      #d4af37; /* Remplacement du cyan par l'or pour cohérence */
+            --cyan:      #d4af37;
             --red:       #c0392b;
             --bg:        #050505;
             --bg2:       #0a0a08;
@@ -55,7 +55,8 @@
             pointer-events: auto;
             cursor: help;
             box-shadow: 0 0 8px var(--gold);
-            transition: transform 0.2s;
+            /* MODIFICATION ICI : Transition douce sur l'opacité (1.5 secondes) */
+            transition: transform 0.2s, opacity 1.5s ease-in-out;
         }
 
         .glitch-pixel:hover {
@@ -119,9 +120,6 @@
         .tb-logo { font-family: var(--mono); font-size: 0.65rem; color: var(--gold); letter-spacing: 3px; }
         .tb-sep { width: 1px; height: 16px; background: var(--border); }
         .tb-ref { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 2px; }
-        .tb-right { display: flex; gap: 24px; align-items: center; }
-        .tb-link { font-size: 0.55rem; color: var(--text-dim); text-decoration: none; letter-spacing: 2px; transition: color 0.2s; }
-        .tb-link:hover { color: var(--gold); }
 
         /* ── HERO ── */
         .hero {
@@ -396,7 +394,7 @@ function tick() {
 }
 setTimeout(tick, 300);
 
-// --- Système de Glitch (1 seul pixel) ---
+// --- Système de Glitch (1 seul pixel, fondu doux) ---
 function initGlitch() {
     const container = document.getElementById('glitch-bg');
     const pixelCount = 1; // 1 seul pixel
@@ -422,23 +420,31 @@ function createPixel(container) {
 }
 
 function resetPixel(pixel) {
-    pixel.style.left = Math.random() * 95 + "vw";
-    pixel.style.top = Math.random() * 95 + "vh";
+    // Le pixel apparaît n'importe où sur l'écran (hors bords extrêmes)
+    pixel.style.left = 2 + Math.random() * 96 + "vw";
+    pixel.style.top = 2 + Math.random() * 96 + "vh";
     pixel.style.opacity = "0";
 }
 
 function animatePixel(pixel) {
-    const delay = Math.random() * 5000;
-    const duration = 100 + Math.random() * 300;
+    // MODIFICATION ICI : Chronométrages ajustés pour un fondu lent
+    const delay = 2000 + Math.random() * 5000; // Attend entre 2 et 7 secondes avant d'apparaître
+    const duration = 2000 + Math.random() * 2000; // Reste visible entre 2 et 4 secondes
 
     setTimeout(() => {
-        // Apparition brève (glitch) avec une opacité un peu plus élevée pour être visible
-        pixel.style.opacity = Math.random() > 0.5 ? "0.8" : "0.3";
+        // Apparition douce en fondu (grâce au CSS opacity 1.5s)
+        pixel.style.opacity = Math.random() > 0.5 ? "0.8" : "0.5";
         
         setTimeout(() => {
+            // Disparition douce en fondu
             pixel.style.opacity = "0";
-            resetPixel(pixel);
-            animatePixel(pixel); // Boucle
+            
+            // Attendre que la transition CSS de 1.5s soit terminée avant de le déplacer
+            setTimeout(() => {
+                resetPixel(pixel);
+                animatePixel(pixel); // Relance la boucle
+            }, 1500); 
+            
         }, duration);
         
     }, delay);
