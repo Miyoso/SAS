@@ -37,33 +37,43 @@
             cursor: crosshair;
         }
 
-        /* ── Pixel Glitch Background ── */
-        #glitch-bg {
+        /* ── PIXEL SECRET (Fixe + Respiration Lente) ── */
+        #secret-pixel {
             position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 1;
-            overflow: hidden;
-        }
-
-        .glitch-pixel {
-            position: absolute;
+            /* POSITION EXACTE DANS TA ZONE ROSE */
+            top: 40vh;    /* 40% en partant du haut de l'écran */
+            right: 20vw;  /* 20% en partant de la droite de l'écran */
+            
             width: 4px;
             height: 4px;
             background: var(--gold);
-            opacity: 0;
-            pointer-events: auto;
+            opacity: 0; /* Invisible par défaut, l'animation s'occupe de l'afficher */
+            z-index: 9999;
             cursor: help;
             box-shadow: 0 0 8px var(--gold);
-            /* MODIFICATION ICI : Transition douce sur l'opacité (1.5 secondes) */
-            transition: transform 0.2s, opacity 1.5s ease-in-out;
+            pointer-events: auto;
+            
+            /* Animation lente infinie : 8 secondes pour un cycle complet */
+            animation: slowPulse 8s infinite ease-in-out;
+            animation-delay: 2.5s; /* Attend que l'écran de chargement disparaisse */
+            transition: transform 0.2s;
         }
 
-        .glitch-pixel:hover {
+        /* Quand on passe la souris dessus : il s'illumine fortement et arrête de clignoter */
+        #secret-pixel:hover {
             background: #fff;
             transform: scale(3);
             opacity: 1 !important;
             box-shadow: 0 0 15px #fff;
+            animation: none; 
+        }
+
+        /* L'animation d'apparition/disparition lente */
+        @keyframes slowPulse {
+            0%   { opacity: 0; }
+            40%  { opacity: 0.8; } /* Apparaît doucement */
+            60%  { opacity: 0.8; } /* Reste visible un instant */
+            100% { opacity: 0; }   /* Disparaît doucement */
         }
 
         /* ── Scanline ── */
@@ -88,33 +98,24 @@
             opacity: 0; animation: fadeIn 0.4s 0.2s forwards;
         }
         .boot-progress {
-            width: 180px; height: 1px;
-            background: rgba(212, 175, 55, 0.1);
-            overflow: hidden;
+            width: 180px; height: 1px; background: rgba(212, 175, 55, 0.1); overflow: hidden;
         }
         .boot-fill {
-            height: 100%; width: 0;
-            background: var(--gold);
-            box-shadow: 0 0 10px var(--gold);
+            height: 100%; width: 0; background: var(--gold); box-shadow: 0 0 10px var(--gold);
             animation: fill 1.8s cubic-bezier(0.4,0,0.2,1) forwards;
         }
         .boot-label {
-            font-size: 0.5rem; color: var(--text-dim);
-            letter-spacing: 4px; min-height: 14px;
+            font-size: 0.5rem; color: var(--text-dim); letter-spacing: 4px; min-height: 14px;
         }
         @keyframes fill    { to { width: 100%; } }
         @keyframes fadeIn  { to { opacity: 1; } }
 
         /* ── TOP BAR ── */
         .topbar {
-            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-            height: 44px;
-            background: rgba(5,5,5,0.96);
-            border-bottom: 1px solid var(--border);
-            backdrop-filter: blur(12px);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 40px;
-            opacity: 0; animation: fadeIn 0.5s 2.3s forwards;
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 44px;
+            background: rgba(5,5,5,0.96); border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: space-between;
+            padding: 0 40px; opacity: 0; animation: fadeIn 0.5s 2.3s forwards;
         }
         .tb-left { display: flex; align-items: center; gap: 20px; }
         .tb-logo { font-family: var(--mono); font-size: 0.65rem; color: var(--gold); letter-spacing: 3px; }
@@ -123,18 +124,14 @@
 
         /* ── HERO ── */
         .hero {
-            height: 100vh; position: relative;
-            display: grid; grid-template-columns: 1fr 1fr;
-            opacity: 0; animation: fadeIn 1s 2.2s forwards;
-            z-index: 5;
+            height: 100vh; position: relative; display: grid; grid-template-columns: 1fr 1fr;
+            opacity: 0; animation: fadeIn 1s 2.2s forwards; z-index: 5;
         }
 
         .hero-photo-col { position: relative; overflow: hidden; }
         .hero-photo-col img {
-            width: 100%; height: 100%; object-fit: cover;
-            object-position: center 15%;
-            filter: grayscale(0.6) contrast(1.1) brightness(0.5) sepia(0.2);
-            display: block;
+            width: 100%; height: 100%; object-fit: cover; object-position: center 15%;
+            filter: grayscale(0.6) contrast(1.1) brightness(0.5) sepia(0.2); display: block;
         }
         .hero-photo-col::after {
             content: ''; position: absolute; inset: 0;
@@ -142,8 +139,7 @@
         }
         .hero-photo-col::before {
             content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%;
-            background: linear-gradient(to top, var(--bg), transparent);
-            z-index: 1;
+            background: linear-gradient(to top, var(--bg), transparent); z-index: 1;
         }
 
         .hero-tape {
@@ -237,8 +233,9 @@
 </head>
 <body>
 
-<!-- Glitch Container -->
-<div id="glitch-bg"></div>
+<!-- LE PIXEL SECRET : Lien direct vers Interception.html -->
+<a href="Interception.html" id="secret-pixel"></a>
+
 <div class="scan"></div>
 
 <!-- BOOT -->
@@ -372,7 +369,7 @@
 </div>
 
 <script>
-// --- Script de Boot ---
+// --- Script de Boot allégé (le pixel est maintenant géré par le CSS) ---
 const msgs = ["DÉCHIFFREMENT EN COURS...", "CRÉDENTIALS BLACKWOOD RECONNUS...", "ACCÈS ACCORDÉ."];
 let idx = 0;
 const lbl = document.getElementById('boot-label');
@@ -387,68 +384,11 @@ function tick() {
             boot.style.pointerEvents = 'none';
             setTimeout(() => {
                 boot.remove();
-                initGlitch(); // Lance le glitch après le boot
             }, 700);
         }, 600);
     }
 }
 setTimeout(tick, 300);
-
-// --- Système de Glitch (1 seul pixel, fondu doux) ---
-function initGlitch() {
-    const container = document.getElementById('glitch-bg');
-    const pixelCount = 1; // 1 seul pixel
-
-    for (let i = 0; i < pixelCount; i++) {
-        createPixel(container);
-    }
-}
-
-function createPixel(container) {
-    const pixel = document.createElement('div');
-    pixel.className = 'glitch-pixel';
-    
-    resetPixel(pixel);
-
-    // Redirection au clic
-    pixel.addEventListener('click', () => {
-        window.location.href = "interceptio.html";
-    });
-
-    container.appendChild(pixel);
-    animatePixel(pixel);
-}
-
-function resetPixel(pixel) {
-    // Le pixel apparaît n'importe où sur l'écran (hors bords extrêmes)
-    pixel.style.left = 2 + Math.random() * 96 + "vw";
-    pixel.style.top = 2 + Math.random() * 96 + "vh";
-    pixel.style.opacity = "0";
-}
-
-function animatePixel(pixel) {
-    // MODIFICATION ICI : Chronométrages ajustés pour un fondu lent
-    const delay = 2000 + Math.random() * 5000; // Attend entre 2 et 7 secondes avant d'apparaître
-    const duration = 2000 + Math.random() * 2000; // Reste visible entre 2 et 4 secondes
-
-    setTimeout(() => {
-        // Apparition douce en fondu (grâce au CSS opacity 1.5s)
-        pixel.style.opacity = Math.random() > 0.5 ? "0.8" : "0.5";
-        
-        setTimeout(() => {
-            // Disparition douce en fondu
-            pixel.style.opacity = "0";
-            
-            // Attendre que la transition CSS de 1.5s soit terminée avant de le déplacer
-            setTimeout(() => {
-                resetPixel(pixel);
-                animatePixel(pixel); // Relance la boucle
-            }, 1500); 
-            
-        }, duration);
-        
-    }, delay);
-}
 </script>
 </body>
 </html>
