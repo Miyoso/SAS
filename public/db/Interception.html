@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STANDBY // BW-SEC-PRIVATE-88</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red:#ff0055;
+  --cyan:#00f2ff;
+  --bg:#05070a;
+  --text:#7a8fa8;
+  --dim:#1e2a38;
+  --fira:'Fira Code',monospace;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--fira);}
+
+/* ══ CRT OVERLAY ══ */
+.crt{
+  position:fixed;inset:0;pointer-events:none;z-index:60;
+  background:
+    linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.22) 50%),
+    linear-gradient(90deg, rgba(255,0,0,0.04), rgba(0,255,0,0.015), rgba(0,0,255,0.04));
+  background-size:100% 2px,3px 100%;
+}
+.phosphor{
+  position:fixed;inset:0;pointer-events:none;z-index:61;
+  background:radial-gradient(ellipse at 50% 50%, rgba(0,242,255,0.025) 0%, transparent 70%);
+  animation:phosphorPulse 4s ease-in-out infinite;
+}
+@keyframes phosphorPulse{0%,100%{opacity:0.6;}50%{opacity:1;}}
+
+.scanline{
+  position:fixed;left:0;width:100%;height:180px;z-index:59;
+  background:linear-gradient(0deg,rgba(0,0,0,0) 0%,rgba(0,242,255,0.04) 50%,rgba(0,0,0,0) 100%);
+  animation:scanmove 8s linear infinite;pointer-events:none;
+}
+@keyframes scanmove{0%{top:-180px;}100%{top:100vh;}}
+
+.vignette{
+  position:fixed;inset:0;pointer-events:none;z-index:58;
+  background:radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.92) 100%);
+}
+
+.grid-bg{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.012) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.012) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(ellipse at center,black 30%,transparent 85%);
+}
+
+/* ══ CENTER LAYOUT ══ */
+#container {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 20px;
+}
+
+.logo {
+  font-size: 1.2rem;
+  color: var(--red);
+  letter-spacing: 10px;
+  font-weight: 700;
+  margin-bottom: 30px;
+  text-shadow: 0 0 10px rgba(255,0,85,0.5);
+  text-align: center;
+}
+
+.terminal-box {
+  background: rgba(8, 11, 15, 0.9);
+  border: 1px solid rgba(255, 0, 85, 0.2);
+  width: 100%;
+  max-width: 600px;
+  padding: 30px;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+  position: relative;
+}
+
+.terminal-box::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: var(--red);
+  box-shadow: 0 0 10px var(--red);
+}
+
+.line {
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  line-height: 1.5;
+  opacity: 0;
+}
+
+.line.show {
+  opacity: 1;
+}
+
+.t-cyan { color: var(--cyan); }
+.t-red { color: var(--red); }
+.t-dim { color: var(--dim); }
+
+.loader-bar {
+  width: 100%;
+  height: 2px;
+  background: rgba(255,255,255,0.05);
+  margin: 20px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.loader-fill {
+  position: absolute;
+  top: 0; left: 0; height: 100%;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
+  width: 30%;
+  animation: loading 2s ease-in-out infinite alternate;
+}
+
+@keyframes loading {
+  0% { width: 10%; transform: translateX(0); }
+  100% { width: 40%; transform: translateX(150%); }
+}
+
+.status-badge {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  border: 1px solid var(--red);
+  color: var(--red);
+  padding: 6px 14px;
+  background: rgba(255,0,85,0.08);
+  animation: blink 1.5s step-end infinite;
+  margin-top: 20px;
+}
+
+@keyframes blink { 50% { opacity: 0.3; } }
+
+.cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1em;
+  background: var(--cyan);
+  vertical-align: middle;
+  animation: blink 1s step-end infinite;
+  margin-left: 5px;
+}
+
+.footer-id {
+  position: absolute;
+  bottom: 20px;
+  font-size: 0.5rem;
+  color: var(--dim);
+  letter-spacing: 4px;
+}
+
+</style>
+</head>
+<body>
+
+<div class="crt"></div>
+<div class="phosphor"></div>
+<div class="scanline"></div>
+<div class="vignette"></div>
+<div class="grid-bg"></div>
+
+<div id="container">
+  <div class="logo">SAS // INTERCEPT SYSTEM</div>
+  
+  <div class="terminal-box">
+    <div class="line" id="l1">> INITIALISATION DU NŒUD D'ÉCOUTE... <span class="t-cyan">[OK]</span></div>
+    <div class="line" id="l2">> RECHERCHE DU CANAL : <span class="t-red">BW_SEC_PRIVATE_88</span></div>
+    <div class="line" id="l3">> SÉCURITÉ DÉTECTÉE : AES-256-BLACKWOOD-SECURE</div>
+    <div class="line" id="l4">> TENTATIVE DE HANDSHAKE...</div>
+    
+    <div class="loader-bar line" id="l5"><div class="loader-fill"></div></div>
+    
+    <div class="line" id="l6">> POSITION DE LA CIBLE : <span class="t-red">INCONNUE (VPN ACTIF)</span></div>
+    <div class="line" id="l7">> EN ATTENTE D'ÉMISSION DU SIGNAL<span class="cursor"></span></div>
+    
+    <div class="status-badge line" id="l8">● STANDBY // SYSTÈME EN VEILLE</div>
+  </div>
+
+  <div class="footer-id">CONNEXION SÉCURISÉE V.4.0.2 | EN ATTENTE DE L'ADMINISTRATEUR</div>
+</div>
+
+<script>
+  // Animation d'apparition séquentielle du terminal
+  const lines = [
+    { id: 'l1', delay: 500 },
+    { id: 'l2', delay: 1500 },
+    { id: 'l3', delay: 2800 },
+    { id: 'l4', delay: 4000 },
+    { id: 'l5', delay: 4500 },
+    { id: 'l6', delay: 6500 },
+    { id: 'l7', delay: 8000 },
+    { id: 'l8', delay: 9000 }
+  ];
+
+  lines.forEach(line => {
+    setTimeout(() => {
+      document.getElementById(line.id).classList.add('show');
+    }, line.delay);
+  });
+</script>
+
+</body>
+</html>

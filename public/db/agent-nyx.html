@@ -3,556 +3,392 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS MAINFRAME // AGENT [NYX]</title>
+    <title>SAS :: SC-0077 — BLACKWOOD</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Share+Tech+Mono&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="/css/stylele.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
     <style>
-     
         :root {
-            --accent-blue: #00f3ff;
-            --accent-danger: #ff3333;
-            --accent-warning: #ffaa00;
-            --accent-primary: #00ffaa;
-            --text-dim: #88aadd;
-            --bg-deep: #050a0f;
-            --font-code: 'JetBrains Mono', monospace;
-            --font-display: 'Share Tech Mono', sans-serif;
+            /* Palette Or / Blackwood */
+            --gold:      #d4af37; 
+            --gold-bright: #f1d592;
+            --gold-dim:  rgba(212, 175, 55, 0.12);
+            --cyan:      #d4af37;
+            --red:       #c0392b;
+            --bg:        #050505;
+            --bg2:       #0a0a08;
+            --text:      #e2d1b3;
+            --text-dim:  #7a6f5d;
+            --border:    rgba(212, 175, 55, 0.15);
+            --border-c:  rgba(212, 175, 55, 0.3);
+            --mono:      'JetBrains Mono', monospace;
+            --ui:        'Share Tech Mono', monospace;
         }
 
-        html, body {
-            background-color: var(--bg-deep);
-            color: #fff;
-            height: auto !important; 
-            min-height: 100vh !important;
-            overflow-y: auto !important; 
-            overflow-x: hidden !important;
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--ui);
+            overflow-x: hidden;
+            cursor: crosshair;
         }
 
-      
-        .terminal-wrapper, .terminal, .view-section, .modules-section, .sidebar-panel {
-            position: relative !important; 
-            height: auto !important; 
-            max-height: none !important;
-            min-height: min-content !important;
-            overflow: visible !important;
+        /* ── PIXEL SECRET (Fixe + Respiration Lente) ── */
+        #secret-pixel {
+            position: fixed;
+            /* POSITION EXACTE DANS TA ZONE ROSE */
+            top: 40vh;    /* 40% en partant du haut de l'écran */
+            right: 20vw;  /* 20% en partant de la droite de l'écran */
+            
+            width: 4px;
+            height: 4px;
+            background: var(--gold);
+            opacity: 0; /* Invisible par défaut, l'animation s'occupe de l'afficher */
+            z-index: 9999;
+            cursor: help;
+            box-shadow: 0 0 8px var(--gold);
+            pointer-events: auto;
+            
+            /* Animation lente infinie : 8 secondes pour un cycle complet */
+            animation: slowPulse 8s infinite ease-in-out;
+            animation-delay: 2.5s; /* Attend que l'écran de chargement disparaisse */
+            transition: transform 0.2s;
         }
 
-        .terminal-wrapper {
-            padding-bottom: 60px !important; 
-            display: block !important;
+        /* Quand on passe la souris dessus : il s'illumine fortement et arrête de clignoter */
+        #secret-pixel:hover {
+            background: #fff;
+            transform: scale(3);
+            opacity: 1 !important;
+            box-shadow: 0 0 15px #fff;
+            animation: none; 
         }
 
-        ::-webkit-scrollbar {
-            width: 8px; 
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--bg-deep);
-            border-left: 1px solid rgba(0, 243, 255, 0.1);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(0, 243, 255, 0.4);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent-blue);
-            box-shadow: 0 0 10px var(--accent-blue);
+        /* L'animation d'apparition/disparition lente */
+        @keyframes slowPulse {
+            0%   { opacity: 0; }
+            40%  { opacity: 0.8; } /* Apparaît doucement */
+            60%  { opacity: 0.8; } /* Reste visible un instant */
+            100% { opacity: 0; }   /* Disparaît doucement */
         }
 
- 
-        #boot-screen {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #000; z-index: 9999; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; font-family: var(--font-code);
-            transition: opacity 0.5s ease;
+        /* ── Scanline ── */
+        .scan {
+            position: fixed; left: 0; width: 100%; height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
+            opacity: 0.1; pointer-events: none; z-index: 200;
+            animation: scan 12s linear infinite;
         }
-        .boot-text { color: var(--accent-blue); font-size: 1.5rem; letter-spacing: 2px; margin-bottom: 20px; text-shadow: 0 0 10px var(--accent-blue); }
-        .progress-bar { width: 300px; height: 4px; background: rgba(255,255,255,0.1); overflow: hidden; border-radius: 2px; }
-        .progress-fill { height: 100%; width: 0%; background: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); animation: load 1.2s ease forwards; }
-        @keyframes load { to { width: 100%; } }
+        @keyframes scan { 0%{top:-2%} 100%{top:102%} }
 
-   
-        .id-card-container { perspective: 1000px; margin-bottom: 40px; display: flex; justify-content: center; }
-        .id-card {
-            width: 100%;
-            max-width: 480px;
-            min-height: 280px;
-            background: linear-gradient(135deg, rgba(10, 15, 20, 0.95) 0%, rgba(15, 25, 35, 0.9) 100%);
-            border: 1px solid var(--accent-blue);
-            border-radius: 12px; padding: 25px; position: relative; transform-style: preserve-3d;
-            box-shadow: 0 20px 50px rgba(0, 243, 255, 0.15), inset 0 0 30px rgba(0, 243, 255, 0.1);
-            transition: transform 0.15s ease-out;
-            display: flex; flex-direction: column; overflow: hidden;
+        /* ── BOOT ── */
+        #boot {
+            position: fixed; inset: 0; background: #000; z-index: 9000;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column; gap: 20px;
+            transition: opacity 0.7s ease;
         }
-        .holo-overlay {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;
-            background: linear-gradient(135deg, rgba(0,243,255,0.15) 0%, transparent 40%, rgba(255,51,51,0.05) 100%);
-            mix-blend-mode: screen; border-radius: 10px;
+        .boot-ref {
+            font-family: var(--mono); font-size: 0.6rem;
+            color: var(--gold); letter-spacing: 6px;
+            opacity: 0; animation: fadeIn 0.4s 0.2s forwards;
         }
-        
-        .card-header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            border-bottom: 2px solid rgba(0, 243, 255, 0.3); 
-            padding-bottom: 15px; margin-bottom: 20px; 
+        .boot-progress {
+            width: 180px; height: 1px; background: rgba(212, 175, 55, 0.1); overflow: hidden;
         }
-        .card-logo-text { font-family: var(--font-display); color: var(--accent-blue); font-size: 1.5rem; font-weight: bold; letter-spacing: 3px; text-shadow: 0 0 8px rgba(0,243,255,0.4); }
-        .security-level { 
-            background: var(--accent-danger); color: #fff; padding: 4px 10px; 
-            font-family: var(--font-code); font-size: 0.8rem; font-weight: bold; 
-            border-radius: 4px; text-transform: uppercase; letter-spacing: 1px;
-            box-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+        .boot-fill {
+            height: 100%; width: 0; background: var(--gold); box-shadow: 0 0 10px var(--gold);
+            animation: fill 1.8s cubic-bezier(0.4,0,0.2,1) forwards;
         }
-        
-        .card-body { display: flex; gap: 25px; flex-grow: 1; flex-wrap: wrap; }
-        .photo-box { 
-            width: 120px; height: 150px; 
-            border: 2px solid var(--accent-blue); border-radius: 6px;
-            overflow: hidden; position: relative; 
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
-            flex-shrink: 0;
+        .boot-label {
+            font-size: 0.5rem; color: var(--text-dim); letter-spacing: 4px; min-height: 14px;
         }
-        .photo-box img { 
-            width: 100%; height: 100%; object-fit: cover; 
-            filter: grayscale(0.8) contrast(1.3) brightness(1.1) sepia(0.8) hue-rotate(180deg);
-        }
-        
+        @keyframes fill    { to { width: 100%; } }
+        @keyframes fadeIn  { to { opacity: 1; } }
 
-        .photo-box::after {
-            content: ''; position: absolute; 
-            top: -50%; left: -50%; width: 200%; height: 40px; 
-            background: linear-gradient(to bottom, transparent, rgba(0, 243, 255, 0.9), transparent);
-            box-shadow: 0 5px 15px rgba(0, 243, 255, 0.6);
-            transform: rotate(15deg);
-            animation: scanner 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+        /* ── TOP BAR ── */
+        .topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 44px;
+            background: rgba(5,5,5,0.96); border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: space-between;
+            padding: 0 40px; opacity: 0; animation: fadeIn 0.5s 2.3s forwards;
         }
-        @keyframes scanner { 0% { top: -30%; } 100% { top: 130%; } }
+        .tb-left { display: flex; align-items: center; gap: 20px; }
+        .tb-logo { font-family: var(--mono); font-size: 0.65rem; color: var(--gold); letter-spacing: 3px; }
+        .tb-sep { width: 1px; height: 16px; background: var(--border); }
+        .tb-ref { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 2px; }
 
-        .agent-info { 
-            flex: 1; display: grid; grid-template-columns: 1fr 1fr; 
-            gap: 12px; align-content: center; min-width: 200px;
-        }
-        .info-group { display: flex; flex-direction: column; }
-        .info-group.full-width { grid-column: span 2; }
-        .card-label { font-size: 0.65rem; color: var(--text-dim); margin-bottom: 4px; font-family: var(--font-display); letter-spacing: 1px; text-transform: uppercase; }
-        .card-value { font-size: 1.1rem; color: #fff; font-weight: bold; margin-bottom: 0; font-family: var(--font-code); letter-spacing: 1px; text-transform: uppercase; }
-        .card-code { font-family: var(--font-code); color: var(--accent-danger); font-size: 1.1rem; letter-spacing: 3px; font-weight: bold; text-shadow: 0 0 5px rgba(255,51,51,0.4); word-break: break-all; }
-
-        .card-footer { 
-            display: flex; justify-content: space-between; align-items: flex-end; 
-            margin-top: 20px; border-top: 1px solid rgba(0,243,255,0.2); padding-top: 15px; 
-        }
-        .barcode { 
-            font-family: 'Libre Barcode 128 Text', cursive; 
-            font-size: 3.5rem; color: #fff; line-height: 0.6; opacity: 0.9;
-            text-shadow: 0 0 5px rgba(255,255,255,0.5);
-        }
-        
-        .chip-container { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
-        .chip { 
-            width: 45px; height: 35px; 
-            background: linear-gradient(135deg, #d4af37, #ffd700, #daa520); 
-            border-radius: 6px; border: 1px solid #b8860b; 
-            box-shadow: inset 0 0 8px rgba(0,0,0,0.6), 0 2px 5px rgba(0,0,0,0.5); 
-            position: relative; overflow: hidden; 
-        }
-        .chip::after {
-            content: ''; position: absolute; width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(90deg, transparent 45%, rgba(0,0,0,0.3) 45%, rgba(0,0,0,0.3) 55%, transparent 55%),
-                linear-gradient(0deg, transparent 45%, rgba(0,0,0,0.3) 45%, rgba(0,0,0,0.3) 55%, transparent 55%);
-            background-size: 14px 14px;
+        /* ── HERO ── */
+        .hero {
+            height: 100vh; position: relative; display: grid; grid-template-columns: 1fr 1fr;
+            opacity: 0; animation: fadeIn 1s 2.2s forwards; z-index: 5;
         }
 
-        .glitch { position: relative; display: inline-block; }
-        .glitch::before, .glitch::after {
-            content: attr(data-text); position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%; background: var(--bg-deep);
+        .hero-photo-col { position: relative; overflow: hidden; }
+        .hero-photo-col img {
+            width: 100%; height: 100%; object-fit: cover; object-position: center 15%;
+            filter: grayscale(0.6) contrast(1.1) brightness(0.5) sepia(0.2); display: block;
         }
-        .glitch::before { left: 2px; text-shadow: -1px 0 var(--accent-danger); animation: glitch-anim-1 2s infinite linear alternate-reverse; }
-        .glitch::after { left: -2px; text-shadow: -1px 0 var(--accent-warning); animation: glitch-anim-2 3s infinite linear alternate-reverse; }
-        @keyframes glitch-anim-1 {
-            0% { clip-path: inset(20% 0 80% 0); } 20% { clip-path: inset(60% 0 10% 0); }
-            40% { clip-path: inset(40% 0 50% 0); } 60% { clip-path: inset(80% 0 5% 0); }
-            80% { clip-path: inset(10% 0 70% 0); } 100% { clip-path: inset(30% 0 20% 0); }
+        .hero-photo-col::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to right, rgba(5,5,5,0) 40%, rgba(5,5,5,1) 100%);
         }
-        @keyframes glitch-anim-2 {
-            0% { clip-path: inset(10% 0 60% 0); } 20% { clip-path: inset(30% 0 20% 0); }
-            40% { clip-path: inset(70% 0 10% 0); } 60% { clip-path: inset(20% 0 50% 0); }
-            80% { clip-path: inset(50% 0 30% 0); } 100% { clip-path: inset(5% 0 80% 0); }
+        .hero-photo-col::before {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%;
+            background: linear-gradient(to top, var(--bg), transparent); z-index: 1;
         }
 
-        
-        .cyber-panel {
-            background: rgba(10, 15, 20, 0.7);
-            border: 1px solid var(--accent-blue);
-            padding: 20px; margin-bottom: 20px;
-            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.05) inset;
-            position: relative;
+        .hero-tape {
+            position: absolute; top: 44px; left: 0; right: 0; height: 3px;
+            background: repeating-linear-gradient(90deg, var(--gold) 0, var(--gold) 20px, transparent 20px, transparent 40px);
+            z-index: 10; opacity: 0.2; animation: tape 3s linear infinite;
         }
-        .cyber-panel::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 15px; height: 15px;
-            background: var(--accent-blue); clip-path: polygon(0 0, 100% 0, 0 100%);
+        @keyframes tape { to { background-position: 40px 0; } }
+
+        .photo-data { position: absolute; bottom: 60px; left: 30px; z-index: 5; pointer-events: none; display: flex; flex-direction: column; gap: 6px; }
+        .data-line { font-family: var(--mono); font-size: 0.52rem; color: rgba(212, 175, 55, 0.5); letter-spacing: 3px; }
+        .data-line.blink { animation: blk 2s step-end infinite; }
+        @keyframes blk { 50% { opacity: 0; } }
+
+        .hero-text-col { display: flex; flex-direction: column; justify-content: center; padding: 80px 60px 60px; position: relative; }
+
+        .hero-classified { display: flex; align-items: center; gap: 8px; font-size: 0.5rem; color: var(--gold); letter-spacing: 5px; margin-bottom: 32px; }
+        .hero-classified::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); animation: pls 1.5s infinite; }
+        @keyframes pls { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        .hero-surname { font-family: var(--mono); font-size: clamp(3rem, 5vw, 4.5rem); font-weight: 800; color: #fff; letter-spacing: -3px; line-height: 1; margin-bottom: 6px; }
+        .hero-given { font-family: var(--mono); font-size: clamp(1rem, 2vw, 1.4rem); font-weight: 300; color: var(--gold); letter-spacing: 6px; text-transform: uppercase; margin-bottom: 28px; }
+
+        .hero-desc {
+            font-size: 0.72rem; color: var(--text-dim); line-height: 1.7; max-width: 360px;
+            border-left: 2px solid var(--border-c); padding-left: 16px; margin-bottom: 36px; font-family: var(--mono);
         }
 
-     
-        .audio-viz { display: flex; gap: 3px; height: 15px; align-items: flex-end; }
-        .bar { width: 4px; background: var(--accent-blue); animation: sound 1s infinite alternate; box-shadow: 0 0 5px var(--accent-blue); }
-        @keyframes sound { 0% {height: 20%;} 100% {height: 100%;} }
+        .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); max-width: 360px; }
+        .hero-stat { background: var(--bg); padding: 14px 16px; display: flex; flex-direction: column; gap: 3px; }
+        .hs-label { font-size: 0.45rem; color: var(--text-dim); letter-spacing: 3px; }
+        .hs-value { font-family: var(--mono); font-size: 0.8rem; color: #fff; }
+        .hs-value.cyan { color: var(--gold); }
+        .hs-value.red  { color: var(--red); }
 
-        .redacted { background: rgba(0, 243, 255, 0.1); color: var(--accent-blue); padding: 0 4px; cursor: crosshair; font-family: var(--font-code); transition: 0.2s; border-radius: 2px; }
-        .redacted:hover { background: var(--accent-blue); color: #000; box-shadow: 0 0 8px var(--accent-blue); }
+        /* ── BODY ── */
+        .body {
+            max-width: 960px; margin: 0 auto; padding: 80px 40px 100px;
+            display: flex; flex-direction: column; gap: 64px;
+            opacity: 0; animation: fadeIn 0.6s 2.6s forwards; position: relative; z-index: 5;
+        }
 
-        body.logged-in .tactical-navbar.auth-content, .tactical-navbar {
-            display: flex !important; gap: 15px; padding: 0 10px 15px 10px; margin-bottom: 25px;
-            border-bottom: 1px solid rgba(0, 243, 255, 0.2); overflow-x: auto; scrollbar-width: none;
-        }
-        .tactical-navbar::-webkit-scrollbar { display: none; }
-        .nav-item { color: var(--text-dim); text-decoration: none; font-family: var(--font-display); letter-spacing: 1px; transition: 0.3s; padding-bottom: 5px; white-space: nowrap; }
-        .nav-item:hover, .nav-item.active { color: var(--accent-blue); border-bottom: 2px solid var(--accent-blue); text-shadow: 0 0 8px var(--accent-blue); }
+        .sec { display: flex; flex-direction: column; gap: 20px; }
+        .sec-header { display: flex; align-items: center; gap: 16px; }
+        .sec-n { font-family: var(--mono); font-size: 0.5rem; font-weight: 700; color: var(--gold); letter-spacing: 2px; border: 1px solid var(--border-c); padding: 3px 8px; flex-shrink: 0; }
+        .sec-title { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 5px; text-transform: uppercase; }
+        .sec-line { flex: 1; height: 1px; background: var(--border); }
 
-        .log-entry { margin-bottom: 15px; font-family: var(--font-code); font-size: 0.85rem; line-height: 1.5; }
-        .log-entry .label { color: var(--text-dim); font-size: 0.75rem; letter-spacing: 1px; }
-        
-       
-        .tcp-log-row {
-            display: grid;
-            grid-template-columns: 80px minmax(100px, 1fr) minmax(100px, 1fr) 60px;
-            gap: 10px; align-items: center; 
-            font-family: var(--font-code); font-size: 0.8rem; 
-            background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px;
-        }
-        @media (max-width: 600px) {
-            .tcp-log-row { grid-template-columns: 1fr; gap: 5px; }
-            .tcp-log-row > span:last-child { text-align: left !important; }
-        }
+        .block { background: var(--bg2); border: 1px solid var(--border); position: relative; overflow: hidden; }
+        .block::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 2px; background: transparent; transition: background 0.4s; }
+        .block:hover::before { background: var(--gold); }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--border); }
+        .grid-cell { padding: 20px 28px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .grid-cell:nth-child(2n) { border-right: none; }
+
+        .cell-label { font-size: 0.48rem; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+        .cell-value { font-family: var(--mono); font-size: 0.82rem; color: #e0dbd4; line-height: 1.4; }
+        .cell-value.cyan { color: var(--gold); }
+        .cell-value.red  { color: var(--red); }
+        .cell-value.gold { color: var(--gold-bright); }
+
+        .prose { padding: 28px 32px; font-family: var(--mono); font-size: 0.78rem; color: var(--text-dim); line-height: 1.8; }
+        .prose strong { color: var(--text); font-weight: 700; }
+        .prose em { color: var(--gold); font-style: normal; }
+
+        .tl-item { display: flex; border-bottom: 1px solid var(--border); }
+        .tl-item:last-child { border-bottom: none; }
+        .tl-year { flex-shrink: 0; width: 100px; padding: 20px 24px; font-family: var(--mono); font-size: 0.75rem; color: var(--gold); font-weight: 700; border-right: 1px solid var(--border); }
+        .tl-content { padding: 20px 28px; flex: 1; }
+        .tl-event { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+        .tl-desc { font-family: var(--mono); font-size: 0.78rem; color: var(--text); line-height: 1.6; }
+
+        .skills-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--border); }
+        .skill-item { padding: 18px 24px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .skill-item:nth-child(3n) { border-right: none; }
+        .skill-name { font-size: 0.62rem; color: #fff; letter-spacing: 2px; }
+        .skill-bar-track { height: 2px; background: rgba(212,175,55,0.1); margin: 8px 0; }
+        .skill-bar-fill { height: 100%; background: var(--gold); box-shadow: 0 0 4px var(--gold); }
+        .skill-note { font-size: 0.55rem; color: var(--text-dim); font-family: var(--mono); }
+
+        .rdct { display: inline-block; background: rgba(212,175,55,0.1); color: transparent; padding: 0 6px; position: relative; cursor: help; transition: 0.3s; font-family: var(--mono); }
+        .rdct::after { content: attr(data-text); position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: #333; }
+        .rdct:hover { background: var(--gold-dim); color: var(--gold); }
+        .rdct:hover::after { display: none; }
+
+        .page-footer { display: flex; justify-content: space-between; padding-top: 32px; border-top: 1px solid var(--border); font-size: 0.48rem; color: var(--text-dim); }
+        .page-footer a { color: var(--text-dim); text-decoration: none; border: 1px solid var(--border); padding: 6px 16px; }
+        .page-footer a:hover { border-color: var(--gold); color: var(--gold); }
     </style>
 </head>
-<body class="logged-in">
+<body>
 
-    <div id="boot-screen">
-        <div class="boot-text">BYPASSING FIREWALL...</div>
-        <div class="progress-bar"><div class="progress-fill"></div></div>
-        <div style="margin-top: 15px; font-size: 0.8rem; color: var(--text-dim);">PROTOCOL: GHOST_CLEAN // TARGET: NYX</div>
+<!-- LE PIXEL SECRET : Lien direct vers Interception.html -->
+<a href="Interception.html" id="secret-pixel"></a>
+
+<div class="scan"></div>
+
+<!-- BOOT -->
+<div id="boot">
+    <div class="boot-ref">SAS // SC-0077</div>
+    <div class="boot-progress"><div class="boot-fill"></div></div>
+    <div class="boot-label" id="boot-label">DÉCHIFFREMENT EN COURS...</div>
+</div>
+
+<!-- TOP BAR -->
+<nav class="topbar">
+    <div class="tb-left">
+        <div class="tb-logo">SAS</div>
+        <div class="tb-sep"></div>
+        <div class="tb-ref">DOSSIER SC-0077 // NIVEAU 2 // BLACKWOOD HÉRITAGE</div>
     </div>
+</nav>
 
-    <div class="tactical-grid" aria-hidden="true"></div>
-    <div class="vignette" aria-hidden="true"></div>
-    <div class="radar-scan" aria-hidden="true"></div>
-
-    <div class="hud-side hud-left" aria-hidden="true">
-        <div class="hud-ruler"></div>
-        <div class="hud-marker">SYS.CYBER_OPS</div>
-        <div class="hud-marker" style="color:var(--accent-blue)">NETRUNNER</div>
-        <div class="hud-ruler"></div>
-    </div>
-    <div class="hud-side hud-right" aria-hidden="true">
-        <div class="hud-ruler"></div>
-        <div class="hud-marker">PROXY.LINK</div>
-        <div class="hud-marker">999.X.X.1</div>
-        <div class="hud-ruler"></div>
-    </div>
-
-    <div class="terminal-wrapper">
-        <div class="terminal">
-            
-            <header class="header-strip" style="border-bottom-color: var(--accent-blue); margin-bottom: 15px;">
-                <div>
-                    <h1>DOSSIER // <span class="glitch" data-text="NYX" style="color: var(--accent-blue); text-shadow: 0 0 15px var(--accent-blue);">NYX</span></h1>
-                    <div class="sub-header" style="color: var(--accent-blue); letter-spacing: 2px;">SHADOW COMPANY // CYBER-OPS DIVISION</div>
-                </div>
-                <div class="meta-data" style="text-align: right;">
-                    <span style="color: var(--text-dim)">SRC: ENCRYPTED NODE</span><br>
-                    REQ ID: <span class="blink" style="color: var(--accent-blue);">_X77-CYBER</span>
-                </div>
-            </header>
-
-            <nav class="tactical-navbar auth-content">
-                <a href="/index.html" class="nav-item">MAINFRAME</a>
-                <a href="/database.html" class="nav-item active">BASE AGENTS</a>
-                <a href="/map.html" class="nav-item">MAP_FEED</a>
-                <a href="/report.html" class="nav-item">RAPPORTS</a>
-                <a href="/logistics.html" class="nav-item">LOGISTIQUE</a>
-                <a href="/missions.html" class="nav-item">MISSIONS</a>
-            </nav>
-
-            <main class="view-section" style="display: flex; flex-wrap: wrap; gap: 40px;">
-                
-                <section class="modules-section" style="flex: 1 1 500px; min-width: 300px; padding-right: 15px;">
-                    
-                    <div class="id-card-container">
-                        <div class="id-card" id="card">
-                            <div class="holo-overlay"></div>
-                            
-                            <div class="card-header">
-                                <div class="card-logo-text">SHADOW CO.</div>
-                                <div class="security-level">GHOST LEVEL</div>
-                            </div>
-                
-                            <div class="card-body">
-                                <div class="photo-box">
-                                    <img src="/assets/LoveLace.jpg" alt="Agent Nyx">
-                                </div>
-                                <div class="agent-info">
-                                    <div class="info-group">
-                                        <div class="card-label">NOM DE CODE</div>
-                                        <div class="card-value">LoveLace</div>
-                                    </div>
-                                    <div class="info-group">
-                                        <div class="card-label">ACCRÉDITATION</div>
-                                        <div class="card-value" style="color: var(--accent-blue);">NIVEAU 5</div>
-                                    </div>
-                                    <div class="info-group full-width">
-                                        <div class="card-label">SPÉCIALITÉ PRIMAIRE</div>
-                                        <div class="card-value" style="color: var(--accent-blue);">NETRUNNER / SIGINT</div>
-                                    </div>
-                                    <div class="info-group full-width">
-                                        <div class="card-label">CLEARANCE ID</div>
-                                        <div class="card-code">OMNI</div>
-                                    </div>
-                                </div>
-                            </div>
-                
-                            <div class="card-footer">
-                                <div class="barcode">0000000000</div>
-                                <div class="chip-container">
-                                    <div class="chip"></div>
-                                    <div style="font-size: 0.45rem; color: var(--text-dim); font-family: var(--font-code); letter-spacing: 1px;">RFID SECURED</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="cyber-panel">
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px dashed var(--accent-blue); padding-bottom: 10px; margin-bottom: 15px;">
-                            <span style="font-family: var(--font-code); color: var(--accent-blue); font-weight: bold; font-size: 1.1rem;">DIGITAL_FOOTPRINT</span>
-                            <div class="audio-viz">
-                                <div class="bar" style="animation-delay:0s;"></div>
-                                <div class="bar" style="animation-delay:0.1s;"></div>
-                                <div class="bar" style="animation-delay:0.2s;"></div>
-                                <div class="bar" style="animation-delay:0.3s;"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="log-entry">
-                            <span class="label">UNITÉ D'AFFECTATION:</span><br>
-                            <span style="color: #fff; font-size: 1rem;">SECTION 00 (GHOST SQUAD)</span>
-                        </div>
-                        <div class="log-entry">
-                            <span class="label">DERNIÈRE LOCALISATION:</span><br>
-                            <span class="redacted" data-real="NON-LOCALISÉE (VPN MULTIPLES)" data-scramble="TRACING NODE... [ERROR]"></span>
-                        </div>
-                        <div class="log-entry">
-                            <span class="label">STATUT RÉSEAU:</span><br>
-                            <span class="redacted" data-real="CONNECTED // INTERCEPTING" data-scramble="OFFLINE"></span>
-                        </div>
-                    </div>
-
-                    <div class="cyber-panel">
-                        <h3 style="font-family: var(--font-display); color: var(--text-dim); margin: 0 0 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">TECH_PROFILE</h3>
-                        
-                        <div class="log-entry">
-                            <span style="color: var(--accent-primary)">[+]</span> Loyauté conditionnelle vérifiée
-                        </div>
-                        <div class="log-entry">
-                            <span style="color: var(--accent-danger)">[-]</span> Dépendance technologique sévère
-                        </div>
-                        <div class="log-entry">
-                            <span style="color: var(--accent-danger)">[-]</span> Aversion au risque physique direct
-                        </div>
-                        <div class="log-entry">
-                            <span style="color: var(--accent-danger)">[-]</span> Sociabilité proche du néant absolu
-                        </div>
-
-                        <div style="margin-top: 20px; font-size: 0.75rem; color: var(--accent-warning); border-top: 1px dashed var(--accent-warning); padding-top: 10px; font-family: var(--font-code);">
-                            // WARNING: ELLE SURVEILLE CONSTAMMENT LE RÉSEAU SHADOW. ELLE SAIT QUE VOUS LISEZ CECI.
-                        </div>
-                    </div>
-
-                </section>
-
-                <aside class="sidebar-panel" style="flex: 1 1 350px; min-width: 300px; border-bottom-color: var(--accent-blue); padding: 0;">
-                    
-                    <div class="cyber-panel" style="margin: 0 0 25px 0; border-color: var(--accent-danger);">
-                        <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end;">
-                            <h3 style="margin: 0; color: var(--accent-danger); font-family: var(--font-display); letter-spacing: 2px;">PROJET: OVERRIDE</h3>
-                            <span style="font-size:0.7rem; color:var(--accent-danger); font-family: var(--font-code);" class="blink">ROOT ACCESS</span>
-                        </div>
-                        <div class="separator-line" style="background: linear-gradient(90deg, var(--accent-danger), transparent); height: 2px;"></div>
-                        
-                        <div style="font-family: var(--font-code); font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; margin-top: 15px;">
-                            <p>
-                                <span style="color: var(--accent-danger);">root@nyx:~$</span> ./sudo_inject.py --silent
-                            </p>
-                            
-                            <div id="live-typing" style="padding-left: 15px; border-left: 2px solid rgba(255,255,255,0.2); min-height: 90px; color: #fff;"></div>
-                            
-                            <div style="background: rgba(255, 51, 51, 0.1); border-left: 3px solid var(--accent-danger); padding: 12px; margin-top: 20px; color: #fff;">
-                                <span style="color: var(--accent-danger); font-weight: bold; font-size: 0.8rem; letter-spacing: 1px;">ALERTE SYSTÈME:</span><br>
-                                <span style="font-size: 0.75rem;">L'UTILISATEUR 'ROOT' A PRIS LE CONTRÔLE TOTAL. LES PROTOCOLES DE SÉCURITÉ ONT ÉTÉ DÉSACTIVÉS MANUELLEMENT.</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="padding: 0 5px;">
-                        <h3 style="font-family: var(--font-display); color: #fff; margin: 10px 0 10px 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">TCP/IP LOGS</h3>
-                        <div class="separator-line"></div>
-
-                        <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
-                            
-                            <div class="tcp-log-row">
-                                <span style="color: var(--text-dim)">22:41:09</span>
-                                <span>SHEPHERD_PC</span>
-                                <span class="redacted" data-real="BACKDOOR" data-scramble="UNKNOWN"></span>
-                                <span style="color: var(--accent-danger); text-align: right;">ROOT</span>
-                            </div>
-                            
-                            <div class="tcp-log-row">
-                                <span style="color: var(--text-dim)">23:15:00</span>
-                                <span class="redacted" data-real="TASK FORCE 141" data-scramble="ENEMIES"></span>
-                                <span>DDOS</span>
-                                <span style="color: var(--accent-warning); text-align: right;">BLOCK</span>
-                            </div>
-                            
-                            <div class="tcp-log-row">
-                                <span style="color: var(--text-dim)">00:00:01</span>
-                                <span>SHADOW_MAIN</span>
-                                <span class="redacted" data-real="WIPE_LOGS" data-scramble="CLEAN"></span>
-                                <span style="color: var(--accent-primary); text-align: right;">CLEAN</span>
-                            </div>
-                            
-                            <div class="tcp-log-row" style="background: rgba(0,243,255,0.08); border: 1px solid rgba(0,243,255,0.4);">
-                                <span style="color: var(--accent-blue)">NOW</span>
-                                <span class="redacted" style="color: var(--accent-blue)" data-real="CE TERMINAL" data-scramble="YOU"></span>
-                                <span>MONITORING</span>
-                                <span class="blink" style="color: var(--accent-blue); text-align: right;">ACTIF</span>
-                            </div>
-                            
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 30px;">
-                        <div style="border: 1px dashed var(--accent-danger); background: rgba(255, 51, 51, 0.05); padding: 20px; border-radius: 6px;">
-                            <div style="color: var(--accent-danger); font-family: var(--font-code); font-size: 0.8rem; margin-bottom: 12px; font-weight: bold;">
-                                [ ! ] AUTHENTIFICATION MANUELLE REQUISE
-                            </div>
-                            <div style="display: flex; flex-direction: column; gap: 10px; font-family: var(--font-code); font-size: 0.75rem;">
-                                <div style="display: flex; justify-content: space-between; color: var(--text-dim); padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <span>> operations_datahaven.log</span>
-                                    <span style="color: var(--accent-danger);">[CORROMPU]</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; color: var(--text-dim); padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <span>> archives_n.dat</span>
-                                    <span style="color: var(--accent-danger);">[LOCKED]</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; color: var(--text-dim);">
-                                    <span>> contacts_actifs.db</span>
-                                    <span style="color: var(--accent-danger);">[LOCKED]</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </aside>
-
-            </main>
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-tape"></div>
+    <div class="hero-photo-col">
+        <img src="/assets/LoveLace.jpg" alt="Nyx Blackwood">
+        <div class="photo-data">
+            <div class="data-line">ID // SC-0077</div>
+            <div class="data-line">SPEC // CYBER-OPS</div>
+            <div class="data-line blink">STATUS // ACTIVE ●</div>
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            
-            // 1. BOOT SCREEN
-            const bootScreen = document.getElementById('boot-screen');
-            const bootText = document.querySelector('.boot-text');
-            
-            setTimeout(() => { bootText.textContent = "INJECTING SHELLCODE..."; }, 500);
-            setTimeout(() => { bootText.textContent = "CONNECTION ESTABLISHED."; }, 1200);
+    <div class="hero-text-col">
+        <div class="hero-classified">DOSSIER ACTIF — CYBER-OPS — LVL 2</div>
+        <div class="hero-surname">BLACKWOOD</div>
+        <div class="hero-given">Nyx // LoveLace</div>
+        <div class="hero-desc">
+            Ancienne héritière de l'empire Blackwood. 
+            A tout abandonné pour suivre l'inconnu. 
+            Passe d'un audit de pare-feu à un cocktail de tequila avec une facilité qui dérange.
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat"><div class="hs-label">CALLSIGN</div><div class="hs-value cyan">LOVELACE</div></div>
+            <div class="hero-stat"><div class="hs-label">ÂGE</div><div class="hs-value">27 ANS</div></div>
+            <div class="hero-stat"><div class="hs-label">CLEARANCE</div><div class="hs-value red">LVL-2</div></div>
+            <div class="hero-stat"><div class="hs-label">ORIGINE</div><div class="hs-value">CONFIDENTIEL</div></div>
+            <div class="hero-stat"><div class="hs-label">RÔLE</div><div class="hs-value">CYBER / SIGINT</div></div>
+            <div class="hero-stat"><div class="hs-label">STATUT</div><div class="hs-value cyan">● ACTIVE</div></div>
+        </div>
+    </div>
+</section>
+
+<!-- BODY -->
+<div class="body">
+    <!-- 01 PROFIL -->
+    <div class="sec">
+        <div class="sec-header">
+            <div class="sec-n">01</div>
+            <div class="sec-title">PROFIL</div>
+            <div class="sec-line"></div>
+        </div>
+        <div class="block">
+            <div class="prose">
+                Fille de <em>Valéria Blackwood</em>, figure mondiale de la cybersécurité, et d'<em>Alistair Blackwood</em>, magnat des spiritueux. Nyx a grandi dans un cocon de verre et d'acier, entourée de frères au profil de <strong>successeurs millimétrés</strong>. Elle a plaqué l'empire familial pour disparaître dans le sillage d'une bande d'inconnus.
+            </div>
+            <div class="grid-2">
+                <div class="grid-cell"><div class="cell-label">LANGUES</div><div class="cell-value">FR · EN · <span class="rdct" data-text="RU / ZH">██ / ██</span></div></div>
+                <div class="grid-cell"><div class="cell-label">STATUT LÉGAL</div><div class="cell-value red">SORTIE VOLONTAIRE</div></div>
+                <div class="grid-cell"><div class="cell-label">INDÉPENDANCE FIN.</div><div class="cell-value gold">AUTONOME</div></div>
+                <div class="grid-cell"><div class="cell-label">RECRUTEMENT</div><div class="cell-value cyan"><span class="rdct" data-text="CONTACT DIRECT">CLASSIFIÉ</span></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 02 CHRONOLOGIE -->
+    <div class="sec">
+        <div class="sec-header">
+            <div class="sec-n">02</div>
+            <div class="sec-title">CHRONOLOGIE</div>
+            <div class="sec-line"></div>
+        </div>
+        <div class="block timeline">
+            <div class="tl-item">
+                <div class="tl-year">— 19</div>
+                <div class="tl-content">
+                    <div class="tl-event">OPÉRATION HÉRITAGE</div>
+                    <div class="tl-desc">Transfert automatisé de 1€ par mois depuis les comptes de ses frères vers une association caritative. Exécuté sans détection.</div>
+                </div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-year">— 26</div>
+                <div class="tl-content">
+                    <div class="tl-event">RUPTURE TOTALE</div>
+                    <div class="tl-desc">Vente flash du Golden Pub. Disparition du radar familial et indépendance financière acquise.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 03 COMPÉTENCES -->
+    <div class="sec">
+        <div class="sec-header">
+            <div class="sec-n">03</div>
+            <div class="sec-title">COMPÉTENCES</div>
+            <div class="sec-line"></div>
+        </div>
+        <div class="block">
+            <div class="skills-grid">
+                <div class="skill-item">
+                    <div class="skill-name">INTRUSION</div>
+                    <div class="skill-bar-track"><div class="skill-bar-fill" style="width:95%"></div></div>
+                    <div class="skill-note">Niveau exceptionnel</div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">MIXOLOGIE</div>
+                    <div class="skill-bar-track"><div class="skill-bar-fill" style="width:100%"></div></div>
+                    <div class="skill-note">Maîtrise totale</div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">SOCIAL ENG.</div>
+                    <div class="skill-bar-track"><div class="skill-bar-fill" style="width:90%"></div></div>
+                    <div class="skill-note">Expertise terrain</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="page-footer">
+        <span>SAS SECURE TERMINAL V.4.0.2 // SC-0077 // LOVELACE</span>
+        <a href="#">← DOSSIER MAÎTRE</a>
+    </div>
+</div>
+
+<script>
+// --- Script de Boot allégé (le pixel est maintenant géré par le CSS) ---
+const msgs = ["DÉCHIFFREMENT EN COURS...", "CRÉDENTIALS BLACKWOOD RECONNUS...", "ACCÈS ACCORDÉ."];
+let idx = 0;
+const lbl = document.getElementById('boot-label');
+const boot = document.getElementById('boot');
+
+function tick() {
+    lbl.textContent = msgs[idx++];
+    if (idx < msgs.length) setTimeout(tick, 700);
+    else {
+        setTimeout(() => {
+            boot.style.opacity = '0';
+            boot.style.pointerEvents = 'none';
             setTimeout(() => {
-                bootScreen.style.opacity = '0';
-                setTimeout(() => bootScreen.remove(), 500);
-            }, 1500);
-
-           
-            const logText = "> Scan des vulnérabilités kernel... [OK]\n> Exploitation de la faille Zero-Day... [OK]\n> Escalade de privilèges administrateur... [EN COURS]\n> ACCÈS ROOT AU SERVEUR CENTRAL... [ACCORDÉ]";
-            const typeTarget = document.getElementById('live-typing');
-            let typeIndex = 0;
-
-            function typeWriter() {
-                if(!typeTarget) return;
-                if (typeIndex < logText.length) {
-                    let char = logText.charAt(typeIndex);
-                    if (char === '\n') {
-                        typeTarget.innerHTML += '<br><br>';
-                    } else {
-                        if(logText.substring(typeIndex, typeIndex+4) === '[OK]') {
-                            typeTarget.innerHTML += '<span style="color:var(--accent-primary)">[OK]</span>';
-                            typeIndex += 3;
-                        } else if(logText.substring(typeIndex, typeIndex+10) === '[EN COURS]') {
-                            typeTarget.innerHTML += '<span style="color:var(--accent-warning)">[EN COURS]</span>';
-                            typeIndex += 9;
-                        } else if(logText.substring(typeIndex, typeIndex+9) === '[ACCORDÉ]') {
-                            typeTarget.innerHTML += '<span class="blink" style="color:var(--accent-danger)">[ACCORDÉ]</span>';
-                            typeIndex += 8;
-                        } else {
-                            typeTarget.innerHTML += char;
-                        }
-                    }
-                    typeIndex++;
-                    setTimeout(typeWriter, 25);
-                }
-            }
-            setTimeout(typeWriter, 1800);
-
-       
-            const card = document.getElementById('card');
-            const cardContainer = document.querySelector('.id-card-container');
-
-            if(card && cardContainer) {
-                cardContainer.addEventListener('mousemove', (e) => {
-                    const rect = cardContainer.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    const centerX = rect.width / 2;
-                    const centerY = rect.height / 2;
-                    
-                    const rotateX = ((y - centerY) / centerY) * -6; 
-                    const rotateY = ((x - centerX) / centerX) * 8;
-                    
-                    card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-                });
-                cardContainer.addEventListener('mouseleave', () => {
-                    card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
-                });
-            }
-
-            
-            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
-            document.querySelectorAll('.redacted').forEach(element => {
-                element.textContent = element.getAttribute('data-scramble');
-                element.onmouseover = event => {
-                    let iterations = 0;
-                    const targetText = event.target.getAttribute('data-real');
-                    if(!targetText) return;
-                    const interval = setInterval(() => {
-                        event.target.textContent = targetText.split("").map((letter, index) => {
-                            if(index < iterations) return targetText[index];
-                            return letters[Math.floor(Math.random() * letters.length)];
-                        }).join("");
-                        if(iterations >= targetText.length) clearInterval(interval);
-                        iterations += 1 / 2;
-                    }, 20);
-                }
-
-                element.onmouseleave = event => {
-                   element.textContent = element.getAttribute('data-scramble');
-                }
-            });
-        });
-    </script>
+                boot.remove();
+            }, 700);
+        }, 600);
+    }
+}
+setTimeout(tick, 300);
+</script>
 </body>
 </html>
