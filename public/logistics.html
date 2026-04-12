@@ -225,5 +225,18 @@
     </div>
 
     <script src="js/equipment.js"></script>
+
+    <script>
+    function openModal() {
+        document.getElementById('modal-overlay').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('modal-overlay').style.display = 'none';
+        document.getElementById('add-equipment-form').reset();
+    }
+
+    window.closeModal = closeModal;
+</script>
 </body>
 </html>
