@@ -177,61 +177,118 @@ async function loadBoardData() {
 function renderNode(node) {
     const world = document.getElementById('board-world');
     const el = document.createElement('div');
-    el.classList.add('board-item');
+    el.classList.add('board-item', `board-${node.type}`);
     el.id = `node-${node.id}`;
     el.setAttribute('data-db-id', node.id);
     el.style.left = node.x + 'px';
     el.style.top = node.y + 'px';
 
-    let contentHtml = '';
-    let pinColor = 'pin-red';
+    const padId = String(node.id).padStart(4, '0');
+    const lat = (48 + (node.id * 0.17) % 5).toFixed(4);
+    const lon = (2  + (node.id * 0.23) % 8).toFixed(4);
+    const evNum = String(node.id).padStart(3, '0');
+
+    let inner = '';
 
     if (node.type === 'note') {
-        el.classList.add('note');
-        pinColor = 'pin-note';
-        contentHtml = `
-            <div class="item-label">${node.label}</div>
-            <div class="item-sub">${node.sub_label || ''}</div>
+        inner = `
+            <div class="note-pin-el"></div>
+            <div class="note-lines"></div>
+            <div class="note-hdr">${node.label || 'NOTE'}</div>
+            <div class="note-bdy">${node.sub_label || ''}</div>
+            <div class="note-corner"></div>
         `;
-    } else {
-        let img = node.image_url || '';
-        if (node.type === 'target') {
-            if (!img) img = 'assets/Adam.jpg';
-            contentHtml = `<img src="${img}" draggable="false" onerror="this.src='assets/Adam.jpg'">`;
-            pinColor = 'pin-red';
-        } else if (node.type === 'evidence') {
-            pinColor = 'pin-yellow';
-            contentHtml = img ? `<img src="${img}" draggable="false">` : `<div class="evidence-content" style="padding:20px; color:#aaa; font-size:0.8rem; text-align:center;">PREUVE<br>NUMÉRIQUE</div>`;
-        } else {
-            pinColor = 'pin-blue';
-            if (!img) img = 'assets/carte.jpg';
-            contentHtml = `<img src="${img}" style="opacity:0.8" draggable="false">`;
-        }
-        contentHtml += `
-            <div class="item-label">${node.label}</div>
-            <div class="item-sub">${node.sub_label || ''}</div>
+    } else if (node.type === 'target') {
+        const img = node.image_url
+            ? `<img src="${node.image_url}" draggable="false" onerror="this.style.display='none'">`
+            : `<div class="no-photo-target">⊕</div>`;
+        inner = `
+            <div class="node-type-bar target-bar">
+                <span>⊕</span><span>CIBLE</span>
+                <span class="ntb-id">#${padId}</span>
+            </div>
+            <div class="target-photo-wrap">
+                ${img}
+                <div class="crosshair-overlay">
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="50" cy="50" r="30" fill="none" stroke="rgba(255,51,51,0.5)" stroke-width="1.2"/>
+                        <circle cx="50" cy="50" r="4" fill="rgba(255,51,51,0.8)"/>
+                        <line x1="50" y1="8"  x2="50" y2="35" stroke="rgba(255,51,51,0.55)" stroke-width="1"/>
+                        <line x1="50" y1="65" x2="50" y2="92" stroke="rgba(255,51,51,0.55)" stroke-width="1"/>
+                        <line x1="8"  y1="50" x2="35" y2="50" stroke="rgba(255,51,51,0.55)" stroke-width="1"/>
+                        <line x1="65" y1="50" x2="92" y2="50" stroke="rgba(255,51,51,0.55)" stroke-width="1"/>
+                    </svg>
+                </div>
+                <div class="photo-scanline"></div>
+            </div>
+            <div class="node-data">
+                <div class="nd-label">${node.label || 'INCONNU'}</div>
+                ${node.sub_label ? `<div class="nd-sub">${node.sub_label}</div>` : ''}
+            </div>
+            <div class="target-status-bar">
+                <div class="tsb-dot"></div>
+                <span>ACTIF — SUIVI EN COURS</span>
+            </div>
+        `;
+    } else if (node.type === 'evidence') {
+        const img = node.image_url
+            ? `<img src="${node.image_url}" draggable="false">`
+            : `<div class="evidence-icon">🔍</div>`;
+        inner = `
+            <div class="evidence-tape">
+                <span>PREUVE</span><span>E-${evNum}</span>
+            </div>
+            <div class="evidence-content">${img}</div>
+            <div class="node-data">
+                <div class="nd-label ev-label">${node.label || 'PREUVE'}</div>
+                ${node.sub_label ? `<div class="nd-sub ev-sub">${node.sub_label}</div>` : ''}
+            </div>
+            <div class="evidence-seal-wrap">
+                <span class="evidence-seal">CLASSIFIÉ</span>
+            </div>
+        `;
+    } else if (node.type === 'location') {
+        const img = node.image_url
+            ? `<img src="${node.image_url}" draggable="false">`
+            : `<div class="location-pin-display">📍</div>`;
+        inner = `
+            <div class="node-type-bar location-bar">
+                <span>◈</span><span>SECTEUR</span>
+            </div>
+            <div class="location-content">
+                <div class="location-grid-bg">
+                    ${img}
+                    <div class="loc-radar"></div>
+                </div>
+            </div>
+            <div class="node-data">
+                <div class="nd-label loc-label">${node.label || 'LIEU'}</div>
+                ${node.sub_label ? `<div class="nd-sub loc-sub">${node.sub_label}</div>` : ''}
+            </div>
+            <div class="location-coords">
+                <span>${lat}N</span><span>${lon}E</span>
+            </div>
         `;
     }
-
+    
     el.innerHTML = `
-        <div class="pin ${pinColor}"></div>
-        ${contentHtml}
+        ${inner}
         <button class="btn-del" onclick="deleteNode(${node.id}, event)">×</button>
     `;
 
-    el.addEventListener("mousedown", handleNodeClick);
+    el.addEventListener('mousedown', handleNodeClick);
     el.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         e.stopPropagation();
         editingNodeId = node.id;
         document.getElementById('creation-modal').classList.remove('hidden');
-        document.querySelector('.modal-title').innerText = "MODIFIER ÉLÉMENT";
+        document.querySelector('.modal-title').innerText = 'MODIFIER ÉLÉMENT';
         setModalType(node.type);
         document.getElementById('inp-label').value = node.label || '';
         document.getElementById('inp-sub').value = node.sub_label || '';
-        if(document.getElementById('inp-img')) document.getElementById('inp-img').value = node.image_url || '';
+        if (document.getElementById('inp-img')) document.getElementById('inp-img').value = node.image_url || '';
     });
-
+    
     world.appendChild(el);
 }
 
