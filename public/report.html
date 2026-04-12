@@ -16,8 +16,6 @@
     <link rel="stylesheet" href="css/stylele.css">
     
     <style>
-        /* === CORRECTION NAVBAR === */
-        /* Forcer le display flex quand on est connecté pour ne pas casser la navbar */
         body.logged-in .tactical-navbar.auth-content,
         .tactical-navbar {
             display: flex !important; 
@@ -33,7 +31,6 @@
 
         .report-wrapper {
             display: flex; gap: 30px;
-            /* Ajustement calculé précisément pour la navbar */
             height: calc(100vh - 220px); 
         }
         
@@ -64,7 +61,6 @@
         .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .actions .btn-full { grid-column: span 2; }
 
-        /* Conteneur de prévisualisation */
         .preview-container {
             flex: 1.2;
             display: flex; justify-content: center; align-items: flex-start;
@@ -75,7 +71,6 @@
             scrollbar-width: thin;
         }
 
-        /* Le document papier */
         .preview-panel {
             width: 210mm;
             min-height: 297mm;
@@ -398,27 +393,22 @@
         const content = document.getElementById('inp-content').value;
         const proof = document.getElementById('inp-proof').value;
 
-        const markdown = `
-\`\`\`fix
-DOSSIER MISSION : ${opname}
-\`\`\`
-**DATE :** ${date}
-**STATUT :** ${status}
-**TYPE :** ${type}
-**OFFICIER :** ${lead}
-**EFFECTIFS :** ${agents}
-
-**RAPPORT :**
-${content}
-
-**PREUVES :**
-${proof}
-
-*SAS SYSTEM V.4.0.2*`;
+        const markdown = `\`\`\`fix\nDOSSIER MISSION : ${opname}\n\`\`\`\n**DATE :** ${date}\n**STATUT :** ${status}\n**TYPE :** ${type}\n**OFFICIER :** ${lead}\n**EFFECTIFS :** ${agents}\n\n**RAPPORT :**\n${content}\n\n**PREUVES :**\n${proof}\n\n*SAS SYSTEM V.4.0.2*`;
 
         navigator.clipboard.writeText(markdown).then(() => {
             alert("DONNÉES FORMATÉES ET COPIÉES DANS LE PRESSE-PAPIER.");
         });
+    }
+
+    function dataURItoBlob(dataURI) {
+        const byteString = atob(dataURI.split(',')[1]);
+        const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+        return new Blob([ab], { type: mimeString });
     }
 
     async function sendToDiscordAPI() {
@@ -431,8 +421,15 @@ ${proof}
 
         const ref = document.getElementById('out-ref').innerText;
         const opname = document.getElementById('inp-opname').value.toUpperCase() || 'SANS NOM';
-        const element = document.getElementById('print-area');
+        const type = document.getElementById('inp-type').value;
+        const status = document.getElementById('inp-status').value;
+        const date = document.getElementById('out-date').innerText;
+        const lead = document.getElementById('inp-lead').value || 'INCONNU';
+        const agents = document.getElementById('inp-agents').value || 'AUCUN';
+        const content = document.getElementById('inp-content').value || 'Rien à signaler.';
+        const proof = document.getElementById('inp-proof').value || 'Aucune.';
         
+        const element = document.getElementById('print-area');
         window.scrollTo(0, 0);
 
         const opt = {
@@ -445,38 +442,48 @@ ${proof}
 
         try {
             const pdfDataUri = await html2pdf().set(opt).from(element).output('datauristring');
-            const pdfBase64 = pdfDataUri.split(',')[1];
+            const pdfBlob = dataURItoBlob(pdfDataUri);
 
-            const data = {
-                opname: opname,
-                type: document.getElementById('inp-type').value,
-                status: document.getElementById('inp-status').value,
-                date: document.getElementById('out-date').innerText,
-                lead: document.getElementById('inp-lead').value,
-                agents: document.getElementById('inp-agents').value,
-                content: document.getElementById('inp-content').value || 'Rien à signaler.',
-                proof: document.getElementById('inp-proof').value || 'Aucune.',
-                ref: ref,
-                fileData: pdfBase64,
-                fileName: `RAPPORT_SAS_${ref}.pdf`
+            let embedColor = 0x00ff9d;
+            if (status === 'ÉCHEC') embedColor = 0xff3333;
+            if (status === 'CLASSIFIÉ') embedColor = 0xeebb00;
+            if (status === 'EN COURS') embedColor = 0x00c8dd;
+
+            const payload = {
+                username: "SAS MAINFRAME",
+                embeds: [{
+                    title: `📄 NOUVEAU RAPPORT : ${opname}`,
+                    color: embedColor,
+                    fields: [
+                        { name: "TYPE", value: type, inline: true },
+                        { name: "STATUT", value: status, inline: true },
+                        { name: "OFFICIER", value: lead, inline: true },
+                        { name: "AGENTS", value: agents, inline: false },
+                        { name: "RÉSUMÉ", value: content.substring(0, 1024), inline: false },
+                        { name: "PREUVES", value: proof.substring(0, 1024), inline: false }
+                    ],
+                    footer: { text: `REF: SAS-${ref} | DATE: ${date}` }
+                }]
             };
 
-            const response = await fetch('/api/send-discord', {
+            const formData = new FormData();
+            formData.append('payload_json', JSON.stringify(payload));
+            formData.append('file', pdfBlob, `RAPPORT_SAS_${ref}.pdf`);
+
+            const WEBHOOK_URL = "https://discord.com/api/webhooks/1444143910690492588/lxiIiONrsoa8bIIK36lkqzFGGKrjM41hf11Pa8YphSJagesBD_d_uHd12QUp_zQny4jY";
+
+            const response = await fetch(WEBHOOK_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: formData
             });
 
             if (response.ok) {
-                alert("✅ UPLINK TERMINÉ : DOSSIER TRANSMIS AU QG.");
+                alert("✅ UPLINK TERMINÉ : DOSSIER ET PDF TRANSMIS AU QG.");
             } else {
-                const errText = await response.text();
-                console.error("Erreur API:", errText);
-                alert("❌ ÉCHEC UPLINK : FICHIER TROP VOLUMINEUX OU ERREUR RÉSEAU.");
+                alert("❌ ÉCHEC UPLINK : REJETÉ PAR DISCORD.");
             }
 
         } catch (error) {
-            console.error(error);
             alert("❌ ERREUR FATALE LORS DE L'ENCODAGE DU DOCUMENT.");
         }
 
