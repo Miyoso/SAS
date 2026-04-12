@@ -16,6 +16,16 @@
     <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 
     <style>
+
+        .type-btn {
+    color: var(--text-main);
+    border-color: rgba(255,255,255,0.3);
+}
+.type-btn.active {
+    color: var(--accent-warning) !important;
+    border-color: var(--accent-warning) !important;
+}
+
         body.logged-in .tactical-navbar.auth-content,
         .tactical-navbar {
             display: flex !important; 
@@ -247,18 +257,7 @@
         }
     });
 
-    function setModalType(type) {
-        document.querySelectorAll('.type-btn').forEach(btn => {
-            btn.classList.remove('active');
-            btn.style.color = 'var(--text-main)';
-            btn.style.borderColor = 'rgba(255,255,255,0.3)';
-        });
-        const activeBtn = document.getElementById(`btn-type-${type}`);
-        if(activeBtn) {
-            activeBtn.classList.add('active');
-            activeBtn.style.color = 'var(--accent-warning)';
-            activeBtn.style.borderColor = 'var(--accent-warning)';
-        }
+    
         
         const imgGroup = document.getElementById('group-img');
         if(type === 'note') imgGroup.style.display = 'none';
