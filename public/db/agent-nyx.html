@@ -10,7 +10,7 @@
 
     <style>
         :root {
-            /* Palette Or / Blackwood */
+            
             --gold:      #d4af37; 
             --gold-bright: #f1d592;
             --gold-dim:  rgba(212, 175, 55, 0.12);
@@ -37,29 +37,29 @@
             cursor: crosshair;
         }
 
-        /* ── PIXEL SECRET (Fixe + Respiration Lente) ── */
+      
         #secret-pixel {
             position: fixed;
-            /* POSITION EXACTE DANS TA ZONE ROSE */
-            top: 40vh;    /* 40% en partant du haut de l'écran */
-            right: 20vw;  /* 20% en partant de la droite de l'écran */
+           
+            top: 40vh;    
+            right: 20vw;  
             
             width: 4px;
             height: 4px;
             background: var(--gold);
-            opacity: 0; /* Invisible par défaut, l'animation s'occupe de l'afficher */
+            opacity: 0; 
             z-index: 9999;
             cursor: help;
             box-shadow: 0 0 8px var(--gold);
             pointer-events: auto;
             
-            /* Animation lente infinie : 8 secondes pour un cycle complet */
+         
             animation: slowPulse 8s infinite ease-in-out;
-            animation-delay: 2.5s; /* Attend que l'écran de chargement disparaisse */
+            animation-delay: 2.5s; 
             transition: transform 0.2s;
         }
 
-        /* Quand on passe la souris dessus : il s'illumine fortement et arrête de clignoter */
+     
         #secret-pixel:hover {
             background: #fff;
             transform: scale(3);
@@ -68,15 +68,15 @@
             animation: none; 
         }
 
-        /* L'animation d'apparition/disparition lente */
+     
         @keyframes slowPulse {
             0%   { opacity: 0; }
-            40%  { opacity: 0.8; } /* Apparaît doucement */
-            60%  { opacity: 0.8; } /* Reste visible un instant */
-            100% { opacity: 0; }   /* Disparaît doucement */
+            40%  { opacity: 0.8; } 
+            60%  { opacity: 0.8; } 
+            100% { opacity: 0; }   
         }
 
-        /* ── Scanline ── */
+        
         .scan {
             position: fixed; left: 0; width: 100%; height: 1px;
             background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
@@ -85,7 +85,7 @@
         }
         @keyframes scan { 0%{top:-2%} 100%{top:102%} }
 
-        /* ── BOOT ── */
+       
         #boot {
             position: fixed; inset: 0; background: #000; z-index: 9000;
             display: flex; align-items: center; justify-content: center;
@@ -110,7 +110,7 @@
         @keyframes fill    { to { width: 100%; } }
         @keyframes fadeIn  { to { opacity: 1; } }
 
-        /* ── TOP BAR ── */
+        
         .topbar {
             position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 44px;
             background: rgba(5,5,5,0.96); border-bottom: 1px solid var(--border);
@@ -122,7 +122,7 @@
         .tb-sep { width: 1px; height: 16px; background: var(--border); }
         .tb-ref { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 2px; }
 
-        /* ── HERO ── */
+     
         .hero {
             height: 100vh; position: relative; display: grid; grid-template-columns: 1fr 1fr;
             opacity: 0; animation: fadeIn 1s 2.2s forwards; z-index: 5;
@@ -175,7 +175,7 @@
         .hs-value.cyan { color: var(--gold); }
         .hs-value.red  { color: var(--red); }
 
-        /* ── BODY ── */
+        
         .body {
             max-width: 960px; margin: 0 auto; padding: 80px 40px 100px;
             display: flex; flex-direction: column; gap: 64px;
@@ -233,7 +233,7 @@
 </head>
 <body>
 
-<!-- LE PIXEL SECRET : Lien direct vers Interception.html -->
+
 <a href="Interception.html" id="secret-pixel"></a>
 
 <div class="scan"></div>
@@ -245,7 +245,7 @@
     <div class="boot-label" id="boot-label">DÉCHIFFREMENT EN COURS...</div>
 </div>
 
-<!-- TOP BAR -->
+
 <nav class="topbar">
     <div class="tb-left">
         <div class="tb-logo">SAS</div>
@@ -254,7 +254,7 @@
     </div>
 </nav>
 
-<!-- HERO -->
+
 <section class="hero">
     <div class="hero-tape"></div>
     <div class="hero-photo-col">
@@ -286,9 +286,9 @@
     </div>
 </section>
 
-<!-- BODY -->
+
 <div class="body">
-    <!-- 01 PROFIL -->
+   
     <div class="sec">
         <div class="sec-header">
             <div class="sec-n">01</div>
@@ -308,7 +308,7 @@
         </div>
     </div>
 
-    <!-- 02 CHRONOLOGIE -->
+  
     <div class="sec">
         <div class="sec-header">
             <div class="sec-n">02</div>
@@ -333,7 +333,7 @@
         </div>
     </div>
 
-    <!-- 03 COMPÉTENCES -->
+ 
     <div class="sec">
         <div class="sec-header">
             <div class="sec-n">03</div>
@@ -361,7 +361,7 @@
         </div>
     </div>
 
-    <!-- FOOTER -->
+
     <div class="page-footer">
         <span>SAS SECURE TERMINAL V.4.0.2 // SC-0077 // LOVELACE</span>
         <a href="#">← DOSSIER MAÎTRE</a>
@@ -369,7 +369,7 @@
 </div>
 
 <script>
-// --- Script de Boot allégé (le pixel est maintenant géré par le CSS) ---
+
 const msgs = ["DÉCHIFFREMENT EN COURS...", "CRÉDENTIALS BLACKWOOD RECONNUS...", "ACCÈS ACCORDÉ."];
 let idx = 0;
 const lbl = document.getElementById('boot-label');
@@ -390,5 +390,107 @@ function tick() {
 }
 setTimeout(tick, 300);
 </script>
+
+<script>
+(function() {
+    const AUDIO_SRC = '/assets/ambiance.mp3';
+    let audio   = null;
+    let started = false;
+    let muted   = false;
+
+  
+    const btn = document.createElement('button');
+    btn.id = 'ambient-toggle';
+    btn.textContent = '♫';
+    btn.style.cssText = `
+        position: fixed; bottom: 22px; right: 22px; z-index: 9999;
+        width: 36px; height: 36px; border-radius: 50%;
+        background: rgba(5,5,5,0.75);
+        border: 1px solid rgba(212,175,55,0.35);
+        color: rgba(212,175,55,0.5); font-size: 14px;
+        cursor: pointer; transition: all 0.3s;
+        display: flex; align-items: center; justify-content: center;
+    `;
+    btn.title = 'Musique ambiante';
+    document.body.appendChild(btn);
+
+    function initAudio() {
+        if (started) return;
+        started = true;
+
+        audio          = new Audio(AUDIO_SRC);
+        audio.loop     = true;
+        audio.volume   = 0;
+        audio.preload  = 'auto';
+
+       
+
+     
+        let vol = 0;
+        const target  = 0.18;
+        const step    = target / 120;
+        const fadeIn  = setInterval(() => {
+            vol = Math.min(vol + step, target);
+            if (audio) audio.volume = vol;
+            if (vol >= target) clearInterval(fadeIn);
+        }, 50);
+    }
+
+  
+    setTimeout(initAudio, 3500);
+
+
+    btn.addEventListener('click', () => {
+        if (!started) {
+            initAudio();
+            return;
+        }
+
+        muted = !muted;
+
+        if (muted) {
+          
+            const fadeOut = setInterval(() => {
+                if (!audio) return clearInterval(fadeOut);
+                audio.volume = Math.max(0, audio.volume - 0.01);
+                if (audio.volume <= 0) {
+                    audio.pause();
+                    clearInterval(fadeOut);
+                }
+            }, 40);
+        } else {
+           
+            audio.play();
+            const fadeIn = setInterval(() => {
+                if (!audio) return clearInterval(fadeIn);
+                audio.volume = Math.min(0.18, audio.volume + 0.01);
+                if (audio.volume >= 0.18) clearInterval(fadeIn);
+            }, 40);
+        }
+
+        btn.textContent   = muted ? '♩' : '♫';
+        btn.style.color   = muted ? 'rgba(212,175,55,0.2)' : 'rgba(212,175,55,0.5)';
+    });
+
+    // Hover
+    btn.addEventListener('mouseenter', () => {
+        btn.style.borderColor = 'rgba(212,175,55,0.7)';
+        btn.style.color       = 'rgba(212,175,55,0.9)';
+    });
+    btn.addEventListener('mouseleave', () => {
+        btn.style.borderColor = 'rgba(212,175,55,0.35)';
+        btn.style.color       = muted ? 'rgba(212,175,55,0.2)' : 'rgba(212,175,55,0.5)';
+    });
+
+   
+    document.addEventListener('visibilitychange', () => {
+        if (!audio || muted) return;
+        if (document.hidden) audio.pause();
+        else audio.play();
+    });
+
+})();
+</script>
+
 </body>
 </html>
