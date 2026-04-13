@@ -394,97 +394,39 @@ setTimeout(tick, 300);
 <script>
 (function() {
     const AUDIO_SRC = '/assets/ambiance.mp3';
-    let audio   = null;
-    let started = false;
-    let muted   = false;
-
-  
-    const btn = document.createElement('button');
-    btn.id = 'ambient-toggle';
-    btn.textContent = '♫';
-    btn.style.cssText = `
-        position: fixed; bottom: 22px; right: 22px; z-index: 9999;
-        width: 36px; height: 36px; border-radius: 50%;
-        background: rgba(5,5,5,0.75);
-        border: 1px solid rgba(212,175,55,0.35);
-        color: rgba(212,175,55,0.5); font-size: 14px;
-        cursor: pointer; transition: all 0.3s;
-        display: flex; align-items: center; justify-content: center;
-    `;
-    btn.title = 'Musique ambiante';
-    document.body.appendChild(btn);
+    let audio = null;
 
     function initAudio() {
-        if (started) return;
-        started = true;
+        audio         = new Audio(AUDIO_SRC);
+        audio.loop    = true;
+        audio.volume  = 0;
+        audio.preload = 'auto';
 
-        audio          = new Audio(AUDIO_SRC);
-        audio.loop     = true;
-        audio.volume   = 0;
-        audio.preload  = 'auto';
+        audio.play().catch(() => {
+            
+            document.addEventListener('click', function retry() {
+                audio.play();
+                document.removeEventListener('click', retry);
+            }, { once: true });
+        });
 
-       
-
-     
+      
         let vol = 0;
-        const target  = 0.18;
-        const step    = target / 120;
-        const fadeIn  = setInterval(() => {
+        const target = 0.07;
+        const step   = target / 160;
+        const fadeIn = setInterval(() => {
             vol = Math.min(vol + step, target);
             if (audio) audio.volume = vol;
             if (vol >= target) clearInterval(fadeIn);
         }, 50);
     }
 
-  
+    
     setTimeout(initAudio, 3500);
 
-
-    btn.addEventListener('click', () => {
-        if (!started) {
-            initAudio();
-            return;
-        }
-
-        muted = !muted;
-
-        if (muted) {
-          
-            const fadeOut = setInterval(() => {
-                if (!audio) return clearInterval(fadeOut);
-                audio.volume = Math.max(0, audio.volume - 0.01);
-                if (audio.volume <= 0) {
-                    audio.pause();
-                    clearInterval(fadeOut);
-                }
-            }, 40);
-        } else {
-           
-            audio.play();
-            const fadeIn = setInterval(() => {
-                if (!audio) return clearInterval(fadeIn);
-                audio.volume = Math.min(0.18, audio.volume + 0.01);
-                if (audio.volume >= 0.18) clearInterval(fadeIn);
-            }, 40);
-        }
-
-        btn.textContent   = muted ? '♩' : '♫';
-        btn.style.color   = muted ? 'rgba(212,175,55,0.2)' : 'rgba(212,175,55,0.5)';
-    });
-
-    // Hover
-    btn.addEventListener('mouseenter', () => {
-        btn.style.borderColor = 'rgba(212,175,55,0.7)';
-        btn.style.color       = 'rgba(212,175,55,0.9)';
-    });
-    btn.addEventListener('mouseleave', () => {
-        btn.style.borderColor = 'rgba(212,175,55,0.35)';
-        btn.style.color       = muted ? 'rgba(212,175,55,0.2)' : 'rgba(212,175,55,0.5)';
-    });
-
-   
+    
     document.addEventListener('visibilitychange', () => {
-        if (!audio || muted) return;
+        if (!audio) return;
         if (document.hidden) audio.pause();
         else audio.play();
     });
