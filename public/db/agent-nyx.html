@@ -402,13 +402,7 @@ setTimeout(tick, 300);
         audio.volume  = 0;
         audio.preload = 'auto';
 
-        audio.play().catch(() => {
-            
-            document.addEventListener('click', function retry() {
-                audio.play();
-                document.removeEventListener('click', retry);
-            }, { once: true });
-        });
+        
 
       
         let vol = 0;
