@@ -294,12 +294,11 @@ function renderNode(node) {
 
 function setupPanning() {
     const viewport = document.getElementById('board-viewport');
+
+    // ── MOUSE ──
     viewport.addEventListener('mousedown', (e) => {
         if (e.target.closest('.board-item')) return;
-        if (e.target.closest('.hud-overlay')) return;
-        if (e.target.closest('.modal-overlay')) return;
-        if (e.target.closest('.link-group')) return;
-
+        if (e.target.closest('.board-toolbar')) return;
         isPanning = true;
         startPanX = e.clientX - panX;
         startPanY = e.clientY - panY;
@@ -317,13 +316,57 @@ function setupPanning() {
         isPanning = false;
         viewport.style.cursor = 'grab';
     });
+
+    // ── TOUCH ──
+    let lastTouchDist = null;
+    let touchPanStart = null;
+
+    viewport.addEventListener('touchstart', (e) => {
+        if (e.target.closest('.board-item')) return;
+        if (e.target.closest('.board-toolbar')) return;
+
+        if (e.touches.length === 1) {
+            touchPanStart = { x: e.touches[0].clientX - panX, y: e.touches[0].clientY - panY };
+            isPanning = true;
+        } else if (e.touches.length === 2) {
+            isPanning = false;
+            lastTouchDist = getTouchDist(e.touches);
+        }
+    }, { passive: true });
+
+    viewport.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (e.touches.length === 1 && isPanning && touchPanStart) {
+            panX = e.touches[0].clientX - touchPanStart.x;
+            panY = e.touches[0].clientY - touchPanStart.y;
+            updateWorldTransform();
+        } else if (e.touches.length === 2 && lastTouchDist !== null) {
+            const newDist = getTouchDist(e.touches);
+            const delta   = (newDist - lastTouchDist) * 0.008;
+            currentScale  = Math.min(Math.max(0.2, currentScale + delta), 2.5);
+            lastTouchDist = newDist;
+            updateWorldTransform();
+        }
+    }, { passive: false });
+
+    viewport.addEventListener('touchend', (e) => {
+        if (e.touches.length < 2) lastTouchDist = null;
+        if (e.touches.length === 0) { isPanning = false; touchPanStart = null; }
+    }, { passive: true });
+
+    // ── WHEEL (zoom) ──
     viewport.addEventListener('wheel', (e) => {
         e.preventDefault();
-        const delta = e.deltaY > 0 ? -0.1 : 0.1;
-        const newScale = Math.min(Math.max(0.2, currentScale + delta), 2);
-        currentScale = newScale;
+        const delta    = e.deltaY > 0 ? -0.1 : 0.1;
+        currentScale   = Math.min(Math.max(0.2, currentScale + delta), 2.5);
         updateWorldTransform();
     }, { passive: false });
+}
+
+function getTouchDist(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
 }
 
 function updateWorldTransform() {
@@ -332,7 +375,8 @@ function updateWorldTransform() {
 }
 
 function handleNodeClick(e) {
-    if(e.target.classList.contains('btn-del')) return;
+    if (e.target.classList.contains('btn-del')) return;
+
     if (isLinking) {
         e.stopPropagation();
         const clickedNode = e.currentTarget;
@@ -346,14 +390,67 @@ function handleNodeClick(e) {
         }
         return;
     }
+
+    if (e.type === 'touchstart') {
+        e.stopPropagation();
+        const touch = e.touches[0];
+
+        // Marque le nœud comme "touché" pour afficher le bouton delete
+        document.querySelectorAll('.board-item.touched').forEach(n => {
+            if (n !== e.currentTarget) n.classList.remove('touched');
+        });
+        e.currentTarget.classList.add('touched');
+
+        activeItem = e.currentTarget;
+        const rect  = activeItem.getBoundingClientRect();
+        const scale = currentScale;
+        dragOffsetX = (touch.clientX - rect.left) / scale;
+        dragOffsetY = (touch.clientY - rect.top)  / scale;
+
+        document.addEventListener('touchend',  itemTouchEnd,  { passive: true, once: true });
+        document.addEventListener('touchmove', itemTouchDrag, { passive: false });
+        return;
+    }
+
+    // Mouse drag
     e.stopPropagation();
     activeItem = e.currentTarget;
-    const rect = activeItem.getBoundingClientRect();
+    const rect  = activeItem.getBoundingClientRect();
     const scale = currentScale;
     dragOffsetX = (e.clientX - rect.left) / scale;
-    dragOffsetY = (e.clientY - rect.top) / scale;
-    document.addEventListener("mouseup", itemDragEnd);
-    document.addEventListener("mousemove", itemDrag);
+    dragOffsetY = (e.clientY - rect.top)  / scale;
+    document.addEventListener('mouseup',   itemDragEnd);
+    document.addEventListener('mousemove', itemDrag);
+}
+
+function itemTouchDrag(e) {
+    if (!activeItem || e.touches.length !== 1) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const scale = currentScale;
+    const containerRect = document.getElementById('board-world').getBoundingClientRect();
+    const newX = (touch.clientX - containerRect.left) / scale - dragOffsetX;
+    const newY = (touch.clientY - containerRect.top)  / scale - dragOffsetY;
+    activeItem.style.left = newX + 'px';
+    activeItem.style.top  = newY + 'px';
+    requestAnimationFrame(drawLines);
+}
+
+async function itemTouchEnd() {
+    document.removeEventListener('touchmove', itemTouchDrag);
+    if (activeItem) {
+        const id = activeItem.getAttribute('data-db-id');
+        const x  = parseInt(activeItem.style.left);
+        const y  = parseInt(activeItem.style.top);
+        try {
+            await fetch('/api/game?entity=investigation', {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id, x, y })
+            });
+        } catch(e) { console.error(e); }
+        activeItem = null;
+    }
 }
 
 function itemDrag(e) {
@@ -385,6 +482,7 @@ async function itemDragEnd() {
         } catch(e) { console.error(e); }
         document.removeEventListener("mouseup", itemDragEnd);
         document.removeEventListener("mousemove", itemDrag);
+        el.addEventListener('touchstart', handleNodeClick, { passive: false });
         activeItem = null;
     }
 }
