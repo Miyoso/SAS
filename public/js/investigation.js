@@ -727,12 +727,19 @@ function resetInputToText() {
 }
 
 window.setModalType = function(type) {
-    currentModalType = type;
-    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    currentModalType = type;  // ← c'est ça qui manquait côté HTML
+    document.querySelectorAll('.type-btn').forEach(b => {
+        b.classList.remove('active');
+        b.style.color = '';
+        b.style.borderColor = '';
+    });
     const btn = document.getElementById(`btn-type-${type}`);
-    if(btn) btn.classList.add('active');
-
-    if(type === 'note') {
+    if (btn) {
+        btn.classList.add('active');
+        btn.style.color = 'var(--accent-warning)';
+        btn.style.borderColor = 'var(--accent-warning)';
+    }
+    if (type === 'note') {
         document.getElementById('group-img').style.display = 'none';
         replaceInputWithTextarea();
     } else {

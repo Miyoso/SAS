@@ -364,21 +364,21 @@
     }
 
     function setModalType(type) {
-        document.querySelectorAll('.type-btn').forEach(btn => {
-            btn.classList.remove('active');
-            btn.style.color = 'var(--text-main)';
-            btn.style.borderColor = 'rgba(255,255,255,0.3)';
-        });
-        const activeBtn = document.getElementById(`btn-type-${type}`);
-        if (activeBtn) {
-            activeBtn.classList.add('active');
-            activeBtn.style.color = 'var(--accent-warning)';
-            activeBtn.style.borderColor = 'var(--accent-warning)';
-        }
-        const imgGroup = document.getElementById('group-img');
-        if (type === 'note') imgGroup.style.display = 'none';
-        else imgGroup.style.display = 'flex';
+    document.querySelectorAll('.type-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.color = 'var(--text-main)';
+        btn.style.borderColor = 'rgba(255,255,255,0.3)';
+    });
+    const activeBtn = document.getElementById(`btn-type-${type}`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.style.color = 'var(--accent-warning)';
+        activeBtn.style.borderColor = 'var(--accent-warning)';
     }
+    const imgGroup = document.getElementById('group-img');
+    if (type === 'note') imgGroup.style.display = 'none';
+    else imgGroup.style.display = 'flex';
+}
 </script>
 <script src="js/broadcast.js"></script>
 </body>
