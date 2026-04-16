@@ -727,7 +727,7 @@ function resetInputToText() {
 }
 
 window.setModalType = function(type) {
-    currentModalType = type;  // ← c'est ça qui manquait côté HTML
+    currentModalType = type;  
     document.querySelectorAll('.type-btn').forEach(b => {
         b.classList.remove('active');
         b.style.color = '';
@@ -747,7 +747,6 @@ window.setModalType = function(type) {
         resetInputToText();
     }
 }
-
 window.confirmCreateNode = async function() {
     const label = document.getElementById('inp-label').value || 'INCONNU';
     const sub = document.getElementById('inp-sub').value;
