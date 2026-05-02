@@ -11,6 +11,8 @@ let currentBoardId = null;
 let currentScale = 1;
 let editingNodeId = null;
 let editingLinkId = null;
+let pendingLinkFrom = null;
+let pendingLinkTo = null;
 
 function getAuthHeaders() {
     const token = localStorage.getItem('sas_token');
@@ -482,7 +484,6 @@ async function itemDragEnd() {
         } catch(e) { console.error(e); }
         document.removeEventListener("mouseup", itemDragEnd);
         document.removeEventListener("mousemove", itemDrag);
-        el.addEventListener('touchstart', handleNodeClick, { passive: false });
         activeItem = null;
     }
 }
@@ -519,7 +520,30 @@ function resetLinkMode() {
 }
 
 async function createLink(fromId, toId) {
-    const label = prompt("Label du lien (ex: TUEUR DE) ?", "") || "";
+    pendingLinkFrom = fromId;
+    pendingLinkTo = toId;
+
+    const modal = document.getElementById('creation-modal');
+    modal.classList.remove('hidden');
+    document.querySelector('.modal-title').innerText = "CRÉER UN LIEN";
+
+    document.getElementById('group-img').style.display = 'none';
+    document.querySelector('.type-selector').style.display = 'none';
+    document.getElementById('inp-sub').parentElement.style.display = 'none';
+
+    const lbl = document.getElementById('inp-label');
+    lbl.value = '';
+    lbl.placeholder = 'Ex: TUEUR DE, COMPLICE, LIÉ À...';
+    lbl.focus();
+
+    const confirmBtn = document.querySelector('.btn-confirm');
+    confirmBtn.onclick = confirmCreateLink;
+    confirmBtn.innerText = "[ CRÉER LE LIEN ]";
+}
+
+async function confirmCreateLink() {
+    if (!pendingLinkFrom || !pendingLinkTo) return;
+    const label = document.getElementById('inp-label').value;
     try {
         const res = await fetch('/api/game?entity=investigation', {
             method: 'POST',
@@ -527,19 +551,50 @@ async function createLink(fromId, toId) {
             body: JSON.stringify({
                 action: 'create_link',
                 board_id: currentBoardId,
-                from_id: fromId,
-                to_id: toId,
+                from_id: pendingLinkFrom,
+                to_id: pendingLinkTo,
                 color: currentLinkColor,
                 label: label
             })
         });
-        if(!res.ok) throw new Error("Erreur serveur");
+        if (!res.ok) throw new Error("Erreur serveur");
+        closeModal();
     } catch(e) { alert("Impossible de créer le lien"); }
+}
+
+function ensureArrowDefs(svg) {
+    if (svg.querySelector('defs')) return;
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+
+    const colors = ['#ff3333','#00ff9d','#00f3ff','#eebb00','#ffffff'];
+    colors.forEach(color => {
+        const safeId = color.replace('#','');
+        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+        marker.setAttribute('id', `arrow-${safeId}`);
+        marker.setAttribute('markerWidth', '6');
+        marker.setAttribute('markerHeight', '6');
+        marker.setAttribute('refX', '5');
+        marker.setAttribute('refY', '3');
+        marker.setAttribute('orient', 'auto');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M0,0 L0,6 L6,3 Z');
+        path.setAttribute('fill', color);
+        path.setAttribute('opacity', '0.85');
+        marker.appendChild(path);
+        defs.appendChild(marker);
+    });
+    svg.prepend(defs);
+}
+
+function getArrowMarkerId(color) {
+    const map = {'#ff3333':'ff3333','#00ff9d':'00ff9d','#00f3ff':'00f3ff','#eebb00':'eebb00','#ffffff':'ffffff'};
+    return `arrow-${map[color] || 'ff3333'}`;
 }
 
 function drawLines() {
     const svg = document.getElementById('connections-layer');
     svg.innerHTML = '';
+    ensureArrowDefs(svg);
 
     linksData.forEach((link) => {
         const el1 = document.getElementById(`node-${link.from_id}`);
@@ -640,18 +695,23 @@ window.closeModal = function() {
     document.getElementById('creation-modal').classList.add('hidden');
     editingNodeId = null;
     editingLinkId = null;
+    pendingLinkFrom = null;
+    pendingLinkTo = null;
     document.querySelector('.modal-title').innerText = "NOUVEL ÉLÉMENT";
 
     document.getElementById('group-img').style.display = 'block';
     document.querySelector('.type-selector').style.display = 'flex';
     document.getElementById('inp-sub').parentElement.style.display = 'block';
 
+    const lbl = document.getElementById('inp-label');
+    lbl.placeholder = 'Ex: Suspect Inconnu...';
+
     const delBtn = document.getElementById('btn-delete-link');
     if(delBtn) delBtn.style.display = 'none';
 
     const confirmBtn = document.querySelector('.btn-confirm');
     confirmBtn.onclick = confirmCreateNode;
-    confirmBtn.innerText = "CONFIRMER";
+    confirmBtn.innerText = "[ ENREGISTRER ]";
 }
 
 async function confirmEditLink() {
@@ -820,6 +880,18 @@ window.deleteNode = async function(id, event) {
         } catch(e) { alert("Erreur réseau."); }
     }
 }
+
+window.resetView = function() {
+    panX = 0; panY = 0; currentScale = 1;
+    updateWorldTransform();
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (isLinking) resetLinkMode();
+        if (!document.getElementById('creation-modal').classList.contains('hidden')) closeModal();
+    }
+});
 
 window.closeCurrentBoard = async function() {
     if (!currentBoardId) {
