@@ -288,7 +288,7 @@
     let currentMissionId = null;
     let draggedCard = null;
     let allAgents = []; 
-    const token = localStorage.getItem('sas_token') || localStorage.getItem('sas_session');
+    const token = localStorage.getItem('sas_token');
 
     document.addEventListener('DOMContentLoaded', () => {
         loadMissions();

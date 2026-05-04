@@ -836,6 +836,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadMissions(username);
     loadWarnings();
     loadInjuries(agentId);
+    loadMyEquipment_profile();
 });
 
 function initECG() {
@@ -985,7 +986,6 @@ async function loadMyEquipment_profile() {
     } catch {}
 }
 
-document.addEventListener('DOMContentLoaded', loadMyEquipment_profile);
 
 async function loadStats() {
     const s = JSON.parse(localStorage.getItem('sas_session') || '{}');
@@ -1141,7 +1141,7 @@ function logout() {
     document.body.style.transition = 'opacity .4s';
     document.body.style.opacity = '0';
     setTimeout(() => {
-        ['sas_session','sas_token','userSecurityLevel'].forEach(k => localStorage.removeItem(k));
+        ['sas_session','sas_token'].forEach(k => localStorage.removeItem(k));
         window.location.href = 'index.html';
     }, 400);
 }
