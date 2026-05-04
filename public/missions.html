@@ -77,6 +77,24 @@
             border-color: var(--accent-primary); transform: translateX(4px); background: var(--bg-card-hover);
             box-shadow: 0 0 15px rgba(0, 255, 157, 0.15); z-index: 10;
         }
+        .col-empty {
+            padding: 22px 15px; text-align: center;
+            color: var(--text-dim); font-family: var(--font-code);
+            font-size: 0.72rem; letter-spacing: 2px;
+            border: 1px dashed rgba(255,255,255,0.07);
+            margin: 5px;
+        }
+        .col-empty.col-error { color: var(--accent-danger); border-color: rgba(255,51,51,0.2); }
+        .col-empty.col-loading { color: rgba(0,255,157,0.45); border-color: rgba(0,255,157,0.12); }
+
+        #ux-toast {
+            position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+            background: rgba(4,8,14,0.96); border: 1px solid;
+            font-family: var(--font-code); font-size: 0.75rem; letter-spacing: 2px;
+            padding: 10px 28px; z-index: 9999; pointer-events: none;
+            opacity: 0; transition: opacity 0.2s; backdrop-filter: blur(10px);
+            white-space: nowrap;
+        }
         
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -287,8 +305,46 @@
 <script>
     let currentMissionId = null;
     let draggedCard = null;
-    let allAgents = []; 
+    let allAgents = [];
     const token = localStorage.getItem('sas_token');
+
+    // ── TOAST FEEDBACK ──
+    function showFeedback(msg, type = 'success') {
+        let toast = document.getElementById('ux-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'ux-toast';
+            document.body.appendChild(toast);
+        }
+        const c = { success: '#00ff9d', error: '#ff3333', info: '#00f3ff' }[type] || '#00ff9d';
+        toast.style.borderColor = c;
+        toast.style.color = c;
+        toast.style.boxShadow = `0 0 20px ${c}33`;
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+    }
+
+    // ── COLONNES : spinner + état vide ──
+    const COLS = ['pending', 'active', 'completed'];
+    function setColLoading() {
+        COLS.forEach(s => {
+            const el = document.getElementById(`body-${s}`);
+            if (el) el.innerHTML = '<div class="col-empty col-loading blink">[ SYNCHRONISATION... ]</div>';
+        });
+    }
+    function setColEmpty(colId) {
+        const el = document.getElementById(colId);
+        if (el && el.children.length === 0)
+            el.innerHTML = '<div class="col-empty">[ AUCUNE MISSION ]</div>';
+    }
+    function setColError() {
+        COLS.forEach(s => {
+            const el = document.getElementById(`body-${s}`);
+            if (el) el.innerHTML = '<div class="col-empty col-error">[ ERREUR RÉSEAU ]</div>';
+        });
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         loadMissions();
@@ -329,11 +385,12 @@
     }
 
     async function loadMissions() {
+        setColLoading();
         try {
             const res = await fetch('/api/game?entity=missions', { headers: { 'Authorization': `Bearer ${token}` } });
-            if(!res.ok) return;
+            if(!res.ok) { setColError(); return; }
             const missions = await res.json();
-            ['pending', 'active', 'completed'].forEach(s => {
+            COLS.forEach(s => {
                 const el = document.getElementById(`body-${s}`);
                 if(el) el.innerHTML = '';
             });
@@ -364,8 +421,9 @@
                 const col = document.getElementById(colId);
                 if(col) col.appendChild(card);
             });
+            COLS.forEach(s => setColEmpty(`body-${s}`));
             updateStats();
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error(e); setColError(); }
     }
 
     function updateStats() {
@@ -384,17 +442,27 @@
                 if (draggedCard) {
                     col.appendChild(draggedCard);
                     let newStatus = 'PENDING';
-                    if (col.id === 'body-active') newStatus = 'ACTIVE';
+                    if (col.id === 'body-active')    newStatus = 'ACTIVE';
                     if (col.id === 'body-completed') newStatus = 'COMPLETED';
                     const missionId = draggedCard.dataset.id;
+                    const card = draggedCard;
                     try {
-                        await fetch('/api/game?entity=missions', {
+                        const res = await fetch('/api/game?entity=missions', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                             body: JSON.stringify({ action: 'move', id: missionId, status: newStatus })
                         });
-                        updateStats();
-                    } catch (err) { console.error(err); loadMissions(); }
+                        if (res.ok) {
+                            card.style.transition = 'box-shadow 0.3s';
+                            card.style.boxShadow = '0 0 18px rgba(0,255,157,0.5)';
+                            setTimeout(() => { card.style.boxShadow = ''; }, 600);
+                            COLS.forEach(s => setColEmpty(`body-${s}`));
+                            updateStats();
+                        } else {
+                            showFeedback('✗ DÉPLACEMENT REFUSÉ', 'error');
+                            loadMissions();
+                        }
+                    } catch (err) { console.error(err); showFeedback('✗ ERREUR RÉSEAU', 'error'); loadMissions(); }
                 }
             });
         });
@@ -498,23 +566,55 @@
 
     async function addAgentToMission() {
         const select = document.getElementById('add-agent-select');
+        const btn = document.querySelector('[onclick="addAgentToMission()"]');
         const agentIdOrName = select.value;
-        if(!agentIdOrName) return;
+        if (!agentIdOrName) return;
+        if (btn) { btn.disabled = true; btn.textContent = '[ ... ]'; }
         try {
-            await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, agent: agentIdOrName }) });
-            refreshDetails();
-            select.value = "";
-        } catch(err) { console.error(err); }
+            const res = await fetch('/api/game?entity=missions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, agent: agentIdOrName })
+            });
+            if (res.ok) {
+                showFeedback('✓ AGENT AFFECTÉ', 'success');
+                refreshDetails();
+                select.value = '';
+            } else {
+                showFeedback('✗ AFFECTATION REFUSÉE', 'error');
+            }
+        } catch(err) {
+            console.error(err);
+            showFeedback('✗ ERREUR RÉSEAU', 'error');
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = '[ + ]'; }
+        }
     }
 
     async function addGearToMission() {
         const gearId = document.getElementById('equip-select').value;
-        if(!gearId) return;
+        const btn = document.querySelector('[onclick="addGearToMission()"]');
+        if (!gearId) return;
+        if (btn) { btn.disabled = true; btn.textContent = '[ ... ]'; }
         try {
-            await fetch('/api/game?entity=missions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, equipment_id: gearId }) });
-            refreshDetails(); 
-            loadAvailableGear();
-        } catch(err) { console.error(err); }
+            const res = await fetch('/api/game?entity=missions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ action: 'assign', mission_id: currentMissionId, equipment_id: gearId })
+            });
+            if (res.ok) {
+                showFeedback('✓ ÉQUIPEMENT DÉPLOYÉ', 'success');
+                refreshDetails();
+                loadAvailableGear();
+            } else {
+                showFeedback('✗ RÉQUISITION REFUSÉE', 'error');
+            }
+        } catch(err) {
+            console.error(err);
+            showFeedback('✗ ERREUR RÉSEAU', 'error');
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = '[ RÉQUISITIONNER ARME ]'; }
+        }
     }
 
     async function refreshDetails() {

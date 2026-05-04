@@ -845,6 +845,8 @@ function initECG() {
     ecgCtx = ecgCanvas.getContext('2d');
     ecgCanvas.width = ecgCanvas.parentElement.clientWidth;
     ecgCanvas.height = ecgCanvas.parentElement.clientHeight;
+    // Valeur immédiate — plus de "—" pendant 2s
+    document.getElementById('bpm-val').textContent = targetBPM;
     requestAnimationFrame(drawECG);
     setInterval(() => {
         const bpm = Math.floor(targetBPM + (Math.random() * 6 - 3));

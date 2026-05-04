@@ -45,17 +45,26 @@ async function loadUsersIfAuthorized() {
     }
 }
 
+function renderPlaceholder(containerId, msg, type = 'loading') {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    const color = type === 'error' ? 'var(--accent-danger)' : 'rgba(0,255,157,0.4)';
+    const blink = type === 'loading' ? 'animation:blinkAnim 1s infinite;' : '';
+    el.innerHTML = `<div style="padding:22px;text-align:center;font-family:var(--font-code);font-size:0.75rem;letter-spacing:2px;color:${color};border:1px dashed rgba(255,255,255,0.07);margin:5px;${blink}">${msg}</div>`;
+}
+
 async function fetchLogisticsData() {
+    renderPlaceholder('equipment-list', '[ CHARGEMENT DU MANIFESTE... ]', 'loading');
+    renderPlaceholder('logs-list', '[ LECTURE DES JOURNAUX... ]', 'loading');
     try {
-        // On s'assure que le token est bien envoyé
-        // MODIFICATION : Appel à /api/game?entity=equipment
         const response = await fetch('/api/game?entity=equipment', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error("Détails de l'erreur serveur :", response.status, errorText);
+            renderPlaceholder('equipment-list', '[ ERREUR RÉSEAU ]', 'error');
+            renderPlaceholder('logs-list', '[ ERREUR RÉSEAU ]', 'error');
+            console.error("Erreur serveur:", response.status);
             return;
         }
 
@@ -64,6 +73,8 @@ async function fetchLogisticsData() {
         renderInventory(allInventory);
         renderLogs(data.logs);
     } catch (err) {
+        renderPlaceholder('equipment-list', '[ CONNEXION IMPOSSIBLE ]', 'error');
+        renderPlaceholder('logs-list', '[ CONNEXION IMPOSSIBLE ]', 'error');
         console.error("Erreur connexion logistique:", err);
     }
 }
@@ -71,6 +82,11 @@ async function fetchLogisticsData() {
 function renderInventory(items) {
     const container = document.getElementById('equipment-list');
     container.innerHTML = '';
+
+    if (!items || items.length === 0) {
+        renderPlaceholder('equipment-list', '[ INVENTAIRE VIDE ]', 'empty');
+        return;
+    }
 
     const userRank = parseInt(session.rank);
 
@@ -147,6 +163,11 @@ function renderLogs(logs) {
     const container = document.getElementById('logs-list');
     container.innerHTML = '';
 
+    if (!logs || logs.length === 0) {
+        renderPlaceholder('logs-list', '[ AUCUN MOUVEMENT ENREGISTRÉ ]', 'empty');
+        return;
+    }
+
     logs.forEach(log => {
         const div = document.createElement('div');
         div.className = 'log-entry';
@@ -190,11 +211,15 @@ async function assignToSelected(id) {
 async function handleItemAction(id, action, agentName = null) {
     if(window.SAS_IMMERSION) window.SAS_IMMERSION.playSFX('click');
 
-    // Si pas d'agent spécifié (cas du retour), on utilise le nom de session
+    // Trouver le bouton déclencheur et le désactiver pendant la requête
+    const btn = document.querySelector(`[onclick*="handleItemAction(${id},"]`) ||
+                document.querySelector(`[onclick*="assignToSelected(${id})"]`);
+    const originalText = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = '[ ... ]'; }
+
     const targetAgent = agentName || session.username;
 
     try {
-        // MODIFICATION : Appel à /api/game?entity=equipment
         const res = await fetch('/api/game?entity=equipment', {
             method: 'PATCH',
             headers: {
@@ -204,15 +229,28 @@ async function handleItemAction(id, action, agentName = null) {
             body: JSON.stringify({ id, action, agent: targetAgent })
         });
 
-        if(res.ok) {
+        if (res.ok) {
             fetchLogisticsData();
         } else {
             const err = await res.json();
-            alert("ERREUR: " + err.error);
+            // Feedback inline — alerte stylisée dans la console + message court
+            console.error("Erreur action matériel:", err.error);
+            if (btn) { btn.style.color = 'var(--accent-danger)'; btn.textContent = '[ REFUSÉ ]'; }
+            setTimeout(() => {
+                if (btn) { btn.style.color = ''; btn.textContent = originalText; btn.disabled = false; }
+            }, 2000);
+            return;
         }
     } catch (e) {
-        alert("Erreur de communication avec le serveur logistique.");
+        console.error("Erreur de communication logistique:", e);
+        if (btn) { btn.textContent = '[ ERREUR ]'; }
+        setTimeout(() => {
+            if (btn) { btn.textContent = originalText; btn.disabled = false; }
+        }, 2000);
+        return;
     }
+
+    if (btn) { btn.disabled = false; btn.textContent = originalText; }
 }
 
 function filterInventory(query) {
