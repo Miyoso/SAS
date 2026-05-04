@@ -88,7 +88,6 @@ function addLog(msg, type = "info") {
 
 function logout() {
     localStorage.removeItem('sas_session');
-    localStorage.removeItem('userSecurityLevel');
     localStorage.removeItem('sas_token');
     document.body.classList.remove('logged-in');
     window.location.href = 'index.html';
@@ -132,7 +131,6 @@ async function handleLogin() {
                 
                 localStorage.setItem('sas_token', data.token);
                 localStorage.setItem('sas_session', JSON.stringify(data.agent));
-                localStorage.setItem('userSecurityLevel', data.agent.rank);
                 
                 setTimeout(() => window.location.reload(), 800);
             } else {
@@ -156,7 +154,8 @@ function accessModule(url, requiredLevel) {
     if(url === '#') return;
     initAudio();
     
-    const currentLevel = parseInt(localStorage.getItem('userSecurityLevel') || 0);
+    const session = JSON.parse(localStorage.getItem('sas_session') || '{}');
+    const currentLevel = parseInt(session.rank || 0);
     
     if (currentLevel >= requiredLevel) { 
         playSound('success');

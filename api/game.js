@@ -1,15 +1,13 @@
 import { Pool } from 'pg';
-import Pusher from 'pusher';
 import { verifyToken } from './utils/auth.js';
 import { logActivity } from './utils/activity.js';
 import { pusherServer } from './utils/pusher-server.js';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
-const pusher = new Pusher({ appId: "2084549", key: "51d51cc5bfc1c8ee90d4", secret: "b3a325fcecbfabc17f57", cluster: "eu", useTLS: true });
 
 export default async function handler(req, res) {
     const user = verifyToken(req);
-    if (req.query.entity !== 'markers' && !user) return res.status(401).json({ error: 'Accès refusé' });
+    if (!user) return res.status(401).json({ error: 'Accès refusé' });
 
     const { entity } = req.query;
     const method = req.method;
@@ -224,7 +222,7 @@ export default async function handler(req, res) {
                         'INSERT INTO investigation_nodes (board_id, type, label, sub_label, image_url, x, y) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
                         [board_id, req.body.type, req.body.label, req.body.sub_label, req.body.image_url, req.body.x, req.body.y]
                     );
-                    await pusher.trigger('investigation-board', 'node-created', r.rows[0]);
+                    await pusherServer.trigger('investigation-board', 'node-created', r.rows[0]);
                     return res.status(200).json(r.rows[0]);
                 }
                 if (action === 'create_link') {
@@ -232,7 +230,7 @@ export default async function handler(req, res) {
                         'INSERT INTO investigation_links (board_id, from_id, to_id, color, label) VALUES ($1, $2, $3, $4, $5) RETURNING *',
                         [board_id, req.body.from_id, req.body.to_id, req.body.color, req.body.label]
                     );
-                    await pusher.trigger('investigation-board', 'link-created', r.rows[0]);
+                    await pusherServer.trigger('investigation-board', 'link-created', r.rows[0]);
                     return res.status(200).json({ success: true });
                 }
             }
@@ -245,7 +243,7 @@ export default async function handler(req, res) {
                         [label, color, id]
                     );
                     if (result.rows.length > 0) {
-                        await pusher.trigger('investigation-board', 'link-updated', result.rows[0]);
+                        await pusherServer.trigger('investigation-board', 'link-updated', result.rows[0]);
                         return res.status(200).json(result.rows[0]);
                     }
                     return res.status(404).json({ error: "Lien non trouvé" });
@@ -257,12 +255,12 @@ export default async function handler(req, res) {
                         [label, sub_label, image_url, type, id]
                     );
                     if (result.rows.length > 0) {
-                        await pusher.trigger('investigation-board', 'node-updated', result.rows[0]);
+                        await pusherServer.trigger('investigation-board', 'node-updated', result.rows[0]);
                         return res.status(200).json(result.rows[0]);
                     }
                 } else if (req.body.x !== undefined && req.body.y !== undefined) {
                     await pool.query('UPDATE investigation_nodes SET x=$1, y=$2 WHERE id=$3', [req.body.x, req.body.y, req.body.id]);
-                    await pusher.trigger('investigation-board', 'node-moved', req.body);
+                    await pusherServer.trigger('investigation-board', 'node-moved', req.body);
                     return res.status(200).json({ success: true });
                 }
                 return res.status(400).json({ error: "Données manquantes" });
@@ -271,12 +269,12 @@ export default async function handler(req, res) {
             if (method === 'DELETE') {
                 if (req.body.is_link) {
                     await pool.query('DELETE FROM investigation_links WHERE id=$1', [req.body.id]);
-                    await pusher.trigger('investigation-board', 'link-deleted', { id: req.body.id });
+                    await pusherServer.trigger('investigation-board', 'link-deleted', { id: req.body.id });
                     return res.status(200).json({ success: true });
                 }
                 await pool.query('DELETE FROM investigation_nodes WHERE id=$1', [req.body.id]);
                 await pool.query('DELETE FROM investigation_links WHERE from_id=$1 OR to_id=$1', [req.body.id]);
-                await pusher.trigger('investigation-board', 'node-deleted', req.body);
+                await pusherServer.trigger('investigation-board', 'node-deleted', req.body);
                 return res.status(200).json({ success: true });
             }
         }
