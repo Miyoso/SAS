@@ -6,6 +6,7 @@
     <title>SAS - Command Hierarchy [TACTICAL VIEW]</title>
     <script>
         const session = localStorage.getItem('sas_session');
+        if (!session) { window.location.href = 'index.html'; }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
