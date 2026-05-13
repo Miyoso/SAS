@@ -3,31 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHADOW CO. :: TARGET [GRAVES]</title>
+    <title>SAS :: X99 — GRAVES</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Share+Tech+Mono&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="/css/style-mo.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
     <style>
+        :root {
+            --gold:       #d4af37;
+            --gold-bright:#f1d592;
+            --gold-dim:   rgba(212,175,55,0.12);
+            --red:        #c0392b;
+            --bg:         #050505;
+            --bg2:        #0a0a08;
+            --text:       #e2d1b3;
+            --text-dim:   #7a6f5d;
+            --border:     rgba(212,175,55,0.15);
+            --border-c:   rgba(212,175,55,0.3);
+            --mono:       'JetBrains Mono', monospace;
+            --ui:         'Share Tech Mono', monospace;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg); color: var(--text); font-family: var(--ui); overflow-x: hidden; cursor: crosshair; }
+
+        /* Security trap overlay */
         #security-trap {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: black; z-index: 99999;
-            display: none;
-            justify-content: center; align-items: center; flex-direction: column;
+            position: fixed; inset: 0; background: #000; z-index: 99999;
+            display: none; justify-content: center; align-items: center; flex-direction: column;
         }
-        #trap-video {
-            width: 100%; height: 100%; object-fit: cover;
-        }
+        #trap-video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Authenticated user HUD */
         .user-hud {
-            position: fixed; top: 20px; right: 30px;
-            background: rgba(10, 15, 20, 0.9); border: 1px solid #445566; border-left: 3px solid #00ff9d;
-            padding: 8px 15px; font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; color: #fff;
-            z-index: 10000; display: flex; gap: 10px; align-items: center; backdrop-filter: blur(5px);
+            position: fixed; top: 54px; right: 30px; z-index: 500;
+            background: rgba(5,5,5,0.92); border: 1px solid var(--border-c); border-left: 2px solid var(--gold);
+            padding: 8px 16px; font-family: var(--mono); font-size: 0.55rem; color: var(--text-dim);
+            display: none; gap: 12px; align-items: center; backdrop-filter: blur(8px); letter-spacing: 2px;
         }
-        .hud-value { color: #00ff9d; font-weight: bold; text-transform: uppercase; }
+        .hud-value { color: var(--gold); font-weight: 700; }
+
+        .scan { position: fixed; left: 0; width: 100%; height: 1px; background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%); opacity: 0.1; pointer-events: none; z-index: 200; animation: scan 12s linear infinite; }
+        @keyframes scan { 0%{top:-2%} 100%{top:102%} }
+
+        #boot { position: fixed; inset: 0; background: #000; z-index: 9000; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; transition: opacity 0.7s ease; }
+        .boot-ref { font-family: var(--mono); font-size: 0.6rem; color: var(--gold); letter-spacing: 6px; opacity: 0; animation: fadeIn 0.4s 0.2s forwards; }
+        .boot-progress { width: 180px; height: 1px; background: rgba(212,175,55,0.1); overflow: hidden; }
+        .boot-fill { height: 100%; width: 0; background: var(--gold); box-shadow: 0 0 10px var(--gold); animation: fill 1.8s cubic-bezier(0.4,0,0.2,1) forwards; }
+        .boot-label { font-size: 0.5rem; color: var(--text-dim); letter-spacing: 4px; min-height: 14px; }
+        @keyframes fill { to { width: 100%; } }
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 44px; background: rgba(5,5,5,0.96); border-bottom: 1px solid var(--border); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; opacity: 0; animation: fadeIn 0.5s 2.3s forwards; }
+        .tb-left { display: flex; align-items: center; gap: 20px; }
+        .tb-logo { font-family: var(--mono); font-size: 0.65rem; color: var(--gold); letter-spacing: 3px; }
+        .tb-sep  { width: 1px; height: 16px; background: var(--border); }
+        .tb-ref  { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 2px; }
+        .tb-back { font-size: 0.55rem; color: var(--text-dim); text-decoration: none; letter-spacing: 2px; border: 1px solid var(--border); padding: 4px 12px; transition: 0.2s; }
+        .tb-back:hover { border-color: var(--gold); color: var(--gold); }
+
+        .hero { height: 100vh; position: relative; display: grid; grid-template-columns: 1fr 1fr; opacity: 0; animation: fadeIn 1s 2.2s forwards; z-index: 5; }
+        .hero-photo-col { position: relative; overflow: hidden; }
+        .hero-photo-col img { width: 100%; height: 100%; object-fit: cover; object-position: center 15%; filter: grayscale(0.6) contrast(1.1) brightness(0.5) sepia(0.2); display: block; }
+        .hero-photo-col::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to right, rgba(5,5,5,0) 40%, rgba(5,5,5,1) 100%); }
+        .hero-photo-col::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%; background: linear-gradient(to top, var(--bg), transparent); z-index: 1; }
+
+        .hero-tape { position: absolute; top: 44px; left: 0; right: 0; height: 3px; background: repeating-linear-gradient(90deg, var(--gold) 0, var(--gold) 20px, transparent 20px, transparent 40px); z-index: 10; opacity: 0.2; animation: tape 3s linear infinite; }
+        @keyframes tape { to { background-position: 40px 0; } }
+
+        .photo-data { position: absolute; bottom: 60px; left: 30px; z-index: 5; pointer-events: none; display: flex; flex-direction: column; gap: 6px; }
+        .data-line { font-family: var(--mono); font-size: 0.52rem; color: rgba(212,175,55,0.5); letter-spacing: 3px; }
+        .data-line.blink { animation: blk 2s step-end infinite; }
+        @keyframes blk { 50% { opacity: 0; } }
+
+        .hero-text-col { display: flex; flex-direction: column; justify-content: center; padding: 80px 60px 60px; position: relative; }
+        .hero-classified { display: flex; align-items: center; gap: 8px; font-size: 0.5rem; color: var(--gold); letter-spacing: 5px; margin-bottom: 32px; }
+        .hero-classified::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); animation: pls 1.5s infinite; }
+        @keyframes pls { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        .hero-surname { font-family: var(--mono); font-size: clamp(3rem,5vw,4.5rem); font-weight: 800; color: #fff; letter-spacing: -3px; line-height: 1; margin-bottom: 6px; }
+        .hero-given   { font-family: var(--mono); font-size: clamp(1rem,2vw,1.4rem); font-weight: 300; color: var(--gold); letter-spacing: 6px; text-transform: uppercase; margin-bottom: 28px; }
+        .hero-desc    { font-size: 0.72rem; color: var(--text-dim); line-height: 1.7; max-width: 360px; border-left: 2px solid var(--border-c); padding-left: 16px; margin-bottom: 36px; font-family: var(--mono); }
+
+        .hero-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); max-width: 360px; }
+        .hero-stat  { background: var(--bg); padding: 14px 16px; display: flex; flex-direction: column; gap: 3px; }
+        .hs-label   { font-size: 0.45rem; color: var(--text-dim); letter-spacing: 3px; }
+        .hs-value   { font-family: var(--mono); font-size: 0.8rem; color: #fff; }
+        .hs-value.cyan { color: var(--gold); }
+        .hs-value.red  { color: var(--red); }
+
+        .body { max-width: 960px; margin: 0 auto; padding: 80px 40px 100px; display: flex; flex-direction: column; gap: 64px; opacity: 0; animation: fadeIn 0.6s 2.6s forwards; position: relative; z-index: 5; }
+
+        .sec { display: flex; flex-direction: column; gap: 20px; }
+        .sec-header { display: flex; align-items: center; gap: 16px; }
+        .sec-n     { font-family: var(--mono); font-size: 0.5rem; font-weight: 700; color: var(--gold); letter-spacing: 2px; border: 1px solid var(--border-c); padding: 3px 8px; flex-shrink: 0; }
+        .sec-title { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 5px; text-transform: uppercase; }
+        .sec-line  { flex: 1; height: 1px; background: var(--border); }
+
+        .block { background: var(--bg2); border: 1px solid var(--border); position: relative; overflow: hidden; }
+        .block::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 2px; background: transparent; transition: background 0.4s; }
+        .block:hover::before { background: var(--gold); }
+
+        .prose { padding: 28px 32px; font-family: var(--mono); font-size: 0.78rem; color: var(--text-dim); line-height: 1.8; }
+        .prose strong { color: var(--text); font-weight: 700; }
+        .prose em { color: var(--gold); font-style: normal; }
+
+        .trait-block { padding: 0; }
+        .trait-row { display: flex; align-items: flex-start; gap: 16px; padding: 16px 28px; border-bottom: 1px solid var(--border); font-size: 0.75rem; color: var(--text-dim); font-family: var(--mono); line-height: 1.5; }
+        .trait-row:last-child { border-bottom: none; }
+        .trait-sign { flex-shrink: 0; font-size: 0.7rem; }
+        .trait-sign.pos { color: var(--gold); }
+        .trait-sign.neg { color: var(--red); }
+
+        .ops-table { width: 100%; border-collapse: collapse; }
+        .ops-table th, .ops-table td { padding: 12px 20px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.72rem; font-family: var(--mono); }
+        .ops-table th { color: var(--text-dim); letter-spacing: 2px; font-size: 0.5rem; background: rgba(212,175,55,0.04); }
+        .ops-table td { color: var(--text); }
+        .badge { display: inline-block; padding: 3px 10px; font-size: 0.52rem; letter-spacing: 2px; }
+        .badge-ok { background: rgba(0,200,100,0.1); color: #00c864; border: 1px solid rgba(0,200,100,0.2); }
+
+        .rdct { display: inline-block; background: rgba(212,175,55,0.1); color: transparent; padding: 0 6px; position: relative; cursor: help; transition: 0.3s; font-family: var(--mono); }
+        .rdct::after { content: attr(data-text); position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: #333; }
+        .rdct:hover { background: var(--gold-dim); color: var(--gold); }
+        .rdct:hover::after { display: none; }
+
+        .page-footer { display: flex; justify-content: space-between; padding-top: 32px; border-top: 1px solid var(--border); font-size: 0.48rem; color: var(--text-dim); }
+        .page-footer a { color: var(--red); text-decoration: none; border: 1px solid rgba(192,57,43,0.3); padding: 6px 16px; }
+        .page-footer a:hover { border-color: var(--red); color: var(--red); opacity: 0.8; }
+
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.2); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
     </style>
 
     <script>
@@ -36,12 +144,11 @@
             let isAuthorized = false;
 
             if (sessionRaw) {
-                const user = JSON.parse(sessionRaw);
-                const allowedUsers = ['Graves', 'oui'];
-
-                if (allowedUsers.includes(user.username)) {
-                    isAuthorized = true;
-                }
+                try {
+                    const user = JSON.parse(sessionRaw);
+                    const allowedUsers = ['Graves', 'oui'];
+                    if (allowedUsers.includes(user.username)) isAuthorized = true;
+                } catch(e) {}
             }
 
             if (!isAuthorized) {
@@ -49,20 +156,18 @@
             } else {
                 const hud = document.getElementById('user-hud');
                 const user = JSON.parse(sessionRaw);
-                if(hud) {
-                    document.getElementById('hud-username').textContent = user.username;
-                    document.getElementById('hud-rank').textContent = 'LVL ' + user.rank;
-                    hud.style.display = 'flex';
-                }
+                document.getElementById('hud-username').textContent = user.username;
+                document.getElementById('hud-rank').textContent = 'LVL ' + user.rank;
+                hud.style.display = 'flex';
                 initPageAnimations();
             }
         });
 
         function triggerSecurityTrap() {
-            const wrapper = document.querySelector('.terminal-wrapper');
-            const bootScreen = document.getElementById('boot-screen');
-            if(wrapper) wrapper.style.display = 'none';
-            if(bootScreen) bootScreen.style.display = 'none';
+            const wrapper = document.querySelector('.page-wrapper');
+            const boot = document.getElementById('boot');
+            if (wrapper) wrapper.style.display = 'none';
+            if (boot) boot.style.display = 'none';
 
             const trap = document.getElementById('security-trap');
             const video = document.getElementById('trap-video');
@@ -74,26 +179,19 @@
             fetch('/api/comms?type=alert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user: intrus,
-                    userAgent: navigator.userAgent
-                })
+                body: JSON.stringify({ user: intrus, userAgent: navigator.userAgent })
             }).catch(e => console.error(e));
 
-            var promise = video.play();
-
+            const promise = video.play();
             if (promise !== undefined) {
-                promise.catch(error => {
+                promise.catch(() => {
                     video.muted = true;
-                    video.play().catch(e => {
-                        trap.innerHTML = "<h1 style='color:red; font-size:5rem; text-align:center; font-family:monospace; text-shadow: 0 0 10px red;'>I SEE YOU<br>RUN.</h1>";
+                    video.play().catch(() => {
+                        trap.innerHTML = "<h1 style='color:red;font-size:5rem;text-align:center;font-family:monospace;text-shadow:0 0 10px red;'>I SEE YOU<br>RUN.</h1>";
                     });
                 });
             }
-
-            setTimeout(() => {
-                window.location.href = '/db/agent-Graves-corrupted.html';
-            }, 4500);
+            setTimeout(() => { window.location.href = '/db/agent-Graves-corrupted.html'; }, 4500);
         }
     </script>
 </head>
@@ -103,205 +201,179 @@
     <video id="trap-video" src="/assets/I_SeE_yOu.mp4" playsinline></video>
 </div>
 
-<div id="user-hud" class="user-hud" style="display: none;">
-    <div><span class="hud-label">AGENT:</span> <span id="hud-username" class="hud-value">...</span></div>
-    <div style="color:#445566">|</div>
-    <div><span class="hud-label">CLEARANCE:</span> <span id="hud-rank" class="hud-value hud-rank">...</span></div>
+<div id="user-hud" class="user-hud">
+    <span>AGENT:</span> <span id="hud-username" class="hud-value">...</span>
+    <span style="opacity:0.3">|</span>
+    <span>CLEARANCE:</span> <span id="hud-rank" class="hud-value">...</span>
 </div>
 
-<div id="boot-screen">
-    <div class="boot-text">ESTABLISHING SECURE CONNECTION...</div>
-    <div class="progress-bar"><div class="progress-fill"></div></div>
-    <div style="margin-top: 10px; font-size: 0.8rem; color: #555;">ENCRYPTION: AES-256 // BYPASSING PROXY</div>
+<div class="scan"></div>
+
+<div id="boot">
+    <div class="boot-ref">SAS // X99-ALPHA</div>
+    <div class="boot-progress"><div class="boot-fill"></div></div>
+    <div class="boot-label" id="boot-label">ESTABLISHING SECURE CONNECTION...</div>
 </div>
 
-<div class="terminal-wrapper">
-    <main class="terminal">
+<div class="page-wrapper">
+    <nav class="topbar">
+        <div class="tb-left">
+            <div class="tb-logo">SAS</div>
+            <div class="tb-sep"></div>
+            <div class="tb-ref">DOSSIER X99-ALPHA // LVL-5 // LAS ALMAS DATA CENTER</div>
+        </div>
+        <a href="/database.html" class="tb-back">← TERMINATE SESSION</a>
+    </nav>
 
-        <header class="header-strip">
-            <div>
-                <h1>DOSSIER :: <span>GRAVES</span></h1>
-                <div style="color: var(--primary); font-size: 0.9rem; letter-spacing: 3px;">SHADOW COMPANY // ARCHIVES</div>
+    <section class="hero">
+        <div class="hero-tape"></div>
+        <div class="hero-photo-col">
+            <img src="/assets/Graves.jpg" alt="Graves">
+            <div class="photo-data">
+                <div class="data-line">ID // SHADOW 0-1</div>
+                <div class="data-line">SPEC // ARCHIVES</div>
+                <div class="data-line blink">STATUS // PRESUMED ALIVE ●</div>
             </div>
-            <div class="meta-data">
-                <div>SRC: LAS ALMAS DATA CENTER</div>
-                <div>REQ ID: <span class="blink">_X99-ALPHA</span></div>
+        </div>
+        <div class="hero-text-col">
+            <div class="hero-classified">DOSSIER ACTIF — SHADOW COMPANY — LVL 5</div>
+            <div class="hero-surname">GRAVES</div>
+            <div class="hero-given">— // Shadow 0-1</div>
+            <div class="hero-desc">
+                Leadership absolu. Tacticien.
+                Fondateur et commandant de la Shadow Company.
+                Ne laisse rien au hasard — et ne pardonne rien.
             </div>
-        </header>
+            <div class="hero-stats">
+                <div class="hero-stat"><div class="hs-label">CALLSIGN</div><div class="hs-value cyan">SHADOW 0-1</div></div>
+                <div class="hero-stat"><div class="hs-label">AFFILIATION</div><div class="hs-value red">SHADOW CO.</div></div>
+                <div class="hero-stat"><div class="hs-label">CLEARANCE</div><div class="hs-value red">LVL-5-X99</div></div>
+                <div class="hero-stat"><div class="hs-label">LOCALISATION</div><div class="hs-value"><span class="rdct" data-text="UNKNOWN">0x985L0</span></div></div>
+                <div class="hero-stat"><div class="hs-label">RÔLE</div><div class="hs-value">COMMANDEMENT</div></div>
+                <div class="hero-stat"><div class="hs-label">STATUT</div><div class="hs-value red">● PRESUMED ALIVE</div></div>
+            </div>
+        </div>
+    </section>
 
-        <section class="hero-section">
-            <div class="id-card-container">
-                <div class="id-card" id="card">
-                    <div class="holo-overlay"></div>
+    <div class="body">
 
-                    <div class="card-header">
-                        <div class="card-logo-text">SHADOW CO.</div>
-                        <div class="security-level">ACTIVATE</div>
+        <div class="sec">
+            <div class="sec-header">
+                <div class="sec-n">01</div>
+                <div class="sec-title">PROFIL</div>
+                <div class="sec-line"></div>
+            </div>
+            <div class="block">
+                <div class="prose">
+                    Commandant fondateur de la <strong>Shadow Company</strong>.
+                    Tacticien d'un niveau exceptionnel — a orchestré des opérations sur plusieurs continents simultanément.
+                    Sa mégalomanie n'est pas un défaut opérationnel : c'est le moteur de son efficacité.
+                    Source du dossier : <em>Las Almas Data Center</em> — intégrité non garantie.
+                </div>
+            </div>
+        </div>
+
+        <div class="sec">
+            <div class="sec-header">
+                <div class="sec-n">02</div>
+                <div class="sec-title">ÉVALUATION PSYCHOLOGIQUE</div>
+                <div class="sec-line"></div>
+            </div>
+            <div class="block">
+                <div class="trait-block">
+                    <div class="trait-row">
+                        <span class="trait-sign pos">+</span>
+                        <span><span class="rdct" data-text="LEADERSHIP ABSOLU">UNKNOWN</span> — Autorité naturelle. Commandement incontestable.</span>
                     </div>
-
-                    <div class="card-body">
-                        <div class="photo-box">
-                            <img src="/assets/Graves.jpg" alt="Agent">
-                        </div>
-                        <div class="agent-info">
-                            <div class="card-label">ID</div>
-                            <div class="card-value">GRAVES</div>
-
-                            <div class="card-label">SIGN</div>
-                            <div class="card-value text-danger">SHADOW 0-1</div>
-
-                            <div class="card-label">CLEARANCE ID</div>
-                            <div class="card-code">LVL-5-X99</div>
-                        </div>
+                    <div class="trait-row">
+                        <span class="trait-sign pos">+</span>
+                        <span><span class="rdct" data-text="TACTICIEN">UNKNOWN</span> — Anticipation des variables de combat à plusieurs niveaux.</span>
                     </div>
-
-                    <div class="card-footer">
-                        <div class="barcode" style="font-family: 'Libre Barcode 128 Text', cursive;">726309452</div>
-                        <div class="chip"></div>
+                    <div class="trait-row">
+                        <span class="trait-sign neg">−</span>
+                        <span><span class="rdct" data-text="MEGALOMANIA">UNKNOWN</span> — Risque de sacrifice des alliés si les objectifs l'exigent.</span>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <section class="intel-grid">
-            <div class="panel">
-                <div class="panel-header">
-                    <span class="panel-title">BIO_METRICS</span>
-                    <div class="audio-viz">
-                        <div class="bar" style="animation-delay:0s"></div>
-                        <div class="bar" style="animation-delay:0.1s"></div>
-                        <div class="bar" style="animation-delay:0.2s"></div>
-                        <div class="bar" style="animation-delay:0.3s"></div>
-                    </div>
-                </div>
-                <div class="log-entry">
-                    <span class="label">AFFILIATION:</span><br>
-                    <span class="text-danger">SHADOW COMPANY</span>
-                </div>
-                <div class="log-entry">
-                    <span class="label">LAST KNOWN LOC:</span><br>
-                    <span class="redacted" data-real="UNKNOWN" data-scramble="0x985L0"></span>
-                </div>
-                <div class="log-entry">
-                    <span class="label">STATUS:</span><br>
-                    <span class="text-warning">PRESUMED ALIVE</span>
-                </div>
+        <div class="sec">
+            <div class="sec-header">
+                <div class="sec-n">03</div>
+                <div class="sec-title">HISTORIQUE OPÉRATIONNEL [CRYPTÉ]</div>
+                <div class="sec-line"></div>
             </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <span class="panel-title">ÉVALUATION</span>
-                    <span style="color:var(--secondary); font-size:0.7rem;">PROFIL_PSY</span>
-                </div>
-
-                <div class="log-entry">
-                         <span style="color: var(--primary)">[+]
-                             <span class="redacted" style="color:var(--primary)" data-real="LEADERSHIP ABSOLU" data-scramble="UNKNOWN"></span>
-                         </span>
-                </div>
-
-                <div class="log-entry">
-                         <span style="color: var(--primary)">[+]
-                             <span class="redacted" style="color:var(--primary)" data-real="TACTICIEN" data-scramble="UNKNOWN"></span>
-                         </span>
-                </div>
-
-                <div class="log-entry">
-                         <span style="color: var(--danger)">[-]
-                             <span class="redacted" style="color:var(--danger)" data-real="MEGALOMANIA" data-scramble="UNKNOWN"></span>
-                         </span>
-                </div>
-            </div>
-        </section>
-
-        <section class="logs-section">
-            <div class="panel" style="border-top: 2px solid var(--primary);">
-                <div class="panel-header">
-                    <span class="panel-title">HISTORIQUE OPÉRATIONNEL [CRYPTÉ]</span>
-                    <span style="font-family: var(--font-code); font-size: 0.7rem;">LVL-5 ONLY</span>
-                </div>
+            <div class="block">
                 <table class="ops-table">
                     <thead>
-                    <tr>
-                        <th width="15%">DATE // REF</th>
-                        <th width="30%">OPÉRATION</th>
-                        <th width="25%">LOC</th>
-                        <th width="10%">STATUT</th>
-                    </tr>
+                        <tr>
+                            <th>DATE // REF</th>
+                            <th>OPÉRATION</th>
+                            <th>LOCALISATION</th>
+                            <th>STATUT</th>
+                        </tr>
                     </thead>
                     <tbody>
-                    <tr>
-                        <td>2022-07</td>
-                        <td>DARK WATER</td>
-                        <td><span class="redacted" data-real="24.5N-91.2W" data-scramble="UNKNOWN"></span></td>
-                        <td><span class="status-badge st-success">SUCCÈS</span></td>
-                    </tr>
+                        <tr>
+                            <td>2022-07</td>
+                            <td>DARK WATER</td>
+                            <td><span class="rdct" data-text="24.5N — 91.2W">UNKNOWN</span></td>
+                            <td><span class="badge badge-ok">SUCCÈS</span></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
-        </section>
+        </div>
 
-        <footer class="footer">
-            <div>SECURE TERMINAL V.4.0.2</div>
-            <div>
-                <a href="/database.html" class="text-danger" style="text-decoration: none;">[ TERMINATE SESSION ]</a>
-            </div>
-        </footer>
-    </main>
+        <div class="page-footer">
+            <span>SAS SECURE TERMINAL V.4.0.2 // X99-ALPHA</span>
+            <a href="/database.html">← TERMINATE SESSION</a>
+        </div>
+    </div>
 </div>
 
 <script>
-    function initPageAnimations() {
-        const bootScreen = document.getElementById('boot-screen');
-        const bootText = document.querySelector('.boot-text');
-        if(bootScreen) {
-            setTimeout(() => { bootText.textContent = "AUTHENTICATING USER..."; }, 1000);
-            setTimeout(() => { bootText.textContent = "DECRYPTING FILES..."; }, 2000);
+function initPageAnimations() {
+    const msgs = ["ESTABLISHING SECURE CONNECTION...", "AUTHENTICATING USER...", "DECRYPTING FILES..."];
+    let idx = 0;
+    const lbl = document.getElementById('boot-label');
+    const boot = document.getElementById('boot');
+    function tick() {
+        lbl.textContent = msgs[idx++];
+        if (idx < msgs.length) setTimeout(tick, 800);
+        else {
             setTimeout(() => {
-                bootScreen.style.opacity = '0';
-                setTimeout(() => bootScreen.remove(), 1000);
-            }, 2500);
+                boot.style.opacity = '0';
+                boot.style.pointerEvents = 'none';
+                setTimeout(() => boot.remove(), 700);
+            }, 600);
         }
-
-        const card = document.getElementById('card');
-        const cardContainer = document.querySelector('.id-card-container');
-        if(cardContainer && card) {
-            cardContainer.addEventListener('mousemove', (e) => {
-                const rect = cardContainer.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                const rotateX = ((y - centerY) / centerY) * -10;
-                const rotateY = ((x - centerX) / centerX) * 10;
-                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-            });
-            cardContainer.addEventListener('mouseleave', () => {
-                card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
-            });
-        }
-
-        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
-        document.querySelectorAll('.redacted').forEach(element => {
-            element.textContent = element.getAttribute('data-scramble');
-            element.onmouseover = event => {
-                let iterations = 0;
-                const targetText = event.target.getAttribute('data-real');
-                if(!targetText) return;
-                const interval = setInterval(() => {
-                    event.target.textContent = targetText.split("").map((letter, index) => {
-                        if(index < iterations) return targetText[index];
-                        return letters[Math.floor(Math.random() * 43)]
-                    }).join("");
-                    if(iterations >= targetText.length) clearInterval(interval);
-                    iterations += 1 / 2;
-                }, 30);
-            }
-            element.onmouseleave = event => {
-                element.textContent = element.getAttribute('data-scramble');
-            }
-        });
     }
+    setTimeout(tick, 300);
+}
 </script>
+
+<script>
+(function() {
+    const AUDIO_SRC = '/assets/ambiance.mp3';
+    let audio = null;
+    function initAudio() {
+        audio = new Audio(AUDIO_SRC);
+        audio.loop = true; audio.volume = 0; audio.preload = 'auto';
+        let vol = 0; const target = 0.07; const step = target / 160;
+        const fadeIn = setInterval(() => {
+            vol = Math.min(vol + step, target);
+            if (audio) audio.volume = vol;
+            if (vol >= target) clearInterval(fadeIn);
+        }, 50);
+    }
+    setTimeout(initAudio, 4000);
+    document.addEventListener('visibilitychange', () => {
+        if (!audio) return;
+        if (document.hidden) audio.pause(); else audio.play();
+    });
+})();
+</script>
+
 </body>
 </html>
