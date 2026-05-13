@@ -175,59 +175,118 @@
         input.addEventListener('input', () => { document.getElementById('char-count').textContent = input.value.length; });
     });
 
+    function _relTime(dateStr) {
+        if (!dateStr) return '';
+        const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+        if (diff < 60)    return 'à l\'instant';
+        if (diff < 3600)  return 'il y a ' + Math.floor(diff / 60) + ' min';
+        if (diff < 86400) return 'il y a ' + Math.floor(diff / 3600) + ' h';
+        return new Date(dateStr).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+    }
+
+    // Refresh des timestamps relatifs toutes les 60s
+    setInterval(() => {
+        document.querySelectorAll('.msg-ts[data-ts]').forEach(el => {
+            el.textContent = _relTime(el.dataset.ts);
+        });
+    }, 60000);
+
     async function loadMessages() {
+        const container = document.getElementById('messages-list');
+        container.innerHTML = '<div class="loading-msgs blink">ÉTABLISSEMENT DU LIEN SÉCURISÉ...</div>';
         try {
             const res = await fetch('/api/messages', { headers: { 'Authorization': `Bearer ${token}` } });
             if (!res.ok) throw new Error();
             const messages = await res.json();
-            const container = document.getElementById('messages-list');
-            container.innerHTML = '<div class="sys-msg">-- DÉBUT DES TRANSMISSIONS --</div>';
-            messages.forEach(m => appendMessage(m));
-            document.getElementById('msg-count').textContent = `${messages.length} messages`;
+            if (messages.length === 0) {
+                container.innerHTML = `
+                    <div class="sys-msg">-- DÉBUT DES TRANSMISSIONS --</div>
+                    <div class="empty-state" style="margin-top:40px;">
+                        <div class="empty-state-icon">📡</div>
+                        <div class="empty-state-title">Canal vide</div>
+                        <div class="empty-state-sub">Envoyez le premier message</div>
+                    </div>`;
+            } else {
+                container.innerHTML = '<div class="sys-msg">-- DÉBUT DES TRANSMISSIONS --</div>';
+                messages.forEach(m => appendMessage(m));
+            }
+            document.getElementById('msg-count').textContent = `${messages.length} message${messages.length !== 1 ? 's' : ''}`;
             scrollToBottom();
         } catch (e) {
-            document.getElementById('messages-list').innerHTML = '<div class="loading-msgs" style="color:var(--accent-danger)">ERREUR DE CONNEXION</div>';
+            container.innerHTML = '<div class="loading-msgs" style="color:var(--accent-danger)">⛔ ERREUR DE CONNEXION — RETRY...</div>';
         }
     }
 
     function appendMessage(msg) {
         const container = document.getElementById('messages-list');
+        // Enlever l'état vide si présent
+        const emptyState = container.querySelector('.empty-state');
+        if (emptyState) emptyState.remove();
+
         const isOwn = msg.sender_name?.toLowerCase() === myUsername?.toLowerCase();
-        const time = new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const timeStr = new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         const item = document.createElement('div');
         item.className = `msg-item ${isOwn ? 'own' : ''}`;
+        // Grouper si même auteur que le message précédent dans la dernière minute
+        const prevItem = container.lastElementChild;
+        const isGrouped = prevItem && prevItem.classList.contains('msg-item') &&
+            prevItem.querySelector('.msg-author')?.textContent === msg.sender_name.toUpperCase() &&
+            prevItem.classList.contains(isOwn ? 'own' : '');
+
         item.innerHTML = `
-            <div class="msg-meta">
-                <span class="msg-author">${msg.sender_name.toUpperCase()}</span>
-                <span>${time}</span>
-            </div>
+            ${!isGrouped ? `<div class="msg-meta">
+                <span class="msg-author">${escapeHtml(msg.sender_name.toUpperCase())}</span>
+                <span class="msg-ts" data-ts="${msg.created_at}" title="${timeStr}">${_relTime(msg.created_at)}</span>
+            </div>` : ''}
             <div class="msg-bubble">${escapeHtml(msg.content)}</div>
         `;
+        if (isGrouped) item.style.marginTop = '-4px';
         container.appendChild(item);
     }
 
     function escapeHtml(t) {
-        return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+        return String(t)
+            .replace(/&/g,'&amp;')
+            .replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;')
+            .replace(/"/g,'&quot;')
+            .replace(/'/g,'&#039;');
     }
 
     function scrollToBottom() {
         const c = document.getElementById('messages-list');
-        c.scrollTop = c.scrollHeight;
+        // Scroll seulement si l'utilisateur est déjà en bas (±100px)
+        const isNearBottom = c.scrollHeight - c.clientHeight - c.scrollTop < 100;
+        if (isNearBottom) {
+            c.scrollTo({ top: c.scrollHeight, behavior: 'smooth' });
+        }
+    }
+
+    function forceScrollToBottom() {
+        const c = document.getElementById('messages-list');
+        c.scrollTo({ top: c.scrollHeight, behavior: 'smooth' });
     }
 
     async function sendMessage() {
         const input = document.getElementById('msg-input');
         const content = input.value.trim();
         if (!content) return;
+        const btn = document.querySelector('.btn-send');
         input.value = '';
         document.getElementById('char-count').textContent = '0';
+        if (btn) { btn.disabled = true; btn.textContent = '[ ⟳ ]'; }
         try {
             await fetch('/api/messages', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ content })
             });
-        } catch (e) { input.value = content; }
+        } catch (e) {
+            input.value = content; // Restaurer si erreur
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = '[ ÉMETTRE ]'; }
+            input.focus();
+        }
     }
 
     function initPusher() {
@@ -239,10 +298,10 @@
 
         pusher.subscribe('sas-comms').bind('new-message', msg => {
             appendMessage(msg);
-            scrollToBottom();
+            forceScrollToBottom();
             const c = document.getElementById('msg-count');
             const n = parseInt(c.textContent) || 0;
-            c.textContent = `${n + 1} messages`;
+            c.textContent = `${n + 1} message${n + 1 !== 1 ? 's' : ''}`;
         });
 
         const presence = pusher.subscribe('presence-sas-ops');
@@ -275,19 +334,25 @@
     function renderOnline() {
         const list = document.getElementById('agents-list');
         const members = Object.values(onlineMembers);
-        document.getElementById('online-count').textContent = `${members.length} EN LIGNE`;
-        if (!members.length) {
-            list.innerHTML = '<div style="padding:15px;color:#445566;font-size:0.7rem;font-family:var(--font-display)">AUCUN AGENT CONNECTÉ</div>';
+        const count = members.length;
+        document.getElementById('online-count').textContent = `${count} EN LIGNE`;
+        if (!count) {
+            list.innerHTML = `
+                <div class="empty-state" style="padding:20px 15px; opacity:0.4;">
+                    <div class="empty-state-icon" style="font-size:1.2rem;">📡</div>
+                    <div class="empty-state-sub">Aucun agent en ligne</div>
+                </div>`;
             return;
         }
         list.innerHTML = members.map(m => `
             <div class="agent-entry">
-                <div class="agent-dot"></div>
-                <span>${(m.name || 'AGENT').toUpperCase()}</span>
+                <span class="status-dot online"></span>
+                <span>${escapeHtml((m.name || 'AGENT').toUpperCase())}</span>
             </div>`).join('');
     }
 </script>
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script src="js/broadcast.js"></script>
+<script src="js/common.js" defer></script>
 </body>
 </html>

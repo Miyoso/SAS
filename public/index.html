@@ -459,9 +459,12 @@
                    placeholder="[ SOUCHE_MÉMORIELLE ]" aria-label="Mot de passe">
         </div>
         <div id="login-msg" aria-live="assertive" aria-atomic="true"></div>
-        <button class="btn-connect" onclick="handleLogin()" aria-label="Initier la connexion">
+        <button class="btn-connect" id="btn-login" onclick="handleLogin()" aria-label="Initier la connexion">
             INITIER L'UPLINK
         </button>
+        <div style="margin-top:12px; font-family:var(--font-code); font-size:0.55rem; color:rgba(0,255,157,0.3); letter-spacing:2px; text-align:center;">
+            [ ENTRÉE ] OU CLIC POUR CONNECTER
+        </div>
     </div>
 </section>
 
@@ -473,6 +476,11 @@
     </div>
     <div class="hud-meta hud-meta-dimmer">
         ACCRÉDITATION: <span id="mini-rank">LVL-0</span>
+    </div>
+    <div class="hud-meta hud-meta-dimmer" style="margin-top:6px; font-size:0.6rem;">
+        <span class="sas-date" style="opacity:0.5;"></span>
+        &nbsp;|&nbsp;
+        <span class="sas-clock" style="letter-spacing:1px;"></span>
     </div>
 </div>
 
@@ -987,5 +995,6 @@ async function loadActivityFeed() {
 }
 </script>
 <script src="js/broadcast.js"></script>
+<script src="js/common.js" defer></script>
 </body>
 </html>

@@ -97,20 +97,24 @@ window.logout = logout;
 
 async function handleLogin() {
     initAudio(); // On initialise l'audio au premier clic
-    
+
     const user = document.getElementById('login-username').value.trim();
     const pass = document.getElementById('login-password').value.trim();
     const msg = document.getElementById('login-msg');
     const loginBox = document.getElementById('login-box');
+    const btn = document.getElementById('btn-login');
 
     if (!user || !pass) {
-        msg.textContent = "ERREUR: CHAMPS VIDES REQUIS";
+        msg.textContent = "⚠ ERREUR: CHAMPS VIDES REQUIS";
         msg.className = "term-line term-error";
         loginBox.classList.add('glitch-anim');
         playSound('error');
         setTimeout(() => loginBox.classList.remove('glitch-anim'), 300);
         return;
     }
+
+    // État de chargement sur le bouton
+    if (btn) { btn.disabled = true; btn.textContent = '[ CONNEXION... ]'; btn.style.opacity = '0.7'; }
 
     // UX : Faux délai d'interrogation satellite
     msg.textContent = "[ INTERROGATION DES SERVEURS... ]";
@@ -126,14 +130,14 @@ async function handleLogin() {
             const data = await response.json();
 
             if (response.ok) {
-                msg.textContent = "ACCÈS ACCORDÉ. DÉCRYPTAGE...";
+                msg.textContent = "✓ ACCÈS ACCORDÉ. DÉCRYPTAGE...";
                 msg.className = "term-line term-info blink";
                 playSound('success');
-                
+
                 localStorage.setItem('sas_token', data.token);
                 localStorage.setItem('sas_session', JSON.stringify(data.agent));
                 localStorage.setItem('userSecurityLevel', data.agent.rank);
-                
+
                 setTimeout(() => window.location.reload(), 800);
             } else {
                 msg.textContent = "⛔ ÉCHEC : MATRICULE OU CODE INVALIDE";
@@ -141,11 +145,14 @@ async function handleLogin() {
                 loginBox.classList.add('glitch-anim');
                 playSound('error');
                 setTimeout(() => loginBox.classList.remove('glitch-anim'), 400);
+                // Réactiver le bouton en cas d'échec
+                if (btn) { btn.disabled = false; btn.textContent = 'INITIER L\'UPLINK'; btn.style.opacity = ''; }
             }
         } catch (err) {
             msg.textContent = "⛔ ERREUR CONNEXION MAINFRAME";
             msg.className = "term-line term-error";
             playSound('error');
+            if (btn) { btn.disabled = false; btn.textContent = 'INITIER L\'UPLINK'; btn.style.opacity = ''; }
         }
     }, 700); // 700ms de fake delay
 }
