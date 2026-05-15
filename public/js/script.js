@@ -225,14 +225,6 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !document.body.classList.contains('logged-in')) {
         handleLogin();
     }
-    
-    // Raccourcis clavier (touches 1, 2, 3, 4) pour naviguer vite si connecté
-    if (document.body.classList.contains('logged-in')) {
-        if (e.key === '1') accessModule('database.html', 1);
-        if (e.key === '2') accessModule('reglement.html', 1);
-        if (e.key === '3') accessModule('map.html', 1);
-        if (e.key === '4') accessModule('report.html', 1);
-    }
 });
 
 document.addEventListener('DOMContentLoaded', restoreSession);
