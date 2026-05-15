@@ -3,256 +3,329 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHADOW CO. :: AGENT [ABEL SANTO]</title>
+    <title>SAS :: AGENT-07 — ADAM</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Share+Tech+Mono&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="/css/style-mo.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
+    <style>
+        :root {
+            --gold:       #d4af37;
+            --gold-bright:#f1d592;
+            --gold-dim:   rgba(212,175,55,0.12);
+            --red:        #c0392b;
+            --bg:         #050505;
+            --bg2:        #0a0a08;
+            --text:       #e2d1b3;
+            --text-dim:   #7a6f5d;
+            --border:     rgba(212,175,55,0.15);
+            --border-c:   rgba(212,175,55,0.3);
+            --mono:       'JetBrains Mono', monospace;
+            --ui:         'Share Tech Mono', monospace;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg); color: var(--text); font-family: var(--ui); overflow-x: hidden; cursor: crosshair; }
+
+        .scan {
+            position: fixed; left: 0; width: 100%; height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
+            opacity: 0.1; pointer-events: none; z-index: 200;
+            animation: scan 12s linear infinite;
+        }
+        @keyframes scan { 0%{top:-2%} 100%{top:102%} }
+
+        #boot {
+            position: fixed; inset: 0; background: #000; z-index: 9000;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column; gap: 20px; transition: opacity 0.7s ease;
+        }
+        .boot-ref { font-family: var(--mono); font-size: 0.6rem; color: var(--gold); letter-spacing: 6px; opacity: 0; animation: fadeIn 0.4s 0.2s forwards; }
+        .boot-progress { width: 180px; height: 1px; background: rgba(212,175,55,0.1); overflow: hidden; }
+        .boot-fill { height: 100%; width: 0; background: var(--gold); box-shadow: 0 0 10px var(--gold); animation: fill 1.8s cubic-bezier(0.4,0,0.2,1) forwards; }
+        .boot-label { font-size: 0.5rem; color: var(--text-dim); letter-spacing: 4px; min-height: 14px; }
+        @keyframes fill   { to { width: 100%; } }
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        .topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 44px;
+            background: rgba(5,5,5,0.96); border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: space-between;
+            padding: 0 40px; opacity: 0; animation: fadeIn 0.5s 2.3s forwards;
+        }
+        .tb-left { display: flex; align-items: center; gap: 20px; }
+        .tb-logo { font-family: var(--mono); font-size: 0.65rem; color: var(--gold); letter-spacing: 3px; }
+        .tb-sep  { width: 1px; height: 16px; background: var(--border); }
+        .tb-ref  { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 2px; }
+        .tb-back { font-size: 0.55rem; color: var(--text-dim); text-decoration: none; letter-spacing: 2px; border: 1px solid var(--border); padding: 4px 12px; transition: 0.2s; }
+        .tb-back:hover { border-color: var(--gold); color: var(--gold); }
+
+        .hero {
+            height: 100vh; position: relative; display: grid; grid-template-columns: 1fr 1fr;
+            opacity: 0; animation: fadeIn 1s 2.2s forwards; z-index: 5;
+        }
+        .hero-photo-col { position: relative; overflow: hidden; }
+        .hero-photo-col img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; filter: grayscale(0.6) contrast(1.1) brightness(0.5) sepia(0.2); display: block; }
+        .hero-photo-col::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to right, rgba(5,5,5,0) 40%, rgba(5,5,5,1) 100%); }
+        .hero-photo-col::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%; background: linear-gradient(to top, var(--bg), transparent); z-index: 1; }
+
+        .hero-tape { position: absolute; top: 44px; left: 0; right: 0; height: 3px; background: repeating-linear-gradient(90deg, var(--gold) 0, var(--gold) 20px, transparent 20px, transparent 40px); z-index: 10; opacity: 0.2; animation: tape 3s linear infinite; }
+        @keyframes tape { to { background-position: 40px 0; } }
+
+        .photo-data { position: absolute; bottom: 60px; left: 30px; z-index: 5; pointer-events: none; display: flex; flex-direction: column; gap: 6px; }
+        .data-line { font-family: var(--mono); font-size: 0.52rem; color: rgba(212,175,55,0.5); letter-spacing: 3px; }
+        .data-line.blink { animation: blk 2s step-end infinite; }
+        @keyframes blk { 50% { opacity: 0; } }
+
+        .hero-text-col { display: flex; flex-direction: column; justify-content: center; padding: 80px 60px 60px; position: relative; }
+        .hero-classified { display: flex; align-items: center; gap: 8px; font-size: 0.5rem; color: var(--gold); letter-spacing: 5px; margin-bottom: 32px; }
+        .hero-classified::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); animation: pls 1.5s infinite; }
+        @keyframes pls { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        .hero-surname { font-family: var(--mono); font-size: clamp(3rem,5vw,4.5rem); font-weight: 800; color: #fff; letter-spacing: -3px; line-height: 1; margin-bottom: 6px; }
+        .hero-given   { font-family: var(--mono); font-size: clamp(1rem,2vw,1.4rem); font-weight: 300; color: var(--gold); letter-spacing: 6px; text-transform: uppercase; margin-bottom: 28px; }
+        .hero-desc    { font-size: 0.72rem; color: var(--text-dim); line-height: 1.7; max-width: 360px; border-left: 2px solid var(--border-c); padding-left: 16px; margin-bottom: 36px; font-family: var(--mono); }
+
+        .hero-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); max-width: 360px; }
+        .hero-stat  { background: var(--bg); padding: 14px 16px; display: flex; flex-direction: column; gap: 3px; }
+        .hs-label   { font-size: 0.45rem; color: var(--text-dim); letter-spacing: 3px; }
+        .hs-value   { font-family: var(--mono); font-size: 0.8rem; color: #fff; }
+        .hs-value.cyan { color: var(--gold); }
+        .hs-value.red  { color: var(--red); }
+
+        .body { max-width: 960px; margin: 0 auto; padding: 80px 40px 100px; display: flex; flex-direction: column; gap: 64px; opacity: 0; animation: fadeIn 0.6s 2.6s forwards; position: relative; z-index: 5; }
+
+        .sec { display: flex; flex-direction: column; gap: 20px; }
+        .sec-header { display: flex; align-items: center; gap: 16px; }
+        .sec-n     { font-family: var(--mono); font-size: 0.5rem; font-weight: 700; color: var(--gold); letter-spacing: 2px; border: 1px solid var(--border-c); padding: 3px 8px; flex-shrink: 0; }
+        .sec-title { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 5px; text-transform: uppercase; }
+        .sec-line  { flex: 1; height: 1px; background: var(--border); }
+
+        .block { background: var(--bg2); border: 1px solid var(--border); position: relative; overflow: hidden; }
+        .block::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 2px; background: transparent; transition: background 0.4s; }
+        .block:hover::before { background: var(--gold); }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--border); }
+        .grid-cell { padding: 20px 28px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .grid-cell:nth-child(2n) { border-right: none; }
+        .cell-label { font-size: 0.48rem; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+        .cell-value { font-family: var(--mono); font-size: 0.82rem; color: #e0dbd4; line-height: 1.4; }
+        .cell-value.cyan { color: var(--gold); }
+        .cell-value.red  { color: var(--red); }
+        .cell-value.gold { color: var(--gold-bright); }
+
+        .prose { padding: 28px 32px; font-family: var(--mono); font-size: 0.78rem; color: var(--text-dim); line-height: 1.8; }
+        .prose strong { color: var(--text); font-weight: 700; }
+        .prose em     { color: var(--gold); font-style: normal; }
+
+        .tl-item { display: flex; border-bottom: 1px solid var(--border); }
+        .tl-item:last-child { border-bottom: none; }
+        .tl-year    { flex-shrink: 0; width: 120px; padding: 20px 24px; font-family: var(--mono); font-size: 0.75rem; color: var(--gold); font-weight: 700; border-right: 1px solid var(--border); }
+        .tl-content { padding: 20px 28px; flex: 1; }
+        .tl-event   { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+        .tl-desc    { font-family: var(--mono); font-size: 0.78rem; color: var(--text); line-height: 1.6; }
+        .tl-desc.red { color: var(--red); }
+
+        .file-list { display: flex; flex-direction: column; gap: 0; }
+        .file-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 28px; border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 0.75rem; }
+        .file-row:last-child { border-bottom: none; }
+        .file-name { color: rgba(212,175,55,0.8); display: flex; align-items: center; gap: 12px; }
+        .file-dot  { width: 8px; height: 8px; border-radius: 50%; background: #2a0a0a; border: 1px solid #5c1a1a; flex-shrink: 0; }
+        .file-status { font-size: 0.6rem; color: #886600; letter-spacing: 2px; }
+
+        .warn-header { padding: 18px 28px; font-family: var(--mono); font-size: 0.8rem; color: var(--gold); font-weight: 700; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+
+        .rdct { display: inline-block; background: rgba(212,175,55,0.1); color: transparent; padding: 0 6px; position: relative; cursor: help; transition: 0.3s; font-family: var(--mono); }
+        .rdct::after { content: attr(data-text); position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: #333; }
+        .rdct:hover { background: var(--gold-dim); color: var(--gold); }
+        .rdct:hover::after { display: none; }
+
+        .page-footer { display: flex; justify-content: space-between; padding-top: 32px; border-top: 1px solid var(--border); font-size: 0.48rem; color: var(--text-dim); }
+        .page-footer a { color: var(--text-dim); text-decoration: none; border: 1px solid var(--border); padding: 6px 16px; }
+        .page-footer a:hover { border-color: var(--gold); color: var(--gold); }
+
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.2); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+    </style>
 </head>
 <body>
 
-    
+<div class="scan"></div>
 
-    <div id="boot-screen">
-        <div class="boot-text">DECRYPTING IAA ARCHIVES...</div>
-        <div class="progress-bar"><div class="progress-fill" style="background: var(--warning);"></div></div>
-        <div style="margin-top: 10px; font-size: 0.8rem; color: #555;">TARGET: AGENT 07 // SOURCE: EXTERNAL</div>
+<div id="boot">
+    <div class="boot-ref">SAS // AGENT-07</div>
+    <div class="boot-progress"><div class="boot-fill"></div></div>
+    <div class="boot-label" id="boot-label">DÉCRYPTAGE ARCHIVES IAA...</div>
+</div>
+
+<nav class="topbar">
+    <div class="tb-left">
+        <div class="tb-logo">SAS</div>
+        <div class="tb-sep"></div>
+        <div class="tb-ref">DOSSIER AGENT-07 // CONTRACTOR // SOURCE: IAA DATABASE [LEAK]</div>
+    </div>
+    <a href="/database.html" class="tb-back">← RETOUR</a>
+</nav>
+
+<section class="hero">
+    <div class="hero-tape"></div>
+    <div class="hero-photo-col">
+        <img src="/assets/Adam.jpg" alt="Adam">
+        <div class="photo-data">
+            <div class="data-line">ID // AGENT-07</div>
+            <div class="data-line">SPEC // CONTRACTOR</div>
+            <div class="data-line blink">STATUS // PENDING ●</div>
+        </div>
+    </div>
+    <div class="hero-text-col">
+        <div class="hero-classified">DOSSIER ACTIF — CONTRACTOR — SOURCE LEAK</div>
+        <div class="hero-surname">ADAM</div>
+        <div class="hero-given">Abel Santo</div>
+        <div class="hero-desc">
+            Ancien membre de l'ELN colombien. Capturé par l'IAA en 2014.
+            Reconverti dans le renseignement (DEA).
+            Opère dans l'ombre entre deux loyautés — et n'a jamais vraiment choisi son camp.
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat"><div class="hs-label">CALLSIGN</div><div class="hs-value cyan">ADAM</div></div>
+            <div class="hero-stat"><div class="hs-label">ÂGE</div><div class="hs-value">28 ANS</div></div>
+            <div class="hero-stat"><div class="hs-label">CLEARANCE</div><div class="hs-value red">PENDING</div></div>
+            <div class="hero-stat"><div class="hs-label">ORIGINE</div><div class="hs-value">CALI, COLOMBIE</div></div>
+            <div class="hero-stat"><div class="hs-label">RÔLE</div><div class="hs-value">CONTRACTOR</div></div>
+            <div class="hero-stat"><div class="hs-label">STATUT</div><div class="hs-value red">● EN ATTENTE</div></div>
+        </div>
+    </div>
+</section>
+
+<div class="body">
+
+    <div class="sec">
+        <div class="sec-header">
+            <div class="sec-n">01</div>
+            <div class="sec-title">PROFIL</div>
+            <div class="sec-line"></div>
+        </div>
+        <div class="block">
+            <div class="prose">
+                Né à <em>Cali, Colombie</em>. Ancien membre de l'<strong>ELN</strong> — Ejército de Liberación Nacional.
+                Capturé lors d'une opération conjointe IAA/DEA en 2014 et placé sous programme de reconversion.
+                Reconverti comme informateur, puis contractant actif pour la DEA.
+                Son dossier psychologique reste <strong>scellé</strong> par l'IAA — niveau d'accréditation insuffisant pour y accéder.
+            </div>
+            <div class="grid-2">
+                <div class="grid-cell"><div class="cell-label">NAISSANCE</div><div class="cell-value">28/04/1997</div></div>
+                <div class="grid-cell"><div class="cell-label">STATUT LÉGAL</div><div class="cell-value red">EN ATTENTE EXFILTRATION</div></div>
+                <div class="grid-cell"><div class="cell-label">ORIGINE</div><div class="cell-value">IAA / DEA (EX)</div></div>
+                <div class="grid-cell"><div class="cell-label">RECRUTEMENT</div><div class="cell-value cyan"><span class="rdct" data-text="CAPTURE/RECONVERSION">CLASSIFIÉ</span></div></div>
+            </div>
+        </div>
     </div>
 
-    <div class="terminal-wrapper">
-        <main class="terminal">
-            
-            <header class="header-strip" style="border-bottom-color: var(--warning);">
-                <div>
-                    <h1>DOSSIER :: <span>ADAM</span></h1>
-                    <div style="color: var(--warning); font-size: 0.9rem; letter-spacing: 3px;">SHADOW COMPANY // CONTRACTOR</div>
+    <div class="sec">
+        <div class="sec-header">
+            <div class="sec-n">02</div>
+            <div class="sec-title">CHRONOLOGIE</div>
+            <div class="sec-line"></div>
+        </div>
+        <div class="block">
+            <div class="tl-item">
+                <div class="tl-year">2014</div>
+                <div class="tl-content">
+                    <div class="tl-event">CAPTURE & RECONVERSION</div>
+                    <div class="tl-desc">Capture par l'IAA. Entrée dans le programme de reconversion. Début des activités comme informateur DEA.</div>
                 </div>
-                <div class="meta-data">
-                    <div>SRC: IAA DATABASE [LEAK]</div>
-                    <div>REQ ID: <span class="blink">_AGENT-07</span></div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-year">2014–2024</div>
+                <div class="tl-content">
+                    <div class="tl-event">MISSIONS D'INFILTRATION</div>
+                    <div class="tl-desc">Déploiements au Mexique et en Colombie. Lutte contre le narco-terrorisme. Dix ans dans l'ombre.</div>
                 </div>
-            </header>
-
-            <section class="hero-section">
-                <div class="id-card-container">
-                    <div class="id-card" id="card">
-                        <div class="holo-overlay"></div>
-                        
-                        <div class="card-header">
-                            <div class="card-logo-text">SHADOW CO.</div>
-                            <div class="security-level" style="background: var(--warning); color: #000;">PENDING</div>
-                        </div>
-            
-                        <div class="card-body">
-                            
-                                <div class="photo-box" style="border-color: var(--secondary);">
-                                <img src="/assets/Adam.jpg" alt="Agent Adam" style="filter: grayscale(1) contrast(1.2) brightness(0.8);">
-                            </div>
-                            
-                            <div class="agent-info">
-                                <div class="card-label">NOM</div>
-                                <div class="card-value">ADAM</div>
-                                
-                                <div class="card-label">RÔLE</div>
-                                <div class="card-value" style="color: var(--warning);">AGENT</div>
-
-                                <div class="card-label">ORIGINE</div>
-                                <div class="card-code">IAA / DEA (EX)</div>
-                            </div>
-                        </div>
-            
-                        <div class="card-footer">
-                            <div class="barcode" style="font-family: 'Libre Barcode 128 Text', cursive;">7005107077</div>
-                            <div class="chip" style="background: linear-gradient(135deg, #b8860b, #ffd700);"></div>
-                        </div>
-                    </div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-year">14/06/2025</div>
+                <div class="tl-content">
+                    <div class="tl-event">INCIDENT — COUVERTURE</div>
+                    <div class="tl-desc tl-desc red"><span class="rdct" data-text="RAPPORT D'ARRESTATION (COUVERTURE)">INCIDENT #44921-B // CLASSIFIÉ</span></div>
                 </div>
-            </section>
-
-            <section class="intel-grid">
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">BIO_METRICS</span>
-                        <div class="audio-viz">
-                            <div class="bar" style="animation-delay:0s; background: var(--warning);"></div>
-                            <div class="bar" style="animation-delay:0.1s; background: var(--warning);"></div>
-                            <div class="bar" style="animation-delay:0.2s; background: var(--warning);"></div>
-                            <div class="bar" style="animation-delay:0.3s; background: var(--warning);"></div>
-                        </div>
-                    </div>
-                    <div class="log-entry">
-                        <span class="label">ORIGINE:</span><br>
-                        <span>CALI, COLOMBIE</span>
-                    </div>
-                    <div class="log-entry">
-                        <span class="label">NAISSANCE:</span><br>
-                        <span>28/04/1997</span>
-                    </div>
-                    <div class="log-entry">
-                        <span class="label">STATUT ACTUEL:</span><br>
-                        <span class="redacted text-warning" data-real="EN ATTENTE EXFILTRATION" data-scramble="UNKOWN STATUS"></span>
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">PROFIL PSYCHOLOGIQUE</span>
-                        <span style="color:var(--danger); font-size:0.7rem;">ACCESS_DENIED</span>
-                    </div>
-                    
-                    <div class="log-entry">
-                         <span class="label">PHYSIQUE:</span><br>
-                         <span class="redacted" data-real="DONNÉES NON DISPONIBLES" data-scramble="ENCRYPTED_DATA_#99"></span>
-                    </div>
-                    
-                    <div class="log-entry">
-                         <span class="label">QUALITÉS (ASSETS):</span><br>
-                         <span style="color: var(--danger)">[!] 
-                             <span class="redacted" style="color:var(--danger)" data-real="ANALYSE BLOQUÉE PAR IAA" data-scramble="SYSTEM_ERROR_X44"></span>
-                         </span>
-                    </div>
-
-                    <div class="log-entry">
-                         <span class="label">DÉFAUTS (LIABILITIES):</span><br>
-                         <span style="color: var(--danger)">[!] 
-                             <span class="redacted" style="color:var(--danger)" data-real="ANALYSE BLOQUÉE PAR IAA" data-scramble="SYSTEM_ERROR_X99"></span>
-                         </span>
-                    </div>
-
-                    <div style="margin-top: 15px; font-size: 0.75rem; color: #666; border-top: 1px dashed #444; padding-top: 10px;">
-                        // NOTE: DOSSIER SCELLÉ. NIVEAU D'ACCRÉDITATION INSUFFISANT.
-                    </div>
-                </div>
-            </section>
-
-            <section class="logs-section" style="margin-top: 1.5rem;">
-                <div class="panel" style="border-color: var(--dim);">
-                    <div class="panel-header">
-                        <span class="panel-title">HISTORIQUE SUJET [RECONSTITUÉ]</span>
-                        <span style="font-family: var(--font-code); font-size: 0.7rem; color: #888;">SOURCE: LEAKS</span>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr; gap: 10px; font-family: var(--font-code); font-size: 0.8rem; color: #aaa;">
-                        <p>
-                            SUJET: ANCIEN MEMBRE DE L'ELN (COLOMBIE). CAPTURÉ PAR L'IAA EN 2014.
-                            RECONVERTI DANS LE RENSEIGNEMENT (DEA).
-                        </p>
-                        <div class="log-entry" style="border-left-color: var(--dim);">
-                            <span class="label">2014-2024:</span><br>
-                            MISSIONS INFILTRATION (MEXIQUE & COLOMBIE). LUTTE NARCO-TERRORISME.
-                        </div>
-                        <div class="log-entry" style="border-left-color: var(--dim);">
-                            <span class="label">14/06/2025:</span><br>
-                            <span class="redacted" data-real="RAPPORT D'ARRESTATION (COUVERTURE)" data-scramble="INCIDENT #44921-B"></span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="logs-section">
-                <div class="panel" style="border: 1px solid var(--warning); background: rgba(238, 187, 0, 0.02); margin-top: 15px;">
-                    
-                    <div style="color: var(--warning); font-family: var(--font-code); font-size: 0.85rem; margin-bottom: 1.5rem; font-weight: bold; letter-spacing: 1px;">
-                        [ ! ] ATTENTION : FICHIERS SENSIBLES (GOUV. SAN ANDREAS)
-                    </div>
-
-                    <div style="display: flex; flex-direction: column; gap: 12px; font-family: var(--font-code); font-size: 0.8rem;">
-                        
-                        <div style="display: flex; justify-content: space-between; align-items: center; color: #cc9900;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 12px; height: 12px; border-radius: 50%; background: #2a0a0a; border: 1px solid #5c1a1a;"></div>
-                                <span>[FICHIER: op_panama_exfil.log]</span>
-                            </div>
-                            <span style="color: #886600;">[MISSION IMMINENTE]</span>
-                        </div>
-
-                        <div style="display: flex; justify-content: space-between; align-items: center; color: #cc9900;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 12px; height: 12px; border-radius: 50%; background: #2a0a0a; border: 1px solid #5c1a1a;"></div>
-                                <span>[FICHIER: surveillance_sas_motek.dat]</span>
-                            </div>
-                            <span style="color: #886600;">[CORROMPU]</span>
-                        </div>
-
-                        <div style="display: flex; justify-content: space-between; align-items: center; color: #cc9900;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 12px; height: 12px; border-radius: 50%; background: #2a0a0a; border: 1px solid #5c1a1a;"></div>
-                                <span>[FICHIER: contingency_plan_88.bin]</span>
-                            </div>
-                            <span style="color: #886600;">[LOCKED]</span>
-                        </div>
-
-                    </div>
-                </div>
-            </section>
-
-            <footer class="footer">
-                <div>SECURE TERMINAL V.4.0.2 // USR: GRAVES</div>
-                <div>
-                    <a href="/database.html" class="text-secondary" style="text-decoration: none;">[ REVENIR AU DOSSIER MAÎTRE ]</a>
-                </div>
-            </footer>
-
-        </main>
+            </div>
+        </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            
-            // 1. BOOT SCREEN
-            const bootScreen = document.getElementById('boot-screen');
-            const bootText = document.querySelector('.boot-text');
-            
-            setTimeout(() => { bootText.textContent = "HANDSHAKE WITH IAA SERVER..."; }, 800);
-            setTimeout(() => { bootText.textContent = "CONNECTION ESTABLISHED."; }, 1800);
-            setTimeout(() => {
-                bootScreen.style.opacity = '0';
-                setTimeout(() => bootScreen.remove(), 1000);
-            }, 2500);
+    <div class="sec">
+        <div class="sec-header">
+            <div class="sec-n">03</div>
+            <div class="sec-title">FICHIERS SENSIBLES</div>
+            <div class="sec-line"></div>
+        </div>
+        <div class="block">
+            <div class="warn-header">[ ! ] ATTENTION : FICHIERS SENSIBLES — GOUVERNEMENT SAN ANDREAS</div>
+            <div class="file-list">
+                <div class="file-row">
+                    <div class="file-name"><div class="file-dot"></div><span>[FICHIER: op_panama_exfil.log]</span></div>
+                    <div class="file-status">MISSION IMMINENTE</div>
+                </div>
+                <div class="file-row">
+                    <div class="file-name"><div class="file-dot"></div><span>[FICHIER: surveillance_sas_motek.dat]</span></div>
+                    <div class="file-status">CORROMPU</div>
+                </div>
+                <div class="file-row">
+                    <div class="file-name"><div class="file-dot"></div><span>[FICHIER: contingency_plan_88.bin]</span></div>
+                    <div class="file-status">LOCKED</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            // 2. 3D CARD EFFECT
-            const card = document.getElementById('card');
-            const cardContainer = document.querySelector('.id-card-container');
+    <div class="page-footer">
+        <span>SAS SECURE TERMINAL V.4.0.2 // AGENT-07 // ADAM</span>
+        <a href="/database.html">← DOSSIER MAÎTRE</a>
+    </div>
+</div>
 
-            cardContainer.addEventListener('mousemove', (e) => {
-                const rect = cardContainer.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                const rotateX = ((y - centerY) / centerY) * -10; 
-                const rotateY = ((x - centerX) / centerX) * 10;
-                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-            });
-            cardContainer.addEventListener('mouseleave', () => {
-                card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
-            });
+<script>
+const msgs = ["DÉCRYPTAGE ARCHIVES IAA...", "HANDSHAKE IAA SERVER...", "CONNEXION ÉTABLIE."];
+let idx = 0;
+const lbl = document.getElementById('boot-label');
+const boot = document.getElementById('boot');
+function tick() {
+    lbl.textContent = msgs[idx++];
+    if (idx < msgs.length) setTimeout(tick, 700);
+    else {
+        setTimeout(() => {
+            boot.style.opacity = '0';
+            boot.style.pointerEvents = 'none';
+            setTimeout(() => boot.remove(), 700);
+        }, 600);
+    }
+}
+setTimeout(tick, 300);
+</script>
 
-            // 3. HACKER TEXT DECRYPTION
-            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
-            document.querySelectorAll('.redacted').forEach(element => {
-                element.textContent = element.getAttribute('data-scramble');
-                element.onmouseover = event => {
-                    let iterations = 0;
-                    const targetText = event.target.getAttribute('data-real');
-                    if(!targetText) return;
-                    const interval = setInterval(() => {
-                        event.target.textContent = targetText.split("").map((letter, index) => {
-                            if(index < iterations) return targetText[index];
-                            return letters[Math.floor(Math.random() * 43)]
-                        }).join("");
-                        if(iterations >= targetText.length) clearInterval(interval);
-                        iterations += 1 / 2;
-                    }, 30);
-                }
-                element.onmouseleave = event => {
-                   element.textContent = element.getAttribute('data-scramble');
-                }
-            });
-        });
-    </script>
+<script>
+(function() {
+    const AUDIO_SRC = '/assets/ambiance.mp3';
+    let audio = null;
+    function initAudio() {
+        audio = new Audio(AUDIO_SRC);
+        audio.loop = true; audio.volume = 0; audio.preload = 'auto';
+        let vol = 0; const target = 0.07; const step = target / 160;
+        const fadeIn = setInterval(() => {
+            vol = Math.min(vol + step, target);
+            if (audio) audio.volume = vol;
+            if (vol >= target) clearInterval(fadeIn);
+        }, 50);
+    }
+    setTimeout(initAudio, 3500);
+    document.addEventListener('visibilitychange', () => {
+        if (!audio) return;
+        if (document.hidden) audio.pause(); else audio.play();
+    });
+})();
+</script>
+
 </body>
 </html>

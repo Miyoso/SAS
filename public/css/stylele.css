@@ -773,3 +773,326 @@ h1 span {
 .term-info {
     color: var(--accent-primary);
 }
+
+/* =========================================
+   AMÉLIORATIONS v2 — SAS MAINFRAME
+========================================= */
+
+/* ── Padding amélioré sur terminaux larges ── */
+@media (min-width: 1400px) {
+    .terminal-wrapper { padding: 30px 80px; }
+}
+
+/* ── Responsive — tablette ── */
+@media (max-width: 1100px) {
+    .terminal-wrapper { padding: 20px 30px; }
+    .hud-side { display: none; }
+    .sidebar-panel { min-width: 260px; }
+}
+
+/* ── Responsive — mobile ── */
+@media (max-width: 768px) {
+    body { overflow-y: auto; height: auto; min-height: 100vh; }
+    .terminal-wrapper { padding: 16px 16px 80px; height: auto; min-height: 100vh; }
+    .terminal { height: auto; }
+    .view-section { flex-direction: column; overflow: visible; height: auto; }
+    .modules-section { padding-right: 0; overflow: visible; }
+    .sidebar-panel { min-width: 0; margin-left: 0; margin-top: 20px; height: auto; }
+    h1 { font-size: 1.6rem; letter-spacing: -1px; }
+    .sub-header { font-size: 0.6rem; letter-spacing: 2px; }
+    .header-strip { padding: 0 0 16px 0; margin-bottom: 12px; }
+    .meta-data { display: none; }
+    .tactical-navbar { padding-bottom: 10px; margin-bottom: 12px; gap: 6px; }
+    .nav-item { padding: 6px 10px; font-size: 0.65rem; letter-spacing: 1px; }
+    .grid-modules { grid-template-columns: 1fr; gap: 14px; }
+    .module-card { min-height: 80px; padding: 16px 20px; }
+}
+
+@media (max-width: 480px) {
+    h1 { font-size: 1.3rem; }
+    .terminal-wrapper { padding: 12px 12px 80px; }
+    .nav-item { padding: 5px 8px; font-size: 0.6rem; }
+}
+
+/* ── Navigation — indicateur actif amélioré ── */
+.nav-item {
+    position: relative;
+    overflow: hidden;
+}
+.nav-item::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0; height: 2px;
+    background: var(--accent-primary);
+    transition: width 0.3s ease;
+}
+.nav-item:hover::before { width: 100%; }
+.nav-item.active::before {
+    width: 100%;
+    background: var(--accent-primary);
+    box-shadow: 0 0 8px var(--accent-primary);
+}
+.nav-item.active.restricted::before {
+    background: var(--accent-warning);
+    box-shadow: 0 0 8px var(--accent-warning);
+}
+
+/* ── Focus clavier visible ── */
+.btn-connect:focus-visible,
+.nav-item:focus-visible,
+.cmd-input:focus-visible {
+    outline: 2px solid rgba(0, 255, 157, 0.6);
+    outline-offset: 2px;
+}
+button:focus-visible {
+    outline: 2px solid rgba(0, 255, 157, 0.5);
+    outline-offset: 2px;
+}
+
+/* ── Squelette de chargement ── */
+.sas-skeleton {
+    height: 14px;
+    background: linear-gradient(90deg,
+        rgba(255,255,255,0.04) 25%,
+        rgba(255,255,255,0.08) 50%,
+        rgba(255,255,255,0.04) 75%
+    );
+    background-size: 400% 100%;
+    animation: skel-shimmer 1.6s ease-in-out infinite;
+    border-radius: 2px;
+    margin-bottom: 8px;
+}
+@keyframes skel-shimmer {
+    0%   { background-position: 100% 50%; }
+    100% { background-position: 0%   50%; }
+}
+
+/* ── Badge / Pill ── */
+.sas-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--font-code); font-size: 0.58rem;
+    padding: 2px 8px; letter-spacing: 1px; text-transform: uppercase;
+    border-radius: 2px;
+}
+.sas-badge-primary  { color: var(--accent-primary);  background: rgba(0,255,157,0.1);  border: 1px solid rgba(0,255,157,0.25);  }
+.sas-badge-warning  { color: var(--accent-warning);  background: rgba(238,187,0,0.1);  border: 1px solid rgba(238,187,0,0.25);  }
+.sas-badge-danger   { color: var(--accent-danger);   background: rgba(255,51,51,0.1);  border: 1px solid rgba(255,51,51,0.25);  }
+.sas-badge-blue     { color: var(--accent-blue);     background: rgba(0,243,255,0.1);  border: 1px solid rgba(0,243,255,0.25);  }
+.sas-badge-dim      { color: var(--text-dim);        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); }
+
+/* ── Tag priorité mission ── */
+.priority-tag {
+    display: inline-flex; align-items: center;
+    font-family: var(--font-code); font-size: 0.55rem;
+    padding: 1px 7px; letter-spacing: 1px; text-transform: uppercase;
+    border-left: 2px solid currentColor;
+}
+.priority-high    { color: var(--accent-danger);   background: rgba(255,51,51,0.08);  }
+.priority-medium  { color: var(--accent-warning);  background: rgba(238,187,0,0.08);  }
+.priority-low     { color: var(--accent-primary);  background: rgba(0,255,157,0.08);  }
+
+/* ── État vide ── */
+.empty-state {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px 20px; text-align: center;
+    opacity: 0.5;
+}
+.empty-state-icon {
+    font-size: 2rem; margin-bottom: 12px;
+    filter: grayscale(100%);
+}
+.empty-state-title {
+    font-family: var(--font-code); font-size: 0.75rem;
+    letter-spacing: 3px; color: var(--text-dim);
+    text-transform: uppercase; margin-bottom: 6px;
+}
+.empty-state-sub {
+    font-family: var(--font-display); font-size: 0.65rem;
+    color: #445566; letter-spacing: 1px;
+}
+
+/* ── Panneau header ── */
+.panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(0,0,0,0.4);
+    flex-shrink: 0;
+}
+.panel-title {
+    font-family: var(--font-code); font-size: 0.7rem;
+    color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase;
+}
+
+/* ── Indicateur de statut animé ── */
+.status-dot {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    flex-shrink: 0;
+}
+.status-dot.online  { background: var(--accent-primary); box-shadow: 0 0 6px var(--accent-primary); animation: pulse-dot 2s infinite; }
+.status-dot.offline { background: #334455; }
+.status-dot.busy    { background: var(--accent-danger);  box-shadow: 0 0 6px var(--accent-danger); animation: pulse-dot 1.2s infinite; }
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* ── Scrollbar cohérente sur tous les panneaux ── */
+.col-body::-webkit-scrollbar,
+.sidebar-panel::-webkit-scrollbar,
+.sidebar-logs::-webkit-scrollbar,
+.modules-section::-webkit-scrollbar,
+.messages-list::-webkit-scrollbar,
+.modal-col-left::-webkit-scrollbar,
+.modal-col-right::-webkit-scrollbar {
+    width: 3px;
+}
+.col-body::-webkit-scrollbar-thumb,
+.sidebar-panel::-webkit-scrollbar-thumb,
+.sidebar-logs::-webkit-scrollbar-thumb,
+.modules-section::-webkit-scrollbar-thumb,
+.messages-list::-webkit-scrollbar-thumb,
+.modal-col-left::-webkit-scrollbar-thumb,
+.modal-col-right::-webkit-scrollbar-thumb {
+    background: rgba(0,255,157,0.2);
+    border-radius: 2px;
+}
+.col-body::-webkit-scrollbar-thumb:hover,
+.messages-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,255,157,0.4);
+}
+
+/* ── Bouton : état chargement ── */
+.btn-connect.loading {
+    opacity: 0.6; cursor: wait; pointer-events: none;
+}
+.btn-connect.loading::after {
+    content: ' ●';
+    animation: blinker 0.6s infinite;
+}
+
+/* ── Transition d'entrée de page ── */
+.page-fade-in {
+    animation: pageFadeIn 0.35s ease forwards;
+}
+@keyframes pageFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Séparateur tactique ── */
+.tac-separator {
+    width: 100%; height: 1px; margin: 20px 0;
+    background: linear-gradient(90deg,
+        transparent, rgba(0,255,157,0.15), rgba(0,255,157,0.3),
+        rgba(0,255,157,0.15), transparent);
+}
+
+/* ── Carte mission améliorée ── */
+.mission-card .mc-meta {
+    display: flex; gap: 8px; align-items: center;
+    flex-wrap: wrap; margin-top: 6px;
+}
+.mission-card .mc-time {
+    font-family: var(--font-code); font-size: 0.58rem;
+    color: #556677; letter-spacing: 1px;
+    display: flex; align-items: center; gap: 4px;
+}
+.mission-card:hover .mc-time { color: var(--text-dim); }
+
+/* ── Message entrant — amélioration ── */
+.msg-bubble {
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.msg-bubble:hover {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+.msg-item.own .msg-bubble:hover {
+    border-color: rgba(0,243,255,0.3);
+}
+
+/* ── Horloge dans le HUD ── */
+.sas-clock, .sas-date {
+    font-family: var(--font-code);
+    color: var(--accent-primary);
+    font-size: 0.7rem; letter-spacing: 2px;
+}
+
+/* ── Form — états améliorés ── */
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="datetime-local"]:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+}
+input[type="datetime-local"],
+select {
+    color-scheme: dark;
+}
+select option {
+    background: #060a0f;
+    color: #eee;
+}
+
+/* ── Indicateur de frappe ── */
+.typing-indicator {
+    display: flex; gap: 4px; align-items: center;
+    padding: 8px 14px; opacity: 0;
+    transition: opacity 0.2s; pointer-events: none;
+}
+.typing-indicator.visible { opacity: 1; }
+.typing-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--accent-primary); opacity: 0.4;
+    animation: typeDot 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typeDot {
+    0%, 60%, 100% { opacity: 0.4; transform: translateY(0); }
+    30%            { opacity: 1;   transform: translateY(-4px); }
+}
+
+/* ── Modal — animation d'entrée ── */
+.modal-overlay {
+    animation: modalFadeIn 0.2s ease;
+}
+.modal-box, .modal-window {
+    animation: modalSlideIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes modalFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modalSlideIn { from { opacity: 0; transform: scale(0.94) translateY(-10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+/* ── Glitch text effect ── */
+.glitch-text {
+    animation: glitchText 0.4s cubic-bezier(.25,.46,.45,.94) both;
+}
+@keyframes glitchText {
+    0%  { transform: skewX(0deg); filter: none; }
+    20% { transform: skewX(-4deg); filter: hue-rotate(90deg); }
+    40% { transform: skewX(4deg); clip-path: inset(20% 0 40% 0); }
+    60% { transform: skewX(-2deg); clip-path: inset(60% 0 10% 0); }
+    80% { transform: skewX(1deg); filter: none; }
+    100%{ transform: skewX(0deg); clip-path: none; }
+}
+
+/* ── Nav item — badge compteur ── */
+.nav-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--accent-danger); color: #fff;
+    border-radius: 50%; width: 16px; height: 16px;
+    font-size: 0.55rem; font-family: var(--font-code); font-weight: bold;
+    margin-left: 6px; line-height: 1;
+    animation: pulse-dot 2s infinite;
+}
+
+/* ── Notification dot ── */
+.notif-dot {
+    position: absolute; top: 4px; right: 4px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent-danger); box-shadow: 0 0 6px var(--accent-danger);
+    animation: pulse-dot 2s infinite;
+}

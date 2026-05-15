@@ -18,6 +18,8 @@
             --font-code:    'JetBrains Mono', monospace;
             --font-display: 'Share Tech Mono', monospace;
             --bg-glass:     rgba(6, 10, 15, 0.65);
+            --sidebar-w:    260px;
+            --activity-w:   300px;
         }
 
         *, *::before, *::after { box-sizing: border-box; }
@@ -30,6 +32,7 @@
             color: #fff;
             font-family: var(--font-display);
         }
+
         .scanlines {
             position: fixed; inset: 0;
             background: linear-gradient(to bottom,
@@ -44,10 +47,12 @@
             pointer-events: none; z-index: 998;
         }
 
+        /* ── AUTH VISIBILITY ── */
         .auth-content                { display: none !important; }
         body.logged-in .auth-content { display: flex !important; }
         body.logged-in #login-overlay { display: none !important; }
 
+        /* canvas background */
         #neural-network {
             position: fixed; inset: 0;
             z-index: 0; opacity: 0.6;
@@ -59,6 +64,9 @@
             clip: rect(0,0,0,0); white-space: nowrap; border: 0;
         }
 
+        /* ────────────────────────────────────────
+           LOGIN OVERLAY
+        ──────────────────────────────────────── */
         #login-overlay {
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
@@ -107,13 +115,9 @@
             background: rgba(0, 255, 157, 0.05);
         }
         #login-msg {
-            min-height: 20px;
-            font-family: var(--font-code);
-            font-size: 0.8rem;
-            margin-bottom: 10px;
-            text-align: center;
+            min-height: 20px; font-family: var(--font-code);
+            font-size: 0.8rem; margin-bottom: 10px; text-align: center;
         }
-
         .btn-connect {
             background: rgba(0, 255, 157, 0.1);
             color: var(--accent-primary);
@@ -128,71 +132,262 @@
             background: var(--accent-primary); color: #000;
             box-shadow: 0 0 25px var(--accent-primary); scale: 1.05;
         }
-        .btn-logout {
-            font-size: 0.7rem; padding: 8px 15px;
-            border-color: rgba(255,255,255,0.3);
-            color: #fff; margin-top: 0;
-        }
-        .btn-logout:hover { background: rgba(255,255,255,0.15); color: #fff; scale: 1.05; }
 
-        .hud-overlay {
-            position: fixed; top: 30px; left: 30px;
-            pointer-events: none; z-index: 100;
-            border-left: 3px solid var(--accent-primary);
+        /* ────────────────────────────────────────
+           LEFT SIDEBAR
+        ──────────────────────────────────────── */
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0;
+            width: var(--sidebar-w);
+            background: linear-gradient(180deg, rgba(3,7,13,0.97) 0%, rgba(2,4,9,0.99) 100%);
+            border-right: 1px solid rgba(0,255,157,0.12);
+            z-index: 200;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* brand header */
+        .sidebar-brand {
+            padding: 22px 20px 16px;
+            border-bottom: 1px solid rgba(0,255,157,0.1);
+            flex-shrink: 0;
+        }
+        .sidebar-brand-title {
+            font-family: var(--font-code);
+            font-size: 1.05rem; letter-spacing: 3px;
+            font-weight: 800; line-height: 1.2;
+        }
+        .sidebar-brand-title span { color: var(--accent-primary); }
+        .sidebar-brand-sub {
+            font-size: 0.55rem; letter-spacing: 4px;
+            color: rgba(0,255,157,0.4); margin-top: 4px;
+            text-transform: uppercase;
+        }
+
+        /* agent profile block */
+        .sidebar-agent {
+            display: flex; align-items: center; gap: 12px;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(0,255,157,0.08);
+            flex-shrink: 0;
+        }
+        .sidebar-avatar {
+            width: 42px; height: 42px; border-radius: 50%;
+            border: 1px solid rgba(0,255,157,0.4);
+            object-fit: cover; flex-shrink: 0;
+        }
+        .sidebar-agent-info { min-width: 0; }
+        .sidebar-agent-name {
+            font-family: var(--font-code); font-size: 0.8rem;
+            font-weight: 700; letter-spacing: 1px;
+            color: #fff; display: block;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .sidebar-agent-rank {
+            font-size: 0.62rem; color: var(--accent-primary);
+            letter-spacing: 2px; display: block; margin-top: 2px;
+        }
+        .sidebar-conn-status {
+            font-size: 0.55rem; color: rgba(0,255,157,0.5);
+            letter-spacing: 1px; display: block; margin-top: 3px;
+        }
+
+        /* clock */
+        .sidebar-clock {
+            display: flex; align-items: center; gap: 10px;
             padding: 10px 20px;
-            background: linear-gradient(90deg, rgba(0,255,157,0.1) 0%, transparent 100%);
+            border-bottom: 1px solid rgba(0,255,157,0.08);
+            flex-shrink: 0;
         }
-        .hud-title {
-            font-family: var(--font-code); font-size: 1.2rem; letter-spacing: 2px;
+        .sidebar-clock .sas-date {
+            font-size: 0.6rem; color: rgba(255,255,255,0.35);
+            letter-spacing: 1px;
         }
-        .hud-title-accent  { color: var(--accent-primary); }
-        .hud-status        { font-size: 0.8rem; color: var(--accent-primary); margin-top: 5px; }
-        .hud-meta          { font-size: 0.7rem; font-family: var(--font-code); margin-top: 5px; }
-        .hud-meta-dim      { opacity: 0.8; }
-        .hud-meta-dimmer   { opacity: 0.6; }
-
-        .hud-top-right {
-            position: fixed; top: 30px; right: 30px;
-            text-align: right; pointer-events: auto; z-index: 100;
-            display: flex; align-items: center; gap: 15px;
-        }
-        .hud-avatar {
-            width: 40px; height: 40px;
-            border-radius: 50%; border: 1px solid var(--accent-primary);
+        .sidebar-clock .sas-clock {
+            font-family: var(--font-code); font-size: 0.75rem;
+            color: rgba(0,255,157,0.6); letter-spacing: 2px; margin-left: auto;
         }
 
-        .system-logs-container {
-            position: fixed; bottom: 30px; left: 30px;
-            width: 300px; z-index: 100;
+        /* module nav */
+        .sidebar-nav {
+            flex: 1; overflow-y: auto; padding: 10px 0;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0,255,157,0.15) transparent;
+        }
+        .sidebar-nav::-webkit-scrollbar { width: 3px; }
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(0,255,157,0.2); border-radius: 3px;
+        }
+
+        .nav-section-label {
+            font-size: 0.5rem; letter-spacing: 4px;
+            color: rgba(255,255,255,0.2); padding: 10px 20px 4px;
+            text-transform: uppercase;
+        }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 9px 20px; cursor: pointer;
+            border: none; background: none; width: 100%;
+            text-align: left; color: rgba(255,255,255,0.65);
+            font-family: var(--font-display); font-size: 0.7rem;
+            letter-spacing: 2px; transition: all 0.2s;
+            position: relative; border-left: 2px solid transparent;
+        }
+        .nav-item:hover {
+            color: var(--accent-primary);
+            background: rgba(0,255,157,0.06);
+            border-left-color: var(--accent-primary);
+        }
+        .nav-item.restricted { color: rgba(255,170,0,0.6); }
+        .nav-item.restricted:hover {
+            color: var(--accent-restricted);
+            background: rgba(255,170,0,0.06);
+            border-left-color: var(--accent-restricted);
+        }
+        .nav-item.admin { color: rgba(255,42,42,0.6); }
+        .nav-item.admin:hover {
+            color: var(--accent-danger);
+            background: rgba(255,42,42,0.06);
+            border-left-color: var(--accent-danger);
+        }
+        .nav-item.item-locked {
+            opacity: 0.35; cursor: not-allowed;
+        }
+        .nav-item.item-locked:hover {
+            color: rgba(255,255,255,0.35);
+            background: none; border-left-color: transparent;
+        }
+        .nav-item-icon { font-size: 1rem; flex-shrink: 0; width: 22px; text-align: center; }
+        .nav-item-label { flex: 1; }
+        .nav-item-badge {
+            font-size: 0.55rem; font-family: var(--font-code);
+            opacity: 0.7; letter-spacing: 1px;
+            background: rgba(255,255,255,0.05); padding: 2px 5px;
+            border-radius: 3px; min-width: 28px; text-align: center;
+        }
+        .nav-item-lock { font-size: 0.6rem; opacity: 0.5; }
+
+        /* alert dot on nav item */
+        .nav-alert {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--accent-danger);
+            box-shadow: 0 0 5px var(--accent-danger);
+            flex-shrink: 0; display: none;
+            animation: pulseBadge 2s infinite;
+        }
+        .nav-alert.visible { display: block; }
+
+        /* sidebar footer */
+        .sidebar-footer {
+            padding: 14px 16px;
+            border-top: 1px solid rgba(0,255,157,0.1);
+            flex-shrink: 0;
+        }
+        .btn-logout {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 9px 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.5);
             font-family: var(--font-code); font-size: 0.65rem;
+            letter-spacing: 2px; cursor: pointer;
+            border-radius: 4px; transition: all 0.25s;
         }
-        .log-list {
-            list-style: none; padding: 0; margin: 0;
-            display: flex; flex-direction: column-reverse; gap: 6px;
-        }
-        .log-item {
-            background: rgba(0, 255, 157, 0.05);
-            border-left: 2px solid var(--accent-primary);
-            padding: 5px 10px; opacity: 0;
-            animation: logIn 0.3s forwards;
-        }
-        .log-item.alert {
-            border-color: var(--accent-danger);
-            background: rgba(255, 42, 42, 0.05);
+        .btn-logout:hover {
+            background: rgba(255,42,42,0.1);
+            border-color: rgba(255,42,42,0.4);
             color: var(--accent-danger);
         }
-        .log-item.warning {
-            border-color: var(--accent-restricted);
-            background: rgba(255,170,0,0.05);
-            color: var(--accent-restricted);
-        }
-        .log-time { opacity: 0.5; margin-right: 8px; font-size: 0.55rem; }
 
+        /* ────────────────────────────────────────
+           RIGHT ACTIVITY PANEL
+        ──────────────────────────────────────── */
+        .activity-panel {
+            position: fixed; right: 0; top: 0; bottom: 0;
+            width: var(--activity-w);
+            background: linear-gradient(180deg, rgba(3,7,13,0.97) 0%, rgba(2,4,9,0.99) 100%);
+            border-left: 1px solid rgba(0,255,157,0.12);
+            z-index: 200;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .activity-header {
+            padding: 22px 18px 14px;
+            border-bottom: 1px solid rgba(0,255,157,0.1);
+            flex-shrink: 0;
+        }
+        .activity-title {
+            font-family: var(--font-code); font-size: 0.7rem;
+            letter-spacing: 4px; color: var(--accent-primary);
+            font-weight: 700;
+        }
+        .activity-title span { color: rgba(255,255,255,0.3); }
+        .activity-sub {
+            font-size: 0.55rem; letter-spacing: 2px;
+            color: rgba(255,255,255,0.2); margin-top: 4px;
+        }
+
+        .activity-scroll {
+            flex: 1; overflow-y: auto; padding: 10px 0;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0,255,157,0.15) transparent;
+        }
+        .activity-scroll::-webkit-scrollbar { width: 3px; }
+        .activity-scroll::-webkit-scrollbar-thumb {
+            background: rgba(0,255,157,0.2); border-radius: 3px;
+        }
+
+        .log-list {
+            list-style: none; padding: 0; margin: 0;
+            display: flex; flex-direction: column; gap: 0;
+        }
+        .log-item {
+            padding: 8px 18px; opacity: 0;
+            animation: logIn 0.3s forwards;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            transition: background 0.2s;
+        }
+        .log-item:hover { background: rgba(255,255,255,0.03); }
+        .log-item.alert {
+            border-left: 2px solid var(--accent-danger);
+            background: rgba(255,42,42,0.03);
+        }
+        .log-item.warning {
+            border-left: 2px solid var(--accent-restricted);
+            background: rgba(255,170,0,0.03);
+        }
+        .log-item.info {
+            border-left: 2px solid rgba(0,255,157,0.3);
+        }
+        .log-time {
+            display: block; font-size: 0.52rem;
+            color: rgba(255,255,255,0.25); letter-spacing: 1px;
+            font-family: var(--font-code); margin-bottom: 2px;
+        }
+        .log-msg {
+            font-size: 0.65rem; color: rgba(255,255,255,0.65);
+            line-height: 1.4;
+        }
+        .log-item.alert   .log-msg { color: var(--accent-danger); }
+        .log-item.warning .log-msg { color: var(--accent-restricted); }
+
+        .activity-empty {
+            padding: 40px 18px; text-align: center;
+            font-size: 0.6rem; color: rgba(255,255,255,0.2);
+            letter-spacing: 2px;
+        }
+
+        /* ────────────────────────────────────────
+           NEURAL DASHBOARD (orbital nodes)
+        ──────────────────────────────────────── */
         .neural-dashboard {
-            position: relative; width: 100vw; height: 100vh;
+            position: fixed; inset: 0;
             display: flex; align-items: center; justify-content: center;
             z-index: 5; animation: fadeIn 2s ease-out;
         }
+
         .orbit {
             position: absolute; top: 50%; left: 50%;
             translate: -50% -50%;
@@ -316,23 +511,42 @@
         }
 
         .node.node-locked {
-            opacity: 0.42;
-            filter: saturate(0.25);
-            cursor: not-allowed;
+            opacity: 0.42; filter: saturate(0.25); cursor: not-allowed;
         }
         .node.node-locked:hover { scale: 1; }
 
         .lock-badge {
-            display: none;
-            position: absolute; top: 5px; right: 5px;
-            font-size: 0.6rem;
-            background: rgba(0,0,0,0.65);
+            display: none; position: absolute; top: 5px; right: 5px;
+            font-size: 0.6rem; background: rgba(0,0,0,0.65);
             border-radius: 50%; width: 17px; height: 17px;
-            align-items: center; justify-content: center;
-            z-index: 2;
+            align-items: center; justify-content: center; z-index: 2;
         }
         .node.node-locked .lock-badge { display: flex; }
 
+        .node-stat {
+            position: absolute; bottom: 6px; right: 8px;
+            font-family: var(--font-code); font-size: 0.55rem;
+            letter-spacing: 1px; opacity: 0.85;
+            pointer-events: none; transition: opacity 0.3s;
+        }
+        .node-stat-val {
+            font-size: 0.75rem; font-weight: bold;
+            display: block; text-align: center;
+            line-height: 1; margin-bottom: 1px;
+        }
+        .node:hover .node-stat { opacity: 1; }
+
+        .node-alert {
+            position: absolute; top: 4px; right: 4px;
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--accent-danger);
+            box-shadow: 0 0 6px var(--accent-danger);
+            opacity: 0; transition: opacity 0.3s; pointer-events: none;
+            animation: pulseBadge 2s infinite;
+        }
+        .node-alert.visible { opacity: 1; }
+
+        /* tooltip */
         #node-tooltip {
             position: fixed;
             background: rgba(4, 8, 12, 0.97);
@@ -353,16 +567,18 @@
             box-shadow: 0 0 12px rgba(255,42,42,0.3);
         }
 
+        /* ── misc helpers ── */
         .glitch-anim {
             animation: glitchError 0.3s cubic-bezier(.25,.46,.45,.94) both infinite;
             border-color: var(--accent-danger) !important;
             box-shadow: 0 0 15px rgba(255,42,42,0.4), inset 0 0 15px rgba(255,42,42,0.4) !important;
         }
-        .term-error { color: var(--accent-danger);   text-shadow: 0 0 5px var(--accent-danger); }
-        .term-info  { color: var(--accent-secondary); text-shadow: 0 0 5px var(--accent-secondary); }
+        .term-error { color: var(--accent-danger);    text-shadow: 0 0 5px var(--accent-danger); }
+        .term-info  { color: var(--accent-secondary);  text-shadow: 0 0 5px var(--accent-secondary); }
         .term-dim   { color: rgba(255,255,255,0.5); }
         .blink      { animation: blinkAnim 1s infinite; }
 
+        /* ── keyframes ── */
         @keyframes glitchError {
             0%   { transform: translate(0) }
             20%  { transform: translate(-4px,  2px) }
@@ -372,8 +588,8 @@
             100% { transform: translate(0) }
         }
         @keyframes blinkAnim  { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        @keyframes logIn      {
-            from { opacity: 0; transform: translateX(-10px); }
+        @keyframes logIn {
+            from { opacity: 0; transform: translateX(10px); }
             to   { opacity: 1; transform: translateX(0); }
         }
         @keyframes spinBg     { to { rotate: 360deg; } }
@@ -383,15 +599,40 @@
             0%   { opacity: 0; transform: scale(0.8) translateY(30px); filter: blur(20px); }
             100% { opacity: 1; transform: scale(1)   translateY(0);    filter: blur(0);   }
         }
-        @keyframes fadeIn     {
+        @keyframes fadeIn {
             from { opacity: 0; filter: blur(10px); }
             to   { opacity: 1; filter: blur(0); }
         }
+        @keyframes pulseBadge {
+            0%, 100% { transform: scale(1); }
+            50%       { transform: scale(1.3); }
+        }
+        @keyframes slideInLeft {
+            from { transform: translateX(-100%); opacity: 0; }
+            to   { transform: translateX(0);     opacity: 1; }
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to   { transform: translateX(0);    opacity: 1; }
+        }
 
+        /* sidebar + panel entrance */
+        .sidebar     { animation: slideInLeft  0.5s cubic-bezier(0.16,1,0.3,1) both; }
+        .activity-panel { animation: slideInRight 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+
+        /* ── Responsive ── */
+        @media (max-width: 1100px) {
+            :root { --activity-w: 240px; }
+        }
+        @media (max-width: 900px) {
+            .activity-panel { display: none !important; }
+            :root { --activity-w: 0px; }
+        }
+        @media (max-width: 700px) {
+            .sidebar { display: none !important; }
+            :root { --sidebar-w: 0px; }
+        }
         @media (max-width: 768px) {
-            .hud-overlay         { top: 12px; left: 12px; padding: 8px 14px; }
-            .hud-top-right       { top: 12px; right: 12px; }
-            .system-logs-container { display: none; }
             .node-sub[data-orbit="1"]  { --orbit: 23vmin; }
             .node-sub[data-orbit="2"]  { --orbit: 35vmin; }
             .node-sub[data-orbit="10"] { --orbit: 43vmin; }
@@ -403,35 +644,6 @@
             .node-sub  { width: clamp(58px, 11vmin, 80px); height: clamp(58px, 11vmin, 80px); }
             .node .icon  { font-size: 1.2rem; }
             .node .label { font-size: 0.5rem; }
-            .hud-title   { font-size: 0.95rem; }
-        }
-
-        .node-stat {
-            position: absolute; bottom: 6px; right: 8px;
-            font-family: var(--font-code); font-size: 0.55rem;
-            letter-spacing: 1px; opacity: 0.85;
-            pointer-events: none; transition: opacity 0.3s;
-        }
-        .node-stat-val {
-            font-size: 0.75rem; font-weight: bold;
-            display: block; text-align: center;
-            line-height: 1; margin-bottom: 1px;
-        }
-        .node:hover .node-stat { opacity: 1; }
-
-        .node-alert {
-            position: absolute; top: 4px; right: 4px;
-            width: 8px; height: 8px; border-radius: 50%;
-            background: var(--accent-danger);
-            box-shadow: 0 0 6px var(--accent-danger);
-            opacity: 0; transition: opacity 0.3s;
-            pointer-events: none;
-            animation: pulseBadge 2s infinite;
-        }
-        .node-alert.visible { opacity: 1; }
-        @keyframes pulseBadge {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.3); }
         }
     </style>
 </head>
@@ -441,9 +653,9 @@
 <div class="vignette"></div>
 
 <canvas id="neural-network" role="presentation" aria-hidden="true"></canvas>
-
 <div id="node-tooltip" role="tooltip" aria-hidden="true"></div>
 
+<!-- ── LOGIN ── -->
 <section id="login-overlay" aria-label="Authentification système">
     <div class="login-box" id="login-box">
         <div class="login-title">&gt;_ LIAISON SYNAPTIQUE</div>
@@ -459,34 +671,159 @@
                    placeholder="[ SOUCHE_MÉMORIELLE ]" aria-label="Mot de passe">
         </div>
         <div id="login-msg" aria-live="assertive" aria-atomic="true"></div>
-        <button class="btn-connect" onclick="handleLogin()" aria-label="Initier la connexion">
+        <button class="btn-connect" id="btn-login" onclick="handleLogin()" aria-label="Initier la connexion">
             INITIER L'UPLINK
         </button>
+        <div style="margin-top:12px;font-family:var(--font-code);font-size:0.55rem;color:rgba(0,255,157,0.3);letter-spacing:2px;text-align:center;">
+            [ ENTRÉE ] OU CLIC POUR CONNECTER
+        </div>
     </div>
 </section>
 
-<div class="hud-overlay auth-content" aria-label="Informations de session" role="status">
-    <div class="hud-title">SAS // <span class="hud-title-accent">MAINFRAME</span></div>
-    <div class="hud-status" id="conn-status">&gt; CONNEXION ÉTABLIE</div>
-    <div class="hud-meta hud-meta-dim">
-        AGENT: <span id="mini-username" style="color:#fff;">ANONYME</span>
+<!-- ── LEFT SIDEBAR ── -->
+<aside class="sidebar auth-content" role="navigation" aria-label="Navigation principale">
+
+    <div class="sidebar-brand">
+        <div class="sidebar-brand-title">SAS // <span>MAINFRAME</span></div>
+        <div class="sidebar-brand-sub">SYSTÈME OPÉRATIONNEL AVANCÉ</div>
     </div>
-    <div class="hud-meta hud-meta-dimmer">
-        ACCRÉDITATION: <span id="mini-rank">LVL-0</span>
+
+    <div class="sidebar-agent">
+        <img id="sidebar-avatar" src="assets/default.jpg" alt="Avatar agent" class="sidebar-avatar">
+        <div class="sidebar-agent-info">
+            <span class="sidebar-agent-name" id="mini-username">ANONYME</span>
+            <span class="sidebar-agent-rank" id="mini-rank">LVL-0</span>
+            <span class="sidebar-conn-status" id="conn-status">&gt; CONNEXION ÉTABLIE</span>
+        </div>
     </div>
-</div>
 
-<div class="hud-top-right auth-content">
-    <img id="sidebar-avatar" src="assets/default.jpg" alt="Avatar agent" class="hud-avatar">
-    <button class="btn-connect btn-logout" onclick="logout()" aria-label="Se déconnecter">
-        DÉCONNEXION ⏏
-    </button>
-</div>
+    <div class="sidebar-clock">
+        <span class="sas-date" style="color:rgba(255,255,255,0.3);font-size:0.6rem;letter-spacing:1px;"></span>
+        <span class="sas-clock" style="font-family:var(--font-code);font-size:0.72rem;color:rgba(0,255,157,0.6);letter-spacing:2px;margin-left:auto;"></span>
+    </div>
 
-<div class="system-logs-container auth-content" aria-label="Journaux système" role="log" aria-live="polite">
-    <ul id="system-logs" class="log-list"></ul>
-</div>
+    <nav class="sidebar-nav" aria-label="Modules système">
 
+        <div class="nav-section-label">// ACCÈS LVL-1</div>
+
+        <button class="nav-item" data-required-level="1"
+                onclick="accessModule('database.html', 1)"
+                aria-label="Module Agents">
+            <span class="nav-item-icon" aria-hidden="true">👥</span>
+            <span class="nav-item-label">AGENTS</span>
+            <span class="nav-item-badge" id="nav-agents-val" style="color:var(--accent-secondary);">—</span>
+            <span class="nav-alert" id="nav-alert-agents"></span>
+            <span class="nav-item-lock" aria-hidden="true">🔒</span>
+        </button>
+
+        <button class="nav-item" data-required-level="1"
+                onclick="accessModule('missions.html', 1)"
+                aria-label="Module Missions">
+            <span class="nav-item-icon" aria-hidden="true">🗓️</span>
+            <span class="nav-item-label">MISSIONS</span>
+            <span class="nav-item-badge" id="nav-missions-val" style="color:var(--accent-danger);">—</span>
+            <span class="nav-alert" id="nav-alert-missions"></span>
+            <span class="nav-item-lock" aria-hidden="true">🔒</span>
+        </button>
+
+        <button class="nav-item" data-required-level="1"
+                onclick="accessModule('map.html', 1)"
+                aria-label="Module Carte Live">
+            <span class="nav-item-icon" aria-hidden="true">🗺️</span>
+            <span class="nav-item-label">CARTE LIVE</span>
+            <span class="nav-item-badge" id="nav-map-val" style="color:var(--accent-primary);">—</span>
+            <span class="nav-item-lock" aria-hidden="true">🔒</span>
+        </button>
+
+        <button class="nav-item" data-required-level="1"
+                onclick="accessModule('report.html', 1)"
+                aria-label="Module Rapports">
+            <span class="nav-item-icon" aria-hidden="true">📝</span>
+            <span class="nav-item-label">RAPPORTS</span>
+            <span class="nav-item-badge" style="color:var(--accent-primary);">AUTO</span>
+            <span class="nav-item-lock" aria-hidden="true">🔒</span>
+        </button>
+
+        <button class="nav-item" data-required-level="1"
+                onclick="accessModule('reglement.html', 1)"
+                aria-label="Module Archives">
+            <span class="nav-item-icon" aria-hidden="true">📜</span>
+            <span class="nav-item-label">ARCHIVES</span>
+            <span class="nav-item-badge" style="color:var(--accent-primary);">V4</span>
+            <span class="nav-item-lock" aria-hidden="true">🔒</span>
+        </button>
+
+        <button class="nav-item" data-required-level="1"
+                onclick="accessModule('logistics.html', 1)"
+                aria-label="Module Matériel">
+            <span class="nav-item-icon" aria-hidden="true">📦</span>
+            <span class="nav-item-label">MATÉRIEL</span>
+            <span class="nav-item-badge" id="nav-gear-val" style="color:var(--accent-restricted);">—</span>
+            <span class="nav-alert" id="nav-alert-gear"></span>
+            <span class="nav-item-lock" aria-hidden="true">🔒</span>
+        </button>
+
+        <button class="nav-item" data-required-level="1"
+                onclick="accessModule('messages.html', 1)"
+                aria-label="Module COMMS">
+            <span class="nav-item-icon" aria-hidden="true">📡</span>
+            <span class="nav-item-label">COMMS</span>
+            <span class="nav-item-badge" style="color:var(--accent-primary);">LIVE</span>
+            <span class="nav-alert" id="nav-alert-comms"></span>
+            <span class="nav-item-lock" aria-hidden="true">🔒</span>
+        </button>
+
+        <div class="nav-section-label" style="margin-top:6px;">// ACCÈS LVL-2</div>
+
+        <button class="nav-item restricted" data-required-level="2"
+                onclick="accessModule('investigation.html', 2)"
+                aria-label="Module Enquêtes — LVL-2 requis">
+            <span class="nav-item-icon" aria-hidden="true">🔍</span>
+            <span class="nav-item-label">ENQUÊTES</span>
+            <span class="nav-item-badge" id="nav-invest-val" style="color:var(--accent-restricted);">—</span>
+            <span class="nav-item-lock" aria-hidden="true">🔒</span>
+        </button>
+
+        <button class="nav-item restricted" data-required-level="2"
+                onclick="accessModule('vip.html', 2)"
+                aria-label="Module Cibles VIP — LVL-2 requis">
+            <span class="nav-item-icon" aria-hidden="true">🎯</span>
+            <span class="nav-item-label">CIBLES VIP</span>
+            <span class="nav-item-badge" style="color:var(--accent-restricted);">CLASS</span>
+            <span class="nav-item-lock" aria-hidden="true">🔒</span>
+        </button>
+
+        <div class="nav-section-label" style="margin-top:6px;">// ACCÈS LVL-10</div>
+
+        <button class="nav-item admin" data-required-level="10"
+                onclick="accessModule('medical.html', 10)"
+                aria-label="Module Médical — LVL-10 requis">
+            <span class="nav-item-icon" aria-hidden="true">🧬</span>
+            <span class="nav-item-label">MÉDICAL</span>
+            <span class="nav-item-badge" id="nav-med-val" style="color:var(--accent-danger);">—</span>
+            <span class="nav-item-lock" aria-hidden="true">🔒</span>
+        </button>
+
+        <button class="nav-item admin" data-required-level="10"
+                onclick="accessModule('admin.html', 10)"
+                aria-label="Module Système Admin — LVL-10 requis">
+            <span class="nav-item-icon" aria-hidden="true">👁️</span>
+            <span class="nav-item-label">SYSTÈME ADMIN</span>
+            <span class="nav-item-badge" style="color:var(--accent-danger);">ROOT</span>
+            <span class="nav-item-lock" aria-hidden="true">🔒</span>
+        </button>
+
+    </nav>
+
+    <div class="sidebar-footer">
+        <button class="btn-logout" onclick="logout()" aria-label="Se déconnecter">
+            ⏏ &nbsp;TERMINATE SESSION
+        </button>
+    </div>
+
+</aside>
+
+<!-- ── NEURAL DASHBOARD (orbital nodes) ── -->
 <div class="neural-dashboard auth-content" role="navigation" aria-label="Modules du système">
 
     <div class="orbit orbit-1" aria-hidden="true"></div>
@@ -522,8 +859,7 @@
     <button class="node node-sub" data-orbit="1"
             style="--angle:30deg; --orbit:25vmin; --float-delay:0.1s"
             onclick="accessModule('database.html', 1)"
-            data-required-level="1"
-            aria-label="Module Agents (LVL-1)">
+            data-required-level="1" aria-label="Module Agents (LVL-1)">
         <span class="lock-badge" aria-hidden="true">🔒</span>
         <span class="icon" aria-hidden="true">👥</span>
         <span class="label">AGENTS</span>
@@ -536,8 +872,7 @@
     <button class="node node-sub" data-orbit="1"
             style="--angle:90deg; --orbit:25vmin; --float-delay:0.3s"
             onclick="accessModule('missions.html', 1)"
-            data-required-level="1"
-            aria-label="Module Missions (LVL-1)">
+            data-required-level="1" aria-label="Module Missions (LVL-1)">
         <span class="lock-badge" aria-hidden="true">🔒</span>
         <span class="icon" aria-hidden="true">🗓️</span>
         <span class="label">MISSIONS</span>
@@ -550,8 +885,7 @@
     <button class="node node-sub" data-orbit="1"
             style="--angle:150deg; --orbit:25vmin; --float-delay:0.5s"
             onclick="accessModule('map.html', 1)"
-            data-required-level="1"
-            aria-label="Module Carte live (LVL-1)">
+            data-required-level="1" aria-label="Module Carte live (LVL-1)">
         <span class="lock-badge" aria-hidden="true">🔒</span>
         <span class="icon" aria-hidden="true">🗺️</span>
         <span class="label">CARTE LIVE</span>
@@ -563,8 +897,7 @@
     <button class="node node-sub" data-orbit="1"
             style="--angle:210deg; --orbit:25vmin; --float-delay:0.7s"
             onclick="accessModule('report.html', 1)"
-            data-required-level="1"
-            aria-label="Module Rapports (LVL-1)">
+            data-required-level="1" aria-label="Module Rapports (LVL-1)">
         <span class="lock-badge" aria-hidden="true">🔒</span>
         <span class="icon" aria-hidden="true">📝</span>
         <span class="label">RAPPORTS</span>
@@ -576,8 +909,7 @@
     <button class="node node-sub" data-orbit="1"
             style="--angle:270deg; --orbit:25vmin; --float-delay:0.9s"
             onclick="accessModule('reglement.html', 1)"
-            data-required-level="1"
-            aria-label="Module Archives (LVL-1)">
+            data-required-level="1" aria-label="Module Archives (LVL-1)">
         <span class="lock-badge" aria-hidden="true">🔒</span>
         <span class="icon" aria-hidden="true">📜</span>
         <span class="label">ARCHIVES</span>
@@ -589,8 +921,7 @@
     <button class="node node-sub" data-orbit="1"
             style="--angle:330deg; --orbit:25vmin; --float-delay:1.1s"
             onclick="accessModule('logistics.html', 1)"
-            data-required-level="1"
-            aria-label="Module Matériel (LVL-1)">
+            data-required-level="1" aria-label="Module Matériel (LVL-1)">
         <span class="lock-badge" aria-hidden="true">🔒</span>
         <span class="icon" aria-hidden="true">📦</span>
         <span class="label">MATÉRIEL</span>
@@ -618,8 +949,7 @@
     <button class="node node-sub status-restricted" data-orbit="2"
             style="--angle:120deg; --orbit:37.5vmin; --float-delay:0.6s"
             onclick="accessModule('messages.html', 1)"
-            data-required-level="1"
-            aria-label="Module COMMS (LVL-1)">
+            data-required-level="1" aria-label="Module COMMS (LVL-1)">
         <span class="lock-badge" aria-hidden="true">🔒</span>
         <span class="icon" aria-hidden="true">📡</span>
         <span class="label">COMMS</span>
@@ -668,9 +998,27 @@
 
 </div>
 
+<!-- ── RIGHT ACTIVITY PANEL ── -->
+<aside class="activity-panel auth-content" aria-label="Activité système" role="log" aria-live="polite">
+
+    <div class="activity-header">
+        <div class="activity-title"><span>// </span>ACTIVITÉ SYSTÈME</div>
+        <div class="activity-sub">FLUX EN TEMPS RÉEL</div>
+    </div>
+
+    <div class="activity-scroll">
+        <ul id="system-logs" class="log-list"></ul>
+        <div class="activity-empty" id="activity-empty" style="display:none;">
+            AUCUNE ACTIVITÉ RÉCENTE
+        </div>
+    </div>
+
+</aside>
+
 <script src="js/script.js" defer></script>
 
 <script>
+/* ── Neural Network Canvas ── */
 const canvas = document.getElementById('neural-network');
 const ctx    = canvas.getContext('2d');
 let width, height, particles = [];
@@ -693,24 +1041,21 @@ class Neuron {
         this.radius = Math.random() * 2 + 1;
     }
     update() {
-        this.x += this.vx;
-        this.y += this.vy;
+        this.x += this.vx; this.y += this.vy;
         if (this.x < 0 || this.x > width)  this.vx *= -1;
         if (this.y < 0 || this.y > height)  this.vy *= -1;
         if (mouse.x != null) {
-            const dx = mouse.x - this.x;
-            const dy = mouse.y - this.y;
-            const d  = Math.sqrt(dx * dx + dy * dy);
+            const dx = mouse.x - this.x, dy = mouse.y - this.y;
+            const d  = Math.sqrt(dx*dx + dy*dy);
             if (d < mouse.radius && d > 0) {
                 const f = (mouse.radius - d) / mouse.radius;
-                this.x -= (dx / d) * f * 2;
-                this.y -= (dy / d) * f * 2;
+                this.x -= (dx/d)*f*2; this.y -= (dy/d)*f*2;
             }
         }
     }
     draw() {
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
         ctx.fillStyle = `rgba(${NEURON_COLOR}, 0.8)`;
         ctx.fill();
     }
@@ -719,7 +1064,7 @@ class Neuron {
 function buildGrid() {
     const grid = new Map();
     particles.forEach((p, i) => {
-        const key = `${Math.floor(p.x / CELL_SIZE)},${Math.floor(p.y / CELL_SIZE)}`;
+        const key = `${Math.floor(p.x/CELL_SIZE)},${Math.floor(p.y/CELL_SIZE)}`;
         if (!grid.has(key)) grid.set(key, []);
         grid.get(key).push(i);
     });
@@ -728,38 +1073,31 @@ function buildGrid() {
 
 function drawConnections(grid) {
     particles.forEach((p, i) => {
-        const cx = Math.floor(p.x / CELL_SIZE);
-        const cy = Math.floor(p.y / CELL_SIZE);
-        for (let dx = -1; dx <= 1; dx++) {
-            for (let dy = -1; dy <= 1; dy++) {
-                const neighbors = grid.get(`${cx + dx},${cy + dy}`);
+        const cx = Math.floor(p.x/CELL_SIZE), cy = Math.floor(p.y/CELL_SIZE);
+        for (let dx=-1; dx<=1; dx++) {
+            for (let dy=-1; dy<=1; dy++) {
+                const neighbors = grid.get(`${cx+dx},${cy+dy}`);
                 if (!neighbors) continue;
                 for (const j of neighbors) {
                     if (j <= i) continue;
-                    const ddx  = p.x - particles[j].x;
-                    const ddy  = p.y - particles[j].y;
-                    const dist = Math.sqrt(ddx * ddx + ddy * ddy);
+                    const ddx = p.x-particles[j].x, ddy = p.y-particles[j].y;
+                    const dist = Math.sqrt(ddx*ddx+ddy*ddy);
                     if (dist < CONNECT_DIST) {
-                        const alpha = (1 - dist / CONNECT_DIST) * 0.4;
                         ctx.beginPath();
-                        ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.strokeStyle = `rgba(${NEURON_COLOR}, ${alpha})`;
-                        ctx.lineWidth = 1;
-                        ctx.stroke();
+                        ctx.moveTo(p.x, p.y); ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(${NEURON_COLOR}, ${(1-dist/CONNECT_DIST)*0.4})`;
+                        ctx.lineWidth = 1; ctx.stroke();
                     }
                 }
             }
         }
         if (mouse.x != null) {
-            const dm = Math.sqrt((p.x - mouse.x) ** 2 + (p.y - mouse.y) ** 2);
+            const dm = Math.sqrt((p.x-mouse.x)**2+(p.y-mouse.y)**2);
             if (dm < mouse.radius) {
                 ctx.beginPath();
-                ctx.moveTo(p.x, p.y);
-                ctx.lineTo(mouse.x, mouse.y);
-                ctx.strokeStyle = `rgba(${MOUSE_COLOR}, ${(1 - dm / mouse.radius) * 0.6})`;
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
+                ctx.moveTo(p.x, p.y); ctx.lineTo(mouse.x, mouse.y);
+                ctx.strokeStyle = `rgba(${MOUSE_COLOR}, ${(1-dm/mouse.radius)*0.6})`;
+                ctx.lineWidth = 1.5; ctx.stroke();
             }
         }
     });
@@ -767,8 +1105,8 @@ function drawConnections(grid) {
 
 function initNeurons() {
     particles = [];
-    const count = Math.min(Math.floor((width * height) / 10000), 200);
-    for (let i = 0; i < count; i++) particles.push(new Neuron());
+    const count = Math.min(Math.floor((width*height)/10000), 200);
+    for (let i=0; i<count; i++) particles.push(new Neuron());
 }
 
 function animateNeurons() {
@@ -782,10 +1120,10 @@ function resize() {
     width  = canvas.width  = window.innerWidth;
     height = canvas.height = window.innerHeight;
 }
-
 window.addEventListener('resize', () => { resize(); initNeurons(); });
 resize(); initNeurons(); animateNeurons();
 
+/* ── Tooltip ── */
 const tooltip = document.getElementById('node-tooltip');
 document.querySelectorAll('.node[data-tooltip]').forEach(node => {
     node.addEventListener('mouseenter', () => {
@@ -795,10 +1133,8 @@ document.querySelectorAll('.node[data-tooltip]').forEach(node => {
         tooltip.classList.add('visible');
     });
     node.addEventListener('mousemove', e => {
-        const x = Math.min(e.clientX + 18, window.innerWidth  - 250);
-        const y = Math.max(e.clientY - 44, 6);
-        tooltip.style.left = x + 'px';
-        tooltip.style.top  = y + 'px';
+        tooltip.style.left = Math.min(e.clientX+18, window.innerWidth-250) + 'px';
+        tooltip.style.top  = Math.max(e.clientY-44, 6) + 'px';
     });
     node.addEventListener('mouseleave', () => {
         tooltip.classList.remove('visible');
@@ -806,17 +1142,37 @@ document.querySelectorAll('.node[data-tooltip]').forEach(node => {
     });
 });
 
+/* ── Node + Nav Access Control ── */
 function updateNodeAccess() {
     const rankText  = document.getElementById('mini-rank')?.textContent ?? 'LVL-1';
     const match     = rankText.match(/(\d+)/);
     const userLevel = match ? parseInt(match[1]) : 1;
+
+    /* orbital nodes */
     document.querySelectorAll('.node[data-required-level]').forEach(node => {
-        const required = parseInt(node.dataset.requiredLevel);
-        node.classList.toggle('node-locked', userLevel < required);
+        node.classList.toggle('node-locked', userLevel < parseInt(node.dataset.requiredLevel));
+    });
+
+    /* sidebar nav items */
+    document.querySelectorAll('.nav-item[data-required-level]').forEach(item => {
+        const locked = userLevel < parseInt(item.dataset.requiredLevel);
+        item.classList.toggle('item-locked', locked);
+        const lockIcon = item.querySelector('.nav-item-lock');
+        if (lockIcon) lockIcon.style.display = locked ? '' : 'none';
     });
 }
 
+/* ── Stats loading (shared between nodes + sidebar badges) ── */
 let statsInterval = null;
+
+function setNavBadge(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+}
+function setNavAlert(id, show) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('visible', show);
+}
 
 async function loadNodeStats() {
     const token = localStorage.getItem('sas_token');
@@ -830,8 +1186,8 @@ async function loadNodeStats() {
             const badge = document.getElementById(alertId);
             if (badge) {
                 const isAlert = typeof value === 'string' && value.includes('/')
-                              ? value.startsWith('0/')
-                              : parseInt(value) >= alertThreshold;
+                    ? value.startsWith('0/')
+                    : parseInt(value) >= alertThreshold;
                 badge.classList.toggle('visible', isAlert);
             }
         }
@@ -843,6 +1199,8 @@ async function loadNodeStats() {
             const missions = await res.json();
             const active = missions.filter(m => m.status === 'ACTIVE').length;
             setStat('stat-missions-val', active, 'alert-missions', 1);
+            setNavBadge('nav-missions-val', active);
+            setNavAlert('nav-alert-missions', active > 0);
             const statEl = document.getElementById('stat-missions');
             if (statEl) statEl.style.color = active > 0 ? 'var(--accent-danger)' : 'var(--accent-primary)';
         }
@@ -852,9 +1210,12 @@ async function loadNodeStats() {
         const res = await fetch('/api/game?entity=equipment', { headers: h });
         if (res.ok) {
             const data = await res.json();
-            const inv = Array.isArray(data) ? data : (data.inventory || []);
+            const inv  = Array.isArray(data) ? data : (data.inventory || []);
             const available = inv.filter(i => !i.assigned_to).length;
-            setStat('stat-gear-val', `${available}/${inv.length}`, 'alert-gear');
+            const val = `${available}/${inv.length}`;
+            setStat('stat-gear-val', val, 'alert-gear');
+            setNavBadge('nav-gear-val', val);
+            setNavAlert('nav-alert-gear', available === 0 && inv.length > 0);
         }
     } catch(e) {}
 
@@ -863,6 +1224,7 @@ async function loadNodeStats() {
         if (res.ok) {
             const agents = await res.json();
             setStat('stat-agents-val', agents.length);
+            setNavBadge('nav-agents-val', agents.length);
         }
     } catch(e) {}
 
@@ -871,6 +1233,7 @@ async function loadNodeStats() {
         if (res.ok) {
             const boards = await res.json();
             setStat('stat-invest-val', boards.length);
+            setNavBadge('nav-invest-val', boards.length);
         }
     } catch(e) {}
 
@@ -879,6 +1242,7 @@ async function loadNodeStats() {
         if (res.ok) {
             const markers = await res.json();
             setStat('stat-map-val', markers.length);
+            setNavBadge('nav-map-val', markers.length);
         }
     } catch(e) {}
 
@@ -892,8 +1256,7 @@ async function loadNodeStats() {
                 if (node) {
                     if (!node.querySelector('.node-stat')) {
                         const stat = document.createElement('span');
-                        stat.className = 'node-stat';
-                        stat.style.color = 'var(--accent-danger)';
+                        stat.className = 'node-stat'; stat.style.color = 'var(--accent-danger)';
                         stat.innerHTML = `<span class="node-stat-val" id="stat-med-val">${injuries.length}</span>BLS`;
                         node.appendChild(stat);
                         if (injuries.length > 0) {
@@ -903,14 +1266,16 @@ async function loadNodeStats() {
                         }
                     } else {
                         const valEl = document.getElementById('stat-med-val');
-                        if(valEl) valEl.textContent = injuries.length;
+                        if (valEl) valEl.textContent = injuries.length;
                     }
                 }
+                setNavBadge('nav-med-val', injuries.length || 0);
             }
         } catch(e) {}
     }
 }
 
+/* ── Observers ── */
 const bodyObserver = new MutationObserver(() => {
     if (document.body.classList.contains('logged-in')) {
         updateNodeAccess();
@@ -930,32 +1295,37 @@ const rankObserver = new MutationObserver(() => {
 const miniRankEl = document.getElementById('mini-rank');
 if (miniRankEl) rankObserver.observe(miniRankEl, { childList: true, characterData: true, subtree: true });
 
+/* ── Node cascade entrance animation ── */
 function cascadeNodes() {
     document.querySelectorAll('.node-sub').forEach((node, i) => {
         node.animate(
             [{ opacity: 0, scale: '0.1' }, { opacity: 1, scale: '1' }],
-            { duration: 600, delay: 200 + i * 140, easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)', fill: 'backwards' }
+            { duration: 600, delay: 200 + i*140,
+              easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)', fill: 'backwards' }
         );
     });
 }
 
+/* ── Activity Feed ── */
 window._activityFeedUpdate = function(data) {
     const typeMap = {
         WARNING: 'alert', RANK_CHANGE: 'warning',
         MISSION_CREATED: 'info', MISSION_UPDATE: 'info',
         EQUIPMENT: 'info', INVESTIGATION: 'info', ROSTER_UPDATE: 'info'
     };
-    const type = typeMap[data.action_type] || 'info';
+    const type    = typeMap[data.action_type] || 'info';
     const logList = document.getElementById('system-logs');
     if (!logList) return;
-    const li = document.createElement('li');
+    const emptyEl = document.getElementById('activity-empty');
+    if (emptyEl) emptyEl.style.display = 'none';
+    const li   = document.createElement('li');
     li.className = `log-item ${type}`;
     li.style.opacity = '0';
-    const time = new Date(data.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const time = new Date(data.created_at).toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
     li.innerHTML = `<span class="log-time">${time}</span><span class="log-msg">${data.details}</span>`;
     logList.insertBefore(li, logList.firstChild);
     requestAnimationFrame(() => requestAnimationFrame(() => { li.style.animation = 'logIn 0.3s forwards'; }));
-    if (logList.children.length > 15) logList.removeChild(logList.lastChild);
+    if (logList.children.length > 20) logList.removeChild(logList.lastChild);
 };
 
 async function loadActivityFeed() {
@@ -964,28 +1334,34 @@ async function loadActivityFeed() {
     try {
         const res = await fetch('/api/activity', { headers: { 'Authorization': `Bearer ${token}` } });
         if (!res.ok) return;
-        const logs = await res.json();
+        const logs    = await res.json();
         const logList = document.getElementById('system-logs');
+        const emptyEl = document.getElementById('activity-empty');
         if (!logList) return;
         logList.innerHTML = '';
+        if (logs.length === 0) {
+            if (emptyEl) emptyEl.style.display = 'block';
+            return;
+        }
+        if (emptyEl) emptyEl.style.display = 'none';
         const typeMap = {
             WARNING: 'alert', RANK_CHANGE: 'warning',
             MISSION_CREATED: 'info', MISSION_UPDATE: 'info',
             EQUIPMENT: 'info', INVESTIGATION: 'info', ROSTER_UPDATE: 'info'
         };
-        logs.slice(0, 12).forEach(log => {
-            const li = document.createElement('li');
+        logs.slice(0, 20).forEach(log => {
+            const li   = document.createElement('li');
             li.className = `log-item ${typeMap[log.action_type] || 'info'}`;
-            const time = new Date(log.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            const time = new Date(log.created_at).toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
             li.innerHTML = `<span class="log-time">${time}</span><span class="log-msg">${log.details}</span>`;
             logList.appendChild(li);
         });
-
         const session = JSON.parse(localStorage.getItem('sas_session') || '{}');
         if (typeof SAS_NOTIFY !== 'undefined') SAS_NOTIFY.init(session.username);
-    } catch (e) { console.warn('Activity feed error:', e); }
+    } catch(e) { console.warn('Activity feed error:', e); }
 }
 </script>
 <script src="js/broadcast.js"></script>
+<script src="js/common.js" defer></script>
 </body>
 </html>

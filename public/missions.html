@@ -328,33 +328,79 @@
         }
     }
 
+    function _relTime(dateStr) {
+        if (!dateStr) return '—';
+        const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+        if (diff < 60)    return 'il y a ' + Math.floor(diff) + ' s';
+        if (diff < 3600)  return 'il y a ' + Math.floor(diff / 60) + ' min';
+        if (diff < 86400) return 'il y a ' + Math.floor(diff / 3600) + ' h';
+        return new Date(dateStr).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+    }
+    function _formatDateTime(dateStr) {
+        if (!dateStr) return '—';
+        return new Date(dateStr).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+    }
+    function _priorityFromTime(dateStr, status) {
+        if (status === 'COMPLETED') return null;
+        if (!dateStr) return null;
+        const hoursUntil = (new Date(dateStr).getTime() - Date.now()) / 3600000;
+        if (hoursUntil < 0) return { label: 'EN RETARD', cls: 'priority-high' };
+        if (hoursUntil < 24) return { label: 'URGENT', cls: 'priority-high' };
+        if (hoursUntil < 72) return { label: 'ÉLEVÉE', cls: 'priority-medium' };
+        return { label: 'NORMAL', cls: 'priority-low' };
+    }
+
+    const EMPTY_STATES = {
+        pending:   { icon: '📋', title: 'Aucune opération planifiée', sub: 'Initialisez une nouvelle mission' },
+        active:    { icon: '🎯', title: 'Aucune opération active', sub: 'Lancez une mission en attente' },
+        completed: { icon: '✅', title: 'Aucune opération archivée', sub: 'Les missions clôturées apparaissent ici' },
+    };
+
     async function loadMissions() {
         try {
             const res = await fetch('/api/game?entity=missions', { headers: { 'Authorization': `Bearer ${token}` } });
             if(!res.ok) return;
             const missions = await res.json();
+
+            // Reset colonnes
             ['pending', 'active', 'completed'].forEach(s => {
                 const el = document.getElementById(`body-${s}`);
                 if(el) el.innerHTML = '';
             });
+
             missions.forEach(m => {
                 const card = document.createElement('div');
                 card.className = 'mission-card';
                 card.setAttribute('draggable', 'true');
                 card.dataset.id = m.id;
-                const date = new Date(m.start_time).toLocaleDateString('fr-FR', {day: '2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+
+                const prio = _priorityFromTime(m.start_time, m.status);
+                const rosterCount = m.roster ? m.roster.length : 0;
+                const gearCount = m.loadout ? m.loadout.length : 0;
+
                 card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-family:var(--font-code); font-weight:bold; color:#fff; font-size:1rem;">${m.title.toUpperCase()}</span>
-                        <span style="color:var(--text-dim); font-size:0.7rem;">[ID:${m.id}]</span>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                        <span style="font-family:var(--font-code); font-weight:bold; color:#fff; font-size:0.95rem; line-height:1.2;">
+                            ${m.title.toUpperCase()}
+                        </span>
+                        ${prio ? `<span class="priority-tag ${prio.cls}" style="flex-shrink:0;">${prio.label}</span>` : ''}
                     </div>
-                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-dim); font-family:var(--font-code);">
-                        <span>📍 ${m.location.toUpperCase()}</span>
-                        <span>🕒 ${date}</span>
+                    <div style="display:flex; align-items:center; gap:6px; margin-top:6px; font-size:0.72rem; color:var(--text-dim); font-family:var(--font-code);">
+                        <span style="color:var(--accent-blue)">📍</span>
+                        <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${m.location.toUpperCase()}</span>
+                        <span style="color:#334455;">|</span>
+                        <span title="${_formatDateTime(m.start_time)}">${_relTime(m.start_time)}</span>
                     </div>
-                    <div style="display:flex; gap:10px; margin-top:5px;">
-                        <span style="background:rgba(0, 243, 255, 0.1); border:1px solid rgba(0, 243, 255, 0.3); color:var(--accent-blue); padding:2px 6px; font-size:0.7rem; font-family:var(--font-code);">👤 ROSTER: ${m.roster ? m.roster.length : 0}</span>
-                        <span style="background:rgba(238, 187, 0, 0.1); border:1px solid rgba(238, 187, 0, 0.3); color:var(--accent-warning); padding:2px 6px; font-size:0.7rem; font-family:var(--font-code);">📦 GEAR: ${m.loadout ? m.loadout.length : 0}</span>
+                    <div class="mc-meta" style="margin-top:8px;">
+                        <span class="sas-badge sas-badge-blue">
+                            <span>👤</span> ${rosterCount} OP
+                        </span>
+                        <span class="sas-badge ${gearCount > 0 ? 'sas-badge-warning' : 'sas-badge-dim'}">
+                            <span>📦</span> ${gearCount} GEAR
+                        </span>
+                        <span class="sas-badge sas-badge-dim" style="margin-left:auto; font-size:0.5rem;">
+                            #${m.id}
+                        </span>
                     </div>
                 `;
                 card.onclick = () => openDetailModal(m);
@@ -364,6 +410,22 @@
                 const col = document.getElementById(colId);
                 if(col) col.appendChild(card);
             });
+
+            // Ajouter les états vides
+            ['pending', 'active', 'completed'].forEach(s => {
+                const col = document.getElementById(`body-${s}`);
+                if (col && col.children.length === 0) {
+                    const es = EMPTY_STATES[s];
+                    col.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">${es.icon}</div>
+                            <div class="empty-state-title">${es.title}</div>
+                            <div class="empty-state-sub">${es.sub}</div>
+                        </div>
+                    `;
+                }
+            });
+
             updateStats();
         } catch(e) { console.error(e); }
     }
@@ -376,11 +438,19 @@
 
     function setupDragAndDrop() {
         document.querySelectorAll('.col-body').forEach(col => {
-            col.addEventListener('dragover', e => { e.preventDefault(); col.style.background = 'rgba(255,255,255,0.05)'; });
-            col.addEventListener('dragleave', e => { col.style.background = 'transparent'; });
+            col.addEventListener('dragover', e => {
+                e.preventDefault();
+                col.style.background = 'rgba(0,255,157,0.04)';
+                col.style.borderBottom = '1px dashed rgba(0,255,157,0.3)';
+            });
+            col.addEventListener('dragleave', () => {
+                col.style.background = '';
+                col.style.borderBottom = '';
+            });
             col.addEventListener('drop', async e => {
                 e.preventDefault();
-                col.style.background = 'transparent';
+                col.style.background = '';
+                col.style.borderBottom = '';
                 if (draggedCard) {
                     col.appendChild(draggedCard);
                     let newStatus = 'PENDING';
@@ -394,6 +464,9 @@
                             body: JSON.stringify({ action: 'move', id: missionId, status: newStatus })
                         });
                         updateStats();
+                        // Retirer l'état vide si présent
+                        const empty = col.querySelector('.empty-state');
+                        if (empty) col.removeChild(empty);
                     } catch (err) { console.error(err); loadMissions(); }
                 }
             });
@@ -402,11 +475,13 @@
 
     function dragStart(e) {
         draggedCard = this;
-        this.style.opacity = '0.5';
+        this.style.opacity = '0.4';
+        this.style.transform = 'scale(0.97)';
         e.dataTransfer.setData('text/plain', this.dataset.id);
     }
     function dragEnd() {
         this.style.opacity = '1';
+        this.style.transform = '';
         draggedCard = null;
     }
 
@@ -528,5 +603,6 @@
 </script>
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script src="js/broadcast.js"></script>
+<script src="js/common.js" defer></script>
 </body>
 </html>

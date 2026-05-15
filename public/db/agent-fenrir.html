@@ -3,224 +3,318 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS :: AGENT [SANTORO VEGA]</title>
+    <title>SAS :: FENRIR — VEGA</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Share+Tech+Mono&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="/css/style-mo.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
+    <style>
+        :root {
+            --gold:       #d4af37;
+            --gold-bright:#f1d592;
+            --gold-dim:   rgba(212,175,55,0.12);
+            --red:        #c0392b;
+            --bg:         #050505;
+            --bg2:        #0a0a08;
+            --text:       #e2d1b3;
+            --text-dim:   #7a6f5d;
+            --border:     rgba(212,175,55,0.15);
+            --border-c:   rgba(212,175,55,0.3);
+            --mono:       'JetBrains Mono', monospace;
+            --ui:         'Share Tech Mono', monospace;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg); color: var(--text); font-family: var(--ui); overflow-x: hidden; cursor: crosshair; }
+
+        .scan { position: fixed; left: 0; width: 100%; height: 1px; background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%); opacity: 0.1; pointer-events: none; z-index: 200; animation: scan 12s linear infinite; }
+        @keyframes scan { 0%{top:-2%} 100%{top:102%} }
+
+        #boot { position: fixed; inset: 0; background: #000; z-index: 9000; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; transition: opacity 0.7s ease; }
+        .boot-ref { font-family: var(--mono); font-size: 0.6rem; color: var(--gold); letter-spacing: 6px; opacity: 0; animation: fadeIn 0.4s 0.2s forwards; }
+        .boot-progress { width: 180px; height: 1px; background: rgba(212,175,55,0.1); overflow: hidden; }
+        .boot-fill { height: 100%; width: 0; background: var(--gold); box-shadow: 0 0 10px var(--gold); animation: fill 1.8s cubic-bezier(0.4,0,0.2,1) forwards; }
+        .boot-label { font-size: 0.5rem; color: var(--text-dim); letter-spacing: 4px; min-height: 14px; }
+        @keyframes fill { to { width: 100%; } }
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 44px; background: rgba(5,5,5,0.96); border-bottom: 1px solid var(--border); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; opacity: 0; animation: fadeIn 0.5s 2.3s forwards; }
+        .tb-left { display: flex; align-items: center; gap: 20px; }
+        .tb-logo { font-family: var(--mono); font-size: 0.65rem; color: var(--gold); letter-spacing: 3px; }
+        .tb-sep  { width: 1px; height: 16px; background: var(--border); }
+        .tb-ref  { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 2px; }
+        .tb-back { font-size: 0.55rem; color: var(--text-dim); text-decoration: none; letter-spacing: 2px; border: 1px solid var(--border); padding: 4px 12px; transition: 0.2s; }
+        .tb-back:hover { border-color: var(--gold); color: var(--gold); }
+
+        .hero { height: 100vh; position: relative; display: grid; grid-template-columns: 1fr 1fr; opacity: 0; animation: fadeIn 1s 2.2s forwards; z-index: 5; }
+
+        .hero-photo-col { position: relative; overflow: hidden; background: #050302; display: flex; align-items: center; justify-content: center; }
+        .hero-photo-col::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to right, rgba(5,5,5,0) 60%, rgba(5,5,5,1) 100%); }
+
+        .photo-redacted { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 2; }
+        .photo-redacted-icon { font-family: var(--mono); font-size: 3rem; color: rgba(192,57,43,0.3); }
+        .photo-redacted-text { font-family: var(--mono); font-size: 0.55rem; color: rgba(192,57,43,0.5); letter-spacing: 3px; text-align: center; line-height: 1.8; border: 1px dashed rgba(192,57,43,0.3); padding: 14px 20px; }
+
+        .photo-data { position: absolute; bottom: 60px; left: 30px; z-index: 5; pointer-events: none; display: flex; flex-direction: column; gap: 6px; }
+        .data-line { font-family: var(--mono); font-size: 0.52rem; color: rgba(212,175,55,0.5); letter-spacing: 3px; }
+        .data-line.blink { animation: blk 2s step-end infinite; }
+        @keyframes blk { 50% { opacity: 0; } }
+
+        .hero-tape { position: absolute; top: 44px; left: 0; right: 0; height: 3px; background: repeating-linear-gradient(90deg, var(--gold) 0, var(--gold) 20px, transparent 20px, transparent 40px); z-index: 10; opacity: 0.2; animation: tape 3s linear infinite; }
+        @keyframes tape { to { background-position: 40px 0; } }
+
+        .hero-text-col { display: flex; flex-direction: column; justify-content: center; padding: 80px 60px 60px; position: relative; }
+        .hero-classified { display: flex; align-items: center; gap: 8px; font-size: 0.5rem; color: var(--red); letter-spacing: 5px; margin-bottom: 32px; }
+        .hero-classified::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--red); box-shadow: 0 0 8px var(--red); animation: pls 1.5s infinite; }
+        @keyframes pls { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        .hero-surname { font-family: var(--mono); font-size: clamp(3rem,5vw,4.5rem); font-weight: 800; color: #fff; letter-spacing: -3px; line-height: 1; margin-bottom: 6px; }
+        .hero-given   { font-family: var(--mono); font-size: clamp(1rem,2vw,1.4rem); font-weight: 300; color: var(--gold); letter-spacing: 6px; text-transform: uppercase; margin-bottom: 28px; }
+        .hero-desc    { font-size: 0.72rem; color: var(--text-dim); line-height: 1.7; max-width: 360px; border-left: 2px solid var(--border-c); padding-left: 16px; margin-bottom: 36px; font-family: var(--mono); }
+
+        .hero-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); max-width: 360px; }
+        .hero-stat  { background: var(--bg); padding: 14px 16px; display: flex; flex-direction: column; gap: 3px; }
+        .hs-label   { font-size: 0.45rem; color: var(--text-dim); letter-spacing: 3px; }
+        .hs-value   { font-family: var(--mono); font-size: 0.8rem; color: #fff; }
+        .hs-value.cyan { color: var(--gold); }
+        .hs-value.red  { color: var(--red); }
+
+        .body { max-width: 960px; margin: 0 auto; padding: 80px 40px 100px; display: flex; flex-direction: column; gap: 64px; opacity: 0; animation: fadeIn 0.6s 2.6s forwards; position: relative; z-index: 5; }
+
+        .sec { display: flex; flex-direction: column; gap: 20px; }
+        .sec-header { display: flex; align-items: center; gap: 16px; }
+        .sec-n     { font-family: var(--mono); font-size: 0.5rem; font-weight: 700; color: var(--gold); letter-spacing: 2px; border: 1px solid var(--border-c); padding: 3px 8px; flex-shrink: 0; }
+        .sec-title { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 5px; text-transform: uppercase; }
+        .sec-line  { flex: 1; height: 1px; background: var(--border); }
+
+        .block { background: var(--bg2); border: 1px solid var(--border); position: relative; overflow: hidden; }
+        .block::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 2px; background: transparent; transition: background 0.4s; }
+        .block:hover::before { background: var(--gold); }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--border); }
+        .grid-cell { padding: 20px 28px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .grid-cell:nth-child(2n) { border-right: none; }
+        .cell-label { font-size: 0.48rem; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+        .cell-value { font-family: var(--mono); font-size: 0.82rem; color: #e0dbd4; line-height: 1.4; }
+        .cell-value.gold { color: var(--gold); }
+        .cell-value.red  { color: var(--red); }
+
+        .prose { padding: 28px 32px; font-family: var(--mono); font-size: 0.78rem; color: var(--text-dim); line-height: 1.8; }
+        .prose strong { color: var(--text); font-weight: 700; }
+        .prose em { color: var(--gold); font-style: normal; }
+
+        .tl-item { display: flex; border-bottom: 1px solid var(--border); }
+        .tl-item:last-child { border-bottom: none; }
+        .tl-year    { flex-shrink: 0; width: 120px; padding: 20px 24px; font-family: var(--mono); font-size: 0.75rem; color: var(--gold); font-weight: 700; border-right: 1px solid var(--border); }
+        .tl-content { padding: 20px 28px; flex: 1; }
+        .tl-event   { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+        .tl-desc    { font-family: var(--mono); font-size: 0.78rem; color: var(--text); line-height: 1.6; }
+
+        .trait-block { padding: 0; }
+        .trait-row { display: flex; align-items: flex-start; gap: 16px; padding: 16px 28px; border-bottom: 1px solid var(--border); font-size: 0.75rem; color: var(--text-dim); font-family: var(--mono); line-height: 1.5; }
+        .trait-row:last-child { border-bottom: none; }
+        .trait-sign { flex-shrink: 0; font-size: 0.7rem; }
+        .trait-sign.pos { color: var(--gold); }
+        .trait-sign.neg { color: var(--red); }
+        .trait-sign.warn { color: #e8a400; }
+
+        .rdct { display: inline-block; background: rgba(212,175,55,0.1); color: transparent; padding: 0 6px; position: relative; cursor: help; transition: 0.3s; font-family: var(--mono); }
+        .rdct::after { content: attr(data-text); position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: #333; }
+        .rdct:hover { background: var(--gold-dim); color: var(--gold); }
+        .rdct:hover::after { display: none; }
+
+        .note-line { padding: 14px 28px; border-top: 1px solid var(--border); font-size: 0.68rem; color: var(--text-dim); font-family: var(--mono); font-style: italic; }
+
+        .page-footer { display: flex; justify-content: space-between; padding-top: 32px; border-top: 1px solid var(--border); font-size: 0.48rem; color: var(--text-dim); }
+        .page-footer a { color: var(--text-dim); text-decoration: none; border: 1px solid var(--border); padding: 6px 16px; }
+        .page-footer a:hover { border-color: var(--gold); color: var(--gold); }
+
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.2); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+    </style>
 </head>
 <body>
 
-    <div id="boot-screen">
-        <div class="boot-text">DECRYPTING MILITARY ARCHIVES...</div>
-        <div class="progress-bar"><div class="progress-fill" style="background: var(--warning);"></div></div>
-        <div style="margin-top: 10px; font-size: 0.8rem; color: #555;">TARGET: AGENT FENRIR // SOURCE: DEPT. DES OPÉRATIONS SPÉCIALES</div>
+<div class="scan"></div>
+
+<div id="boot">
+    <div class="boot-ref">SAS // FENRIR</div>
+    <div class="boot-progress"><div class="boot-fill"></div></div>
+    <div class="boot-label" id="boot-label">DECRYPTING MILITARY ARCHIVES...</div>
+</div>
+
+<nav class="topbar">
+    <div class="tb-left">
+        <div class="tb-logo">SAS</div>
+        <div class="tb-sep"></div>
+        <div class="tb-ref">DOSSIER FENRIR // STATUT: DÉCÉDÉ (ANNULÉ) // DEPT. OPÉRATIONS SPÉCIALES</div>
+    </div>
+    <a href="/database.html" class="tb-back">← RETOUR</a>
+</nav>
+
+<section class="hero">
+    <div class="hero-tape"></div>
+    <div class="hero-photo-col">
+        <div class="photo-redacted">
+            <div class="photo-redacted-icon">☠</div>
+            <div class="photo-redacted-text">[CORPS NON RÉCUPÉRÉ]<br>IMAGE REDACTED<br>NIVEAU OMEGA REQUIS</div>
+        </div>
+        <div class="photo-data">
+            <div class="data-line">ID // FENRIR</div>
+            <div class="data-line">SPEC // TERRAIN</div>
+            <div class="data-line blink">STATUS // ??? ●</div>
+        </div>
+    </div>
+    <div class="hero-text-col">
+        <div class="hero-classified">DOSSIER CLASSIFIÉ — NIVEAU OMEGA — STATUT ANNULÉ</div>
+        <div class="hero-surname">VEGA</div>
+        <div class="hero-given">Santoro // Fenrir</div>
+        <div class="hero-desc">
+            Déclaré MIA puis KIA lors d'une opération spéciale.
+            Réapparu plusieurs années plus tard — enquête reclassée secret défense.
+            Ce qui est revenu n'est plus tout à fait le même homme.
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat"><div class="hs-label">CALLSIGN</div><div class="hs-value cyan">FENRIR</div></div>
+            <div class="hero-stat"><div class="hs-label">MÉMOIRE</div><div class="hs-value red">ALTÉRÉE</div></div>
+            <div class="hero-stat"><div class="hs-label">CLEARANCE</div><div class="hs-value red">OMEGA</div></div>
+            <div class="hero-stat"><div class="hs-label">ORIGINE</div><div class="hs-value">CLASSIFIÉ</div></div>
+            <div class="hero-stat"><div class="hs-label">RÔLE</div><div class="hs-value">TERRAIN</div></div>
+            <div class="hero-stat"><div class="hs-label">STATUT</div><div class="hs-value red">● ANNULÉ</div></div>
+        </div>
+    </div>
+</section>
+
+<div class="body">
+
+    <div class="sec">
+        <div class="sec-header">
+            <div class="sec-n">01</div>
+            <div class="sec-title">ÉVALUATION INTERNE</div>
+            <div class="sec-line"></div>
+        </div>
+        <div class="block">
+            <div class="grid-2">
+                <div class="grid-cell"><div class="cell-label">MÉMOIRE</div><div class="cell-value red">PARTIELLEMENT ALTÉRÉE</div></div>
+                <div class="grid-cell"><div class="cell-label">ÉTAT PHYSIQUE</div><div class="cell-value gold">VIABLE — CAPACITÉS INTACTES VOIRE AMÉLIORÉES</div></div>
+                <div class="grid-cell"><div class="cell-label">SURVEILLANCE</div><div class="cell-value"><span class="rdct" data-text="ACTIF — INDIRECT">CLASSIFIÉ</span></div></div>
+                <div class="grid-cell"><div class="cell-label">STATUT MILITAIRE</div><div class="cell-value red">DÉCÉDÉ (STATUT ANNULÉ)</div></div>
+            </div>
+        </div>
     </div>
 
-    <div class="terminal-wrapper">
-        <main class="terminal">
-            
-            <header class="header-strip" style="border-bottom-color: var(--warning);">
-                <div>
-                    <h1>DOSSIER :: <span>VEGA</span></h1>
-                    <div style="color: var(--warning); font-size: 0.9rem; letter-spacing: 3px;">SAN ANDREAS SECURITY // AGENT</div>
+    <div class="sec">
+        <div class="sec-header">
+            <div class="sec-n">02</div>
+            <div class="sec-title">PROFIL PSYCHOLOGIQUE</div>
+            <div class="sec-line"></div>
+        </div>
+        <div class="block">
+            <div class="trait-block">
+                <div class="trait-row">
+                    <span class="trait-sign pos">+</span>
+                    <span><span class="rdct" data-text="EXCELLENT COMBAT RAPPROCHÉ">COMPÉTENCES TERRAIN</span> — Infiltration efficace. Méticuleux. Froid.</span>
                 </div>
-                <div class="meta-data">
-                    <div>SRC: CONFIDENTIEL DÉFENSE</div>
-                    <div>REQ ID: <span class="blink">_FENRIR</span></div>
+                <div class="trait-row">
+                    <span class="trait-sign neg">−</span>
+                    <span><span class="rdct" data-text="TROUBLE DISSOCIATIF — PTSD">INSTABILITÉ</span> — Impulsif. Brutal sous pression.</span>
                 </div>
-            </header>
-
-            <section class="hero-section">
-                <div class="id-card-container">
-                    <div class="id-card" id="card">
-                        <div class="holo-overlay"></div>
-                        
-                        <div class="card-header">
-                            <div class="card-logo-text">SAS</div>
-                            <div class="security-level" style="background: var(--warning); color: #000;">NIVEAU OMEGA</div>
-                        </div>
-            
-                        <div class="card-body">
-                            
-                            <div class="photo-box" style="border-color: var(--secondary); display: flex; align-items: center; justify-content: center; background: #111;">
-                                <div style="color: var(--danger); font-size: 0.8rem; font-family: var(--font-code); text-align: center; border: 1px dashed var(--danger); padding: 10px;">
-                                    [CORPS NON RÉCUPÉRÉ]<br><br>IMAGE REDACTED
-                                </div>
-                            </div>
-                            
-                            <div class="agent-info">
-                                <div class="card-label">NOM COMPLET</div>
-                                <div class="card-value">SANTORO VEGA</div>
-                                
-                                <div class="card-label">ALIAS</div>
-                                <div class="card-value" style="color: var(--warning);">FENRIR</div>
-
-                                <div class="card-label">STATUT MILITAIRE</div>
-                                <div class="card-code">DÉCÉDÉ (STATUT ANNULÉ)</div>
-                            </div>
-                        </div>
-            
-                        <div class="card-footer">
-                            <div class="barcode" style="font-family: 'Libre Barcode 128 Text', cursive;">8132264497</div>
-                            <div class="chip" style="background: linear-gradient(135deg, #b8860b, #ffd700);"></div>
-                        </div>
-                    </div>
+                <div class="trait-row">
+                    <span class="trait-sign warn">!</span>
+                    <span><span class="rdct" data-text="DÉCLENCHEURS INCONNUS — OBÉISSANCE SÉLECTIVE">RISQUES</span> — Loyauté conditionnelle. Réponses imprévisibles.</span>
                 </div>
-            </section>
-
-            <section class="intel-grid">
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">ÉVALUATION INTERNE</span>
-                        <div class="audio-viz">
-                            <div class="bar" style="animation-delay:0s; background: var(--warning);"></div>
-                            <div class="bar" style="animation-delay:0.1s; background: var(--warning);"></div>
-                            <div class="bar" style="animation-delay:0.2s; background: var(--warning);"></div>
-                            <div class="bar" style="animation-delay:0.3s; background: var(--warning);"></div>
-                        </div>
-                    </div>
-                    <div class="log-entry">
-                        <span class="label">MÉMOIRE:</span><br>
-                        <span>PARTIELLEMENT ALTÉRÉE</span>
-                    </div>
-                    <div class="log-entry">
-                        <span class="label">ÉTAT PHYSIQUE:</span><br>
-                        <span>VIABLE (CAPACITÉS INTACTES VOIRE AMÉLIORÉES)</span>
-                    </div>
-                    <div class="log-entry">
-                        <span class="label">NIVEAU DE SURVEILLANCE:</span><br>
-                        <span class="redacted text-warning" data-real="ACTIF - SURVEILLANCE INDIRECTE" data-scramble="UNKOWN STATUS"></span>
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">PROFIL PSYCHOLOGIQUE</span>
-                        <span style="color:var(--danger); font-size:0.7rem;">INSTABLE</span>
-                    </div>
-                    
-                    <div class="log-entry">
-                         <span class="label">QUALITÉS OPÉRATIONNELLES:</span><br>
-                         <span style="color: var(--secondary)">
-                             <span class="redacted" data-real="- EXCELLENT COMBAT RAPPROCHÉ - INFILTRATION EFFICACE - FROID - MÉTICULEUX" data-scramble="ENCRYPTED_DATA_#99_ACCESS_RESTRICTED"></span>
-                         </span>
-                    </div>
-
-                    <div class="log-entry">
-                         <span class="label">DÉFAUTS (LIABILITIES):</span><br>
-                         <span style="color: var(--danger)">[!] 
-                             <span class="redacted" style="color:var(--danger)" data-real="- TROUBLE DISSOCIATIF IDENTITÉ - PTSD - IMPULSIF - BRUTAL" data-scramble="SYSTEM_ERROR_X44_CORRUPTED_MIND"></span>
-                         </span>
-                    </div>
-
-                    <div class="log-entry">
-                        <span class="label">RISQUES IDENTIFIÉS:</span><br>
-                        <span style="color: var(--warning)">[!] 
-                            <span class="redacted" style="color:var(--warning)" data-real="- DÉCLENCHEURS INCONNUS - OBÉISSANCE SÉLECTIVE" data-scramble="SYSTEM_ERROR_X99_LOYALTY_UNKNOWN"></span>
-                        </span>
-                   </div>
-
-                    <div style="margin-top: 15px; font-size: 0.75rem; color: #666; border-top: 1px dashed #444; padding-top: 10px;">
-                        // NOTE INTERNE : "Santoro est mort sur le terrain. Ce qui est revenu... n'est plus tout à fait le même homme."
-                    </div>
-                </div>
-            </section>
-
-            <section class="logs-section" style="margin-top: 1.5rem;">
-                <div class="panel" style="border-color: var(--dim);">
-                    <div class="panel-header">
-                        <span class="panel-title">HISTORIQUE MILITAIRE & TRANSFERT</span>
-                        <span style="font-family: var(--font-code); font-size: 0.7rem; color: #888;">STATUT : CLASSIFIÉ</span>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr; gap: 10px; font-family: var(--font-code); font-size: 0.8rem; color: #aaa;">
-                        <p>
-                            SUJET: ANCIEN MEMBRE D'UNE UNITÉ SPÉCIALISÉE ENGAGÉE DANS DES OPÉRATIONS EXTÉRIEURES À HAUT RISQUE.
-                        </p>
-                        <div class="log-entry" style="border-left-color: var(--dim);">
-                            <span class="label">MISSION CLASSIFIÉE (PASSÉ):</span><br>
-                            A assuré la couverture de son unité lors d'un repli sous feu ennemi. Déclaré MIA puis KIA.
-                        </div>
-                        <div class="log-entry" style="border-left-color: var(--dim);">
-                            <span class="label">RÉAPPARITION:</span><br>
-                            <span class="redacted" data-real="RÉAPPARU APRÈS PLUSIEURS ANNÉES. ENQUÊTE RECLASSÉE SECRET DÉFENSE." data-scramble="INCIDENT #44921-B / UNKNOWN TIMELINE"></span>
-                        </div>
-                        <div class="log-entry" style="border-left-color: var(--warning);">
-                            <span class="label">RÉASSIGNATION SAS:</span><br>
-                            Sortie administrative contrôlée. Transféré à San Andreas Security pour éviter la fuite d'informations et exploiter ses compétences en milieu contrôlé.
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <footer class="footer">
-                <div>SECURE TERMINAL V.4.0.2 // USR: COMMANDEMENT</div>
-                <div>
-                    <a href="/database.html" class="text-secondary" style="text-decoration: none;">[ REVENIR AU DOSSIER MAÎTRE ]</a>
-                </div>
-            </footer>
-
-        </main>
+            </div>
+            <div class="note-line">// NOTE INTERNE : "Santoro est mort sur le terrain. Ce qui est revenu... n'est plus tout à fait le même homme."</div>
+        </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            
-           
-            const bootScreen = document.getElementById('boot-screen');
-            const bootText = document.querySelector('.boot-text');
-            
-            setTimeout(() => { bootText.textContent = "HANDSHAKE WITH COMMAND SERVER..."; }, 800);
-            setTimeout(() => { bootText.textContent = "CONNECTION ESTABLISHED."; }, 1800);
-            setTimeout(() => {
-                bootScreen.style.opacity = '0';
-                setTimeout(() => bootScreen.remove(), 1000);
-            }, 2500);
+    <div class="sec">
+        <div class="sec-header">
+            <div class="sec-n">03</div>
+            <div class="sec-title">HISTORIQUE MILITAIRE</div>
+            <div class="sec-line"></div>
+        </div>
+        <div class="block">
+            <div class="tl-item">
+                <div class="tl-year">PASSÉ</div>
+                <div class="tl-content">
+                    <div class="tl-event">UNITÉ SPÉCIALISÉE</div>
+                    <div class="tl-desc">Ancien membre d'une unité engagée dans des opérations extérieures à haut risque. A assuré la couverture de son unité lors d'un repli sous feu ennemi.</div>
+                </div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-year">INCIDENT</div>
+                <div class="tl-content">
+                    <div class="tl-event">DÉCLARÉ MIA / KIA</div>
+                    <div class="tl-desc">Classifié MIA suite à une mission. Statut rapidement mis à jour en KIA. Dossier clos.</div>
+                </div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-year">???</div>
+                <div class="tl-content">
+                    <div class="tl-event">RÉAPPARITION</div>
+                    <div class="tl-desc"><span class="rdct" data-text="RÉAPPARU APRÈS PLUSIEURS ANNÉES. ENQUÊTE RECLASSÉE SECRET DÉFENSE.">INCIDENT #44921-B // TIMELINE INCONNUE</span></div>
+                </div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-year">ACTUEL</div>
+                <div class="tl-content">
+                    <div class="tl-event">RÉASSIGNATION SAS</div>
+                    <div class="tl-desc">Sortie administrative contrôlée. Transféré à San Andreas Security pour éviter la fuite d'informations et exploiter ses compétences en milieu contrôlé.</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-           
-            const card = document.getElementById('card');
-            const cardContainer = document.querySelector('.id-card-container');
+    <div class="page-footer">
+        <span>SAS SECURE TERMINAL V.4.0.2 // FENRIR // COMMANDEMENT</span>
+        <a href="/database.html">← DOSSIER MAÎTRE</a>
+    </div>
+</div>
 
-            cardContainer.addEventListener('mousemove', (e) => {
-                const rect = cardContainer.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                const rotateX = ((y - centerY) / centerY) * -10; 
-                const rotateY = ((x - centerX) / centerX) * 10;
-                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-            });
-            cardContainer.addEventListener('mouseleave', () => {
-                card.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
-            });
+<script>
+const msgs = ["DECRYPTING MILITARY ARCHIVES...", "HANDSHAKE WITH COMMAND SERVER...", "CONNECTION ESTABLISHED."];
+let idx = 0;
+const lbl = document.getElementById('boot-label');
+const boot = document.getElementById('boot');
+function tick() {
+    lbl.textContent = msgs[idx++];
+    if (idx < msgs.length) setTimeout(tick, 700);
+    else {
+        setTimeout(() => {
+            boot.style.opacity = '0';
+            boot.style.pointerEvents = 'none';
+            setTimeout(() => boot.remove(), 700);
+        }, 600);
+    }
+}
+setTimeout(tick, 300);
+</script>
 
-        
-            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
-            document.querySelectorAll('.redacted').forEach(element => {
-                element.textContent = element.getAttribute('data-scramble');
-                element.onmouseover = event => {
-                    let iterations = 0;
-                    const targetText = event.target.getAttribute('data-real');
-                    if(!targetText) return;
-                    const interval = setInterval(() => {
-                        event.target.textContent = targetText.split("").map((letter, index) => {
-                            if(index < iterations) return targetText[index];
-                            return letters[Math.floor(Math.random() * 43)]
-                        }).join("");
-                        if(iterations >= targetText.length) clearInterval(interval);
-                        iterations += 1 / 2;
-                    }, 30);
-                }
-                element.onmouseleave = event => {
-                   element.textContent = element.getAttribute('data-scramble');
-                }
-            });
-        });
-    </script>
+<script>
+(function() {
+    const AUDIO_SRC = '/assets/ambiance.mp3';
+    let audio = null;
+    function initAudio() {
+        audio = new Audio(AUDIO_SRC);
+        audio.loop = true; audio.volume = 0; audio.preload = 'auto';
+        let vol = 0; const target = 0.07; const step = target / 160;
+        const fadeIn = setInterval(() => {
+            vol = Math.min(vol + step, target);
+            if (audio) audio.volume = vol;
+            if (vol >= target) clearInterval(fadeIn);
+        }, 50);
+    }
+    setTimeout(initAudio, 3500);
+    document.addEventListener('visibilitychange', () => {
+        if (!audio) return;
+        if (document.hidden) audio.pause(); else audio.play();
+    });
+})();
+</script>
+
 </body>
 </html>
